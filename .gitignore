@@ -1,0 +1,43 @@
+# Backend
+backend/target/
+backend/*.class
+backend/*.log
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/.vscode/
+backend/.idea/
+backend/*.iml
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+frontend/vite.config.js.timestamp-*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+postgres_data/
+
+# Misc
+*.log
+*.pid

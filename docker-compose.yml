@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: futuratecno-postgres
+    environment:
+      POSTGRES_USER: futuratecno
+      POSTGRES_PASSWORD: futuratecno
+      POSTGRES_DB: futuratecno_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U futuratecno"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: futuratecno-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/futuratecno_db
+      SPRING_DATASOURCE_USERNAME: futuratecno
+      SPRING_DATASOURCE_PASSWORD: futuratecno
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      CUTOFF_HOUR: 14
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: futuratecno-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://backend:8080
+
+volumes:
+  postgres_data:
