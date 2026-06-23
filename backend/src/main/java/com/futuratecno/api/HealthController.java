@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/health")
+@RequestMapping("/api/health")
 public class HealthController {
     @GetMapping
     public ResponseEntity<Map<String, String>> health() {

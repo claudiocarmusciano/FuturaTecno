@@ -15,7 +15,7 @@ function PublicLayout() {
     <div className="public-layout">
       <header className="public-header">
         <div className="header-container">
-          <Link to="/" className="logo">FuturaTecno</Link>
+          <Link to="/" className="logo"><img src="/logo.png" alt="FuturaTecno" style={{ height: '34px', width: 'auto', display: 'block' }} /></Link>
           <nav className="public-nav">
             <Link to="/">Catálogo</Link>
             {isAdmin && <Link to="/admin">Panel Admin</Link>}

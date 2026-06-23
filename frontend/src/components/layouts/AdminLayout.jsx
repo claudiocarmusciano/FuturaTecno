@@ -17,7 +17,7 @@ function AdminLayout() {
   return (
     <div className="app-container">
       <aside className="sidebar">
-        <h2>FuturaTecno</h2>
+        <Link to="/admin"><img src="/logo.png" alt="FuturaTecno" className="logo-admin" /></Link>
         <h3>Panel Admin</h3>
         <nav>
           <Link to="/admin" className={`nav-link ${isActive('/admin')}`}>Dashboard</Link>
@@ -29,12 +29,9 @@ function AdminLayout() {
           <Link to="/" className="nav-link">Ver Catálogo</Link>
         </nav>
 
-        <div style={{ marginTop: '30px', paddingTop: '16px', borderTop: '1px solid #555' }}>
-          <p style={{ color: '#aaa', fontSize: '12px', marginBottom: '8px', wordBreak: 'break-all' }}>{user?.email}</p>
-          <button
-            onClick={handleLogout}
-            style={{ width: '100%', padding: '8px', background: '#444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
-          >
+        <div style={{ marginTop: '30px', paddingTop: '16px', borderTop: '1px solid var(--color-border)' }}>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '10px', wordBreak: 'break-all' }}>{user?.email}</p>
+          <button onClick={handleLogout} className="btn btn-secondary" style={{ width: '100%', fontSize: '13px', padding: '9px' }}>
             Cerrar sesión
           </button>
         </div>

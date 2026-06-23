@@ -5,10 +5,11 @@
   --color-text: #1d1d1f;
   --color-text-muted: #86868b;
   --color-border: #e8e8ed;
-  --color-primary: #1d1d1f;       /* botones negros, estilo premium */
-  --color-primary-dark: #000000;
-  --color-accent: #0071e3;        /* azul Apple para links */
-  --color-accent-light: #f5f5f7;
+  --color-primary: #0a8ae0;       /* azul de marca FuturaTecno */
+  --color-primary-dark: #0a73c4;
+  --color-accent: #0a8ae0;
+  --color-accent-light: #e8f4fe;
+  --gradient-marca: linear-gradient(135deg, #16a0f0 0%, #0a73db 100%);
   --color-price: #6e6e73;
   --color-danger: #d70015;
   --radius: 16px;
@@ -43,15 +44,16 @@ a { color: var(--color-accent); text-decoration: none; }
 
 .sidebar {
   width: 250px;
-  background: #1d1d1f;
-  color: #f5f5f7;
-  padding: 26px 16px;
+  background: #ffffff;
+  color: var(--color-text);
+  border-right: 1px solid var(--color-border);
+  padding: 22px 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
-.sidebar h2 { color: #fff; font-size: 21px; margin-bottom: 2px; font-weight: 600; }
-.sidebar h3 { color: #86868b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 22px; font-weight: 600; }
+.sidebar .logo-admin { width: 150px; height: auto; margin: 4px 4px 8px; }
+.sidebar h3 { color: var(--color-text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; font-weight: 600; }
 
 .main-content {
   flex: 1;
@@ -64,15 +66,15 @@ a { color: var(--color-accent); text-decoration: none; }
 .nav-link {
   display: block;
   padding: 10px 14px;
-  color: #c7c7cc;
+  color: #424245;
   border-radius: var(--radius-sm);
   margin-bottom: 3px;
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.15s, color 0.15s;
 }
-.nav-link:hover { background-color: #2c2c2e; color: #fff; }
-.nav-link.active { background-color: #fff; color: #1d1d1f; }
+.nav-link:hover { background-color: var(--color-accent-light); color: var(--color-primary); }
+.nav-link.active { background-color: var(--color-primary); color: #fff; }
 
 /* ===== Detalle de producto ===== */
 .detalle-grid { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 48px; align-items: start; }
@@ -119,8 +121,8 @@ a { color: var(--color-accent); text-decoration: none; }
   transition: opacity 0.15s, background-color 0.15s, transform 0.05s;
 }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background-color: var(--color-primary); color: #fff; }
-.btn-primary:hover { background-color: var(--color-primary-dark); }
+.btn-primary { background: var(--gradient-marca); color: #fff; }
+.btn-primary:hover { filter: brightness(0.94); }
 .btn-secondary { background-color: var(--color-accent-light); color: #1d1d1f; }
 .btn-secondary:hover { background-color: #ececef; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -180,12 +182,12 @@ a { color: var(--color-accent); text-decoration: none; }
   padding: 6px 12px;
   border-radius: 8px;
   margin-right: 6px;
-  color: #0071e3;                 /* azul suave (Editar) */
-  background: #eef5ff;
+  color: var(--color-primary);    /* azul de marca (Editar) */
+  background: var(--color-accent-light);
   transition: background 0.15s, color 0.15s;
 }
 .btn-accion svg { width: 14px; height: 14px; }
-.btn-accion:hover { background: #dcebff; }
+.btn-accion:hover { background: #d3ebfd; }
 .btn-accion.danger { color: #d70015; background: #fff1f0; }   /* rojo apagado (Eliminar) */
 .btn-accion.danger:hover { background: #ffe1de; }
 

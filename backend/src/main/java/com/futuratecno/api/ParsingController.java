@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/admin/parsing")
+@RequestMapping("/api/admin/parsing")
 public class ParsingController {
 
     private final ParsingService parsingService;

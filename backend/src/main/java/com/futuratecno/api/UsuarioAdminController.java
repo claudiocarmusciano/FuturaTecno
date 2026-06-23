@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/admin/usuarios")
+@RequestMapping("/api/admin/usuarios")
 @CrossOrigin(origins = "*")
 public class UsuarioAdminController {
 

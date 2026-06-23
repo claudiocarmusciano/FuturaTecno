@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/eta")
+@RequestMapping("/api/eta")
 @CrossOrigin(origins = "*")
 public class EtaController {
 

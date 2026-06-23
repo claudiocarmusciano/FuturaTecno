@@ -32,13 +32,14 @@ function RegisterPage() {
   return (
     <div style={{ maxWidth: '400px', margin: '60px auto', padding: '0 20px' }}>
       <div className="card">
-        <h1 style={{ fontSize: '24px', marginBottom: '4px' }}>Crear cuenta</h1>
-        <p style={{ color: '#888', fontSize: '13px', marginBottom: '20px' }}>
-          Registrate para recibir novedades y ofertas de FuturaTecno.
+        <img src="/logo.png" alt="FuturaTecno" style={{ height: '38px', width: 'auto', display: 'block', margin: '0 auto 22px' }} />
+        <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Crear cuenta</h1>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginBottom: '24px', textAlign: 'center' }}>
+          Registrate para recibir novedades y ofertas.
         </p>
 
         {error && (
-          <div style={{ background: '#f8d7da', color: '#721c24', padding: '10px', borderRadius: '6px', marginBottom: '16px', fontSize: '14px' }}>
+          <div style={{ background: '#fff1f0', color: '#d70015', border: '1px solid #ffd9d6', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
             {error}
           </div>
         )}
