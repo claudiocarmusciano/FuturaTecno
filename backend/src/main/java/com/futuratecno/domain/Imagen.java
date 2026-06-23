@@ -1,17 +1,9 @@
 package com.futuratecno.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "imagenes")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class Imagen extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "variante_id", nullable = false)
@@ -25,4 +17,36 @@ public class Imagen extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    public Variante getVariante() {
+        return variante;
+    }
+
+    public void setVariante(Variante variante) {
+        this.variante = variante;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public Integer getOrden() {
+        return orden;
+    }
+
+    public void setOrden(Integer orden) {
+        this.orden = orden;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
 }

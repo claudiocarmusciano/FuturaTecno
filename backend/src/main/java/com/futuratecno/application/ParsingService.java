@@ -54,7 +54,16 @@ public class ParsingService {
     private String construirPrompt(String texto) {
         return """
                 Extrae los productos de esta lista de precios de WhatsApp.
-                Para cada línea identifica: marca, modelo, especificaciones opcionales (RAM+almacenamiento), precio y moneda.
+                Para cada línea identifica: categoria, marca, modelo, especificaciones opcionales (RAM+almacenamiento), precio y moneda.
+
+                REGLAS PARA LA CATEGORIA:
+                - La lista puede tener títulos o encabezados de sección (ej: "LISTADO NOTEBOOKS GAMER", "NOTEBOOKS REACONDICIONADAS", "CELULARES", "TABLETS").
+                - Cada producto pertenece al último título que apareció ANTES de él en el texto.
+                - Convertí el título a una etiqueta corta y legible en singular, capitalizada. Ejemplos:
+                  "LISTADO NOTEBOOKS GAMER" -> "Notebook gamer"
+                  "NOTEBOOKS REACONDICIONADAS" -> "Notebook reacondicionada"
+                  "CELULARES" -> "Celular"
+                - Si no hay ningún título de sección, usá null en categoria.
 
                 REGLAS PARA LA MONEDA:
                 - Si el precio dice "USD", "U$S", "U$D", "dolares" o similar, la moneda es "USD".
@@ -63,7 +72,7 @@ public class ParsingService {
                 - El campo "precio" debe ser SOLO el número (sin símbolos ni puntos de miles), ej: 208784 o 890.
 
                 Devuelve EXACTAMENTE un JSON válido SIN backticks, SIN explicaciones, SIN texto adicional. Responde SOLO con el JSON:
-                {"productos": [{"marca": "...", "modelo": "...", "especificaciones": "...", "precio": 123.45, "moneda": "ARS"}]}
+                {"productos": [{"categoria": "...", "marca": "...", "modelo": "...", "especificaciones": "...", "precio": 123.45, "moneda": "ARS"}]}
 
                 Si no puedes extraer algún campo, úsalo como null.
 
@@ -132,6 +141,7 @@ public class ParsingService {
             for (JsonNode prodNode : productosNode) {
                 ProductoParseado producto = new ProductoParseado();
 
+                producto.setCategoria(obtenerString(prodNode, "categoria"));
                 producto.setMarca(obtenerString(prodNode, "marca"));
                 producto.setModelo(obtenerString(prodNode, "modelo"));
                 producto.setEspecificaciones(obtenerString(prodNode, "especificaciones"));

@@ -3,6 +3,7 @@ package com.futuratecno.api.dto;
 import java.math.BigDecimal;
 
 public class ProductoParseado {
+    private String categoria;
     private String marca;
     private String modelo;
     private String especificaciones;
@@ -23,6 +24,14 @@ public class ProductoParseado {
         this.monedaOrigen = monedaOrigen;
         this.estado = estado;
         this.mensaje = mensaje;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 
     public String getMarca() {

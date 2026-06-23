@@ -7,18 +7,18 @@ public class ProveedorDTO {
     private Long id;
     private String nombre;
     private BigDecimal margenPorcentaje;
-    private BigDecimal costoFleteUsd;
+    private BigDecimal fletePorcentaje;
     private Boolean activo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public ProveedorDTO() {}
 
-    public ProveedorDTO(Long id, String nombre, BigDecimal margenPorcentaje, BigDecimal costoFleteUsd, Boolean activo, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ProveedorDTO(Long id, String nombre, BigDecimal margenPorcentaje, BigDecimal fletePorcentaje, Boolean activo, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.nombre = nombre;
         this.margenPorcentaje = margenPorcentaje;
-        this.costoFleteUsd = costoFleteUsd;
+        this.fletePorcentaje = fletePorcentaje;
         this.activo = activo;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -48,12 +48,12 @@ public class ProveedorDTO {
         this.margenPorcentaje = margenPorcentaje;
     }
 
-    public BigDecimal getCostoFleteUsd() {
-        return costoFleteUsd;
+    public BigDecimal getFletePorcentaje() {
+        return fletePorcentaje;
     }
 
-    public void setCostoFleteUsd(BigDecimal costoFleteUsd) {
-        this.costoFleteUsd = costoFleteUsd;
+    public void setFletePorcentaje(BigDecimal fletePorcentaje) {
+        this.fletePorcentaje = fletePorcentaje;
     }
 
     public Boolean getActivo() {

@@ -21,8 +21,8 @@ public class Proveedor extends BaseEntity {
     @Column(name = "margen_porcentaje", nullable = false)
     private BigDecimal margenPorcentaje;
 
-    @Column(name = "costo_flete_usd", nullable = false)
-    private BigDecimal costoFleteUsd;
+    @Column(name = "flete_porcentaje", nullable = false)
+    private BigDecimal fletePorcentaje;
 
     @OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL)
     private List<Producto> productos;
@@ -46,12 +46,12 @@ public class Proveedor extends BaseEntity {
         this.margenPorcentaje = margenPorcentaje;
     }
 
-    public BigDecimal getCostoFleteUsd() {
-        return costoFleteUsd;
+    public BigDecimal getFletePorcentaje() {
+        return fletePorcentaje;
     }
 
-    public void setCostoFleteUsd(BigDecimal costoFleteUsd) {
-        this.costoFleteUsd = costoFleteUsd;
+    public void setFletePorcentaje(BigDecimal fletePorcentaje) {
+        this.fletePorcentaje = fletePorcentaje;
     }
 
     public List<Producto> getProductos() {

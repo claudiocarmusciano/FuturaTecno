@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: futuratecno
   datasource:
@@ -27,6 +29,25 @@ anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
   model: ${ANTHROPIC_MODEL:claude-haiku-4-5-20251001}
 
+icecat:
+  username: ${ICECAT_USERNAME:}
+  api-token: ${ICECAT_API_TOKEN:}
+  content-token: ${ICECAT_CONTENT_TOKEN:}
+  lang: ${ICECAT_LANG:ES}
+
+google:
+  search:
+    api-key: ${GOOGLE_API_KEY:}
+    cx: ${GOOGLE_CX:}
+
 app:
   cutoff-hour: ${CUTOFF_HOUR:14}
   image-storage-path: /app/static/images
+
+jwt:
+  secret: ${JWT_SECRET:cambia-este-secreto-por-uno-largo-y-aleatorio-de-32-chars-minimo!!}
+  expiration-ms: ${JWT_EXPIRATION_MS:604800000}
+
+admin:
+  email: ${ADMIN_EMAIL:admin@futuratecno.com}
+  password: ${ADMIN_PASSWORD:admin1234}

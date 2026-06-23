@@ -1,7 +1,16 @@
-import { Outlet, Link } from 'react-router-dom'
+import { Outlet, Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
 import './PublicLayout.css'
 
 function PublicLayout() {
+  const { user, isAdmin, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
   return (
     <div className="public-layout">
       <header className="public-header">
@@ -9,7 +18,18 @@ function PublicLayout() {
           <Link to="/" className="logo">FuturaTecno</Link>
           <nav className="public-nav">
             <Link to="/">Catálogo</Link>
-            <Link to="/admin">Panel Admin</Link>
+            {isAdmin && <Link to="/admin">Panel Admin</Link>}
+            {user ? (
+              <>
+                <span style={{ color: '#888', fontSize: '14px' }}>Hola, {user.nombre || user.email}</span>
+                <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>
+              </>
+            ) : (
+              <>
+                <Link to="/login">Ingresar</Link>
+                <Link to="/registro">Registrarse</Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
