@@ -196,7 +196,7 @@ function CatalogPage() {
       {filtrados.length === 0 ? (
         <div className="card"><p>No hay productos que coincidan con los filtros.</p></div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '20px' }}>
           {filtrados.map(p => (
             <Link key={p.id} to={`/producto/${p.id}`} className="producto-card">
               {p.imagenUrl ? (

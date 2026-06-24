@@ -109,7 +109,7 @@ function ProductosPage() {
             Proveedor: {editData.proveedor || '—'} (no editable)
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '18px' }}>
             <div>
               <label style={{ fontSize: '12px', color: '#555' }}>Categoría</label>
               <input style={inputStyle} value={editData.categoria || ''} onChange={e => setCampo('categoria', e.target.value)} />

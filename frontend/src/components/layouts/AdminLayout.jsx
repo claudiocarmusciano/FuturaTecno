@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import './AdminLayout.css'
@@ -6,6 +7,7 @@ function AdminLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const [menuAbierto, setMenuAbierto] = useState(false)
 
   const isActive = (path) => location.pathname === path ? 'active' : ''
 
@@ -14,12 +16,22 @@ function AdminLayout() {
     navigate('/login')
   }
 
+  const cerrarMenu = () => setMenuAbierto(false)
+
   return (
     <div className="app-container">
-      <aside className="sidebar">
-        <Link to="/admin"><img src="/logo.png?v=2" alt="FuturaTecno" className="logo-admin" /></Link>
+      {/* Barra superior (solo mobile) */}
+      <div className="admin-topbar">
+        <Link to="/admin" onClick={cerrarMenu}><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>
+        <button className="hamburger" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú">☰</button>
+      </div>
+
+      {menuAbierto && <div className="sidebar-backdrop" onClick={cerrarMenu} />}
+
+      <aside className={`sidebar${menuAbierto ? ' abierto' : ''}`}>
+        <Link to="/admin" onClick={cerrarMenu}><img src="/logo.png?v=2" alt="FuturaTecno" className="logo-admin" /></Link>
         <h3>Panel Admin</h3>
-        <nav>
+        <nav onClick={cerrarMenu}>
           <Link to="/admin" className={`nav-link ${isActive('/admin')}`}>Dashboard</Link>
           <Link to="/admin/proveedores" className={`nav-link ${isActive('/admin/proveedores')}`}>Proveedores</Link>
           <Link to="/admin/parsing" className={`nav-link ${isActive('/admin/parsing')}`}>Parsing IA</Link>
