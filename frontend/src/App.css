@@ -64,7 +64,7 @@ a { color: var(--color-accent); text-decoration: none; }
   display: flex;
   flex-direction: column;
 }
-.sidebar .logo-admin { width: 158px; height: auto; margin: 4px 4px 14px; }
+.sidebar .logo-admin { width: 100%; max-width: 210px; height: auto; margin: 6px 0 16px; }
 .sidebar h3 { color: #9a9d92; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; font-weight: 600; }
 
 .main-content {
