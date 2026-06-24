@@ -92,20 +92,20 @@ public class AnthropicImageService {
         Map<String, Object> tool = new HashMap<>();
         tool.put("type", "web_search_20250305");
         tool.put("name", "web_search");
-        tool.put("max_uses", 1); // 1 sola búsqueda por producto: capea el costo en ~US$0,01
+        tool.put("max_uses", 2); // hasta 2 búsquedas por producto: si la 1ª no sirve, refina (~US$0,02)
 
         Map<String, Object> message = new HashMap<>();
         message.put("role", "user");
         message.put("content",
                 "Necesito la URL de la FICHA ESPECÍFICA de este producto para extraer su foto: " + consulta + " . "
                 + "El texto puede incluir especificaciones técnicas (CPU, RAM, almacenamiento, color, capacidad): "
-                + "usalas para encontrar la publicación EXACTA de ese modelo y configuración. "
-                + "Buscá PRIORITARIAMENTE en MercadoLibre Argentina (sitio mercadolibre.com.ar): una publicación del "
-                + "producto exacto (formato https://articulo.mercadolibre.com.ar/MLA-... o "
-                + "https://www.mercadolibre.com.ar/...-/p/MLA...). "
-                + "Solo si no existe en MercadoLibre, usá la ficha oficial del producto en el sitio de la marca. "
-                + "La URL debe ser la página de UN producto puntual (no una categoría, búsqueda, home ni listado). "
-                + "NO uses Amazon ni eBay. Respondé SOLO con la URL, sin ningún otro texto.");
+                + "usalas para identificar el modelo y la configuración EXACTOS. "
+                + "Devolvé la URL de la página de UN producto puntual (no una categoría, búsqueda, home ni listado). "
+                + "Preferí en este orden: (1) la ficha OFICIAL del producto en el sitio de la marca; "
+                + "(2) una tienda argentina que muestre la ficha (por ejemplo Fravega, Cetrogar, Megatone, "
+                + "Compra Gamer, Venex, Naldo, Musimundo, Garbarino). "
+                + "IMPORTANTE: NO uses MercadoLibre, Amazon ni eBay (bloquean la lectura automática y no sirven). "
+                + "Respondé SOLO con la URL, sin ningún otro texto.");
 
         Map<String, Object> body = new HashMap<>();
         body.put("model", model);

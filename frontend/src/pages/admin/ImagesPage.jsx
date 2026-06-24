@@ -102,12 +102,16 @@ function ImagesPage() {
               {productos.map(p => (
                 <tr key={p.id}>
                   <td>
-                    {p.imagenUrl ? (
-                      <img src={p.imagenUrl} alt="" style={{ width: '50px', height: '50px', objectFit: 'contain' }}
-                           onError={(e) => { e.target.style.opacity = '0.2' }} />
-                    ) : (
-                      <span style={{ color: '#bbb', fontSize: '12px' }}>—</span>
-                    )}
+                    {(() => {
+                      const preview = edits[p.id] !== undefined ? edits[p.id] : p.imagenUrl
+                      return preview ? (
+                        <img src={preview} alt="" style={{ width: '50px', height: '50px', objectFit: 'contain' }}
+                             onError={(e) => { e.target.style.opacity = '0.2' }}
+                             onLoad={(e) => { e.target.style.opacity = '1' }} />
+                      ) : (
+                        <span style={{ color: '#bbb', fontSize: '12px' }}>—</span>
+                      )
+                    })()}
                   </td>
                   <td>
                     {[p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')}
@@ -125,12 +129,12 @@ function ImagesPage() {
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <a
-                      href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent([p.categoria, p.marca, p.modelo].filter(Boolean).join(' '))}`}
+                      href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent([p.categoria, p.marca, p.modelo, (p.especificaciones || '').replace(/\//g, ' ')].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim())}`}
                       target="_blank"
                       rel="noreferrer"
                       className="btn btn-secondary"
                       style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', textDecoration: 'none', display: 'inline-block' }}
-                      title="Abrir Google Imágenes para este producto"
+                      title="Abrir Google Imágenes (incluye las especificaciones) — click derecho en la foto → Copiar dirección de imagen → pegar acá"
                     >🔍 Buscar</a>
                     <button
                       onClick={() => guardarUrl(p.id)}

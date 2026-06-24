@@ -9,6 +9,7 @@ public class ProductoAdminDTO {
     private String modelo;
     private String proveedor;
     private String imagenUrl;
+    private String especificaciones;   // de la primera variante (para búsqueda de imagen)
     private LocalDateTime ultimaActualizacion;
 
     public ProductoAdminDTO() {}
@@ -39,6 +40,9 @@ public class ProductoAdminDTO {
 
     public String getImagenUrl() { return imagenUrl; }
     public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
+
+    public String getEspecificaciones() { return especificaciones; }
+    public void setEspecificaciones(String especificaciones) { this.especificaciones = especificaciones; }
 
     public LocalDateTime getUltimaActualizacion() { return ultimaActualizacion; }
     public void setUltimaActualizacion(LocalDateTime ultimaActualizacion) { this.ultimaActualizacion = ultimaActualizacion; }

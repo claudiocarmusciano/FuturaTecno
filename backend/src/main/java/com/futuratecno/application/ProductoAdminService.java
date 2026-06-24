@@ -54,6 +54,9 @@ public class ProductoAdminService {
                             p.getModelo(),
                             p.getProveedor() != null ? p.getProveedor().getNombre() : null,
                             p.getImagenUrl());
+                    if (p.getVariantes() != null && !p.getVariantes().isEmpty()) {
+                        dto.setEspecificaciones(p.getVariantes().get(0).getEspecificaciones());
+                    }
                     dto.setUltimaActualizacion(calcularUltimaActualizacion(p));
                     return dto;
                 })
