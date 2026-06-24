@@ -33,8 +33,8 @@ function RegisterPage() {
     <div style={{ maxWidth: '400px', margin: '60px auto', padding: '0 20px' }}>
       <div className="card">
         <div style={{ textAlign: 'center', marginBottom: '26px' }}>
-          <span style={{ display: 'inline-block', background: '#16181d', borderRadius: '18px', padding: '20px 32px' }}>
-            <img src="/logo.png?v=2" alt="FuturaTecno" style={{ height: '58px', width: 'auto', display: 'block' }} />
+          <span style={{ display: 'inline-block', background: '#16181d', borderRadius: '16px', padding: '11px 16px' }}>
+            <img src="/logo.png?v=2" alt="FuturaTecno" style={{ height: '66px', width: 'auto', display: 'block' }} />
           </span>
         </div>
         <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Crear cuenta</h1>
