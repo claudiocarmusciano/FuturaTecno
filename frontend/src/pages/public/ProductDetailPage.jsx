@@ -42,7 +42,7 @@ function ProductDetailPage() {
   }, [])
 
   const volver = (
-    <Link to="/" style={{ color: '#007bff', textDecoration: 'none', fontSize: '14px' }}>← Volver al catálogo</Link>
+    <Link to="/" style={{ color: 'var(--color-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>← Volver al catálogo</Link>
   )
 
   if (cargando) return (<div>{volver}<div className="card" style={{ marginTop: '16px' }}><p>Cargando...</p></div></div>)

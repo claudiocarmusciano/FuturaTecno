@@ -90,7 +90,7 @@ function ProveedoresPage() {
         )
       })()}
 
-      <div className="card" style={editId ? { borderLeft: '4px solid #007bff' } : {}}>
+      <div className="card" style={editId ? { borderLeft: '4px solid var(--color-lime)' } : {}}>
         <h2>{editId ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">

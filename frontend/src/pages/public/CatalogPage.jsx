@@ -97,9 +97,9 @@ function CatalogPage() {
   const chip = (activo) => ({
     padding: '6px 14px',
     borderRadius: '999px',
-    border: '1px solid ' + (activo ? 'var(--color-primary)' : 'var(--color-border)'),
-    background: activo ? 'var(--color-primary)' : '#fff',
-    color: activo ? '#fff' : '#475569',
+    border: '1px solid ' + (activo ? 'var(--color-lime-dark)' : 'var(--color-border)'),
+    background: activo ? 'var(--color-lime)' : '#fff',
+    color: activo ? '#16181d' : '#475569',
     cursor: 'pointer',
     fontSize: '13px',
     fontWeight: activo ? 600 : 500,

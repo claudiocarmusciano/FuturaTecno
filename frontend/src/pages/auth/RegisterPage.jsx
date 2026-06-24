@@ -32,7 +32,11 @@ function RegisterPage() {
   return (
     <div style={{ maxWidth: '400px', margin: '60px auto', padding: '0 20px' }}>
       <div className="card">
-        <img src="/logo.png" alt="FuturaTecno" style={{ height: '38px', width: 'auto', display: 'block', margin: '0 auto 22px' }} />
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <span style={{ display: 'inline-block', background: '#16181d', borderRadius: '14px', padding: '14px 22px' }}>
+            <img src="/logo.png?v=2" alt="FuturaTecno" style={{ height: '32px', width: 'auto', display: 'block' }} />
+          </span>
+        </div>
         <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Crear cuenta</h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginBottom: '24px', textAlign: 'center' }}>
           Registrate para recibir novedades y ofertas.
@@ -63,7 +67,7 @@ function RegisterPage() {
         </form>
 
         <p style={{ fontSize: '14px', marginTop: '16px', textAlign: 'center' }}>
-          ¿Ya tenés cuenta? <Link to="/login" style={{ color: '#007bff' }}>Iniciá sesión</Link>
+          ¿Ya tenés cuenta? <Link to="/login" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Iniciá sesión</Link>
         </p>
         <p style={{ fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
           <Link to="/" style={{ color: '#888' }}>← Volver al catálogo</Link>

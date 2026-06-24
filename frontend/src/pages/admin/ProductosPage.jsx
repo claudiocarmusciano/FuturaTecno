@@ -102,7 +102,7 @@ function ProductosPage() {
         <div
           className="card"
           onClick={(e) => e.stopPropagation()}
-          style={{ borderLeft: '4px solid #007bff', maxWidth: '820px', width: '100%', marginTop: '30px', maxHeight: '88vh', overflowY: 'auto' }}
+          style={{ borderLeft: '4px solid var(--color-lime)', maxWidth: '820px', width: '100%', marginTop: '30px', maxHeight: '88vh', overflowY: 'auto' }}
         >
           <h2 style={{ marginBottom: '4px' }}>Editar producto</h2>
           <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>

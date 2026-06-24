@@ -15,13 +15,13 @@ function PublicLayout() {
     <div className="public-layout">
       <header className="public-header">
         <div className="header-container">
-          <Link to="/" className="logo"><img src="/logo.png" alt="FuturaTecno" style={{ height: '34px', width: 'auto', display: 'block' }} /></Link>
+          <Link to="/" className="logo"><img src="/logo.png?v=2" alt="FuturaTecno" style={{ height: '38px', width: 'auto', display: 'block' }} /></Link>
           <nav className="public-nav">
             <Link to="/">Catálogo</Link>
             {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>
-                <span style={{ color: '#888', fontSize: '14px' }}>Hola, {user.nombre || user.email}</span>
+                <span style={{ color: '#9a9d92', fontSize: '14px' }}>Hola, {user.nombre || user.email}</span>
                 <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>
               </>
             ) : (
