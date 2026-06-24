@@ -98,9 +98,12 @@ public class AnthropicImageService {
         message.put("role", "user");
         message.put("content",
                 "Necesito la URL de la FICHA ESPECÍFICA de este producto para extraer su foto: " + consulta + " . "
-                + "Preferí en este orden: (1) una publicación de MercadoLibre Argentina del producto exacto "
-                + "(formato https://articulo.mercadolibre.com.ar/MLA-... o https://www.mercadolibre.com.ar/...-/p/MLA...), "
-                + "(2) la ficha oficial del producto en el sitio de la marca. "
+                + "El texto puede incluir especificaciones técnicas (CPU, RAM, almacenamiento, color, capacidad): "
+                + "usalas para encontrar la publicación EXACTA de ese modelo y configuración. "
+                + "Buscá PRIORITARIAMENTE en MercadoLibre Argentina (sitio mercadolibre.com.ar): una publicación del "
+                + "producto exacto (formato https://articulo.mercadolibre.com.ar/MLA-... o "
+                + "https://www.mercadolibre.com.ar/...-/p/MLA...). "
+                + "Solo si no existe en MercadoLibre, usá la ficha oficial del producto en el sitio de la marca. "
                 + "La URL debe ser la página de UN producto puntual (no una categoría, búsqueda, home ni listado). "
                 + "NO uses Amazon ni eBay. Respondé SOLO con la URL, sin ningún otro texto.");
 

@@ -179,10 +179,22 @@ public class ProductoAdminService {
         int desdeIcecat = 0, desdeAnthropic = 0;
         for (Producto p : sinImagen) {
             String url = null;
+
+            // Especificaciones de la primera variante (CPU/RAM/SSD, color, capacidad, etc.):
+            // ayudan a encontrar la publicación EXACTA en MercadoLibre. Se limpian los separadores.
+            String especificaciones = "";
+            if (p.getVariantes() != null && !p.getVariantes().isEmpty()) {
+                String esp = p.getVariantes().get(0).getEspecificaciones();
+                if (esp != null) {
+                    especificaciones = esp.replace("/", " ").replaceAll("\\s+", " ").trim();
+                }
+            }
+
             String consulta = String.join(" ",
                     p.getCategoria() != null ? p.getCategoria() : "",
                     p.getMarca() != null ? p.getMarca() : "",
-                    p.getModelo() != null ? p.getModelo() : "").trim();
+                    p.getModelo() != null ? p.getModelo() : "",
+                    especificaciones).replaceAll("\\s+", " ").trim();
 
             // 1) Icecat (rápido y gratis; rara vez matchea esta clase de productos)
             if (icecatOk) {
