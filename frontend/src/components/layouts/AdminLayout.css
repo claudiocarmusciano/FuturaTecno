@@ -75,13 +75,13 @@
     align-items: center;
     gap: 12px;
     background: #16181d;
-    padding: 9px 14px;
+    padding: 11px 16px;
     position: sticky;
     top: 0;
     z-index: 50;
     border-bottom: 1px solid #2c2f38;
   }
-  .admin-topbar img { height: 34px; width: auto; display: block; }
+  .admin-topbar img { height: 50px; width: auto; display: block; }
   .hamburger {
     margin-left: auto;
     background: none;
