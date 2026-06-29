@@ -30,7 +30,7 @@
   text-decoration: none;
 }
 .logo:hover { opacity: 0.85; }
-.header-logo { height: 58px; width: auto; display: block; }
+.header-logo { height: 72px; width: auto; display: block; }
 
 .public-nav { display: flex; gap: 24px; align-items: center; }
 .public-nav a {
