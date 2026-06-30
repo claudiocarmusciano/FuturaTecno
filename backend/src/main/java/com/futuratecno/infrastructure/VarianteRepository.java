@@ -10,5 +10,7 @@ import java.util.Optional;
 public interface VarianteRepository extends JpaRepository<Variante, Long> {
     List<Variante> findByProductoIdAndActivo(Long productoId, Boolean activo);
 
+    List<Variante> findByProductoId(Long productoId);
+
     Optional<Variante> findByProductoIdAndEspecificaciones(Long productoId, String especificaciones);
 }

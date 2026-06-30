@@ -6,6 +6,7 @@ import ProveedoresPage from './pages/admin/ProveedoresPage'
 import ParsingPage from './pages/admin/ParsingPage'
 import ProductosPage from './pages/admin/ProductosPage'
 import ImagesPage from './pages/admin/ImagesPage'
+import ImportarElitPage from './pages/admin/ImportarElitPage'
 import UsuariosPage from './pages/admin/UsuariosPage'
 import CatalogPage from './pages/public/CatalogPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
@@ -30,6 +31,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="proveedores" element={<ProveedoresPage />} />
           <Route path="parsing" element={<ParsingPage />} />
+          <Route path="importar-elit" element={<ImportarElitPage />} />
           <Route path="productos" element={<ProductosPage />} />
           <Route path="imagenes" element={<ImagesPage />} />
           <Route path="usuarios" element={<UsuariosPage />} />

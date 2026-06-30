@@ -38,6 +38,11 @@ google:
     api-key: ${GOOGLE_API_KEY:}
     cx: ${GOOGLE_CX:}
 
+elit:
+  base-url: ${ELIT_BASE_URL:https://clientes.elit.com.ar/v1/api}
+  user-id: ${ELIT_USER_ID:}
+  token: ${ELIT_TOKEN:}
+
 app:
   cutoff-hour: ${CUTOFF_HOUR:14}
   image-storage-path: /app/static/images

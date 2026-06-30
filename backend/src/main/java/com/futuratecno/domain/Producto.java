@@ -22,6 +22,13 @@ public class Producto extends BaseEntity {
     @Column(name = "imagen_url", length = 1000)
     private String imagenUrl;
 
+    // Origen externo (integraciones con distribuidores): código en el sistema del proveedor y la fuente.
+    @Column(name = "codigo_externo", length = 100)
+    private String codigoExterno;
+
+    @Column(length = 50)
+    private String fuente;
+
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
     private List<Variante> variantes;
 
@@ -66,6 +73,22 @@ public class Producto extends BaseEntity {
 
     public void setImagenUrl(String imagenUrl) {
         this.imagenUrl = imagenUrl;
+    }
+
+    public String getCodigoExterno() {
+        return codigoExterno;
+    }
+
+    public void setCodigoExterno(String codigoExterno) {
+        this.codigoExterno = codigoExterno;
+    }
+
+    public String getFuente() {
+        return fuente;
+    }
+
+    public void setFuente(String fuente) {
+        this.fuente = fuente;
     }
 
     public List<Variante> getVariantes() {
