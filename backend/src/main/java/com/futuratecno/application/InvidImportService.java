@@ -164,6 +164,7 @@ public class InvidImportService {
         String especificaciones = txt(art, "DESCRIPTION");
         if (especificaciones == null) especificaciones = txt(art, "LONG_DESCRIPTION");
         if (especificaciones == null) especificaciones = "";
+        if (especificaciones.length() > 500) especificaciones = especificaciones.substring(0, 500);
 
         String moneda = txt(art, "CURRENCY");
         boolean esUsd = moneda != null && moneda.toUpperCase().contains("USD");

@@ -187,6 +187,7 @@ public class ElitImportService {
         String imagen = primeraImagen(prod);
         String especificaciones = txt(prod, "descripcion");
         if (especificaciones == null) especificaciones = "";
+        if (especificaciones.length() > 500) especificaciones = especificaciones.substring(0, 500);
 
         final String marcaF = marca != null ? marca : "—";
         final String modeloF = modelo != null ? modelo : (nombre != null ? nombre : "Producto " + codigoExterno);
