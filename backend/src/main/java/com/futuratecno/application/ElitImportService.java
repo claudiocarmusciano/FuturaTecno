@@ -102,6 +102,16 @@ public class ElitImportService {
 
     @Transactional
     public Map<String, Object> importar(String categoria, String marca, boolean soloConStock, String store) {
+        return procesar(categoria, marca, soloConStock, store, false);
+    }
+
+    /** Sincroniza: solo actualiza precio/stock/imagen de los productos de Elit ya importados (no crea nuevos). */
+    @Transactional
+    public Map<String, Object> sincronizar() {
+        return procesar(null, null, false, "all", true);
+    }
+
+    private Map<String, Object> procesar(String categoria, String marca, boolean soloConStock, String store, boolean soloExistentes) {
         if (!estaConfigurado()) {
             throw new IllegalStateException("La API de Elit no está configurada (faltan ELIT_USER_ID / ELIT_TOKEN).");
         }
@@ -122,16 +132,18 @@ public class ElitImportService {
                     salteadosSinStock++;
                     continue;
                 }
-                boolean nuevo = upsertProducto(proveedor, prod, stock);
-                if (nuevo) creados++; else actualizados++;
+                String estado = upsertProducto(proveedor, prod, stock, soloExistentes);
+                if ("creado".equals(estado)) creados++;
+                else if ("actualizado".equals(estado)) actualizados++;
             }
             offset += PAGINA;
             paginas++;
         }
 
-        String mensaje = String.format(
-                "Importación de Elit completada: %d nuevos, %d actualizados, %d sin stock salteados (de %d que coincidían con el filtro).",
-                creados, actualizados, salteadosSinStock, total == Integer.MAX_VALUE ? 0 : total);
+        String mensaje = soloExistentes
+                ? String.format("Sincronización de Elit: %d productos actualizados.", actualizados)
+                : String.format("Importación de Elit completada: %d nuevos, %d actualizados, %d sin stock salteados (de %d que coincidían con el filtro).",
+                        creados, actualizados, salteadosSinStock, total == Integer.MAX_VALUE ? 0 : total);
         logger.info(mensaje);
 
         Map<String, Object> out = new LinkedHashMap<>();
@@ -142,9 +154,13 @@ public class ElitImportService {
         return out;
     }
 
-    /** Crea o actualiza el Producto + Variante a partir de un item de Elit. Devuelve true si es nuevo. */
-    private boolean upsertProducto(Proveedor proveedor, JsonNode prod, int stock) {
+    /** Crea o actualiza el Producto + Variante a partir de un item de Elit. Devuelve "creado"/"actualizado"/"salteado". */
+    private String upsertProducto(Proveedor proveedor, JsonNode prod, int stock, boolean soloExistentes) {
         String codigoExterno = prod.path("id").asText(null);
+        Producto existente = productoRepository
+                .findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno).orElse(null);
+        if (soloExistentes && existente == null) return "salteado";
+
         String marca = txt(prod, "marca");
         String nombre = txt(prod, "nombre");
         String modelo = modeloDesde(marca, nombre);
@@ -164,18 +180,13 @@ public class ElitImportService {
         final String marcaF = marca != null ? marca : "—";
         final String modeloF = modelo != null ? modelo : (nombre != null ? nombre : "Producto " + codigoExterno);
 
-        boolean[] esNuevo = {false};
-        Producto producto = productoRepository
-                .findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno)
-                .orElseGet(() -> {
-                    esNuevo[0] = true;
-                    Producto p = new Producto();
-                    p.setProveedor(proveedor);
-                    p.setCodigoExterno(codigoExterno);
-                    p.setFuente(FUENTE);
-                    p.setActivo(true);
-                    return p;
-                });
+        boolean nuevo = existente == null;
+        Producto producto = existente != null ? existente : new Producto();
+        if (nuevo) {
+            producto.setProveedor(proveedor);
+            producto.setCodigoExterno(codigoExterno);
+            producto.setFuente(FUENTE);
+        }
         producto.setMarca(marcaF);
         producto.setModelo(modeloF);
         producto.setCategoria(categoria);
@@ -199,7 +210,7 @@ public class ElitImportService {
         variante.setActivo(true);
         varianteRepository.save(variante);
 
-        return esNuevo[0];
+        return nuevo ? "creado" : "actualizado";
     }
 
     private Proveedor obtenerOcrearProveedor() {

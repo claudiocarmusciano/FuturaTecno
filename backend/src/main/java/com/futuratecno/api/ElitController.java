@@ -51,6 +51,12 @@ public class ElitController {
                 str(b.get("categoria")), str(b.get("marca")), soloConStock, str(b.get("store"))));
     }
 
+    @PostMapping("/sincronizar")
+    public ResponseEntity<?> sincronizar() {
+        if (!elitImportService.estaConfigurado()) return apiNoConfigurada();
+        return ResponseEntity.ok(elitImportService.sincronizar());
+    }
+
     private ResponseEntity<Map<String, Object>> apiNoConfigurada() {
         Map<String, Object> err = new LinkedHashMap<>();
         err.put("error", "La API de Elit no está configurada. Cargá ELIT_USER_ID y ELIT_TOKEN en las variables de entorno.");

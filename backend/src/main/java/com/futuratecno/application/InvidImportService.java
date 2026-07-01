@@ -83,6 +83,16 @@ public class InvidImportService {
 
     @Transactional
     public Map<String, Object> importar(String categoria, String marca, boolean soloConStock) {
+        return procesar(categoria, marca, soloConStock, false);
+    }
+
+    /** Sincroniza: solo actualiza precio/stock/imagen de los productos de Invid ya importados (no crea nuevos). */
+    @Transactional
+    public Map<String, Object> sincronizar() {
+        return procesar(null, null, false, true);
+    }
+
+    private Map<String, Object> procesar(String categoria, String marca, boolean soloConStock, boolean soloExistentes) {
         if (!estaConfigurado()) {
             throw new IllegalStateException("La API de Invid no está configurada (faltan INVID_BASE_URL / INVID_USERNAME / INVID_PASSWORD).");
         }
@@ -102,13 +112,15 @@ public class InvidImportService {
             Integer stock = art.path("STOCK").isNumber() ? art.path("STOCK").asInt() : null;
             if (soloConStock && stock != null && stock <= 0) { salteadosSinStock++; continue; }
 
-            boolean nuevo = upsert(proveedor, art, precioOrigen, stock, cotizacion);
-            if (nuevo) creados++; else actualizados++;
+            String estado = upsert(proveedor, art, precioOrigen, stock, cotizacion, soloExistentes);
+            if ("creado".equals(estado)) creados++;
+            else if ("actualizado".equals(estado)) actualizados++;
         }
 
-        String mensaje = String.format(
-                "Importación de Invid completada: %d nuevos, %d actualizados, %d sin stock salteados, %d sin precio salteados (de %d que coincidían con el filtro).",
-                creados, actualizados, salteadosSinStock, salteadosSinPrecio, coincidentes);
+        String mensaje = soloExistentes
+                ? String.format("Sincronización de Invid: %d productos actualizados.", actualizados)
+                : String.format("Importación de Invid completada: %d nuevos, %d actualizados, %d sin stock salteados, %d sin precio salteados (de %d que coincidían con el filtro).",
+                        creados, actualizados, salteadosSinStock, salteadosSinPrecio, coincidentes);
         logger.info(mensaje);
 
         Map<String, Object> out = new LinkedHashMap<>();
@@ -120,8 +132,12 @@ public class InvidImportService {
         return out;
     }
 
-    private boolean upsert(Proveedor proveedor, JsonNode art, BigDecimal precioArs, Integer stock, BigDecimal cotizacion) {
+    private String upsert(Proveedor proveedor, JsonNode art, BigDecimal precioArs, Integer stock, BigDecimal cotizacion, boolean soloExistentes) {
         String codigoExterno = txt(art, "ID");
+        Producto existente = productoRepository
+                .findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno).orElse(null);
+        if (soloExistentes && existente == null) return "salteado";
+
         String marca = txt(art, "BRAND");
         String titulo = txt(art, "TITLE");
         String modelo = modeloDesde(marca, titulo);
@@ -140,18 +156,13 @@ public class InvidImportService {
         final String marcaF = marca != null ? marca : "—";
         final String modeloF = modelo != null ? modelo : (titulo != null ? titulo : "Producto " + codigoExterno);
 
-        boolean[] esNuevo = {false};
-        Producto producto = productoRepository
-                .findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno)
-                .orElseGet(() -> {
-                    esNuevo[0] = true;
-                    Producto p = new Producto();
-                    p.setProveedor(proveedor);
-                    p.setCodigoExterno(codigoExterno);
-                    p.setFuente(FUENTE);
-                    p.setActivo(true);
-                    return p;
-                });
+        boolean nuevo = existente == null;
+        Producto producto = existente != null ? existente : new Producto();
+        if (nuevo) {
+            producto.setProveedor(proveedor);
+            producto.setCodigoExterno(codigoExterno);
+            producto.setFuente(FUENTE);
+        }
         producto.setMarca(marcaF);
         producto.setModelo(modeloF);
         producto.setCategoria(categoria);
@@ -174,7 +185,7 @@ public class InvidImportService {
         variante.setActivo(true);
         varianteRepository.save(variante);
 
-        return esNuevo[0];
+        return nuevo ? "creado" : "actualizado";
     }
 
     private boolean coincide(JsonNode art, String categoria, String marca) {

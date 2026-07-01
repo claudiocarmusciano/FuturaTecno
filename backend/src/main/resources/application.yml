@@ -48,6 +48,10 @@ invid:
   username: ${INVID_USERNAME:}
   password: ${INVID_PASSWORD:}
 
+sync:
+  enabled: ${SYNC_ENABLED:true}
+  cron: ${SYNC_CRON:0 30 6 * * *}   # 06:30 hora Argentina, todos los días
+
 app:
   cutoff-hour: ${CUTOFF_HOUR:14}
   image-storage-path: /app/static/images

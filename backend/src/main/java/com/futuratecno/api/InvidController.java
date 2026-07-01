@@ -49,6 +49,12 @@ public class InvidController {
         return ResponseEntity.ok(invidImportService.importar(str(b.get("categoria")), str(b.get("marca")), soloConStock));
     }
 
+    @PostMapping("/sincronizar")
+    public ResponseEntity<?> sincronizar() {
+        if (!invidImportService.estaConfigurado()) return apiNoConfigurada();
+        return ResponseEntity.ok(invidImportService.sincronizar());
+    }
+
     private ResponseEntity<Map<String, Object>> apiNoConfigurada() {
         Map<String, Object> err = new LinkedHashMap<>();
         err.put("error", "La API de Invid no está configurada. Cargá INVID_BASE_URL, INVID_USERNAME y INVID_PASSWORD en las variables de entorno.");

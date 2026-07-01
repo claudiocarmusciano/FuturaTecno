@@ -13,6 +13,7 @@ function ImportarElitPage() {
   const [preview, setPreview] = useState(null)           // { total, muestra }
   const [previewLoading, setPreviewLoading] = useState(false)
   const [importando, setImportando] = useState(false)
+  const [sincronizando, setSincronizando] = useState(false)
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState('')
 
@@ -56,6 +57,18 @@ function ImportarElitPage() {
       setError(e.response?.data?.error || 'Error al importar. Revisá las credenciales o probá con menos productos.')
     } finally {
       setImportando(false)
+    }
+  }
+
+  const sincronizar = async () => {
+    setSincronizando(true); setError(''); setResultado(null)
+    try {
+      const res = await axios.post('/api/admin/elit/sincronizar')
+      setResultado(res.data)
+    } catch (e) {
+      setError(e.response?.data?.error || 'Error al sincronizar.')
+    } finally {
+      setSincronizando(false)
     }
   }
 
@@ -124,6 +137,15 @@ ELIT_TOKEN=tu_token_de_api`}
             {importando ? 'Importando... (puede tardar)' : 'Importar a mi catálogo'}
           </button>
         </div>
+
+        <p style={{ marginTop: '14px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+          🔄 <strong>Sincronización automática:</strong> todos los días a las 06:30 se actualizan solos los precios y stock
+          de lo ya importado. También podés forzarla ahora:
+          <button onClick={sincronizar} className="btn btn-secondary" disabled={sincronizando || importando}
+                  style={{ marginLeft: '10px', fontSize: '13px', padding: '6px 12px' }}>
+            {sincronizando ? 'Sincronizando...' : 'Sincronizar ahora'}
+          </button>
+        </p>
 
         {error && <p style={{ marginTop: '14px', color: 'var(--color-danger)' }}>{error}</p>}
 
