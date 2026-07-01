@@ -43,6 +43,11 @@ elit:
   user-id: ${ELIT_USER_ID:}
   token: ${ELIT_TOKEN:}
 
+invid:
+  base-url: ${INVID_BASE_URL:}
+  username: ${INVID_USERNAME:}
+  password: ${INVID_PASSWORD:}
+
 app:
   cutoff-hour: ${CUTOFF_HOUR:14}
   image-storage-path: /app/static/images
