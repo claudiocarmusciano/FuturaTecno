@@ -38,7 +38,8 @@ public class InvidController {
     public ResponseEntity<?> previsualizar(@RequestBody(required = false) Map<String, Object> body) {
         if (!invidImportService.estaConfigurado()) return apiNoConfigurada();
         Map<String, Object> b = body != null ? body : Map.of();
-        return ResponseEntity.ok(invidImportService.previsualizar(str(b.get("categoria")), str(b.get("marca"))));
+        return ResponseEntity.ok(invidImportService.previsualizar(
+                str(b.get("categoria")), str(b.get("marca")), dec(b.get("precioMinUsd"))));
     }
 
     @PostMapping("/importar")
@@ -46,7 +47,8 @@ public class InvidController {
         if (!invidImportService.estaConfigurado()) return apiNoConfigurada();
         Map<String, Object> b = body != null ? body : Map.of();
         boolean soloConStock = Boolean.TRUE.equals(b.get("soloConStock"));
-        return ResponseEntity.ok(invidImportService.importar(str(b.get("categoria")), str(b.get("marca")), soloConStock));
+        return ResponseEntity.ok(invidImportService.importar(
+                str(b.get("categoria")), str(b.get("marca")), soloConStock, dec(b.get("precioMinUsd"))));
     }
 
     @PostMapping("/sincronizar")
@@ -63,5 +65,12 @@ public class InvidController {
 
     private String str(Object o) {
         return o == null ? null : o.toString();
+    }
+
+    private java.math.BigDecimal dec(Object o) {
+        if (o == null) return null;
+        String s = o.toString().trim().replace(",", ".");
+        if (s.isEmpty()) return null;
+        try { return new java.math.BigDecimal(s); } catch (NumberFormatException e) { return null; }
     }
 }

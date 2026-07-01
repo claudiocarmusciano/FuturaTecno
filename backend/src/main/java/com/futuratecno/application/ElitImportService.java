@@ -101,24 +101,25 @@ public class ElitImportService {
     }
 
     @Transactional
-    public Map<String, Object> importar(String categoria, String marca, boolean soloConStock, String store) {
-        return procesar(categoria, marca, soloConStock, store, false);
+    public Map<String, Object> importar(String categoria, String marca, boolean soloConStock, String store, BigDecimal precioMinUsd) {
+        return procesar(categoria, marca, soloConStock, store, precioMinUsd, false);
     }
 
     /** Sincroniza: solo actualiza precio/stock/imagen de los productos de Elit ya importados (no crea nuevos). */
     @Transactional
     public Map<String, Object> sincronizar() {
-        return procesar(null, null, false, "all", true);
+        return procesar(null, null, false, "all", null, true);
     }
 
-    private Map<String, Object> procesar(String categoria, String marca, boolean soloConStock, String store, boolean soloExistentes) {
+    private Map<String, Object> procesar(String categoria, String marca, boolean soloConStock, String store,
+                                         BigDecimal precioMinUsd, boolean soloExistentes) {
         if (!estaConfigurado()) {
             throw new IllegalStateException("La API de Elit no está configurada (faltan ELIT_USER_ID / ELIT_TOKEN).");
         }
         Proveedor proveedor = obtenerOcrearProveedor();
 
         int offset = 0, total = Integer.MAX_VALUE, paginas = 0;
-        int creados = 0, actualizados = 0, salteadosSinStock = 0;
+        int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosPorPrecio = 0;
 
         while (offset < total && paginas < TOPE_PAGINAS) {
             JsonNode resp = elitApiClient.consultarProductos(PAGINA, offset, categoria, marca, null, store);
@@ -132,7 +133,12 @@ public class ElitImportService {
                     salteadosSinStock++;
                     continue;
                 }
-                String estado = upsertProducto(proveedor, prod, stock, soloExistentes);
+                BigDecimal costoUsd = costoUsdDe(prod);
+                if (precioMinUsd != null && costoUsd.compareTo(precioMinUsd) < 0) {
+                    salteadosPorPrecio++;
+                    continue;
+                }
+                String estado = upsertProducto(proveedor, prod, stock, costoUsd, soloExistentes);
                 if ("creado".equals(estado)) creados++;
                 else if ("actualizado".equals(estado)) actualizados++;
             }
@@ -142,20 +148,30 @@ public class ElitImportService {
 
         String mensaje = soloExistentes
                 ? String.format("Sincronización de Elit: %d productos actualizados.", actualizados)
-                : String.format("Importación de Elit completada: %d nuevos, %d actualizados, %d sin stock salteados (de %d que coincidían con el filtro).",
-                        creados, actualizados, salteadosSinStock, total == Integer.MAX_VALUE ? 0 : total);
+                : String.format("Importación de Elit completada: %d nuevos, %d actualizados, %d sin stock, %d por debajo del precio mínimo.",
+                        creados, actualizados, salteadosSinStock, salteadosPorPrecio);
         logger.info(mensaje);
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("creados", creados);
         out.put("actualizados", actualizados);
         out.put("salteadosSinStock", salteadosSinStock);
+        out.put("salteadosPorPrecio", salteadosPorPrecio);
         out.put("mensaje", mensaje);
         return out;
     }
 
+    /** Costo en USD del artículo de Elit: precio neto + IVA. */
+    private BigDecimal costoUsdDe(JsonNode prod) {
+        BigDecimal precio = dec(prod, "precio");
+        BigDecimal iva = dec(prod, "iva");
+        return precio
+                .multiply(BigDecimal.ONE.add(iva.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
     /** Crea o actualiza el Producto + Variante a partir de un item de Elit. Devuelve "creado"/"actualizado"/"salteado". */
-    private String upsertProducto(Proveedor proveedor, JsonNode prod, int stock, boolean soloExistentes) {
+    private String upsertProducto(Proveedor proveedor, JsonNode prod, int stock, BigDecimal costoUsd, boolean soloExistentes) {
         String codigoExterno = prod.path("id").asText(null);
         Producto existente = productoRepository
                 .findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno).orElse(null);
@@ -165,12 +181,7 @@ public class ElitImportService {
         String nombre = txt(prod, "nombre");
         String modelo = modeloDesde(marca, nombre);
 
-        // Costo = precio (USD neto) + IVA. El margen/flete los aplica el proveedor en FuturaTecno.
-        BigDecimal precio = dec(prod, "precio");
-        BigDecimal iva = dec(prod, "iva");
-        BigDecimal costoUsd = precio
-                .multiply(BigDecimal.ONE.add(iva.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal precio = dec(prod, "precio");   // precio neto original (para precioOrigen)
 
         String categoria = txt(prod, "categoria");
         String imagen = primeraImagen(prod);

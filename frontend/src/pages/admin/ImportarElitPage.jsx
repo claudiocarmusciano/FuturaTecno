@@ -6,6 +6,7 @@ function ImportarElitPage() {
   const [configurado, setConfigurado] = useState(null)   // null = cargando
   const [categoria, setCategoria] = useState('')
   const [marca, setMarca] = useState('')
+  const [precioMinUsd, setPrecioMinUsd] = useState('')
   const [soloConStock, setSoloConStock] = useState(true)
 
   const [filtros, setFiltros] = useState(null)           // { categorias, marcas }
@@ -51,7 +52,7 @@ function ImportarElitPage() {
     if (!window.confirm('¿Importar/sincronizar estos productos de Elit a tu catálogo?')) return
     setImportando(true); setError(''); setResultado(null)
     try {
-      const res = await axios.post('/api/admin/elit/importar', { categoria, marca, soloConStock, store: 'all' })
+      const res = await axios.post('/api/admin/elit/importar', { categoria, marca, soloConStock, store: 'all', precioMinUsd })
       setResultado(res.data)
     } catch (e) {
       setError(e.response?.data?.error || 'Error al importar. Revisá las credenciales o probá con menos productos.')
@@ -117,6 +118,10 @@ ELIT_TOKEN=tu_token_de_api`}
               {(filtros?.marcas || []).map(m => <option key={m} value={m} />)}
             </datalist>
           </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Costo mínimo en USD (opcional)</label>
+            <input type="number" min="0" step="1" value={precioMinUsd} onChange={e => setPrecioMinUsd(e.target.value)} placeholder="ej: 100" />
+          </div>
         </div>
 
         <div style={{ marginTop: '14px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
@@ -167,7 +172,8 @@ ELIT_TOKEN=tu_token_de_api`}
           <p style={{ marginBottom: '10px' }}>{resultado.mensaje}</p>
           <p>
             <strong>{resultado.creados}</strong> nuevos · <strong>{resultado.actualizados}</strong> actualizados
-            {resultado.salteadosSinStock > 0 && <> · {resultado.salteadosSinStock} sin stock salteados</>}
+            {resultado.salteadosSinStock > 0 && <> · {resultado.salteadosSinStock} sin stock</>}
+            {resultado.salteadosPorPrecio > 0 && <> · {resultado.salteadosPorPrecio} bajo el mínimo</>}
           </p>
           <Link to="/admin/productos" className="btn btn-primary" style={{ marginTop: '14px', display: 'inline-block' }}>
             Ver productos

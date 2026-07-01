@@ -6,6 +6,7 @@ function ImportarInvidPage() {
   const [configurado, setConfigurado] = useState(null)
   const [categoria, setCategoria] = useState('')
   const [marca, setMarca] = useState('')
+  const [precioMinUsd, setPrecioMinUsd] = useState('')
   const [soloConStock, setSoloConStock] = useState(true)
 
   const [filtros, setFiltros] = useState(null)
@@ -38,7 +39,7 @@ function ImportarInvidPage() {
   const previsualizar = async () => {
     setPreviewLoading(true); setError(''); setPreview(null); setResultado(null)
     try {
-      const res = await axios.post('/api/admin/invid/previsualizar', { categoria, marca })
+      const res = await axios.post('/api/admin/invid/previsualizar', { categoria, marca, precioMinUsd })
       setPreview(res.data)
     } catch (e) {
       setError(e.response?.data?.error || 'Error al previsualizar.')
@@ -51,7 +52,7 @@ function ImportarInvidPage() {
     if (!window.confirm('¿Importar/sincronizar estos productos de Invid a tu catálogo?')) return
     setImportando(true); setError(''); setResultado(null)
     try {
-      const res = await axios.post('/api/admin/invid/importar', { categoria, marca, soloConStock })
+      const res = await axios.post('/api/admin/invid/importar', { categoria, marca, soloConStock, precioMinUsd })
       setResultado(res.data)
     } catch (e) {
       setError(e.response?.data?.error || 'Error al importar. Revisá las credenciales o probá de nuevo en un rato (límite de la API).')
@@ -118,6 +119,10 @@ INVID_PASSWORD=tu_contraseña`}
               {(filtros?.marcas || []).map(m => <option key={m} value={m} />)}
             </datalist>
           </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Costo mínimo en USD (opcional)</label>
+            <input type="number" min="0" step="1" value={precioMinUsd} onChange={e => setPrecioMinUsd(e.target.value)} placeholder="ej: 100" />
+          </div>
         </div>
 
         <div style={{ marginTop: '14px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
@@ -170,6 +175,7 @@ INVID_PASSWORD=tu_contraseña`}
             <strong>{resultado.creados}</strong> nuevos · <strong>{resultado.actualizados}</strong> actualizados
             {resultado.salteadosSinStock > 0 && <> · {resultado.salteadosSinStock} sin stock</>}
             {resultado.salteadosSinPrecio > 0 && <> · {resultado.salteadosSinPrecio} sin precio</>}
+            {resultado.salteadosPorPrecio > 0 && <> · {resultado.salteadosPorPrecio} bajo el mínimo</>}
           </p>
           <Link to="/admin/productos" className="btn btn-primary" style={{ marginTop: '14px', display: 'inline-block' }}>
             Ver productos

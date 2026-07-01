@@ -48,7 +48,7 @@ public class ElitController {
         Map<String, Object> b = body != null ? body : Map.of();
         boolean soloConStock = Boolean.TRUE.equals(b.get("soloConStock"));
         return ResponseEntity.ok(elitImportService.importar(
-                str(b.get("categoria")), str(b.get("marca")), soloConStock, str(b.get("store"))));
+                str(b.get("categoria")), str(b.get("marca")), soloConStock, str(b.get("store")), dec(b.get("precioMinUsd"))));
     }
 
     @PostMapping("/sincronizar")
@@ -65,5 +65,12 @@ public class ElitController {
 
     private String str(Object o) {
         return o == null ? null : o.toString();
+    }
+
+    private java.math.BigDecimal dec(Object o) {
+        if (o == null) return null;
+        String s = o.toString().trim().replace(",", ".");
+        if (s.isEmpty()) return null;
+        try { return new java.math.BigDecimal(s); } catch (NumberFormatException e) { return null; }
     }
 }

@@ -66,12 +66,16 @@ public class InvidImportService {
         return out;
     }
 
-    public Map<String, Object> previsualizar(String categoria, String marca) {
+    public Map<String, Object> previsualizar(String categoria, String marca, BigDecimal precioMinUsd) {
         List<JsonNode> arts = invidApiClient.obtenerArticulos();
+        BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
         int total = 0;
         List<String> muestra = new ArrayList<>();
         for (JsonNode a : arts) {
             if (!coincide(a, categoria, marca)) continue;
+            BigDecimal precio = parsePrecio(txt(a, "FINAL_PRICE"));
+            if (precio.signum() <= 0) continue;
+            if (precioMinUsd != null && costoUsdInvid(a, precio, cotizacion).compareTo(precioMinUsd) < 0) continue;
             total++;
             if (muestra.size() < 5) muestra.add(txt(a, "TITLE"));
         }
@@ -82,17 +86,18 @@ public class InvidImportService {
     }
 
     @Transactional
-    public Map<String, Object> importar(String categoria, String marca, boolean soloConStock) {
-        return procesar(categoria, marca, soloConStock, false);
+    public Map<String, Object> importar(String categoria, String marca, boolean soloConStock, BigDecimal precioMinUsd) {
+        return procesar(categoria, marca, soloConStock, precioMinUsd, false);
     }
 
     /** Sincroniza: solo actualiza precio/stock/imagen de los productos de Invid ya importados (no crea nuevos). */
     @Transactional
     public Map<String, Object> sincronizar() {
-        return procesar(null, null, false, true);
+        return procesar(null, null, false, null, true);
     }
 
-    private Map<String, Object> procesar(String categoria, String marca, boolean soloConStock, boolean soloExistentes) {
+    private Map<String, Object> procesar(String categoria, String marca, boolean soloConStock,
+                                         BigDecimal precioMinUsd, boolean soloExistentes) {
         if (!estaConfigurado()) {
             throw new IllegalStateException("La API de Invid no está configurada (faltan INVID_BASE_URL / INVID_USERNAME / INVID_PASSWORD).");
         }
@@ -100,17 +105,21 @@ public class InvidImportService {
         Proveedor proveedor = obtenerOcrearProveedor();
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
 
-        int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosSinPrecio = 0, coincidentes = 0;
+        int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosSinPrecio = 0, salteadosPorPrecio = 0;
 
         for (JsonNode art : arts) {
             if (!coincide(art, categoria, marca)) continue;
-            coincidentes++;
 
             BigDecimal precioOrigen = parsePrecio(txt(art, "FINAL_PRICE"));
             if (precioOrigen.signum() <= 0) { salteadosSinPrecio++; continue; }
 
             Integer stock = art.path("STOCK").isNumber() ? art.path("STOCK").asInt() : null;
             if (soloConStock && stock != null && stock <= 0) { salteadosSinStock++; continue; }
+
+            if (precioMinUsd != null && costoUsdInvid(art, precioOrigen, cotizacion).compareTo(precioMinUsd) < 0) {
+                salteadosPorPrecio++;
+                continue;
+            }
 
             String estado = upsert(proveedor, art, precioOrigen, stock, cotizacion, soloExistentes);
             if ("creado".equals(estado)) creados++;
@@ -119,8 +128,8 @@ public class InvidImportService {
 
         String mensaje = soloExistentes
                 ? String.format("Sincronización de Invid: %d productos actualizados.", actualizados)
-                : String.format("Importación de Invid completada: %d nuevos, %d actualizados, %d sin stock salteados, %d sin precio salteados (de %d que coincidían con el filtro).",
-                        creados, actualizados, salteadosSinStock, salteadosSinPrecio, coincidentes);
+                : String.format("Importación de Invid completada: %d nuevos, %d actualizados, %d sin stock, %d sin precio, %d por debajo del precio mínimo.",
+                        creados, actualizados, salteadosSinStock, salteadosSinPrecio, salteadosPorPrecio);
         logger.info(mensaje);
 
         Map<String, Object> out = new LinkedHashMap<>();
@@ -128,8 +137,17 @@ public class InvidImportService {
         out.put("actualizados", actualizados);
         out.put("salteadosSinStock", salteadosSinStock);
         out.put("salteadosSinPrecio", salteadosSinPrecio);
+        out.put("salteadosPorPrecio", salteadosPorPrecio);
         out.put("mensaje", mensaje);
         return out;
+    }
+
+    /** Costo en USD del artículo de Invid (convierte ARS con la cotización; si ya es USD lo deja). */
+    private BigDecimal costoUsdInvid(JsonNode art, BigDecimal precioOrigen, BigDecimal cotizacion) {
+        String moneda = txt(art, "CURRENCY");
+        boolean esUsd = moneda != null && moneda.toUpperCase().contains("USD");
+        return esUsd ? precioOrigen.setScale(2, RoundingMode.HALF_UP)
+                     : precioOrigen.divide(cotizacion, 2, RoundingMode.HALF_UP);
     }
 
     private String upsert(Proveedor proveedor, JsonNode art, BigDecimal precioArs, Integer stock, BigDecimal cotizacion, boolean soloExistentes) {
