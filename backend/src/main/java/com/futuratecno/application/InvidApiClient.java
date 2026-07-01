@@ -143,8 +143,22 @@ public class InvidApiClient {
         return base() + (next.startsWith("/") ? next : "/" + next);
     }
 
+    /**
+     * Normaliza el base-url a solo esquema+host (ej: https://invidcomputers.com), aunque el usuario
+     * haya pegado de más una ruta como /api/v1/auth.php o una barra final. Evita rutas duplicadas.
+     */
     private String base() {
         String b = baseUrl.trim();
+        try {
+            java.net.URI u = java.net.URI.create(b);
+            if (u.getScheme() != null && u.getHost() != null) {
+                String origin = u.getScheme() + "://" + u.getHost();
+                if (u.getPort() != -1) origin += ":" + u.getPort();
+                return origin;
+            }
+        } catch (Exception ignored) {
+            // cae al fallback de abajo
+        }
         return b.endsWith("/") ? b.substring(0, b.length() - 1) : b;
     }
 
