@@ -1,11 +1,15 @@
 package com.futuratecno.api;
 
 import com.futuratecno.application.InvidImportService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Integración con el mayorista Invid: estado, filtros, previsualización e importación del catálogo.
@@ -14,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/invid")
 public class InvidController {
+    private static final Logger logger = LoggerFactory.getLogger(InvidController.class);
 
     private final InvidImportService invidImportService;
 
@@ -30,37 +35,48 @@ public class InvidController {
 
     @GetMapping("/filtros")
     public ResponseEntity<?> filtros() {
-        if (!invidImportService.estaConfigurado()) return apiNoConfigurada();
-        return ResponseEntity.ok(invidImportService.filtros());
+        return ejecutar(invidImportService::filtros);
     }
 
     @PostMapping("/previsualizar")
     public ResponseEntity<?> previsualizar(@RequestBody(required = false) Map<String, Object> body) {
-        if (!invidImportService.estaConfigurado()) return apiNoConfigurada();
         Map<String, Object> b = body != null ? body : Map.of();
-        return ResponseEntity.ok(invidImportService.previsualizar(
+        return ejecutar(() -> invidImportService.previsualizar(
                 str(b.get("categoria")), str(b.get("marca")), dec(b.get("precioMinUsd"))));
     }
 
     @PostMapping("/importar")
     public ResponseEntity<?> importar(@RequestBody(required = false) Map<String, Object> body) {
-        if (!invidImportService.estaConfigurado()) return apiNoConfigurada();
         Map<String, Object> b = body != null ? body : Map.of();
         boolean soloConStock = Boolean.TRUE.equals(b.get("soloConStock"));
-        return ResponseEntity.ok(invidImportService.importar(
+        return ejecutar(() -> invidImportService.importar(
                 str(b.get("categoria")), str(b.get("marca")), soloConStock, dec(b.get("precioMinUsd"))));
     }
 
     @PostMapping("/sincronizar")
     public ResponseEntity<?> sincronizar() {
-        if (!invidImportService.estaConfigurado()) return apiNoConfigurada();
-        return ResponseEntity.ok(invidImportService.sincronizar());
+        return ejecutar(invidImportService::sincronizar);
     }
 
-    private ResponseEntity<Map<String, Object>> apiNoConfigurada() {
+    /** Ejecuta la acción devolviendo el motivo real si algo falla (en vez de un 500 genérico). */
+    private ResponseEntity<?> ejecutar(Supplier<Object> accion) {
+        if (!invidImportService.estaConfigurado()) {
+            return error(HttpStatus.BAD_REQUEST,
+                    "La API de Invid no está configurada. Cargá INVID_BASE_URL, INVID_USERNAME y INVID_PASSWORD.");
+        }
+        try {
+            return ResponseEntity.ok(accion.get());
+        } catch (Exception e) {
+            logger.error("Invid: operación fallida", e);
+            String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            return error(HttpStatus.BAD_GATEWAY, msg);
+        }
+    }
+
+    private ResponseEntity<Map<String, Object>> error(HttpStatus status, String mensaje) {
         Map<String, Object> err = new LinkedHashMap<>();
-        err.put("error", "La API de Invid no está configurada. Cargá INVID_BASE_URL, INVID_USERNAME y INVID_PASSWORD en las variables de entorno.");
-        return ResponseEntity.badRequest().body(err);
+        err.put("error", mensaje);
+        return ResponseEntity.status(status).body(err);
     }
 
     private String str(Object o) {

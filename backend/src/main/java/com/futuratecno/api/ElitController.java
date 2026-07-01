@@ -1,19 +1,24 @@
 package com.futuratecno.api;
 
 import com.futuratecno.application.ElitImportService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
- * Integración con el mayorista Elit: estado de configuración, filtros disponibles,
- * previsualización e importación del catálogo. Protegido (cae bajo /api/admin/**).
+ * Integración con el mayorista Elit: estado, filtros, previsualización e importación del catálogo.
+ * Protegido (cae bajo /api/admin/**).
  */
 @RestController
 @RequestMapping("/api/admin/elit")
 public class ElitController {
+    private static final Logger logger = LoggerFactory.getLogger(ElitController.class);
 
     private final ElitImportService elitImportService;
 
@@ -30,37 +35,48 @@ public class ElitController {
 
     @GetMapping("/filtros")
     public ResponseEntity<?> filtros() {
-        if (!elitImportService.estaConfigurado()) return apiNoConfigurada();
-        return ResponseEntity.ok(elitImportService.filtros());
+        return ejecutar(elitImportService::filtros);
     }
 
     @PostMapping("/previsualizar")
     public ResponseEntity<?> previsualizar(@RequestBody(required = false) Map<String, Object> body) {
-        if (!elitImportService.estaConfigurado()) return apiNoConfigurada();
         Map<String, Object> b = body != null ? body : Map.of();
-        return ResponseEntity.ok(elitImportService.previsualizar(
+        return ejecutar(() -> elitImportService.previsualizar(
                 str(b.get("categoria")), str(b.get("marca")), str(b.get("store"))));
     }
 
     @PostMapping("/importar")
     public ResponseEntity<?> importar(@RequestBody(required = false) Map<String, Object> body) {
-        if (!elitImportService.estaConfigurado()) return apiNoConfigurada();
         Map<String, Object> b = body != null ? body : Map.of();
         boolean soloConStock = Boolean.TRUE.equals(b.get("soloConStock"));
-        return ResponseEntity.ok(elitImportService.importar(
+        return ejecutar(() -> elitImportService.importar(
                 str(b.get("categoria")), str(b.get("marca")), soloConStock, str(b.get("store")), dec(b.get("precioMinUsd"))));
     }
 
     @PostMapping("/sincronizar")
     public ResponseEntity<?> sincronizar() {
-        if (!elitImportService.estaConfigurado()) return apiNoConfigurada();
-        return ResponseEntity.ok(elitImportService.sincronizar());
+        return ejecutar(elitImportService::sincronizar);
     }
 
-    private ResponseEntity<Map<String, Object>> apiNoConfigurada() {
+    /** Ejecuta la acción devolviendo el motivo real si algo falla (en vez de un 500 genérico). */
+    private ResponseEntity<?> ejecutar(Supplier<Object> accion) {
+        if (!elitImportService.estaConfigurado()) {
+            return error(HttpStatus.BAD_REQUEST,
+                    "La API de Elit no está configurada. Cargá ELIT_USER_ID y ELIT_TOKEN.");
+        }
+        try {
+            return ResponseEntity.ok(accion.get());
+        } catch (Exception e) {
+            logger.error("Elit: operación fallida", e);
+            String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            return error(HttpStatus.BAD_GATEWAY, msg);
+        }
+    }
+
+    private ResponseEntity<Map<String, Object>> error(HttpStatus status, String mensaje) {
         Map<String, Object> err = new LinkedHashMap<>();
-        err.put("error", "La API de Elit no está configurada. Cargá ELIT_USER_ID y ELIT_TOKEN en las variables de entorno.");
-        return ResponseEntity.badRequest().body(err);
+        err.put("error", mensaje);
+        return ResponseEntity.status(status).body(err);
     }
 
     private String str(Object o) {

@@ -65,10 +65,20 @@ public class InvidApiClient {
         body.put("username", username.trim());
         body.put("password", password);
 
-        JsonNode resp = restTemplate.postForObject(base() + "/api/v1/auth.php",
-                new HttpEntity<>(body, headers), JsonNode.class);
+        String authUrl = base() + "/api/v1/auth.php";
+        JsonNode resp;
+        try {
+            resp = restTemplate.postForObject(authUrl, new HttpEntity<>(body, headers), JsonNode.class);
+        } catch (org.springframework.web.client.RestClientResponseException e) {
+            throw new IllegalStateException("Invid: la autenticación devolvió HTTP " + e.getStatusText()
+                    + " en " + authUrl + ". Revisá INVID_BASE_URL, INVID_USERNAME y INVID_PASSWORD.");
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new IllegalStateException("Invid: no se pudo conectar a " + authUrl
+                    + " — " + e.getMessage() + ". Revisá que INVID_BASE_URL sea el host correcto (con https://).");
+        }
         if (resp == null || !resp.path("access_token").isTextual()) {
-            throw new IllegalStateException("Invid: no se pudo autenticar (revisá INVID_USERNAME / INVID_PASSWORD).");
+            throw new IllegalStateException("Invid: la respuesta de auth no trae access_token. "
+                    + "Revisá usuario/contraseña. Respuesta: " + (resp != null ? resp.toString() : "vacía"));
         }
         token = resp.path("access_token").asText();
         long segundos = resp.path("expiration_time").asLong(86400);
