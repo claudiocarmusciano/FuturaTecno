@@ -138,9 +138,17 @@ public class InvidApiClient {
         articulosCacheTs = null;
     }
 
+    /**
+     * Resuelve next_page_url a una URL absoluta y le fuerza la extensión .php en el path de
+     * articulo. La API la devuelve sin .php (ej: /api/v1/articulo?offset=100) y el servidor,
+     * por negociación de contenido de Apache, responde 406 a esa variante cuando el request
+     * pide Accept: application/json — solo la ruta con .php acepta ese Accept.
+     */
     private String resolver(String next) {
-        if (next.startsWith("http://") || next.startsWith("https://")) return next;
-        return base() + (next.startsWith("/") ? next : "/" + next);
+        String absoluta = (next.startsWith("http://") || next.startsWith("https://"))
+                ? next
+                : base() + (next.startsWith("/") ? next : "/" + next);
+        return absoluta.replaceFirst("(?i)/articulo(\\?|$)", "/articulo.php$1");
     }
 
     /**
