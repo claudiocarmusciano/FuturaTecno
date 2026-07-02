@@ -184,6 +184,7 @@ function ProductosPage() {
                 <th style={{ width: '50px' }}></th>
                 <th>Producto</th>
                 <th>Proveedor</th>
+                <th>SKU</th>
                 <th>Últ. actualización</th>
                 <th></th>
               </tr>
@@ -198,6 +199,7 @@ function ProductosPage() {
                   </td>
                   <td>{nombre(p)}</td>
                   <td style={{ color: '#888', fontSize: '13px' }}>{p.proveedor}</td>
+                  <td style={{ color: '#888', fontSize: '13px' }}>{p.sku}</td>
                   <td style={{ color: '#999', fontSize: '12px' }}>{formatFecha(p.ultimaActualizacion)}</td>
                   <td>
                     <button onClick={() => abrirEdicion(p.id)} className="btn-accion"><IconEdit /> Editar</button>

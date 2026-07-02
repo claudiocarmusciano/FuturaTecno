@@ -38,9 +38,6 @@ public class Variante extends BaseEntity {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @OneToMany(mappedBy = "variante", cascade = CascadeType.ALL)
-    private List<Imagen> imagenes;
-
     public Producto getProducto() {
         return producto;
     }
@@ -119,13 +116,5 @@ public class Variante extends BaseEntity {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
-    }
-
-    public List<Imagen> getImagenes() {
-        return imagenes;
-    }
-
-    public void setImagenes(List<Imagen> imagenes) {
-        this.imagenes = imagenes;
     }
 }

@@ -1,9 +1,11 @@
 package com.futuratecno.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.futuratecno.domain.Imagen;
 import com.futuratecno.domain.Producto;
 import com.futuratecno.domain.Proveedor;
 import com.futuratecno.domain.Variante;
+import com.futuratecno.infrastructure.ImagenRepository;
 import com.futuratecno.infrastructure.ProductoRepository;
 import com.futuratecno.infrastructure.ProveedorRepository;
 import com.futuratecno.infrastructure.VarianteRepository;
@@ -31,11 +33,13 @@ public class ElitImportService {
     private static final String FUENTE = "ELIT";
     private static final int PAGINA = 100;          // máximo permitido por la API
     private static final int TOPE_PAGINAS = 200;     // tope de seguridad (200 x 100 = 20.000 items)
+    private static final int MAX_IMAGENES = 3;       // principal + hasta 2 extra en la galería
 
     private final ElitApiClient elitApiClient;
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final ProveedorRepository proveedorRepository;
+    private final ImagenRepository imagenRepository;
 
     // Caché simple de filtros (categorías/marcas) para los desplegables del panel.
     private Map<String, Object> filtrosCache;
@@ -44,11 +48,13 @@ public class ElitImportService {
     public ElitImportService(ElitApiClient elitApiClient,
                              ProductoRepository productoRepository,
                              VarianteRepository varianteRepository,
-                             ProveedorRepository proveedorRepository) {
+                             ProveedorRepository proveedorRepository,
+                             ImagenRepository imagenRepository) {
         this.elitApiClient = elitApiClient;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.proveedorRepository = proveedorRepository;
+        this.imagenRepository = imagenRepository;
     }
 
     public boolean estaConfigurado() {
@@ -184,7 +190,7 @@ public class ElitImportService {
         BigDecimal precio = dec(prod, "precio");   // precio neto original (para precioOrigen)
 
         String categoria = txt(prod, "categoria");
-        String imagen = primeraImagen(prod);
+        List<String> imagenes = imagenesDe(prod);
         String especificaciones = txt(prod, "descripcion");
         if (especificaciones == null) especificaciones = "";
         if (especificaciones.length() > 500) especificaciones = especificaciones.substring(0, 500);
@@ -202,9 +208,10 @@ public class ElitImportService {
         producto.setMarca(marcaF);
         producto.setModelo(modeloF);
         producto.setCategoria(categoria);
-        if (imagen != null) producto.setImagenUrl(imagen);
+        if (!imagenes.isEmpty()) producto.setImagenUrl(imagenes.get(0));
         producto.setActivo(true);
         producto = productoRepository.save(producto);
+        sincronizarGaleria(producto, imagenes);
 
         // Una sola variante por producto importado de Elit.
         Variante variante = (producto.getVariantes() != null && !producto.getVariantes().isEmpty())
@@ -252,13 +259,31 @@ public class ElitImportService {
         return n;
     }
 
-    private String primeraImagen(JsonNode prod) {
-        JsonNode imgs = prod.path("imagenes");
-        if (imgs.isArray() && !imgs.isEmpty()) {
-            String u = imgs.get(0).asText("");
-            if (!u.isBlank()) return u;
+    /** Hasta {@value #MAX_IMAGENES} URLs no vacías del array "imagenes" de Elit, en orden. */
+    private List<String> imagenesDe(JsonNode prod) {
+        List<String> urls = new ArrayList<>();
+        for (JsonNode img : prod.path("imagenes")) {
+            String u = img.asText("");
+            if (!u.isBlank()) urls.add(u);
+            if (urls.size() >= MAX_IMAGENES) break;
         }
-        return null;
+        return urls;
+    }
+
+    /**
+     * Guarda la 2ª y 3ª imagen del producto en la tabla "imagenes" (la 1ª ya quedó en
+     * Producto.imagenUrl). Se reemplazan por completo en cada sync para no acumular duplicados.
+     */
+    private void sincronizarGaleria(Producto producto, List<String> imagenes) {
+        imagenRepository.deleteAll(imagenRepository.findByProductoIdAndActivoOrderByOrden(producto.getId(), true));
+        for (int i = 1; i < imagenes.size(); i++) {
+            Imagen img = new Imagen();
+            img.setProducto(producto);
+            img.setUrl(imagenes.get(i));
+            img.setOrden(i);
+            img.setActivo(true);
+            imagenRepository.save(img);
+        }
     }
 
     private String txt(JsonNode node, String field) {

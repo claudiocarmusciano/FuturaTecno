@@ -6,8 +6,8 @@ import jakarta.persistence.*;
 @Table(name = "imagenes")
 public class Imagen extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "variante_id", nullable = false)
-    private Variante variante;
+    @JoinColumn(name = "producto_id", nullable = false)
+    private Producto producto;
 
     @Column(nullable = false)
     private String url;
@@ -18,12 +18,12 @@ public class Imagen extends BaseEntity {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    public Variante getVariante() {
-        return variante;
+    public Producto getProducto() {
+        return producto;
     }
 
-    public void setVariante(Variante variante) {
-        this.variante = variante;
+    public void setProducto(Producto producto) {
+        this.producto = producto;
     }
 
     public String getUrl() {

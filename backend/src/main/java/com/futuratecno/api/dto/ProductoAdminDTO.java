@@ -8,6 +8,7 @@ public class ProductoAdminDTO {
     private String marca;
     private String modelo;
     private String proveedor;
+    private String sku;
     private String imagenUrl;
     private String especificaciones;   // de la primera variante (para búsqueda de imagen)
     private LocalDateTime ultimaActualizacion;
@@ -37,6 +38,9 @@ public class ProductoAdminDTO {
 
     public String getProveedor() { return proveedor; }
     public void setProveedor(String proveedor) { this.proveedor = proveedor; }
+
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
 
     public String getImagenUrl() { return imagenUrl; }
     public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }

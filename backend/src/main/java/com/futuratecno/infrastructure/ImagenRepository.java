@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface ImagenRepository extends JpaRepository<Imagen, Long> {
-    List<Imagen> findByVarianteIdOrderByOrden(Long varianteId);
+    List<Imagen> findByProductoIdAndActivoOrderByOrden(Long productoId, Boolean activo);
 }

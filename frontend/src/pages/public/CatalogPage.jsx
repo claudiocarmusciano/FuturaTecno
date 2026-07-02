@@ -213,7 +213,8 @@ function CatalogPage() {
                 }}>Sin imagen</div>
               )}
               {p.categoria && <span className="chip-categoria" style={{ marginBottom: '8px' }}>{p.categoria}</span>}
-              <h3 style={{ margin: '8px 0 12px', fontSize: '16px' }}>{p.marca} {p.modelo}</h3>
+              <h3 style={{ margin: '8px 0 4px', fontSize: '16px' }}>{p.marca} {p.modelo}</h3>
+              {p.sku && <p style={{ margin: '0 0 12px', fontSize: '11px', color: '#9ca3af' }}>Cód. {p.sku}</p>}
 
               {p.variantes.map(v => (
                 <div key={v.id} style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', marginTop: '10px' }}>

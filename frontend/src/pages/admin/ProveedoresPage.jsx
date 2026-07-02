@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { IconEdit, IconTrash } from '../../components/icons'
 
-const formVacio = { nombre: '', margenPorcentaje: '', fletePorcentaje: '' }
+const formVacio = { nombre: '', codigo: '', margenPorcentaje: '', fletePorcentaje: '' }
 
 function ProveedoresPage() {
   const [proveedores, setProveedores] = useState([])
@@ -52,6 +52,7 @@ function ProveedoresPage() {
     setEditId(p.id)
     setFormData({
       nombre: p.nombre ?? '',
+      codigo: p.codigo ?? '',
       margenPorcentaje: p.margenPorcentaje ?? '',
       fletePorcentaje: p.fletePorcentaje ?? ''
     })
@@ -98,6 +99,10 @@ function ProveedoresPage() {
             <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required />
           </div>
           <div className="form-group">
+            <label>Código</label>
+            <input type="text" name="codigo" value={formData.codigo} onChange={handleChange} maxLength={10} placeholder="Ej: INV — se deriva del nombre si lo dejás vacío" />
+          </div>
+          <div className="form-group">
             <label>Margen (%)</label>
             <input type="number" name="margenPorcentaje" step="0.01" value={formData.margenPorcentaje} onChange={handleChange} required />
           </div>
@@ -123,6 +128,7 @@ function ProveedoresPage() {
             <thead>
               <tr>
                 <th>Nombre</th>
+                <th>Código</th>
                 <th>Margen %</th>
                 <th>Flete %</th>
                 <th>Acciones</th>
@@ -132,6 +138,7 @@ function ProveedoresPage() {
               {proveedores.map(p => (
                 <tr key={p.id}>
                   <td>{p.nombre}</td>
+                  <td style={{ color: '#888', fontSize: '13px' }}>{p.codigo}</td>
                   <td>{p.margenPorcentaje}%</td>
                   <td>{p.fletePorcentaje}%</td>
                   <td style={{ whiteSpace: 'nowrap' }}>

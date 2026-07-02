@@ -45,6 +45,10 @@ public class ProveedorController {
         // Si ya existe un proveedor con ese nombre: si está activo, es duplicado;
         // si está borrado (inactivo), lo reactivamos con los nuevos valores.
         var existente = proveedorRepository.findByNombreIgnoreCase(dto.getNombre().trim());
+        String codigo = normalizarCodigo(dto.getCodigo(), dto.getNombre());
+        ResponseEntity<?> conflicto = validarCodigoUnico(codigo, existente.map(Proveedor::getId).orElse(null));
+        if (conflicto != null) return conflicto;
+
         if (existente.isPresent()) {
             Proveedor p = existente.get();
             if (Boolean.TRUE.equals(p.getActivo())) {
@@ -52,6 +56,7 @@ public class ProveedorController {
                         .body("Ya existe un proveedor activo con ese nombre.");
             }
             p.setActivo(true);
+            p.setCodigo(codigo);
             p.setMargenPorcentaje(dto.getMargenPorcentaje());
             p.setFletePorcentaje(dto.getFletePorcentaje());
             return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(proveedorRepository.save(p)));
@@ -59,6 +64,7 @@ public class ProveedorController {
 
         Proveedor proveedor = new Proveedor();
         proveedor.setNombre(dto.getNombre().trim());
+        proveedor.setCodigo(codigo);
         proveedor.setMargenPorcentaje(dto.getMargenPorcentaje());
         proveedor.setFletePorcentaje(dto.getFletePorcentaje());
         proveedor.setActivo(true);
@@ -68,16 +74,41 @@ public class ProveedorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProveedorDTO> actualizar(@PathVariable Long id, @RequestBody ProveedorDTO dto) {
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ProveedorDTO dto) {
+        String codigo = normalizarCodigo(dto.getCodigo(), dto.getNombre());
+        ResponseEntity<?> conflicto = validarCodigoUnico(codigo, id);
+        if (conflicto != null) return conflicto;
+
         return proveedorRepository.findById(id)
             .map(proveedor -> {
                 proveedor.setNombre(dto.getNombre());
+                proveedor.setCodigo(codigo);
                 proveedor.setMargenPorcentaje(dto.getMargenPorcentaje());
                 proveedor.setFletePorcentaje(dto.getFletePorcentaje());
                 Proveedor actualizado = proveedorRepository.save(proveedor);
                 return ResponseEntity.ok(toDTO(actualizado));
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Mayúsculas + sin espacios; si viene vacío, se deriva del nombre (primeras 3 letras/números). */
+    private String normalizarCodigo(String codigo, String nombre) {
+        String c = codigo != null ? codigo.trim().toUpperCase() : "";
+        if (c.isEmpty() && nombre != null) {
+            c = nombre.replaceAll("[^a-zA-Z0-9]", "").toUpperCase();
+            c = c.length() > 3 ? c.substring(0, 3) : c;
+        }
+        return c;
+    }
+
+    /** Devuelve 409 si el código ya lo usa otro proveedor activo (excluyendo el que se está guardando). */
+    private ResponseEntity<?> validarCodigoUnico(String codigo, Long idPropio) {
+        if (codigo == null || codigo.isBlank()) return null;
+        var otro = proveedorRepository.findByCodigoIgnoreCase(codigo);
+        if (otro.isPresent() && Boolean.TRUE.equals(otro.get().getActivo()) && !otro.get().getId().equals(idPropio)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Ya existe un proveedor activo con ese código.");
+        }
+        return null;
     }
 
     @DeleteMapping("/{id}")
@@ -101,6 +132,7 @@ public class ProveedorController {
         return new ProveedorDTO(
             proveedor.getId(),
             proveedor.getNombre(),
+            proveedor.getCodigo(),
             proveedor.getMargenPorcentaje(),
             proveedor.getFletePorcentaje(),
             proveedor.getActivo(),

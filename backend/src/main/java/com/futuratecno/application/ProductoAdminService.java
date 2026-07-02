@@ -54,6 +54,7 @@ public class ProductoAdminService {
                             p.getModelo(),
                             p.getProveedor() != null ? p.getProveedor().getNombre() : null,
                             p.getImagenUrl());
+                    dto.setSku(sku(p));
                     if (p.getVariantes() != null && !p.getVariantes().isEmpty()) {
                         dto.setEspecificaciones(p.getVariantes().get(0).getEspecificaciones());
                     }
@@ -61,6 +62,18 @@ public class ProductoAdminService {
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * SKU camuflado: código corto del proveedor + identificador del artículo. No delata el proveedor
+     * (se ve como un código de referencia interno), pero permite cruzarlo con el sistema del mayorista.
+     */
+    private String sku(Producto p) {
+        String prefijo = (p.getProveedor() != null && p.getProveedor().getCodigo() != null && !p.getProveedor().getCodigo().isBlank())
+                ? p.getProveedor().getCodigo() : "FT";
+        String sufijo = (p.getCodigoExterno() != null && !p.getCodigoExterno().isBlank())
+                ? p.getCodigoExterno() : "P" + p.getId();
+        return prefijo + "-" + sufijo;
     }
 
     /** Fecha más reciente entre el producto y sus variantes activas (refleja la última actualización de precio). */
@@ -157,11 +170,13 @@ public class ProductoAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
         producto.setImagenUrl(url != null && !url.isBlank() ? url.trim() : null);
         productoRepository.save(producto);
-        return new ProductoAdminDTO(
+        ProductoAdminDTO dto = new ProductoAdminDTO(
                 producto.getId(), producto.getCategoria(), producto.getMarca(),
                 producto.getModelo(),
                 producto.getProveedor() != null ? producto.getProveedor().getNombre() : null,
                 producto.getImagenUrl());
+        dto.setSku(sku(producto));
+        return dto;
     }
 
     /**

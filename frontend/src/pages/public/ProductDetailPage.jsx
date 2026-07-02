@@ -25,9 +25,11 @@ function ProductDetailPage() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
   const [eta, setEta] = useState(null)
+  const [imagenActiva, setImagenActiva] = useState(0)
 
   useEffect(() => {
     setCargando(true)
+    setImagenActiva(0)
     axios.get(`/api/productos/${id}`)
       .then(res => setProducto(res.data))
       .catch(err => {
@@ -59,19 +61,43 @@ function ProductDetailPage() {
       <div className="card detalle-grid" style={{ marginTop: '16px' }}>
         {/* Imagen */}
         <div>
-          {producto.imagenUrl ? (
-            <img
-              src={producto.imagenUrl}
-              alt={nombre}
-              style={{ width: '100%', height: '320px', objectFit: 'contain', background: '#fff', borderRadius: '6px' }}
-              onError={(e) => { e.target.style.display = 'none' }}
-            />
-          ) : (
-            <div style={{
-              width: '100%', height: '320px', background: '#f0f0f0', borderRadius: '6px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb'
-            }}>Sin imagen</div>
-          )}
+          {(() => {
+            const imagenes = producto.imagenes?.length ? producto.imagenes : (producto.imagenUrl ? [producto.imagenUrl] : [])
+            const actual = imagenes[imagenActiva] ?? imagenes[0]
+            return actual ? (
+              <>
+                <img
+                  src={actual}
+                  alt={nombre}
+                  style={{ width: '100%', height: '320px', objectFit: 'contain', background: '#fff', borderRadius: '6px' }}
+                  onError={(e) => { e.target.style.display = 'none' }}
+                />
+                {imagenes.length > 1 && (
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                    {imagenes.map((url, i) => (
+                      <button
+                        key={url + i}
+                        type="button"
+                        onClick={() => setImagenActiva(i)}
+                        style={{
+                          width: '56px', height: '56px', padding: 0, background: '#fff', cursor: 'pointer',
+                          border: `2px solid ${i === imagenActiva ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                          borderRadius: '6px', overflow: 'hidden'
+                        }}
+                      >
+                        <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{
+                width: '100%', height: '320px', background: '#f0f0f0', borderRadius: '6px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb'
+              }}>Sin imagen</div>
+            )
+          })()}
         </div>
 
         {/* Info */}
@@ -79,7 +105,8 @@ function ProductDetailPage() {
           {producto.categoria && (
             <span className="chip-categoria" style={{ marginBottom: '12px' }}>{producto.categoria}</span>
           )}
-          <h1 style={{ margin: '8px 0 20px', fontSize: '30px' }}>{producto.marca} {producto.modelo}</h1>
+          <h1 style={{ margin: '8px 0 4px', fontSize: '30px' }}>{producto.marca} {producto.modelo}</h1>
+          {producto.sku && <p style={{ margin: '0 0 20px', fontSize: '12px', color: '#9ca3af' }}>Cód. {producto.sku}</p>}
 
           {producto.variantes.map(v => (
             <div key={v.id} style={{ borderTop: '1px solid var(--color-border)', padding: '16px 0' }}>

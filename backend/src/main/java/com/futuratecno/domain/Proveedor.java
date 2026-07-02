@@ -18,6 +18,9 @@ public class Proveedor extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String nombre;
 
+    @Column(length = 10)
+    private String codigo;
+
     @Column(name = "margen_porcentaje", nullable = false)
     private BigDecimal margenPorcentaje;
 
@@ -36,6 +39,14 @@ public class Proveedor extends BaseEntity {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public BigDecimal getMargenPorcentaje() {

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 public class ProveedorDTO {
     private Long id;
     private String nombre;
+    private String codigo;
     private BigDecimal margenPorcentaje;
     private BigDecimal fletePorcentaje;
     private Boolean activo;
@@ -14,9 +15,10 @@ public class ProveedorDTO {
 
     public ProveedorDTO() {}
 
-    public ProveedorDTO(Long id, String nombre, BigDecimal margenPorcentaje, BigDecimal fletePorcentaje, Boolean activo, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ProveedorDTO(Long id, String nombre, String codigo, BigDecimal margenPorcentaje, BigDecimal fletePorcentaje, Boolean activo, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.nombre = nombre;
+        this.codigo = codigo;
         this.margenPorcentaje = margenPorcentaje;
         this.fletePorcentaje = fletePorcentaje;
         this.activo = activo;
@@ -38,6 +40,14 @@ public class ProveedorDTO {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public BigDecimal getMargenPorcentaje() {

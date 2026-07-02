@@ -8,7 +8,9 @@ public class ProductoCatalogoDTO {
     private String categoria;
     private String marca;
     private String modelo;
+    private String sku;
     private String imagenUrl;
+    private List<String> imagenes;
     private LocalDateTime ultimaActualizacion;
     private List<VarianteCatalogoDTO> variantes;
 
@@ -23,8 +25,14 @@ public class ProductoCatalogoDTO {
         this.variantes = variantes;
     }
 
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
+
     public String getImagenUrl() { return imagenUrl; }
     public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
+
+    public List<String> getImagenes() { return imagenes; }
+    public void setImagenes(List<String> imagenes) { this.imagenes = imagenes; }
 
     public LocalDateTime getUltimaActualizacion() { return ultimaActualizacion; }
     public void setUltimaActualizacion(LocalDateTime ultimaActualizacion) { this.ultimaActualizacion = ultimaActualizacion; }
