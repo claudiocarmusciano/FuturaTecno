@@ -6,7 +6,8 @@ import java.util.List;
 /** Producto en formato editable para el admin (incluye variantes con su precio de origen). */
 public class ProductoEditDTO {
     private Long id;
-    private String categoria;
+    private Long categoriaId;
+    private String categoria;   // solo lectura (informativo): nombre de la subcategoría resuelta
     private String marca;
     private String modelo;
     private String proveedor;   // solo lectura (informativo)
@@ -34,6 +35,9 @@ public class ProductoEditDTO {
 
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
+
+    public Long getCategoriaId() { return categoriaId; }
+    public void setCategoriaId(Long categoriaId) { this.categoriaId = categoriaId; }
 
     public String getMarca() { return marca; }
     public void setMarca(String marca) { this.marca = marca; }

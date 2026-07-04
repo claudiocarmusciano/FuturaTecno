@@ -24,15 +24,18 @@ public class CatalogoService {
     private final VarianteRepository varianteRepository;
     private final ImagenRepository imagenRepository;
     private final CotizacionService cotizacionService;
+    private final CategoriaService categoriaService;
 
     public CatalogoService(ProductoRepository productoRepository,
                            VarianteRepository varianteRepository,
                            ImagenRepository imagenRepository,
-                           CotizacionService cotizacionService) {
+                           CotizacionService cotizacionService,
+                           CategoriaService categoriaService) {
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.imagenRepository = imagenRepository;
         this.cotizacionService = cotizacionService;
+        this.categoriaService = categoriaService;
     }
 
     @Transactional(readOnly = true)
@@ -81,9 +84,15 @@ public class CatalogoService {
                     v.getId(), v.getEspecificaciones(), precioVentaUsd, precioVentaArs));
         }
 
+        var nombresCategoria = categoriaService.resolverNombres(producto.getCategoriaId());
         ProductoCatalogoDTO dto = new ProductoCatalogoDTO(
-                producto.getId(), producto.getCategoria(), producto.getMarca(),
-                producto.getModelo(), producto.getImagenUrl(), variantesDto);
+                producto.getId(), nombresCategoria != null ? nombresCategoria.getSubcategoria() : null,
+                producto.getMarca(), producto.getModelo(), producto.getImagenUrl(), variantesDto);
+        dto.setCategoriaId(producto.getCategoriaId());
+        if (nombresCategoria != null) {
+            dto.setSeccion(nombresCategoria.getSeccion());
+            dto.setCategoriaPadre(nombresCategoria.getCategoriaPadre());
+        }
         dto.setSku(sku(producto));
         dto.setImagenes(imagenesDe(producto));
         dto.setUltimaActualizacion(ultimaAct);

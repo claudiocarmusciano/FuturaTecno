@@ -1,6 +1,7 @@
 package com.futuratecno.application;
 
 import com.futuratecno.api.dto.BuscarImagenesResponse;
+import com.futuratecno.api.dto.ClasificarCategoriasResponse;
 import com.futuratecno.api.dto.ProductoAdminDTO;
 import com.futuratecno.api.dto.ProductoEditDTO;
 import com.futuratecno.api.dto.VarianteEditDTO;
@@ -30,30 +31,38 @@ public class ProductoAdminService {
     private final IcecatService icecatService;
     private final AnthropicImageService anthropicImageService;
     private final CotizacionService cotizacionService;
+    private final CategoriaClasificadorService categoriaClasificadorService;
+    private final CategoriaService categoriaService;
 
     public ProductoAdminService(ProductoRepository productoRepository,
                                 VarianteRepository varianteRepository,
                                 IcecatService icecatService,
                                 AnthropicImageService anthropicImageService,
-                                CotizacionService cotizacionService) {
+                                CotizacionService cotizacionService,
+                                CategoriaClasificadorService categoriaClasificadorService,
+                                CategoriaService categoriaService) {
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.icecatService = icecatService;
         this.anthropicImageService = anthropicImageService;
         this.cotizacionService = cotizacionService;
+        this.categoriaClasificadorService = categoriaClasificadorService;
+        this.categoriaService = categoriaService;
     }
 
     @Transactional(readOnly = true)
     public List<ProductoAdminDTO> listar() {
         return productoRepository.findByActivo(true).stream()
                 .map(p -> {
+                    var nombres = categoriaService.resolverNombres(p.getCategoriaId());
                     ProductoAdminDTO dto = new ProductoAdminDTO(
                             p.getId(),
-                            p.getCategoria(),
+                            nombres != null ? nombres.getSubcategoria() : null,
                             p.getMarca(),
                             p.getModelo(),
                             p.getProveedor() != null ? p.getProveedor().getNombre() : null,
                             p.getImagenUrl());
+                    dto.setCategoriaId(p.getCategoriaId());
                     dto.setSku(sku(p));
                     if (p.getVariantes() != null && !p.getVariantes().isEmpty()) {
                         dto.setEspecificaciones(p.getVariantes().get(0).getEspecificaciones());
@@ -103,7 +112,9 @@ public class ProductoAdminService {
 
         ProductoEditDTO dto = new ProductoEditDTO();
         dto.setId(p.getId());
-        dto.setCategoria(p.getCategoria());
+        dto.setCategoriaId(p.getCategoriaId());
+        var nombres = categoriaService.resolverNombres(p.getCategoriaId());
+        dto.setCategoria(nombres != null ? nombres.getSubcategoria() : null);
         dto.setMarca(p.getMarca());
         dto.setModelo(p.getModelo());
         dto.setProveedor(p.getProveedor() != null ? p.getProveedor().getNombre() : null);
@@ -130,7 +141,7 @@ public class ProductoAdminService {
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
 
-        producto.setCategoria(vacioANull(dto.getCategoria()));
+        if (dto.getCategoriaId() != null) producto.setCategoriaId(dto.getCategoriaId());
         if (dto.getMarca() != null && !dto.getMarca().isBlank()) producto.setMarca(dto.getMarca().trim());
         if (dto.getModelo() != null && !dto.getModelo().isBlank()) producto.setModelo(dto.getModelo().trim());
         productoRepository.save(producto);
@@ -160,21 +171,19 @@ public class ProductoAdminService {
         return obtenerParaEditar(productoId);
     }
 
-    private String vacioANull(String s) {
-        return (s == null || s.isBlank()) ? null : s.trim();
-    }
-
     @Transactional
     public ProductoAdminDTO actualizarImagen(Long productoId, String url) {
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
         producto.setImagenUrl(url != null && !url.isBlank() ? url.trim() : null);
         productoRepository.save(producto);
+        var nombres = categoriaService.resolverNombres(producto.getCategoriaId());
         ProductoAdminDTO dto = new ProductoAdminDTO(
-                producto.getId(), producto.getCategoria(), producto.getMarca(),
+                producto.getId(), nombres != null ? nombres.getSubcategoria() : null, producto.getMarca(),
                 producto.getModelo(),
                 producto.getProveedor() != null ? producto.getProveedor().getNombre() : null,
                 producto.getImagenUrl());
+        dto.setCategoriaId(producto.getCategoriaId());
         dto.setSku(sku(producto));
         return dto;
     }
@@ -251,5 +260,30 @@ public class ProductoAdminService {
         resp.setDesdeIcecat(desdeIcecat);
         resp.setDesdeAnthropic(desdeAnthropic);
         return resp;
+    }
+
+    /** Clasifica dentro del árbol de categorías todos los productos que todavía no lo tienen asignado. */
+    @Transactional
+    public ClasificarCategoriasResponse clasificarCategoriasFaltantes() {
+        List<Producto> sinCategoria = productoRepository.findByActivo(true).stream()
+                .filter(p -> p.getCategoriaId() == null)
+                .collect(Collectors.toList());
+
+        int clasificados = 0;
+        for (Producto p : sinCategoria) {
+            Long id = categoriaClasificadorService.clasificar(p, p.getCategoria());
+            if (id != null) {
+                p.setCategoriaId(id);
+                productoRepository.save(p);
+                clasificados++;
+            }
+        }
+
+        int sinClasificar = sinCategoria.size() - clasificados;
+        String mensaje = String.format(
+                "Clasificación completada: %d productos clasificados, %d sin resultado (de %d procesados).",
+                clasificados, sinClasificar, sinCategoria.size());
+        logger.info(mensaje);
+        return new ClasificarCategoriasResponse(sinCategoria.size(), clasificados, sinClasificar, mensaje);
     }
 }

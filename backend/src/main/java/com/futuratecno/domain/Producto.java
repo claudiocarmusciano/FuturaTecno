@@ -10,8 +10,15 @@ public class Producto extends BaseEntity {
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
 
+    // Categoría cruda tal como viene del mayorista (o cargada a mano). Ya no se muestra al
+    // usuario: es el insumo del clasificador que resuelve categoriaId contra el árbol fijo.
     @Column
     private String categoria;
+
+    // Subcategoría (hoja) del árbol fijo de categorías. Null hasta que se clasifica
+    // (import automático o corrección manual del admin).
+    @Column(name = "categoria_id")
+    private Long categoriaId;
 
     @Column(nullable = false)
     private String marca;
@@ -49,6 +56,14 @@ public class Producto extends BaseEntity {
 
     public void setCategoria(String categoria) {
         this.categoria = categoria;
+    }
+
+    public Long getCategoriaId() {
+        return categoriaId;
+    }
+
+    public void setCategoriaId(Long categoriaId) {
+        this.categoriaId = categoriaId;
     }
 
     public String getMarca() {

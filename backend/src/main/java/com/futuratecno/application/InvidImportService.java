@@ -33,17 +33,20 @@ public class InvidImportService {
     private final VarianteRepository varianteRepository;
     private final ProveedorRepository proveedorRepository;
     private final CotizacionService cotizacionService;
+    private final CategoriaClasificadorService categoriaClasificadorService;
 
     public InvidImportService(InvidApiClient invidApiClient,
                               ProductoRepository productoRepository,
                               VarianteRepository varianteRepository,
                               ProveedorRepository proveedorRepository,
-                              CotizacionService cotizacionService) {
+                              CotizacionService cotizacionService,
+                              CategoriaClasificadorService categoriaClasificadorService) {
         this.invidApiClient = invidApiClient;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.proveedorRepository = proveedorRepository;
         this.cotizacionService = cotizacionService;
+        this.categoriaClasificadorService = categoriaClasificadorService;
     }
 
     public boolean estaConfigurado() {
@@ -185,6 +188,9 @@ public class InvidImportService {
         producto.setMarca(marcaF);
         producto.setModelo(modeloF);
         producto.setCategoria(categoria);
+        if (producto.getCategoriaId() == null) {
+            producto.setCategoriaId(categoriaClasificadorService.clasificar(producto, categoria));
+        }
         if (imagen != null) producto.setImagenUrl(imagen);
         producto.setActivo(true);
         producto = productoRepository.save(producto);

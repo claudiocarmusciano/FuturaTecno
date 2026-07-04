@@ -5,7 +5,10 @@ import java.util.List;
 
 public class ProductoCatalogoDTO {
     private Long id;
-    private String categoria;
+    private Long categoriaId;
+    private String seccion;
+    private String categoriaPadre;
+    private String categoria;   // nombre de la subcategoría (hoja)
     private String marca;
     private String modelo;
     private String sku;
@@ -42,6 +45,15 @@ public class ProductoCatalogoDTO {
 
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
+
+    public Long getCategoriaId() { return categoriaId; }
+    public void setCategoriaId(Long categoriaId) { this.categoriaId = categoriaId; }
+
+    public String getSeccion() { return seccion; }
+    public void setSeccion(String seccion) { this.seccion = seccion; }
+
+    public String getCategoriaPadre() { return categoriaPadre; }
+    public void setCategoriaPadre(String categoriaPadre) { this.categoriaPadre = categoriaPadre; }
 
     public String getMarca() { return marca; }
     public void setMarca(String marca) { this.marca = marca; }

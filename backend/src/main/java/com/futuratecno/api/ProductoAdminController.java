@@ -1,6 +1,7 @@
 package com.futuratecno.api;
 
 import com.futuratecno.api.dto.BuscarImagenesResponse;
+import com.futuratecno.api.dto.ClasificarCategoriasResponse;
 import com.futuratecno.api.dto.ProductoAdminDTO;
 import com.futuratecno.api.dto.ProductoEditDTO;
 import com.futuratecno.application.ProductoAdminService;
@@ -29,6 +30,11 @@ public class ProductoAdminController {
     @PostMapping("/buscar-imagenes")
     public ResponseEntity<BuscarImagenesResponse> buscarImagenes() {
         return ResponseEntity.ok(productoAdminService.buscarImagenesFaltantes());
+    }
+
+    @PostMapping("/clasificar-categorias")
+    public ResponseEntity<ClasificarCategoriasResponse> clasificarCategorias() {
+        return ResponseEntity.ok(productoAdminService.clasificarCategoriasFaltantes());
     }
 
     @PutMapping("/{id}/imagen")

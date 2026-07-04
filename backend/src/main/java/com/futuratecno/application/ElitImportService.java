@@ -40,6 +40,7 @@ public class ElitImportService {
     private final VarianteRepository varianteRepository;
     private final ProveedorRepository proveedorRepository;
     private final ImagenRepository imagenRepository;
+    private final CategoriaClasificadorService categoriaClasificadorService;
 
     // Caché simple de filtros (categorías/marcas) para los desplegables del panel.
     private Map<String, Object> filtrosCache;
@@ -49,10 +50,12 @@ public class ElitImportService {
                              ProductoRepository productoRepository,
                              VarianteRepository varianteRepository,
                              ProveedorRepository proveedorRepository,
-                             ImagenRepository imagenRepository) {
+                             ImagenRepository imagenRepository,
+                             CategoriaClasificadorService categoriaClasificadorService) {
         this.elitApiClient = elitApiClient;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
+        this.categoriaClasificadorService = categoriaClasificadorService;
         this.proveedorRepository = proveedorRepository;
         this.imagenRepository = imagenRepository;
     }
@@ -208,6 +211,9 @@ public class ElitImportService {
         producto.setMarca(marcaF);
         producto.setModelo(modeloF);
         producto.setCategoria(categoria);
+        if (producto.getCategoriaId() == null) {
+            producto.setCategoriaId(categoriaClasificadorService.clasificar(producto, categoria));
+        }
         if (!imagenes.isEmpty()) producto.setImagenUrl(imagenes.get(0));
         producto.setActivo(true);
         producto = productoRepository.save(producto);

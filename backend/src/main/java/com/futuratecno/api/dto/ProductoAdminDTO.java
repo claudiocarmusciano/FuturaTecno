@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public class ProductoAdminDTO {
     private Long id;
+    private Long categoriaId;
     private String categoria;
     private String marca;
     private String modelo;
@@ -29,6 +30,9 @@ public class ProductoAdminDTO {
 
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
+
+    public Long getCategoriaId() { return categoriaId; }
+    public void setCategoriaId(Long categoriaId) { this.categoriaId = categoriaId; }
 
     public String getMarca() { return marca; }
     public void setMarca(String marca) { this.marca = marca; }

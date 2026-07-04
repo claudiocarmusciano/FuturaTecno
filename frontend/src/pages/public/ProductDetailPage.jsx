@@ -102,6 +102,11 @@ function ProductDetailPage() {
 
         {/* Info */}
         <div>
+          {(producto.seccion || producto.categoriaPadre) && (
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '6px' }}>
+              {[producto.seccion, producto.categoriaPadre].filter(Boolean).join(' › ')}
+            </p>
+          )}
           {producto.categoria && (
             <span className="chip-categoria" style={{ marginBottom: '12px' }}>{producto.categoria}</span>
           )}

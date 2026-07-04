@@ -90,6 +90,16 @@ a { color: var(--color-accent); text-decoration: none; }
 
 /* ===== Detalle de producto ===== */
 .detalle-grid { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 48px; align-items: start; }
+
+/* ===== Catálogo: sidebar de categorías + contenido ===== */
+.catalogo-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; align-items: start; }
+.catalogo-sidebar {
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius);
+  padding: 20px; box-shadow: var(--shadow-sm); position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto;
+}
+.catalogo-sidebar summary { cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; }
+.catalogo-sidebar summary::-webkit-details-marker { display: none; }
+
 @media (max-width: 760px) {
   .detalle-grid { grid-template-columns: 1fr; gap: 20px; }
   .detalle-grid img { height: 280px !important; }
@@ -98,6 +108,14 @@ a { color: var(--color-accent); text-decoration: none; }
   /* Tablas anchas: el card scrollea horizontalmente en vez de romper el layout */
   .card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .table { min-width: 560px; }
+
+  .catalogo-layout { grid-template-columns: 1fr; gap: 16px; }
+  .catalogo-sidebar { position: static; max-height: none; }
+}
+
+/* En desktop la categoría queda siempre visible (no colapsable por accidente) */
+@media (min-width: 761px) {
+  .catalogo-sidebar summary { pointer-events: none; }
 }
 
 /* ===== Cards ===== */

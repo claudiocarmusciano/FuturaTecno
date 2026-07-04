@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { IconEdit } from '../../components/icons'
+import { indexarArbol } from '../../utils/categorias'
 
 const formatFecha = (iso) =>
   iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
@@ -31,6 +32,11 @@ function ProductosPage() {
   const [editData, setEditData] = useState(null)   // ProductoEditDTO en edición
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
+  const [arbol, setArbol] = useState([])
+  const [catPath, setCatPath] = useState({ seccionId: '', categoriaId: '', subcategoriaId: '' })
+  const [clasificando, setClasificando] = useState(false)
+
+  const { padreDe, nodoDe } = indexarArbol(arbol)
 
   const cargar = async () => {
     setCargando(true)
@@ -45,16 +51,45 @@ function ProductosPage() {
     }
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    axios.get('/api/categorias').then(res => setArbol(res.data)).catch(e => console.error('Categorías:', e))
+  }, [])
 
   const abrirEdicion = async (id) => {
     setMensaje('')
     try {
       const res = await axios.get(`/api/admin/productos/${id}/editar`)
       setEditData(res.data)
+      const subId = res.data.categoriaId ?? ''
+      const catId = subId !== '' ? (padreDe[subId] ?? '') : ''
+      const seccId = catId !== '' ? (padreDe[catId] ?? '') : ''
+      setCatPath({ seccionId: seccId, categoriaId: catId, subcategoriaId: subId })
     } catch (e) {
       console.error(e)
       setMensaje('Error al abrir el producto.')
+    }
+  }
+
+  const elegirSeccion = (id) => setCatPath({ seccionId: id, categoriaId: '', subcategoriaId: '' })
+  const elegirCategoria = (id) => setCatPath(prev => ({ ...prev, categoriaId: id, subcategoriaId: '' }))
+  const elegirSubcategoria = (id) => {
+    setCatPath(prev => ({ ...prev, subcategoriaId: id }))
+    setCampo('categoriaId', id ? Number(id) : null)
+  }
+
+  const clasificarFaltantes = async () => {
+    setClasificando(true)
+    setMensaje('')
+    try {
+      const res = await axios.post('/api/admin/productos/clasificar-categorias')
+      setMensaje(res.data.mensaje)
+      await cargar()
+    } catch (e) {
+      console.error(e)
+      setMensaje('Error al clasificar categorías.')
+    } finally {
+      setClasificando(false)
     }
   }
 
@@ -83,12 +118,19 @@ function ProductosPage() {
     }
   }
 
-  const nombre = (p) => [p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')
-
   return (
     <div>
       <h1>Productos</h1>
       {mensaje && <div className="card" style={{ borderLeft: '4px solid #28a745', color: '#155724' }}>{mensaje}</div>}
+
+      <div className="card">
+        <p style={{ fontSize: '13px', color: '#555', marginBottom: '10px' }}>
+          Clasifica automáticamente (mapeo manual + IA) los productos que todavía no tienen categoría asignada.
+        </p>
+        <button onClick={clasificarFaltantes} className="btn btn-secondary" disabled={clasificando}>
+          {clasificando ? 'Clasificando...' : 'Clasificar categorías faltantes'}
+        </button>
+      </div>
 
       {/* Panel de edición (modal) */}
       {editData && (
@@ -109,11 +151,31 @@ function ProductosPage() {
             Proveedor: {editData.proveedor || '—'} (no editable)
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '10px' }}>
+            <div>
+              <label style={{ fontSize: '12px', color: '#555' }}>Sección</label>
+              <select style={inputStyle} value={catPath.seccionId} onChange={e => elegirSeccion(e.target.value)}>
+                <option value="">—</option>
+                {arbol.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+              </select>
+            </div>
             <div>
               <label style={{ fontSize: '12px', color: '#555' }}>Categoría</label>
-              <input style={inputStyle} value={editData.categoria || ''} onChange={e => setCampo('categoria', e.target.value)} />
+              <select style={inputStyle} value={catPath.categoriaId} onChange={e => elegirCategoria(e.target.value)} disabled={!catPath.seccionId}>
+                <option value="">—</option>
+                {(nodoDe[catPath.seccionId]?.hijos || []).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
             </div>
+            <div>
+              <label style={{ fontSize: '12px', color: '#555' }}>Subcategoría</label>
+              <select style={inputStyle} value={catPath.subcategoriaId} onChange={e => elegirSubcategoria(e.target.value)} disabled={!catPath.categoriaId}>
+                <option value="">—</option>
+                {(nodoDe[catPath.categoriaId]?.hijos || []).map(sc => <option key={sc.id} value={sc.id}>{sc.nombre}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '18px' }}>
             <div>
               <label style={{ fontSize: '12px', color: '#555' }}>Marca</label>
               <input style={inputStyle} value={editData.marca || ''} onChange={e => setCampo('marca', e.target.value)} />
@@ -183,6 +245,7 @@ function ProductosPage() {
               <tr>
                 <th style={{ width: '50px' }}></th>
                 <th>Producto</th>
+                <th>Categoría</th>
                 <th>Proveedor</th>
                 <th>SKU</th>
                 <th>Últ. actualización</th>
@@ -197,7 +260,10 @@ function ProductosPage() {
                       ? <img src={p.imagenUrl} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain' }} onError={e => { e.target.style.opacity = '0.2' }} />
                       : <span style={{ color: '#bbb', fontSize: '12px' }}>—</span>}
                   </td>
-                  <td>{nombre(p)}</td>
+                  <td>{[p.marca, p.modelo].filter(Boolean).join(' ')}</td>
+                  <td style={{ fontSize: '13px' }}>
+                    {p.categoria || <span style={{ color: '#dc3545' }}>(sin categoría)</span>}
+                  </td>
                   <td style={{ color: '#888', fontSize: '13px' }}>{p.proveedor}</td>
                   <td style={{ color: '#888', fontSize: '13px' }}>{p.sku}</td>
                   <td style={{ color: '#999', fontSize: '12px' }}>{formatFecha(p.ultimaActualizacion)}</td>
