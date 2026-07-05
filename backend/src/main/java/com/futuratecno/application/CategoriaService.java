@@ -14,9 +14,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * El árbol de categorías es fijo (sembrado por la V9, sin CRUD desde la app), así que se
- * carga una sola vez a memoria al arrancar y se reutiliza — evita recorrer 100 filas por
- * cada request de catálogo.
+ * El árbol de categorías es fijo (sembrado por migración, sin CRUD desde la app), así que se
+ * carga una sola vez a memoria al arrancar y se reutiliza — evita recorrer todas las filas en
+ * cada request de catálogo. La profundidad no está fijada: una hoja puede ser una categoría
+ * de primer nivel sin hijos (ej. "Tablets") o una subcategoría (ej. "Almacenamiento > Pen Drive").
  */
 @Service
 public class CategoriaService {
@@ -24,7 +25,7 @@ public class CategoriaService {
 
     private Map<Long, Categoria> porId;
     private Map<Long, List<Categoria>> hijosDe;
-    /** Path completo ("Sección > Categoría > Subcategoría") -> id de la subcategoría (hoja). */
+    /** Path completo ("Categoría > Subcategoría", o solo "Categoría" si no tiene hijos) -> id de la hoja. */
     private Map<String, Long> idPorPath;
 
     public CategoriaService(CategoriaRepository categoriaRepository) {
@@ -53,11 +54,10 @@ public class CategoriaService {
         return hijos == null || hijos.isEmpty();
     }
 
-    private String pathDe(Categoria hoja) {
-        Categoria categoriaPadre = hoja.getPadre();
-        Categoria seccion = categoriaPadre != null ? categoriaPadre.getPadre() : null;
-        return (seccion != null ? seccion.getNombre() : "") + " > "
-                + (categoriaPadre != null ? categoriaPadre.getNombre() : "") + " > " + hoja.getNombre();
+    /** Camino desde la raíz hasta este nodo, uniendo nombres con " > " (recursivo, sin asumir una profundidad fija). */
+    private String pathDe(Categoria nodo) {
+        if (nodo.getPadre() == null) return nodo.getNombre();
+        return pathDe(nodo.getPadre()) + " > " + nodo.getNombre();
     }
 
     public List<CategoriaTreeDTO> obtenerArbol() {
@@ -73,16 +73,18 @@ public class CategoriaService {
         return out;
     }
 
-    /** Nombres de sección/categoría/subcategoría para una hoja. Null si categoriaId no existe o no es hoja. */
+    /**
+     * Nombres de categoría/subcategoría para una hoja. Si la hoja es una categoría de primer
+     * nivel sin hijos (ej. "Tablets"), categoriaPadre viene null. Null si categoriaId no existe.
+     */
     public CategoriaNombresDTO resolverNombres(Long categoriaId) {
         if (categoriaId == null) return null;
         Categoria hoja = porId.get(categoriaId);
         if (hoja == null) return null;
-        Categoria categoriaPadre = hoja.getPadre();
-        Categoria seccion = categoriaPadre != null ? categoriaPadre.getPadre() : null;
+        Categoria padre = hoja.getPadre();
         return new CategoriaNombresDTO(
-                seccion != null ? seccion.getNombre() : null,
-                categoriaPadre != null ? categoriaPadre.getNombre() : null,
+                null,
+                padre != null ? padre.getNombre() : null,
                 hoja.getNombre());
     }
 
@@ -91,7 +93,7 @@ public class CategoriaService {
         return List.copyOf(idPorPath.keySet());
     }
 
-    /** Resuelve un path exacto ("Sección > Categoría > Subcategoría") al id de esa hoja, o null si no matchea. */
+    /** Resuelve un path exacto (ej. "Almacenamiento > Pen Drive" o "Tablets") al id de esa hoja, o null si no matchea. */
     public Long idPorPath(String path) {
         return path == null ? null : idPorPath.get(path.trim());
     }

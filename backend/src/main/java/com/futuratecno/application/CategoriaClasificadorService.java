@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Clasifica un producto dentro del árbol fijo de categorías (V9). Primero prueba un mapeo
+ * Clasifica un producto dentro del árbol fijo de categorías. Primero prueba un mapeo
  * manual de categorías crudas conocidas del mayorista (gratis, instantáneo). Si no matchea
  * — categoría ambigua o nueva que nunca vimos — le pide a Claude que elija una hoja exacta
  * de la lista cerrada, usando también marca/modelo/especificaciones como contexto (la misma
@@ -121,58 +121,74 @@ public class CategoriaClasificadorService {
 
     private static Map<String, String> construirMapeoManual() {
         Map<String, String> m = new HashMap<>();
-        // Componentes > Almacenamiento
-        m.put("DISCO RÍGIDO EXTERNO", "Componentes > Almacenamiento > Discos Externos");
-        m.put("DISCO RÍGIDO SATA", "Componentes > Almacenamiento > Discos Internos");
-        m.put("DISCO SSD", "Componentes > Almacenamiento > Discos Internos SSD");
-        m.put("DISCO SSD M2", "Componentes > Almacenamiento > Discos Internos SSD");
-        m.put("TARJETAS DE MEMORIA", "Componentes > Almacenamiento > Memorias Flash");
-        // Componentes > Hardware
-        m.put("FANS", "Componentes > Hardware > Coolers");
-        m.put("WATERCOOLERS", "Componentes > Hardware > Coolers");
-        m.put("FUENTES DE ALIMENTACIÓN", "Componentes > Hardware > Fuentes");
-        m.put("GABINETES CON FUENTE", "Componentes > Hardware > Gabinetes");
-        m.put("GABINETES SIN FUENTE", "Componentes > Hardware > Gabinetes");
-        m.put("LÍNEA AMD RADEON", "Componentes > Hardware > Placas de Video");
-        m.put("LÍNEA NVIDIA GEFORCE", "Componentes > Hardware > Placas de Video");
-        m.put("LÍNEA QUADRO/RADEON PRO", "Componentes > Hardware > Placas de Video");
-        // Componentes > Memorias
-        m.put("DDR4", "Componentes > Memorias > Memorias PC");
-        m.put("DDR5", "Componentes > Memorias > Memorias PC");
-        m.put("MEMORIA DDR4", "Componentes > Memorias > Memorias PC");
-        m.put("MEMORIA DDR5", "Componentes > Memorias > Memorias PC");
-        m.put("MEMORIA SODIMM", "Componentes > Memorias > Memorias Notebook");
-        // Cómputos > Computadoras
-        m.put("MINI PC", "Cómputos > Computadoras > Mini PC");
-        m.put("NOTEBOOK GAMER", "Cómputos > Computadoras > Notebooks Consumo");
-        m.put("NOTEBOOK OFFICE", "Cómputos > Computadoras > Notebooks Corporativo");
-        // Cómputos > Imagen
-        m.put("MONITOR CONSUMO", "Cómputos > Imagen > Monitores");
-        m.put("MONITOR CORPORATIVO", "Cómputos > Imagen > Monitores");
-        m.put("MONITOR GAMER", "Cómputos > Imagen > Monitores");
-        m.put("PROYECTORES", "Cómputos > Imagen > Proyectores");
-        // Impresión
-        m.put("INK JET", "Impresión > Impresoras > Impresoras Inkjet");
-        m.put("LASER", "Impresión > Impresoras > Impresoras Láser");
-        // Otros > Audio
-        m.put("AURICULARES", "Otros > Audio > Auriculares");
-        m.put("MICRÓFONOS", "Otros > Audio > Micrófonos");
-        m.put("PARLANTES", "Otros > Audio > Parlantes");
-        // Otros > Conectividad
-        m.put("MODEM ADSL Y GPON", "Otros > Conectividad > Routers");
-        m.put("ROUTER", "Otros > Conectividad > Routers");
-        m.put("ROUTER WIRELESS", "Otros > Conectividad > Routers");
-        m.put("SWITCHES ADMINISTRABLES", "Otros > Conectividad > Switches");
-        m.put("SWITCHES NO ADMINISTRABLES", "Otros > Conectividad > Switches");
-        // Otros > Periféricos
-        m.put("MOUSE", "Otros > Periféricos > Mouses");
-        m.put("MOUSEPADS", "Otros > Periféricos > Mouse Pads");
-        m.put("TECLADOS", "Otros > Periféricos > Teclados");
-        m.put("WEB CAM", "Otros > Periféricos > Cámaras Web");
-        // Otros > Unidad de Energía
-        m.put("UPS", "Otros > Unidad de Energía > UPS");
-        // Otros > Video Juegos
-        m.put("CONSOLA", "Otros > Video Juegos > Consolas");
+        // Categorías de primer nivel sin subcategoría: la categoría cruda calza exacto con la hoja.
+        m.put("ACCESORIOS", "Accesorios");
+        m.put("DESTACADOS", "DESTACADOS");
+        m.put("ELECTRODOMÉSTICOS", "Electrodomésticos");
+        m.put("PROYECTORES", "Proyectores");
+        m.put("SILLAS Y ESCRITORIOS", "Sillas y escritorios");
+        m.put("TABLETS", "Tablets");
+        // Almacenamiento
+        m.put("TARJETAS DE MEMORIA", "Almacenamiento > Tarjetas de memoria");
+        // Computadoras
+        m.put("KIT PC", "Computadoras > Kit PC");
+        m.put("MINI PC", "Computadoras > Mini PC");
+        m.put("PC", "Computadoras > PC");
+        // Conectividad
+        m.put("ACCESS POINT Y EXTENSORES DE RANGO", "Conectividad > Access Point y Extensores de Rango");
+        m.put("MODEM ADSL Y GPON", "Conectividad > Modem ADSL y GPON");
+        m.put("ROUTER", "Conectividad > Router");
+        m.put("ROUTER WIRELESS", "Conectividad > Router Wireless");
+        m.put("SWITCHES ADMINISTRABLES", "Conectividad > Switches Administrables");
+        m.put("SWITCHES NO ADMINISTRABLES", "Conectividad > Switches No Administrables");
+        // Consumibles
+        m.put("CONSUMIBLES HP", "Consumibles > Consumibles HP");
+        // Coolers
+        m.put("FANS", "Coolers > Fans");
+        m.put("WATERCOOLERS", "Coolers > Watercoolers");
+        // Discos Rígidos / SSD
+        m.put("DISCO RÍGIDO EXTERNO", "Discos Rígidos / SSD > Disco Rígido Externo");
+        m.put("DISCO RÍGIDO SATA", "Discos Rígidos / SSD > Disco Rígido SATA");
+        m.put("DISCO SSD", "Discos Rígidos / SSD > Disco SSD");
+        m.put("DISCO SSD M2", "Discos Rígidos / SSD > Disco SSD M2");
+        // Energía
+        m.put("UPS", "Energía > UPS");
+        // Gabinetes y Fuentes
+        m.put("FUENTES DE ALIMENTACIÓN", "Gabinetes y Fuentes > Fuentes de Alimentación");
+        m.put("GABINETES CON FUENTE", "Gabinetes y Fuentes > Gabinetes con Fuente");
+        m.put("GABINETES SIN FUENTE", "Gabinetes y Fuentes > Gabinetes sin Fuente");
+        // Impresoras
+        m.put("INK JET", "Impresoras > Ink Jet");
+        m.put("LASER", "Impresoras > Laser");
+        m.put("MULTIFUNCIÓN", "Impresoras > Multifunción");
+        // Memorias RAM
+        m.put("DDR4", "Memorias RAM > Memoria DDR4");
+        m.put("DDR5", "Memorias RAM > Memoria DDR5");
+        m.put("MEMORIA DDR4", "Memorias RAM > Memoria DDR4");
+        m.put("MEMORIA DDR5", "Memorias RAM > Memoria DDR5");
+        m.put("MEMORIA SODIMM", "Memorias RAM > Memoria Sodimm");
+        // Monitores
+        m.put("MONITOR CONSUMO", "Monitores > Monitor Consumo");
+        m.put("MONITOR CORPORATIVO", "Monitores > Monitor Corporativo");
+        m.put("MONITOR GAMER", "Monitores > Monitor Gamer");
+        // Mothers
+        m.put("PLATAFORMA AMD", "Mothers > Plataforma AMD");
+        m.put("PLATAFORMA INTEL", "Mothers > Plataforma Intel");
+        // Notebooks
+        m.put("NOTEBOOK GAMER", "Notebooks > Gamer");
+        m.put("NOTEBOOK OFFICE", "Notebooks > Corporativa");
+        // Periféricos
+        m.put("AURICULARES", "Periféricos > Auriculares");
+        m.put("MICRÓFONOS", "Periféricos > Micrófonos");
+        m.put("MOUSE", "Periféricos > Mouse");
+        m.put("MOUSEPADS", "Periféricos > Mousepads");
+        m.put("PARLANTES", "Periféricos > Parlantes");
+        m.put("TECLADOS", "Periféricos > Teclados");
+        m.put("WEB CAM", "Periféricos > Web Cam");
+        // Placas de video
+        m.put("LÍNEA AMD RADEON", "Placas de video > Línea AMD RADEON");
+        m.put("LÍNEA NVIDIA GEFORCE", "Placas de video > Línea NVIDIA GEFORCE");
+        m.put("LÍNEA QUADRO/RADEON PRO", "Placas de video > Línea Quadro/Radeon Pro");
         return m;
     }
 }

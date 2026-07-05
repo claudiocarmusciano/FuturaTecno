@@ -33,7 +33,10 @@ function ProductosPage() {
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [arbol, setArbol] = useState([])
-  const [catPath, setCatPath] = useState({ seccionId: '', categoriaId: '', subcategoriaId: '' })
+  // topId = categoría de primer nivel elegida; subId = su subcategoría (si tiene). Algunas
+  // categorías no tienen subcategorías (ej. "Tablets") y son hoja en sí mismas: ahí topId ES
+  // el categoriaId a guardar, sin necesidad de elegir subId.
+  const [catPath, setCatPath] = useState({ topId: '', subId: '' })
   const [clasificando, setClasificando] = useState(false)
 
   const { padreDe, nodoDe } = indexarArbol(arbol)
@@ -61,20 +64,24 @@ function ProductosPage() {
     try {
       const res = await axios.get(`/api/admin/productos/${id}/editar`)
       setEditData(res.data)
-      const subId = res.data.categoriaId ?? ''
-      const catId = subId !== '' ? (padreDe[subId] ?? '') : ''
-      const seccId = catId !== '' ? (padreDe[catId] ?? '') : ''
-      setCatPath({ seccionId: seccId, categoriaId: catId, subcategoriaId: subId })
+      const hojaId = res.data.categoriaId ?? ''
+      const padreId = hojaId !== '' ? (padreDe[hojaId] ?? '') : ''
+      // Si tiene padre, la hoja es la subcategoría; si no, la hoja es la categoría top-level misma.
+      setCatPath(padreId !== '' ? { topId: padreId, subId: hojaId } : { topId: hojaId, subId: '' })
     } catch (e) {
       console.error(e)
       setMensaje('Error al abrir el producto.')
     }
   }
 
-  const elegirSeccion = (id) => setCatPath({ seccionId: id, categoriaId: '', subcategoriaId: '' })
-  const elegirCategoria = (id) => setCatPath(prev => ({ ...prev, categoriaId: id, subcategoriaId: '' }))
+  const elegirCategoria = (id) => {
+    const tieneHijos = (nodoDe[id]?.hijos || []).length > 0
+    setCatPath({ topId: id, subId: '' })
+    // Si no tiene subcategorías, la categoría elegida ya es el categoriaId final.
+    setCampo('categoriaId', (id && !tieneHijos) ? Number(id) : null)
+  }
   const elegirSubcategoria = (id) => {
-    setCatPath(prev => ({ ...prev, subcategoriaId: id }))
+    setCatPath(prev => ({ ...prev, subId: id }))
     setCampo('categoriaId', id ? Number(id) : null)
   }
 
@@ -153,26 +160,21 @@ function ProductosPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '10px' }}>
             <div>
-              <label style={{ fontSize: '12px', color: '#555' }}>Sección</label>
-              <select style={inputStyle} value={catPath.seccionId} onChange={e => elegirSeccion(e.target.value)}>
-                <option value="">—</option>
-                {arbol.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-              </select>
-            </div>
-            <div>
               <label style={{ fontSize: '12px', color: '#555' }}>Categoría</label>
-              <select style={inputStyle} value={catPath.categoriaId} onChange={e => elegirCategoria(e.target.value)} disabled={!catPath.seccionId}>
+              <select style={inputStyle} value={catPath.topId} onChange={e => elegirCategoria(e.target.value)}>
                 <option value="">—</option>
-                {(nodoDe[catPath.seccionId]?.hijos || []).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                {arbol.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </div>
-            <div>
-              <label style={{ fontSize: '12px', color: '#555' }}>Subcategoría</label>
-              <select style={inputStyle} value={catPath.subcategoriaId} onChange={e => elegirSubcategoria(e.target.value)} disabled={!catPath.categoriaId}>
-                <option value="">—</option>
-                {(nodoDe[catPath.categoriaId]?.hijos || []).map(sc => <option key={sc.id} value={sc.id}>{sc.nombre}</option>)}
-              </select>
-            </div>
+            {(nodoDe[catPath.topId]?.hijos?.length > 0) && (
+              <div>
+                <label style={{ fontSize: '12px', color: '#555' }}>Subcategoría</label>
+                <select style={inputStyle} value={catPath.subId} onChange={e => elegirSubcategoria(e.target.value)}>
+                  <option value="">—</option>
+                  {nodoDe[catPath.topId].hijos.map(sc => <option key={sc.id} value={sc.id}>{sc.nombre}</option>)}
+                </select>
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '18px' }}>
