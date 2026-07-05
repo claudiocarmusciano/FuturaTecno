@@ -27,6 +27,13 @@ public class CategoriaService {
     private Map<Long, List<Categoria>> hijosDe;
     /** Path completo ("Categoría > Subcategoría", o solo "Categoría" si no tiene hijos) -> id de la hoja. */
     private Map<String, Long> idPorPath;
+    /**
+     * Nombre de hoja (sin el resto del path) -> id, solo para nombres que no se repiten en
+     * ninguna otra hoja. Sirve de último recurso cuando un mayorista informa una jerarquía más
+     * profunda que la nuestra (ej. Invid manda "DDR3" bajo "Memoria Sodimm", pero en nuestro
+     * árbol "Memoria Sodimm" ya es la hoja) — redondea hacia el ancestro más cercano que sí existe.
+     */
+    private Map<String, Long> idPorNombreDeHojaUnico;
 
     public CategoriaService(CategoriaRepository categoriaRepository) {
         this.categoriaRepository = categoriaRepository;
@@ -42,11 +49,24 @@ public class CategoriaService {
             hijosDe.computeIfAbsent(padreId, k -> new ArrayList<>()).add(c);
         }
         idPorPath = new HashMap<>();
+        idPorNombreDeHojaUnico = new HashMap<>();
+        Map<String, Integer> ocurrenciasNombre = new HashMap<>();
         for (Categoria c : todas) {
-            if (esHoja(c)) {
-                idPorPath.put(pathDe(c), c.getId());
-            }
+            if (!esHoja(c)) continue;
+            idPorPath.put(normalizarPath(pathDe(c)), c.getId());
+            String nombreNorm = normalizarPath(c.getNombre());
+            ocurrenciasNombre.merge(nombreNorm, 1, Integer::sum);
+            idPorNombreDeHojaUnico.put(nombreNorm, c.getId());
         }
+        // Si el mismo nombre de hoja aparece en más de una rama, no adivinamos: se saca del índice.
+        ocurrenciasNombre.forEach((nombre, veces) -> {
+            if (veces > 1) idPorNombreDeHojaUnico.remove(nombre);
+        });
+    }
+
+    /** Mayúsculas + espacios colapsados, para que el matching de paths no dependa de mayúsculas/espacios exactos. */
+    private String normalizarPath(String path) {
+        return path.trim().replaceAll("\\s+", " ").toUpperCase();
     }
 
     private boolean esHoja(Categoria c) {
@@ -93,8 +113,19 @@ public class CategoriaService {
         return List.copyOf(idPorPath.keySet());
     }
 
-    /** Resuelve un path exacto (ej. "Almacenamiento > Pen Drive" o "Tablets") al id de esa hoja, o null si no matchea. */
+    /**
+     * Resuelve un path (ej. "Almacenamiento > Pen Drive" o "Tablets") al id de esa hoja, o null
+     * si no matchea. No distingue mayúsculas/minúsculas ni espacios de más.
+     */
     public Long idPorPath(String path) {
-        return path == null ? null : idPorPath.get(path.trim());
+        return path == null ? null : idPorPath.get(normalizarPath(path));
+    }
+
+    /**
+     * Resuelve por nombre de hoja "suelto" (sin el resto del path), solo si ese nombre no se
+     * repite en ninguna otra rama del árbol. Null si no hay match único.
+     */
+    public Long idPorNombreDeHojaUnico(String nombre) {
+        return nombre == null ? null : idPorNombreDeHojaUnico.get(normalizarPath(nombre));
     }
 }

@@ -189,7 +189,7 @@ public class InvidImportService {
         producto.setModelo(modeloF);
         producto.setCategoria(categoria);
         if (producto.getCategoriaId() == null) {
-            producto.setCategoriaId(categoriaClasificadorService.clasificar(producto, categoria));
+            producto.setCategoriaId(categoriaClasificadorService.clasificar(producto, categoria, categoriaPadreDe(art)));
         }
         if (imagen != null) producto.setImagenUrl(imagen);
         producto.setActivo(true);
@@ -276,5 +276,21 @@ public class InvidImportService {
     private String txt(JsonNode node, String field) {
         String v = node.path(field).asText(null);
         return (v == null || v.isBlank() || "null".equalsIgnoreCase(v)) ? null : v.trim();
+    }
+
+    /**
+     * Nombre de la categoría padre que Invid ya informa en CATEGORIES[].PARENT.NAME (la entrada
+     * marcada IS_PRIMARY, o la primera si ninguna lo está). Null si el artículo no tiene padre
+     * (categoría de primer nivel) o no trae el array.
+     */
+    private String categoriaPadreDe(JsonNode art) {
+        JsonNode categorias = art.path("CATEGORIES");
+        if (!categorias.isArray() || categorias.isEmpty()) return null;
+        JsonNode elegida = null;
+        for (JsonNode c : categorias) {
+            if (c.path("IS_PRIMARY").asBoolean(false)) { elegida = c; break; }
+        }
+        if (elegida == null) elegida = categorias.get(0);
+        return txt(elegida.path("PARENT"), "NAME");
     }
 }

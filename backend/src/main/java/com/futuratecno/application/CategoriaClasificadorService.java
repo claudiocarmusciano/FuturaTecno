@@ -14,11 +14,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Clasifica un producto dentro del árbol fijo de categorías. Primero prueba un mapeo
- * manual de categorías crudas conocidas del mayorista (gratis, instantáneo). Si no matchea
- * — categoría ambigua o nueva que nunca vimos — le pide a Claude que elija una hoja exacta
- * de la lista cerrada, usando también marca/modelo/especificaciones como contexto (la misma
- * categoría cruda puede corresponder a hojas distintas según el producto puntual).
+ * Clasifica un producto dentro del árbol fijo de categorías, en orden de preferencia:
+ *   1) Path estructural: si el mayorista ya manda la categoría padre (Invid expone
+ *      CATEGORIES[].PARENT.NAME), se arma "padre > categoría" y se busca esa hoja exacta.
+ *      Gratis e inequívoco — el propio proveedor ya resolvió la jerarquía.
+ *   2) La categoría cruda sola, por si es una hoja de primer nivel (ej. "Tablets", "DESTACADOS").
+ *   3) Mapeo manual de categorías crudas conocidas (gratis, instantáneo) para mayoristas que
+ *      no mandan jerarquía (Elit) o cuando el nombre no calza exacto con el árbol.
+ *   4) Si nada de lo anterior resolvió — categoría ambigua o nueva que nunca vimos — se le pide
+ *      a Claude que elija una hoja exacta de la lista cerrada, usando marca/modelo como contexto.
  *
  * El resultado se persiste en Producto.categoriaId y solo se recalcula si ese campo está en
  * null — así una corrección manual del admin no se pisa en el próximo sync, y no se vuelve
@@ -47,8 +51,33 @@ public class CategoriaClasificadorService {
         this.categoriaService = categoriaService;
     }
 
-    /** Clasifica y devuelve el categoriaId elegido, o null si no se pudo determinar. */
+    /** Clasifica sin categoría padre sugerida (mayoristas que no mandan jerarquía, ej. Elit). */
     public Long clasificar(Producto producto, String categoriaCruda) {
+        return clasificar(producto, categoriaCruda, null);
+    }
+
+    /**
+     * Clasifica y devuelve el categoriaId elegido, o null si no se pudo determinar.
+     * {@code categoriaPadreSugerida}: la categoría padre que el propio mayorista ya informa
+     * (ej. Invid vía CATEGORIES[].PARENT.NAME) — si matchea una hoja real del árbol, se usa
+     * directo, sin gastar una llamada a la IA.
+     */
+    public Long clasificar(Producto producto, String categoriaCruda, String categoriaPadreSugerida) {
+        if (categoriaPadreSugerida != null && categoriaCruda != null) {
+            Long id = categoriaService.idPorPath(categoriaPadreSugerida + " > " + categoriaCruda);
+            if (id != null) return id;
+        }
+        Long idHojaTopLevel = categoriaService.idPorPath(categoriaCruda);
+        if (idHojaTopLevel != null) return idHojaTopLevel;
+
+        // El mayorista puede tener una jerarquía más profunda que la nuestra (ej. Invid manda
+        // "DDR3" bajo "Memoria Sodimm", pero en nuestro árbol "Memoria Sodimm" ya es la hoja):
+        // si el padre que informa coincide con el nombre de alguna hoja única, redondeamos ahí.
+        if (categoriaPadreSugerida != null) {
+            Long idPorPadre = categoriaService.idPorNombreDeHojaUnico(categoriaPadreSugerida);
+            if (idPorPadre != null) return idPorPadre;
+        }
+
         String normalizada = normalizar(categoriaCruda);
         if (normalizada != null) {
             String pathManual = MAPEO_MANUAL.get(normalizada);
@@ -123,6 +152,7 @@ public class CategoriaClasificadorService {
         Map<String, String> m = new HashMap<>();
         // Categorías de primer nivel sin subcategoría: la categoría cruda calza exacto con la hoja.
         m.put("ACCESORIOS", "Accesorios");
+        m.put("SUPER OFERTAS", "DESTACADOS"); // etiqueta de marketing sin categoría real propia
         m.put("DESTACADOS", "DESTACADOS");
         m.put("ELECTRODOMÉSTICOS", "Electrodomésticos");
         m.put("PROYECTORES", "Proyectores");
