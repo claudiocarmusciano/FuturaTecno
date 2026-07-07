@@ -21,37 +21,32 @@ const precioDesde = (p) => {
   return precios.length ? Math.min(...precios) : Infinity
 }
 
-// Nodo del árbol de categorías (recursivo): sección / categoría / subcategoría.
+// Nodo del árbol de categorías, tipo acordeón: si tiene subcategorías, tocar la fila entera
+// pliega/despliega (no filtra); si es una hoja (subcategoría, o categoría sin hijos), tocarla filtra.
 function NodoCategoria({ nodo, nivel, seleccionado, onSeleccionar, expandidos, toggleExpandir }) {
   const tieneHijos = nodo.hijos && nodo.hijos.length > 0
   const expandido = expandidos.has(nodo.id)
   const activo = seleccionado === nodo.id
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', paddingLeft: `${nivel * 14}px` }}>
-        {tieneHijos ? (
-          <button
-            onClick={() => toggleExpandir(nodo.id)}
-            aria-label={expandido ? 'Colapsar' : 'Expandir'}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', width: '16px', color: 'var(--color-text-muted)', fontSize: '11px', padding: 0 }}
-          >
-            {expandido ? '▾' : '▸'}
-          </button>
-        ) : <span style={{ width: '16px', flexShrink: 0 }} />}
-        <button
-          onClick={() => onSeleccionar(nodo.id)}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '5px 0',
-            fontSize: nivel === 0 ? '14px' : '13px', fontWeight: activo ? 700 : (nivel === 0 ? 600 : 500),
-            color: activo ? 'var(--color-accent)' : 'var(--color-text)', width: '100%'
-          }}
-        >
-          {nodo.nombre}
-        </button>
-      </div>
+    <div style={nivel === 0 ? { borderBottom: '1px solid var(--color-border)' } : {}}>
+      <button
+        onClick={() => tieneHijos ? toggleExpandir(nodo.id) : onSeleccionar(nodo.id)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
+          background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+          padding: nivel === 0 ? '11px 4px' : '9px 4px 9px', paddingLeft: `${4 + nivel * 16}px`,
+          fontSize: nivel === 0 ? '14px' : '13px', fontWeight: activo ? 700 : (nivel === 0 ? 600 : 500),
+          color: activo ? 'var(--color-accent)' : 'var(--color-text)'
+        }}
+      >
+        <span>{nodo.nombre}</span>
+        {tieneHijos && (
+          <span style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>{expandido ? '▾' : '▸'}</span>
+        )}
+      </button>
       {tieneHijos && expandido && (
-        <div>
+        <div style={{ paddingBottom: '4px' }}>
           {nodo.hijos.map(h => (
             <NodoCategoria
               key={h.id} nodo={h} nivel={nivel + 1}
@@ -90,12 +85,7 @@ function CatalogPage() {
         setError('No se pudo cargar el catálogo. ¿Está corriendo el backend?')
       })
       .finally(() => setCargando(false))
-    axios.get('/api/categorias').then(res => {
-      setArbol(res.data)
-      // Expandidas por defecto: que las subcategorías se vean de entrada, sin depender
-      // de que alguien note la flechita chica de expandir.
-      setExpandidos(new Set(res.data.filter(c => c.hijos?.length > 0).map(c => c.id)))
-    }).catch(err => console.error('Categorías:', err))
+    axios.get('/api/categorias').then(res => setArbol(res.data)).catch(err => console.error('Categorías:', err))
     axios.get('/api/eta').then(res => setEta(res.data)).catch(err => console.error('ETA:', err))
     axios.get('/api/cotizacion').then(res => setCotizacion(res.data)).catch(err => console.error('Cotización:', err))
   }, [])
