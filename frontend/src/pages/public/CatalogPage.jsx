@@ -90,7 +90,21 @@ function CatalogPage() {
     axios.get('/api/cotizacion').then(res => setCotizacion(res.data)).catch(err => console.error('Cotización:', err))
   }, [])
 
-  const { nodoDe } = useMemo(() => indexarArbol(arbol), [arbol])
+  // Solo se muestran en el menú las categorías (y subcategorías) que tienen al menos
+  // un producto cargado, en cualquier nivel de profundidad.
+  const arbolConProductos = useMemo(() => {
+    const idsConProductos = new Set(productos.map(p => p.categoriaId).filter(Boolean))
+    const podar = (nodos) => nodos
+      .map(n => {
+        const hijos = n.hijos?.length ? podar(n.hijos) : []
+        const esHojaConProductos = !n.hijos?.length && idsConProductos.has(n.id)
+        return (hijos.length > 0 || esHojaConProductos) ? { ...n, hijos } : null
+      })
+      .filter(Boolean)
+    return podar(arbol)
+  }, [arbol, productos])
+
+  const { nodoDe } = useMemo(() => indexarArbol(arbolConProductos), [arbolConProductos])
 
   const toggleExpandir = (id) => setExpandidos(prev => {
     const next = new Set(prev)
@@ -195,7 +209,7 @@ function CatalogPage() {
             >
               Todas
             </button>
-            {arbol.map(seccion => (
+            {arbolConProductos.map(seccion => (
               <NodoCategoria
                 key={seccion.id} nodo={seccion} nivel={0}
                 seleccionado={categoriaId} onSeleccionar={seleccionarCategoria}
