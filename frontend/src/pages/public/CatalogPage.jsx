@@ -68,6 +68,7 @@ function CatalogPage() {
   const [arbol, setArbol] = useState([])
   const [categoriaId, setCategoriaId] = useState('')
   const [expandidos, setExpandidos] = useState(new Set())
+  const [menuAbierto, setMenuAbierto] = useState(false)   // drawer de categorías en mobile
 
   const [busqueda, setBusqueda] = useState('')
   const [marca, setMarca] = useState('')
@@ -111,7 +112,10 @@ function CatalogPage() {
     if (next.has(id)) next.delete(id); else next.add(id)
     return next
   })
-  const seleccionarCategoria = (id) => setCategoriaId(prev => prev === id ? '' : id)
+  const seleccionarCategoria = (id) => {
+    setCategoriaId(prev => prev === id ? '' : id)
+    setMenuAbierto(false)   // en mobile, elegir una subcategoría cierra el drawer solo
+  }
 
   // Ids de subcategoría (hoja) que caen bajo el nodo elegido, sea sección, categoría u hoja.
   // Se filtra por id, nunca por nombre: nombres como "Imagen" se repiten en ramas distintas.
@@ -194,13 +198,23 @@ function CatalogPage() {
         </div>
       )}
 
+      {/* Botón hamburguesa: solo visible en mobile (ver CSS) */}
+      <button className="catalogo-menu-toggle" onClick={() => setMenuAbierto(true)} aria-label="Abrir categorías">
+        ☰ Categorías
+      </button>
+
+      {menuAbierto && <div className="catalogo-sidebar-backdrop" onClick={() => setMenuAbierto(false)} />}
+
       <div className="catalogo-layout">
-        {/* Sidebar de categorías */}
-        <details className="catalogo-sidebar" open>
-          <summary>📂 Categorías</summary>
+        {/* Sidebar de categorías (drawer deslizable en mobile, panel fijo en desktop) */}
+        <aside className={`catalogo-sidebar${menuAbierto ? ' abierto' : ''}`}>
+          <div className="catalogo-sidebar-header">
+            <span>📂 Categorías</span>
+            <button className="catalogo-sidebar-cerrar" onClick={() => setMenuAbierto(false)} aria-label="Cerrar">✕</button>
+          </div>
           <div style={{ marginTop: '10px' }}>
             <button
-              onClick={() => setCategoriaId('')}
+              onClick={() => { setCategoriaId(''); setMenuAbierto(false) }}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '5px 0',
                 fontSize: '14px', fontWeight: categoriaId === '' ? 700 : 600,
@@ -217,7 +231,7 @@ function CatalogPage() {
               />
             ))}
           </div>
-        </details>
+        </aside>
 
         <div>
           {/* Barra de filtros */}
