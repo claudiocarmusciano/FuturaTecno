@@ -90,7 +90,12 @@ function CatalogPage() {
         setError('No se pudo cargar el catálogo. ¿Está corriendo el backend?')
       })
       .finally(() => setCargando(false))
-    axios.get('/api/categorias').then(res => setArbol(res.data)).catch(err => console.error('Categorías:', err))
+    axios.get('/api/categorias').then(res => {
+      setArbol(res.data)
+      // Expandidas por defecto: que las subcategorías se vean de entrada, sin depender
+      // de que alguien note la flechita chica de expandir.
+      setExpandidos(new Set(res.data.filter(c => c.hijos?.length > 0).map(c => c.id)))
+    }).catch(err => console.error('Categorías:', err))
     axios.get('/api/eta').then(res => setEta(res.data)).catch(err => console.error('ETA:', err))
     axios.get('/api/cotizacion').then(res => setCotizacion(res.data)).catch(err => console.error('Cotización:', err))
   }, [])
