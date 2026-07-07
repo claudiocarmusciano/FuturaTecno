@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { indexarArbol, idsHojaDe } from '../../utils/categorias'
@@ -53,6 +53,59 @@ function NodoCategoria({ nodo, nivel, seleccionado, onSeleccionar, expandidos, t
               seleccionado={seleccionado} onSeleccionar={onSeleccionar}
               expandidos={expandidos} toggleExpandir={toggleExpandir}
             />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Estilo de cada opción dentro del panel desplegable de marcas.
+const opcionMarca = (activo) => ({
+  display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px',
+  background: activo ? 'var(--color-lime)' : 'none', border: 'none', borderRadius: '6px',
+  cursor: 'pointer', fontSize: '14px', color: activo ? '#16181d' : 'var(--color-text)',
+  fontWeight: activo ? 600 : 500
+})
+
+// Filtro de marca como menú desplegable: se abre al tocar el botón, muestra la marca elegida,
+// y al seleccionar una opción (o clickear afuera) se vuelve a plegar. Mismo comportamiento en desktop y mobile.
+function MarcaDropdown({ marca, marcas, onChange }) {
+  const [abierto, setAbierto] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!abierto) return
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setAbierto(false) }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [abierto])
+
+  const elegir = (m) => { onChange(m); setAbierto(false) }
+
+  return (
+    <div ref={ref} style={{ position: 'relative', maxWidth: '260px' }}>
+      <button
+        type="button"
+        onClick={() => setAbierto(a => !a)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%',
+          padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)', borderRadius: '8px',
+          background: '#fff', color: 'var(--color-text)', cursor: 'pointer'
+        }}
+      >
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{marca || 'Todas las marcas'}</span>
+        <span style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>{abierto ? '▾' : '▸'}</span>
+      </button>
+      {abierto && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 20,
+          background: '#fff', border: '1px solid var(--color-border)', borderRadius: '8px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: '280px', overflowY: 'auto', padding: '4px'
+        }}>
+          <button type="button" onClick={() => elegir('')} style={opcionMarca(marca === '')}>Todas</button>
+          {marcas.map(m => (
+            <button key={m} type="button" onClick={() => elegir(m)} style={opcionMarca(marca === m)}>{m}</button>
           ))}
         </div>
       )}
@@ -168,18 +221,6 @@ function CatalogPage() {
   if (error) return (<div><h1>Catálogo</h1><div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div></div>)
   if (productos.length === 0) return (<div><h1>Catálogo</h1><div className="card"><p>Todavía no hay productos cargados.</p></div></div>)
 
-  const chip = (activo) => ({
-    padding: '6px 14px',
-    borderRadius: '999px',
-    border: '1px solid ' + (activo ? 'var(--color-lime-dark)' : 'var(--color-border)'),
-    background: activo ? 'var(--color-lime)' : '#fff',
-    color: activo ? '#16181d' : '#475569',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: activo ? 600 : 500,
-    whiteSpace: 'nowrap',
-    transition: 'all 0.12s'
-  })
   const inputFiltro = {
     padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)',
     borderRadius: '8px', color: 'var(--color-text)', background: '#fff'
@@ -247,10 +288,7 @@ function CatalogPage() {
             {marcas.length > 1 && (
               <div style={{ marginBottom: '14px' }}>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '6px', fontWeight: 600 }}>Marca</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <button style={chip(marca === '')} onClick={() => setMarca('')}>Todas</button>
-                  {marcas.map(m => <button key={m} style={chip(marca === m)} onClick={() => setMarca(m)}>{m}</button>)}
-                </div>
+                <MarcaDropdown marca={marca} marcas={marcas} onChange={setMarca} />
               </div>
             )}
 
