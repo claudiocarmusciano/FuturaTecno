@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 
@@ -21,6 +21,8 @@ const formatFechaLarga = (isoDate) => {
 
 function ProductDetailPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [producto, setProducto] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
@@ -43,8 +45,16 @@ function ProductDetailPage() {
     axios.get('/api/eta').then(res => setEta(res.data)).catch(err => console.error('ETA:', err))
   }, [])
 
+  // Vuelve al catálogo conservando los filtros: si venimos de él, hace "atrás" en el historial
+  // (restaura la URL con ?cat=&marca=... y la posición de scroll). Si se entró directo al
+  // detalle (link compartido), va al catálogo normal.
+  const volverAlCatalogo = (e) => {
+    e.preventDefault()
+    if (location.key !== 'default') navigate(-1)
+    else navigate('/')
+  }
   const volver = (
-    <Link to="/" style={{ color: 'var(--color-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>← Volver al catálogo</Link>
+    <a href="/" onClick={volverAlCatalogo} style={{ color: 'var(--color-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>← Volver al catálogo</a>
   )
 
   if (cargando) return (<div>{volver}<div className="card" style={{ marginTop: '16px' }}><p>Cargando...</p></div></div>)

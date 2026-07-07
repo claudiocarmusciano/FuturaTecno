@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { indexarArbol, idsHojaDe } from '../../utils/categorias'
 
@@ -118,18 +118,37 @@ function CatalogPage() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
 
+  // Los filtros viven en la URL (?cat=&marca=&q=&orden=&min=&max=) para que se conserven
+  // al volver desde el detalle de un producto (o con el botón "atrás" del navegador).
+  const [searchParams, setSearchParams] = useSearchParams()
+
   const [arbol, setArbol] = useState([])
-  const [categoriaId, setCategoriaId] = useState('')
+  const [categoriaId, setCategoriaId] = useState(() => {
+    const c = searchParams.get('cat')
+    return c ? Number(c) : ''
+  })
   const [expandidos, setExpandidos] = useState(new Set())
   const [menuAbierto, setMenuAbierto] = useState(false)   // drawer de categorías en mobile
 
-  const [busqueda, setBusqueda] = useState('')
-  const [marca, setMarca] = useState('')
-  const [orden, setOrden] = useState('')          // '', 'precio-asc', 'precio-desc'
-  const [precioMin, setPrecioMin] = useState('')
-  const [precioMax, setPrecioMax] = useState('')
+  const [busqueda, setBusqueda] = useState(() => searchParams.get('q') || '')
+  const [marca, setMarca] = useState(() => searchParams.get('marca') || '')
+  const [orden, setOrden] = useState(() => searchParams.get('orden') || '')   // '', 'precio-asc', 'precio-desc'
+  const [precioMin, setPrecioMin] = useState(() => searchParams.get('min') || '')
+  const [precioMax, setPrecioMax] = useState(() => searchParams.get('max') || '')
   const [eta, setEta] = useState(null)
   const [cotizacion, setCotizacion] = useState(null)
+
+  // Refleja los filtros actuales en la URL (replace: no ensucia el historial en cada tecla).
+  useEffect(() => {
+    const params = {}
+    if (categoriaId) params.cat = String(categoriaId)
+    if (marca) params.marca = marca
+    if (busqueda) params.q = busqueda
+    if (orden) params.orden = orden
+    if (precioMin) params.min = precioMin
+    if (precioMax) params.max = precioMax
+    setSearchParams(params, { replace: true })
+  }, [categoriaId, marca, busqueda, orden, precioMin, precioMax, setSearchParams])
 
   useEffect(() => {
     axios.get('/api/productos')
@@ -158,7 +177,17 @@ function CatalogPage() {
     return podar(arbol)
   }, [arbol, productos])
 
-  const { nodoDe } = useMemo(() => indexarArbol(arbolConProductos), [arbolConProductos])
+  const { nodoDe, padreDe } = useMemo(() => indexarArbol(arbolConProductos), [arbolConProductos])
+
+  // Al restaurar una categoría desde la URL (o al seleccionarla), expande su rama para que
+  // la selección quede visible en el árbol lateral. Solo agrega; nunca colapsa lo que abrió el usuario.
+  useEffect(() => {
+    if (!categoriaId) return
+    const ancestros = []
+    let cur = padreDe[categoriaId]
+    while (cur) { ancestros.push(cur); cur = padreDe[cur] }
+    if (ancestros.length) setExpandidos(prev => new Set([...prev, ...ancestros]))
+  }, [categoriaId, padreDe])
 
   const toggleExpandir = (id) => setExpandidos(prev => {
     const next = new Set(prev)
