@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import GoogleLoginButton from '../../components/GoogleLoginButton'
 
 function RegisterPage() {
-  const { register } = useAuth()
+  const { register, loginConGoogle } = useAuth()
   const navigate = useNavigate()
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
@@ -24,6 +25,19 @@ function RegisterPage() {
       navigate('/') // queda logueado, va al catálogo
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo registrar.')
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  const handleGoogle = async (credential) => {
+    setError('')
+    setCargando(true)
+    try {
+      await loginConGoogle(credential)
+      navigate('/') // queda logueado, va al catálogo
+    } catch (err) {
+      setError(err.response?.data?.error || 'No se pudo registrar con Google.')
     } finally {
       setCargando(false)
     }
@@ -65,6 +79,8 @@ function RegisterPage() {
             {cargando ? 'Creando...' : 'Crear cuenta'}
           </button>
         </form>
+
+        <GoogleLoginButton onCredential={handleGoogle} onError={setError} text="signup_with" divider />
 
         <p style={{ fontSize: '14px', marginTop: '16px', textAlign: 'center' }}>
           ¿Ya tenés cuenta? <Link to="/login" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Iniciá sesión</Link>

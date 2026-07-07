@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import GoogleLoginButton from '../../components/GoogleLoginButton'
 
 function LoginPage() {
-  const { login } = useAuth()
+  const { login, loginConGoogle } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
@@ -21,6 +22,19 @@ function LoginPage() {
       navigate(data.rol === 'ADMIN' ? (location.state?.from || '/admin') : '/')
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión.')
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  const handleGoogle = async (credential) => {
+    setError('')
+    setCargando(true)
+    try {
+      const data = await loginConGoogle(credential)
+      navigate(data.rol === 'ADMIN' ? (location.state?.from || '/admin') : '/')
+    } catch (err) {
+      setError(err.response?.data?.error || 'No se pudo iniciar sesión con Google.')
     } finally {
       setCargando(false)
     }
@@ -56,6 +70,8 @@ function LoginPage() {
             {cargando ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
+
+        <GoogleLoginButton onCredential={handleGoogle} onError={setError} text="signin_with" divider />
 
         <p style={{ fontSize: '14px', marginTop: '16px', textAlign: 'center' }}>
           ¿No tenés cuenta? <Link to="/registro" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Registrate</Link>

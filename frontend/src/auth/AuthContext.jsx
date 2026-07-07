@@ -47,6 +47,13 @@ export function AuthProvider({ children }) {
     return res.data
   }
 
+  // Login con Google: recibe el ID token (credential) que emite Google Identity Services.
+  const loginConGoogle = async (credential) => {
+    const res = await axios.post('/api/auth/google', { credential })
+    guardarSesion(res.data)
+    return res.data
+  }
+
   const logout = () => {
     localStorage.removeItem('auth')
     aplicarToken(null)
@@ -60,6 +67,7 @@ export function AuthProvider({ children }) {
     isAuth: !!user,
     login,
     register,
+    loginConGoogle,
     logout
   }
 

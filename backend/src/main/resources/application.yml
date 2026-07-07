@@ -34,6 +34,9 @@ icecat:
   lang: ${ICECAT_LANG:ES}
 
 google:
+  # Client ID de "Sign in with Google" (OAuth 2.0, tipo Web). No es secreto.
+  # Vacío = login con Google desactivado (el frontend oculta el botón).
+  client-id: ${GOOGLE_CLIENT_ID:}
   search:
     api-key: ${GOOGLE_API_KEY:}
     cx: ${GOOGLE_CX:}

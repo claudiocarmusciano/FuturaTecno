@@ -9,8 +9,11 @@ public class Usuario extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column   // opcional: los usuarios que entran con Google no tienen contraseña local.
     private String password;
+
+    @Column(name = "google_sub")   // claim "sub" del ID token de Google; null si la cuenta no usa Google.
+    private String googleSub;
 
     @Column
     private String nombre;
@@ -26,6 +29,9 @@ public class Usuario extends BaseEntity {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getGoogleSub() { return googleSub; }
+    public void setGoogleSub(String googleSub) { this.googleSub = googleSub; }
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
