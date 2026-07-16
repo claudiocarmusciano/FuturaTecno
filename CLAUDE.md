@@ -56,4 +56,6 @@ cd frontend && npm run dev          # → http://localhost:5173
 | `INVID_BASE_URL` | Host de Invid/TornadoStore |
 | `GOOGLE_CLIENT_ID` | Client ID de "Sign in with Google" (OAuth Web, no secreto). Vacío = botón oculto. Lo sirve `GET /api/config` al frontend y lo usa `GoogleTokenVerifier` para validar el ID token. |
 
-**Dominio:** `futuratecno.com.ar` registrado en NIC.ar — en estado "Pendiente Validación" (expediente TAD, trámite manual). No disponible aún para delegar DNS.
+**Dominio:**
+- `futuratecno.com.ar` — **registrado en NIC.ar** (desde 2026-07-16, vence 2027-07-16). Falta **delegar el DNS** en NIC.ar para apuntarlo a Railway.
+- `futuratecno.com` — **NO es nuestro**: pertenece a un tercero (registrado en 2018 vía Bluehost, apuntando a Wix). No usar ni asumir disponibilidad.
