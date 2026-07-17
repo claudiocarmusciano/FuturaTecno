@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import GoogleLoginButton from '../../components/GoogleLoginButton'
+import PasswordInput from '../../components/PasswordInput'
 
 function LoginPage() {
   const { login, loginConGoogle } = useAuth()
@@ -64,7 +65,7 @@ function LoginPage() {
           </div>
           <div className="form-group">
             <label>Contraseña</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" />
+            <PasswordInput value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
           </div>
           <button type="submit" className="btn btn-primary" disabled={cargando} style={{ width: '100%' }}>
             {cargando ? 'Ingresando...' : 'Ingresar'}

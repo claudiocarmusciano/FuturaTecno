@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import GoogleLoginButton from '../../components/GoogleLoginButton'
+import PasswordInput from '../../components/PasswordInput'
 
 function RegisterPage() {
   const { register, loginConGoogle } = useAuth()
@@ -73,7 +74,7 @@ function RegisterPage() {
           </div>
           <div className="form-group">
             <label>Contraseña (mín. 6 caracteres)</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="new-password" />
+            <PasswordInput value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" />
           </div>
           <button type="submit" className="btn btn-primary" disabled={cargando} style={{ width: '100%' }}>
             {cargando ? 'Creando...' : 'Crear cuenta'}
