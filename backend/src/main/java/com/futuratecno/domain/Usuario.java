@@ -24,6 +24,12 @@ public class Usuario extends BaseEntity {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    @Column(name = "reset_token")   // hash (SHA-256) del token de reseteo de contraseña; null si no hay uno pendiente.
+    private String resetToken;
+
+    @Column(name = "reset_token_expira")
+    private java.time.LocalDateTime resetTokenExpira;
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
@@ -41,4 +47,10 @@ public class Usuario extends BaseEntity {
 
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }
+
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+
+    public java.time.LocalDateTime getResetTokenExpira() { return resetTokenExpira; }
+    public void setResetTokenExpira(java.time.LocalDateTime resetTokenExpira) { this.resetTokenExpira = resetTokenExpira; }
 }

@@ -66,6 +66,9 @@ function LoginPage() {
           <div className="form-group">
             <label>Contraseña</label>
             <PasswordInput value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
+            <p style={{ textAlign: 'right', margin: '8px 0 0', fontSize: '13px' }}>
+              <Link to="/recuperar" style={{ color: 'var(--color-text-muted)' }}>¿Olvidaste tu contraseña?</Link>
+            </p>
           </div>
           <button type="submit" className="btn btn-primary" disabled={cargando} style={{ width: '100%' }}>
             {cargando ? 'Ingresando...' : 'Ingresar'}
