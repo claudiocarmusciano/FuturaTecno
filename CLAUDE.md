@@ -55,7 +55,8 @@ cd frontend && npm run dev          # → http://localhost:5173
 | `ELIT_USER_ID` / `ELIT_TOKEN` | Credenciales mayorista Elit |
 | `INVID_BASE_URL` | Host de Invid/TornadoStore |
 | `GOOGLE_CLIENT_ID` | Client ID de "Sign in with Google" (OAuth Web, no secreto). Vacío = botón oculto. Lo sirve `GET /api/config` al frontend y lo usa `GoogleTokenVerifier` para validar el ID token. |
+| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_FROM` | SMTP para "olvidé mi contraseña" (`EmailService`). Vacío = no se manda email (el flujo responde igual pero el reseteo no llega). Gmail: `smtp.gmail.com:587` + app password. |
 
 **Dominio:**
-- `futuratecno.com.ar` — **registrado en NIC.ar** (desde 2026-07-16, vence 2027-07-16). Falta **delegar el DNS** en NIC.ar para apuntarlo a Railway.
+- `futuratecno.com.ar` — **registrado** en NIC.ar (dominio "especial" pago; vence 2027-07-16). Falta **delegar el DNS** (todavía sin nameservers) para apuntarlo a Railway.
 - `futuratecno.com` — **NO es nuestro**: pertenece a un tercero (registrado en 2018 vía Bluehost, apuntando a Wix). No usar ni asumir disponibilidad.
