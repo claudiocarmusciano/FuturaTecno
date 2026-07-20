@@ -66,7 +66,7 @@ public class ElitImportService {
 
     /** Cuántos productos coinciden con el filtro (sin importar), más una muestra de nombres. */
     public Map<String, Object> previsualizar(String categoria, String marca, String store) {
-        JsonNode resp = elitApiClient.consultarProductos(5, 0, categoria, marca, null, store);
+        JsonNode resp = elitApiClient.consultarProductos(5, 1, categoria, marca, null, store);
         int total = resp.path("paginador").path("total").asInt(0);
         List<String> muestra = new ArrayList<>();
         for (JsonNode p : resp.path("resultado")) {
@@ -86,8 +86,9 @@ public class ElitImportService {
         }
         TreeSet<String> categorias = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         TreeSet<String> marcas = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-        int offset = 0, total = Integer.MAX_VALUE, paginas = 0;
-        while (offset < total && paginas < TOPE_PAGINAS) {
+        // Elit pagina con offset 1-based (offset >= 1): registro inicial de cada página.
+        int offset = 1, total = Integer.MAX_VALUE, paginas = 0;
+        while (offset <= total && paginas < TOPE_PAGINAS) {
             JsonNode resp = elitApiClient.consultarProductos(PAGINA, offset, null, null, null, "all");
             total = resp.path("paginador").path("total").asInt(0);
             JsonNode arr = resp.path("resultado");
@@ -127,10 +128,11 @@ public class ElitImportService {
         }
         Proveedor proveedor = obtenerOcrearProveedor();
 
-        int offset = 0, total = Integer.MAX_VALUE, paginas = 0;
+        // Elit pagina con offset 1-based (offset >= 1): registro inicial de cada página.
+        int offset = 1, total = Integer.MAX_VALUE, paginas = 0;
         int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosPorPrecio = 0;
 
-        while (offset < total && paginas < TOPE_PAGINAS) {
+        while (offset <= total && paginas < TOPE_PAGINAS) {
             JsonNode resp = elitApiClient.consultarProductos(PAGINA, offset, categoria, marca, null, store);
             total = resp.path("paginador").path("total").asInt(0);
             JsonNode arr = resp.path("resultado");
