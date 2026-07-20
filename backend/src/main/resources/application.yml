@@ -69,6 +69,8 @@ sync:
 app:
   cutoff-hour: ${CUTOFF_HOUR:14}
   image-storage-path: /app/static/images
+  # URL canónica: el apex (sin www) redirige 301 a este host. Vacío = sin redirección.
+  canonical-host: ${CANONICAL_HOST:www.futuratecno.com.ar}
   mail:
     from: ${MAIL_FROM:}            # remitente (ej. no-responder@futuratecno.com.ar). Vacío = no se manda email.
     from-name: ${MAIL_FROM_NAME:FuturaTecno}
