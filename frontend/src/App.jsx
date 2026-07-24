@@ -8,6 +8,7 @@ import ProductosPage from './pages/admin/ProductosPage'
 import ImagesPage from './pages/admin/ImagesPage'
 import ImportarElitPage from './pages/admin/ImportarElitPage'
 import ImportarInvidPage from './pages/admin/ImportarInvidPage'
+import CargarJsonPage from './pages/admin/CargarJsonPage'
 import UsuariosPage from './pages/admin/UsuariosPage'
 import CatalogPage from './pages/public/CatalogPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
@@ -38,6 +39,7 @@ function App() {
           <Route path="parsing" element={<ParsingPage />} />
           <Route path="importar-elit" element={<ImportarElitPage />} />
           <Route path="importar-invid" element={<ImportarInvidPage />} />
+          <Route path="cargar-json" element={<CargarJsonPage />} />
           <Route path="productos" element={<ProductosPage />} />
           <Route path="imagenes" element={<ImagesPage />} />
           <Route path="usuarios" element={<UsuariosPage />} />

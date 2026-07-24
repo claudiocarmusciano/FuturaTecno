@@ -37,6 +37,7 @@ function AdminLayout() {
           <Link to="/admin/parsing" className={`nav-link ${isActive('/admin/parsing')}`}>Parsing IA</Link>
           <Link to="/admin/importar-elit" className={`nav-link ${isActive('/admin/importar-elit')}`}>Importar de Elit</Link>
           <Link to="/admin/importar-invid" className={`nav-link ${isActive('/admin/importar-invid')}`}>Importar de Invid</Link>
+          <Link to="/admin/cargar-json" className={`nav-link ${isActive('/admin/cargar-json')}`}>Cargar por JSON</Link>
           <Link to="/admin/productos" className={`nav-link ${isActive('/admin/productos')}`}>Productos</Link>
           <Link to="/admin/imagenes" className={`nav-link ${isActive('/admin/imagenes')}`}>Imágenes</Link>
           <Link to="/admin/usuarios" className={`nav-link ${isActive('/admin/usuarios')}`}>Usuarios</Link>
