@@ -109,11 +109,27 @@ function ProductosPage() {
     }))
   }
 
+  // categoriaId final según el selector, computado al guardar (no depende del seteo incremental).
+  const categoriaIdSeleccionada = () => {
+    const top = catPath.topId
+    if (!top) return { ok: true, id: null }                       // sin categoría
+    const tieneHijos = (nodoDe[top]?.hijos || []).length > 0
+    if (!tieneHijos) return { ok: true, id: Number(top) }          // categoría de primer nivel (hoja)
+    if (catPath.subId) return { ok: true, id: Number(catPath.subId) } // subcategoría elegida
+    return { ok: false }                                           // eligió la categoría pero falta la subcategoría
+  }
+
   const guardar = async () => {
+    const cat = categoriaIdSeleccionada()
+    if (!cat.ok) {
+      setMensaje('Elegí la subcategoría (esa categoría tiene subcategorías).')
+      return
+    }
     setGuardando(true)
     setMensaje('')
     try {
-      await axios.put(`/api/admin/productos/${editData.id}`, editData)
+      // Se manda el categoriaId computado del selector (evita guardar null por desincronización).
+      await axios.put(`/api/admin/productos/${editData.id}`, { ...editData, categoriaId: cat.id })
       setEditData(null)
       await cargar()
       setMensaje('Producto actualizado ✓')
