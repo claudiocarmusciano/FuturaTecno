@@ -64,8 +64,8 @@
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
     }
-    .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
-    .nav-logo img { height: 34px; display: block; }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 88px; }
+    .nav-logo img { height: 52px; display: block; }
     .nav-links { display: flex; gap: 30px; align-items: center; }
     .nav-links a { color: var(--muted); font-size: 14.5px; font-weight: 500; transition: color .15s; }
     .nav-links a:hover { color: var(--text); }
@@ -199,6 +199,8 @@
     @media (max-width: 860px) {
       .nav-links { display: none; }
       .nav-toggle { display: block; }
+      .nav { height: 74px; }
+      .nav-logo img { height: 42px; }
       .hero-grid { grid-template-columns: 1fr; gap: 30px; }
       .mockup { height: 320px; max-width: 380px; margin: 0 auto; }
       .stats { grid-template-columns: repeat(2, 1fr); gap: 26px; }
