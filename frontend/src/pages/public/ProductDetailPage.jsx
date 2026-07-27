@@ -51,10 +51,10 @@ function ProductDetailPage() {
   const volverAlCatalogo = (e) => {
     e.preventDefault()
     if (location.key !== 'default') navigate(-1)
-    else navigate('/')
+    else navigate('/catalogo')
   }
   const volver = (
-    <a href="/" onClick={volverAlCatalogo} style={{ color: 'var(--color-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>← Volver al catálogo</a>
+    <a href="/catalogo" onClick={volverAlCatalogo} style={{ color: 'var(--color-accent)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>← Volver al catálogo</a>
   )
 
   if (cargando) return (<div>{volver}<div className="card" style={{ marginTop: '16px' }}><p>Cargando...</p></div></div>)

@@ -12,6 +12,7 @@ import CargarJsonPage from './pages/admin/CargarJsonPage'
 import UsuariosPage from './pages/admin/UsuariosPage'
 import CatalogPage from './pages/public/CatalogPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
+import LandingPage from './pages/public/LandingPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
@@ -23,9 +24,12 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<PublicLayout />}>
-          <Route index element={<CatalogPage />} />
-          <Route path="producto/:id" element={<ProductDetailPage />} />
+        {/* La home es la landing (tiene su propio header/footer). El catálogo vive en /catalogo. */}
+        <Route path="/" element={<LandingPage />} />
+
+        <Route element={<PublicLayout />}>
+          <Route path="/catalogo" element={<CatalogPage />} />
+          <Route path="/producto/:id" element={<ProductDetailPage />} />
         </Route>
 
         <Route path="/login" element={<LoginPage />} />

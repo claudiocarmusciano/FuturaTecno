@@ -23,7 +23,7 @@ function RegisterPage() {
     setCargando(true)
     try {
       await register(email, password, nombre)
-      navigate('/') // queda logueado, va al catálogo
+      navigate('/catalogo') // queda logueado, va al catálogo
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo registrar.')
     } finally {
@@ -36,7 +36,7 @@ function RegisterPage() {
     setCargando(true)
     try {
       await loginConGoogle(credential)
-      navigate('/') // queda logueado, va al catálogo
+      navigate('/catalogo') // queda logueado, va al catálogo
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo registrar con Google.')
     } finally {
@@ -87,7 +87,7 @@ function RegisterPage() {
           ¿Ya tenés cuenta? <Link to="/login" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Iniciá sesión</Link>
         </p>
         <p style={{ fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
-          <Link to="/" style={{ color: '#888' }}>← Volver al catálogo</Link>
+          <Link to="/catalogo" style={{ color: '#888' }}>← Volver al catálogo</Link>
         </p>
       </div>
     </div>

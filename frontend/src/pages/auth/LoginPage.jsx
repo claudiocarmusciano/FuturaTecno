@@ -20,7 +20,7 @@ function LoginPage() {
     try {
       const data = await login(email, password)
       // Admin va al panel; usuario común al catálogo.
-      navigate(data.rol === 'ADMIN' ? (location.state?.from || '/admin') : '/')
+      navigate(data.rol === 'ADMIN' ? (location.state?.from || '/admin') : '/catalogo')
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión.')
     } finally {
@@ -33,7 +33,7 @@ function LoginPage() {
     setCargando(true)
     try {
       const data = await loginConGoogle(credential)
-      navigate(data.rol === 'ADMIN' ? (location.state?.from || '/admin') : '/')
+      navigate(data.rol === 'ADMIN' ? (location.state?.from || '/admin') : '/catalogo')
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión con Google.')
     } finally {
@@ -81,7 +81,7 @@ function LoginPage() {
           ¿No tenés cuenta? <Link to="/registro" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Registrate</Link>
         </p>
         <p style={{ fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
-          <Link to="/" style={{ color: '#888' }}>← Volver al catálogo</Link>
+          <Link to="/catalogo" style={{ color: '#888' }}>← Volver al catálogo</Link>
         </p>
       </div>
     </div>
