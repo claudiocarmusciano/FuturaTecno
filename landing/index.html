@@ -64,8 +64,9 @@
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
     }
-    .nav { display: flex; align-items: center; justify-content: space-between; height: 88px; }
-    .nav-logo img { height: 52px; display: block; }
+    /* Mismo tamaño de logo que el header del sitio (.header-logo: 72px / 48px en mobile). */
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 104px; }
+    .nav-logo img { height: 72px; width: auto; display: block; }
     .nav-links { display: flex; gap: 30px; align-items: center; }
     .nav-links a { color: var(--muted); font-size: 14.5px; font-weight: 500; transition: color .15s; }
     .nav-links a:hover { color: var(--text); }
@@ -113,7 +114,9 @@
     .mockup { position: relative; height: 480px; }
     .mock-card {
       position: absolute; background: var(--dark-2); border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px; width: 210px;
+      border-radius: 14px; padding: 14px;
+      /* Ancho fluido: en pantallas medianas se achican para no taparse entre sí. */
+      width: clamp(170px, 18vw, 210px);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     }
     .mock-card .ph {
@@ -199,10 +202,11 @@
     @media (max-width: 860px) {
       .nav-links { display: none; }
       .nav-toggle { display: block; }
-      .nav { height: 74px; }
-      .nav-logo img { height: 42px; }
+      .nav { height: 80px; }
+      .nav-logo img { height: 48px; }
       .hero-grid { grid-template-columns: 1fr; gap: 30px; }
-      .mockup { height: 320px; max-width: 380px; margin: 0 auto; }
+      .mockup { height: 430px; max-width: 380px; margin: 0 auto; }
+      .mock-card { width: 190px; }
       .stats { grid-template-columns: repeat(2, 1fr); gap: 26px; }
       .features { grid-template-columns: 1fr; }
       .prod-grid { grid-template-columns: repeat(2, 1fr); }
@@ -425,60 +429,55 @@
       el.querySelector('.price').innerHTML = 'US$ ' + fmt(usd) + ' <small>· y en pesos</small>';
     }
 
-    // Regenera los chips de categorías desde el árbol real, mostrando solo las que
-    // tienen productos cargados. Cada chip abre el catálogo filtrado (?cat=<id>).
-    function pintarCategorias(productos) {
-      fetch(SITE + '/api/categorias')
-        .then(function (r) { return r.json(); })
-        .then(function (arbol) {
-          if (!Array.isArray(arbol) || !arbol.length) return;
-          var topDe = {};   // id de cualquier nodo -> id de su categoría de primer nivel
-          arbol.forEach(function (top) {
-            (function marcar(n) { topDe[n.id] = top.id; (n.hijos || []).forEach(marcar); })(top);
-          });
-          var cuenta = {};
-          productos.forEach(function (p) {
-            var t = topDe[p.categoriaId];
-            if (t) cuenta[t] = (cuenta[t] || 0) + 1;
-          });
-          var conProductos = arbol.filter(function (c) { return cuenta[c.id]; });
-          if (!conProductos.length) return;
-          conProductos.sort(function (a, b) { return cuenta[b.id] - cuenta[a.id]; });
-          document.getElementById('cats').innerHTML =
-            conProductos.map(function (c) {
-              return '<a class="cat" href="' + SITE + '/?cat=' + c.id + '" target="_blank" rel="noopener">' + esc(c.nombre) + '</a>';
-            }).join('') +
-            '<a class="cat" href="' + SITE + '/" target="_blank" rel="noopener">Ver todo →</a>';
-        })
-        .catch(function () { /* si falla, quedan los chips estáticos */ });
+    // Chips de categorías: solo las que tienen productos, con link ya filtrado (?cat=<id>).
+    function pintarCategorias(arbol, topDe, productos) {
+      var cuenta = {};
+      productos.forEach(function (p) {
+        var t = topDe[p.categoriaId];
+        if (t) cuenta[t] = (cuenta[t] || 0) + 1;
+      });
+      var conProductos = arbol.filter(function (c) { return cuenta[c.id]; });
+      if (!conProductos.length) return;
+      conProductos.sort(function (a, b) { return cuenta[b.id] - cuenta[a.id]; });
+      document.getElementById('cats').innerHTML =
+        conProductos.map(function (c) {
+          return '<a class="cat" href="' + SITE + '/?cat=' + c.id + '" target="_blank" rel="noopener">' + esc(c.nombre) + '</a>';
+        }).join('') +
+        '<a class="cat" href="' + SITE + '/" target="_blank" rel="noopener">Ver todo →</a>';
     }
 
-    // ---- Productos reales desde la API pública ----
-    fetch(SITE + '/api/productos')
-      .then(function (r) { return r.json(); })
-      .then(function (list) {
+    // Tarjetas del hero: un producto real de cada categoría, elegido por el id REAL del árbol
+    // (no por palabras en el nombre: "Silla Gamer" caía en Notebooks por la hoja "Gamer").
+    function pintarHeroDesdeArbol(arbol, topDe, conImagen) {
+      ['Notebooks', 'Placas de video', 'Monitores'].forEach(function (nombreCat, i) {
+        var cat = arbol.find(function (c) { return c.nombre === nombreCat; });
+        if (!cat) return;
+        var deLaCat = conImagen.filter(function (p) { return topDe[p.categoriaId] === cat.id; });
+        if (deLaCat.length) pintarHero(i, deLaCat[Math.floor(Math.random() * deLaCat.length)]);
+      });
+    }
+
+    // ---- Datos reales desde la API pública (productos + árbol de categorías) ----
+    Promise.all([
+      fetch(SITE + '/api/productos').then(function (r) { return r.json(); }),
+      fetch(SITE + '/api/categorias').then(function (r) { return r.json(); }).catch(function () { return []; })
+    ])
+      .then(function (res) {
+        var list = res[0], arbol = res[1];
         if (Array.isArray(list) && list.length) {
           document.getElementById('stat-prod').textContent = '+' + (Math.floor(list.length / 10) * 10);
-          pintarCategorias(list);
         }
         var conImagen = list.filter(function (p) { return p.imagenUrl && precioDesde(p); });
 
-        // Tarjetas del hero: una notebook, una placa de video y un monitor reales.
-        [['notebook', ['consumo', 'gamer', 'corporativa', 'notebook']],
-         ['gpu', ['nvidia', 'radeon', 'geforce', 'intel arc']],
-         ['monitor', ['monitor']]
-        ].forEach(function (par, i) {
-          var claves = par[1];
-          var match = conImagen.filter(function (p) {
-            var cat = (p.categoria || '').toLowerCase();
-            var nom = ((p.marca || '') + ' ' + (p.modelo || '')).toLowerCase();
-            var esMonitor = cat.indexOf('monitor') >= 0 || nom.indexOf('monitor') >= 0;
-            // "notebook" no debe capturar monitores (ambos usan la hoja "Consumo"/"Gamer").
-            if (par[0] === 'notebook' && esMonitor) return false;
-            return claves.some(function (k) { return cat.indexOf(k) >= 0 || nom.indexOf(k) >= 0; });
+        if (Array.isArray(arbol) && arbol.length) {
+          // id de cualquier nodo (hoja incluida) -> id de su categoría de primer nivel
+          var topDe = {};
+          arbol.forEach(function (top) {
+            (function marcar(n) { topDe[n.id] = top.id; (n.hijos || []).forEach(marcar); })(top);
           });
-          if (match.length) pintarHero(i, match[Math.floor(Math.random() * match.length)]);
-        });
+          pintarCategorias(arbol, topDe, list);
+          pintarHeroDesdeArbol(arbol, topDe, conImagen);
+        }
 
         // barajar y tomar 8
         conImagen.sort(function () { return Math.random() - 0.5; });
