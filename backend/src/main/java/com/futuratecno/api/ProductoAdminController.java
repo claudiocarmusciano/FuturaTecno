@@ -1,5 +1,6 @@
 package com.futuratecno.api;
 
+import com.futuratecno.api.dto.AsignarCategoriaRequest;
 import com.futuratecno.api.dto.BuscarImagenesResponse;
 import com.futuratecno.api.dto.ClasificarCategoriasResponse;
 import com.futuratecno.api.dto.ProductoAdminDTO;
@@ -58,6 +59,12 @@ public class ProductoAdminController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/asignar-categoria")
+    public ResponseEntity<?> asignarCategoria(@RequestBody AsignarCategoriaRequest req) {
+        int n = productoAdminService.asignarCategoriaMasiva(req.getIds(), req.getCategoriaId());
+        return ResponseEntity.ok(Map.of("actualizados", n, "mensaje", "Categoría asignada a " + n + " producto(s)."));
     }
 
     @DeleteMapping("/{id}")

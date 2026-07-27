@@ -39,6 +39,12 @@ function ProductosPage() {
   const [catPath, setCatPath] = useState({ topId: '', subId: '' })
   const [clasificando, setClasificando] = useState(false)
 
+  // Filtro "solo sin categoría" + selección múltiple + cascada para asignación masiva.
+  const [soloSinCategoria, setSoloSinCategoria] = useState(false)
+  const [seleccionados, setSeleccionados] = useState(new Set())
+  const [catMasiva, setCatMasiva] = useState({ topId: '', subId: '' })
+  const [asignando, setAsignando] = useState(false)
+
   const { padreDe, nodoDe } = indexarArbol(arbol)
 
   const cargar = async () => {
@@ -109,18 +115,57 @@ function ProductosPage() {
     }))
   }
 
-  // categoriaId final según el selector, computado al guardar (no depende del seteo incremental).
-  const categoriaIdSeleccionada = () => {
-    const top = catPath.topId
+  // categoriaId final según un selector en cascada {topId, subId}, sin depender del seteo incremental.
+  const categoriaIdDe = (path) => {
+    const top = path.topId
     if (!top) return { ok: true, id: null }                       // sin categoría
     const tieneHijos = (nodoDe[top]?.hijos || []).length > 0
     if (!tieneHijos) return { ok: true, id: Number(top) }          // categoría de primer nivel (hoja)
-    if (catPath.subId) return { ok: true, id: Number(catPath.subId) } // subcategoría elegida
+    if (path.subId) return { ok: true, id: Number(path.subId) }    // subcategoría elegida
     return { ok: false }                                           // eligió la categoría pero falta la subcategoría
   }
 
+  // --- Selección múltiple + asignación masiva ---
+  const productosVisibles = soloSinCategoria
+    ? productos.filter(p => p.categoriaId == null)
+    : productos
+
+  const toggleSeleccion = (id) => setSeleccionados(prev => {
+    const n = new Set(prev)
+    if (n.has(id)) n.delete(id); else n.add(id)
+    return n
+  })
+  const todosVisiblesSeleccionados = productosVisibles.length > 0
+    && productosVisibles.every(p => seleccionados.has(p.id))
+  const toggleTodos = () => {
+    setSeleccionados(todosVisiblesSeleccionados ? new Set() : new Set(productosVisibles.map(p => p.id)))
+  }
+
+  const asignarMasiva = async () => {
+    const cat = categoriaIdDe(catMasiva)
+    if (!cat.ok) { setMensaje('Elegí la subcategoría (esa categoría tiene subcategorías).'); return }
+    if (!cat.id) { setMensaje('Elegí una categoría para asignar.'); return }
+    if (seleccionados.size === 0) return
+    setAsignando(true)
+    setMensaje('')
+    try {
+      const res = await axios.post('/api/admin/productos/asignar-categoria', {
+        ids: [...seleccionados], categoriaId: cat.id
+      })
+      setSeleccionados(new Set())
+      setCatMasiva({ topId: '', subId: '' })
+      await cargar()
+      setMensaje(res.data?.mensaje || 'Categoría asignada ✓')
+    } catch (e) {
+      console.error(e)
+      setMensaje('Error al asignar categoría: ' + (e.response?.data?.message || e.message))
+    } finally {
+      setAsignando(false)
+    }
+  }
+
   const guardar = async () => {
-    const cat = categoriaIdSeleccionada()
+    const cat = categoriaIdDe(catPath)
     if (!cat.ok) {
       setMensaje('Elegí la subcategoría (esa categoría tiene subcategorías).')
       return
@@ -253,14 +298,54 @@ function ProductosPage() {
 
       {/* Lista de productos */}
       <div className="card">
+        {/* Filtro + contador */}
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <label style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '14px', cursor: 'pointer' }}>
+            <input type="checkbox" checked={soloSinCategoria}
+                   onChange={e => { setSoloSinCategoria(e.target.checked); setSeleccionados(new Set()) }} />
+            Solo sin categoría
+          </label>
+          <span style={{ fontSize: '13px', color: '#888' }}>{productosVisibles.length} producto(s)</span>
+        </div>
+
+        {/* Barra de asignación masiva de categoría */}
+        {seleccionados.size > 0 && (
+          <div style={{ background: 'var(--color-accent-light)', border: '1px solid var(--color-lime-dark)', borderRadius: '10px', padding: '12px 14px', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <strong style={{ fontSize: '14px', alignSelf: 'center' }}>{seleccionados.size} seleccionado(s)</strong>
+            <div>
+              <label style={{ fontSize: '12px', color: '#555', display: 'block' }}>Categoría</label>
+              <select style={inputStyle} value={catMasiva.topId} onChange={e => setCatMasiva({ topId: e.target.value, subId: '' })}>
+                <option value="">—</option>
+                {arbol.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+              </select>
+            </div>
+            {(nodoDe[catMasiva.topId]?.hijos?.length > 0) && (
+              <div>
+                <label style={{ fontSize: '12px', color: '#555', display: 'block' }}>Subcategoría</label>
+                <select style={inputStyle} value={catMasiva.subId} onChange={e => setCatMasiva(prev => ({ ...prev, subId: e.target.value }))}>
+                  <option value="">—</option>
+                  {nodoDe[catMasiva.topId].hijos.map(sc => <option key={sc.id} value={sc.id}>{sc.nombre}</option>)}
+                </select>
+              </div>
+            )}
+            <button onClick={asignarMasiva} className="btn btn-primary" disabled={asignando}>
+              {asignando ? 'Asignando...' : `Asignar categoría a ${seleccionados.size}`}
+            </button>
+            <button onClick={() => setSeleccionados(new Set())} className="btn btn-secondary">Limpiar selección</button>
+          </div>
+        )}
+
         {cargando ? (
           <p>Cargando...</p>
-        ) : productos.length === 0 ? (
-          <p>No hay productos. Importá una lista en "Parsing IA".</p>
+        ) : productosVisibles.length === 0 ? (
+          <p>{soloSinCategoria ? 'No hay productos sin categoría 🎉' : 'No hay productos. Importá una lista en "Parsing IA".'}</p>
         ) : (
           <table className="table">
             <thead>
               <tr>
+                <th style={{ width: '34px' }}>
+                  <input type="checkbox" checked={todosVisiblesSeleccionados} onChange={toggleTodos} title="Seleccionar todos" />
+                </th>
                 <th style={{ width: '50px' }}></th>
                 <th>Producto</th>
                 <th>Categoría</th>
@@ -271,8 +356,11 @@ function ProductosPage() {
               </tr>
             </thead>
             <tbody>
-              {productos.map(p => (
-                <tr key={p.id}>
+              {productosVisibles.map(p => (
+                <tr key={p.id} style={seleccionados.has(p.id) ? { background: 'var(--color-accent-light)' } : {}}>
+                  <td>
+                    <input type="checkbox" checked={seleccionados.has(p.id)} onChange={() => toggleSeleccion(p.id)} />
+                  </td>
                   <td>
                     {p.imagenUrl
                       ? <img src={p.imagenUrl} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain' }} onError={e => { e.target.style.opacity = '0.2' }} />

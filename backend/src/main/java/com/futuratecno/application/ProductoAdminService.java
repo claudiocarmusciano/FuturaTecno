@@ -171,6 +171,21 @@ public class ProductoAdminService {
         return obtenerParaEditar(productoId);
     }
 
+    /** Asigna el mismo categoriaId a varios productos de una. Devuelve cuántos se actualizaron. */
+    @Transactional
+    public int asignarCategoriaMasiva(List<Long> ids, Long categoriaId) {
+        if (ids == null || ids.isEmpty() || categoriaId == null) return 0;
+        int n = 0;
+        for (Long id : ids) {
+            Producto p = productoRepository.findById(id).orElse(null);
+            if (p == null) continue;
+            p.setCategoriaId(categoriaId);
+            productoRepository.save(p);
+            n++;
+        }
+        return n;
+    }
+
     @Transactional
     public ProductoAdminDTO actualizarImagen(Long productoId, String url) {
         Producto producto = productoRepository.findById(productoId)
