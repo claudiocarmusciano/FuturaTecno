@@ -322,19 +322,21 @@
     <div class="wrap">
       <span class="eyebrow on-dark">Categorías</span>
       <h2 class="title">Todo lo que necesitás, en un solo lugar.</h2>
-      <div class="cats">
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Notebooks</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Computadoras</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Placas de video</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Monitores</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Procesadores</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Memorias RAM</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Discos / SSD</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Periféricos</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Conectividad</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Impresoras</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Tablets</a>
-        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Y más →</a>
+      <!-- Cada chip abre el catálogo ya filtrado por esa categoría (?cat=<id>).
+           El JS regenera esta lista desde /api/categorias para que no quede desactualizada. -->
+      <div class="cats" id="cats">
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=71" target="_blank" rel="noopener">Notebooks</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=5" target="_blank" rel="noopener">Computadoras</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=85" target="_blank" rel="noopener">Placas de video</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=64" target="_blank" rel="noopener">Monitores</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=61" target="_blank" rel="noopener">Microprocesadores</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=55" target="_blank" rel="noopener">Memorias RAM</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=34" target="_blank" rel="noopener">Discos Rígidos / SSD</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=75" target="_blank" rel="noopener">Periféricos</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=10" target="_blank" rel="noopener">Conectividad</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=51" target="_blank" rel="noopener">Impresoras</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/?cat=93" target="_blank" rel="noopener">Tablets</a>
+        <a class="cat" href="https://www.futuratecno.com.ar/" target="_blank" rel="noopener">Ver todo →</a>
       </div>
     </div>
   </section>
@@ -421,12 +423,41 @@
       el.querySelector('.price').innerHTML = 'US$ ' + fmt(usd) + ' <small>· y en pesos</small>';
     }
 
+    // Regenera los chips de categorías desde el árbol real, mostrando solo las que
+    // tienen productos cargados. Cada chip abre el catálogo filtrado (?cat=<id>).
+    function pintarCategorias(productos) {
+      fetch(SITE + '/api/categorias')
+        .then(function (r) { return r.json(); })
+        .then(function (arbol) {
+          if (!Array.isArray(arbol) || !arbol.length) return;
+          var topDe = {};   // id de cualquier nodo -> id de su categoría de primer nivel
+          arbol.forEach(function (top) {
+            (function marcar(n) { topDe[n.id] = top.id; (n.hijos || []).forEach(marcar); })(top);
+          });
+          var cuenta = {};
+          productos.forEach(function (p) {
+            var t = topDe[p.categoriaId];
+            if (t) cuenta[t] = (cuenta[t] || 0) + 1;
+          });
+          var conProductos = arbol.filter(function (c) { return cuenta[c.id]; });
+          if (!conProductos.length) return;
+          conProductos.sort(function (a, b) { return cuenta[b.id] - cuenta[a.id]; });
+          document.getElementById('cats').innerHTML =
+            conProductos.map(function (c) {
+              return '<a class="cat" href="' + SITE + '/?cat=' + c.id + '" target="_blank" rel="noopener">' + esc(c.nombre) + '</a>';
+            }).join('') +
+            '<a class="cat" href="' + SITE + '/" target="_blank" rel="noopener">Ver todo →</a>';
+        })
+        .catch(function () { /* si falla, quedan los chips estáticos */ });
+    }
+
     // ---- Productos reales desde la API pública ----
     fetch(SITE + '/api/productos')
       .then(function (r) { return r.json(); })
       .then(function (list) {
         if (Array.isArray(list) && list.length) {
           document.getElementById('stat-prod').textContent = '+' + (Math.floor(list.length / 10) * 10);
+          pintarCategorias(list);
         }
         var conImagen = list.filter(function (p) { return p.imagenUrl && precioDesde(p); });
 
