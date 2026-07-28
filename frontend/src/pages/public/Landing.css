@@ -21,6 +21,12 @@
   overflow-x: hidden;
 }
 
+/* App.css pinta globalmente `h1..h6` y `p, span, div, label` con el color oscuro del catálogo.
+   Al aplicar directo sobre cada elemento le gana a la herencia de .lp, así que acá los devolvemos
+   a heredar. Se usa :where() porque no suma especificidad: las reglas de color propias de la
+   landing (definidas más abajo) siguen ganando por orden. */
+.lp :where(h1, h2, h3, h4, h5, h6, p, span, div, label, a, small, strong, li) { color: inherit; }
+
 .lp h1, .lp h2, .lp h3 { font-family: 'Sora', sans-serif; margin: 0; }
 .lp p { margin: 0; }
 .lp a { color: inherit; text-decoration: none; }
