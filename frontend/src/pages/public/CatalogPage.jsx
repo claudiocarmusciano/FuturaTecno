@@ -15,6 +15,10 @@ const formatFechaLarga = (isoDate) => {
   return new Date(y, m - 1, d).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
+// Orden por defecto del catálogo: del más barato al más caro. "relevancia" (el orden en que
+// los devuelve la API) queda como opción, pero ya no es lo primero que ve el visitante.
+const ORDEN_POR_DEFECTO = 'precio-asc'
+
 // Precio "desde" del producto: el menor precio USD entre sus variantes (para ordenar/filtrar).
 const precioDesde = (p) => {
   const precios = (p.variantes || []).map(v => Number(v.precioUsd)).filter(n => n > 0)
@@ -132,7 +136,7 @@ function CatalogPage() {
 
   const [busqueda, setBusqueda] = useState(() => searchParams.get('q') || '')
   const [marca, setMarca] = useState(() => searchParams.get('marca') || '')
-  const [orden, setOrden] = useState(() => searchParams.get('orden') || '')   // '', 'precio-asc', 'precio-desc'
+  const [orden, setOrden] = useState(() => searchParams.get('orden') || ORDEN_POR_DEFECTO)   // 'relevancia', 'precio-asc', 'precio-desc'
   const [precioMin, setPrecioMin] = useState(() => searchParams.get('min') || '')
   const [precioMax, setPrecioMax] = useState(() => searchParams.get('max') || '')
   const [eta, setEta] = useState(null)
@@ -144,7 +148,7 @@ function CatalogPage() {
     if (categoriaId) params.cat = String(categoriaId)
     if (marca) params.marca = marca
     if (busqueda) params.q = busqueda
-    if (orden) params.orden = orden
+    if (orden && orden !== ORDEN_POR_DEFECTO) params.orden = orden
     if (precioMin) params.min = precioMin
     if (precioMax) params.max = precioMax
     setSearchParams(params, { replace: true })
@@ -242,9 +246,9 @@ function CatalogPage() {
   }, [productos, busqueda, idsFiltro, marca, orden, precioMin, precioMax])
 
   const limpiarTodo = () => {
-    setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(''); setPrecioMin(''); setPrecioMax('')
+    setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(ORDEN_POR_DEFECTO); setPrecioMin(''); setPrecioMax('')
   }
-  const hayFiltros = categoriaId || marca || busqueda || orden || precioMin || precioMax
+  const hayFiltros = categoriaId || marca || busqueda || orden !== ORDEN_POR_DEFECTO || precioMin || precioMax
 
   if (cargando) return (<div><h1>Catálogo</h1><div className="card"><p>Cargando productos...</p></div></div>)
   if (error) return (<div><h1>Catálogo</h1><div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div></div>)
@@ -326,7 +330,7 @@ function CatalogPage() {
               <div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '6px', fontWeight: 600 }}>Ordenar por</div>
                 <select value={orden} onChange={e => setOrden(e.target.value)} style={inputFiltro}>
-                  <option value="">Relevancia</option>
+                  <option value="relevancia">Relevancia</option>
                   <option value="precio-asc">Precio: menor a mayor</option>
                   <option value="precio-desc">Precio: mayor a menor</option>
                 </select>

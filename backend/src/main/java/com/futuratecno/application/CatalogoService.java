@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,17 +24,20 @@ public class CatalogoService {
     private final ImagenRepository imagenRepository;
     private final CotizacionService cotizacionService;
     private final CategoriaService categoriaService;
+    private final PrecioService precioService;
 
     public CatalogoService(ProductoRepository productoRepository,
                            VarianteRepository varianteRepository,
                            ImagenRepository imagenRepository,
                            CotizacionService cotizacionService,
-                           CategoriaService categoriaService) {
+                           CategoriaService categoriaService,
+                           PrecioService precioService) {
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.imagenRepository = imagenRepository;
         this.cotizacionService = cotizacionService;
         this.categoriaService = categoriaService;
+        this.precioService = precioService;
     }
 
     @Transactional(readOnly = true)
@@ -58,10 +60,6 @@ public class CatalogoService {
 
     private ProductoCatalogoDTO toDTO(Producto producto, BigDecimal cotizacion) {
         Proveedor proveedor = producto.getProveedor();
-        BigDecimal fletePct = proveedor.getFletePorcentaje() != null ? proveedor.getFletePorcentaje() : BigDecimal.ZERO;
-        BigDecimal margen = proveedor.getMargenPorcentaje() != null ? proveedor.getMargenPorcentaje() : BigDecimal.ZERO;
-        BigDecimal factorFlete = BigDecimal.ONE.add(fletePct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP));
-        BigDecimal factorMargen = BigDecimal.ONE.add(margen.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP));
 
         // La "última actualización" del artículo = la fecha más reciente entre el producto
         // y sus variantes (el precio se guarda en la variante, que se actualiza al pisarlo).
@@ -72,13 +70,8 @@ public class CatalogoService {
             if (v.getUpdatedAt() != null && (ultimaAct == null || v.getUpdatedAt().isAfter(ultimaAct))) {
                 ultimaAct = v.getUpdatedAt();
             }
-            // Precio de venta = costo USD * (1 + flete%) * (1 + margen%)
-            BigDecimal precioVentaUsd = v.getCostoUsd()
-                    .multiply(factorFlete)
-                    .multiply(factorMargen)
-                    .setScale(2, RoundingMode.HALF_UP);
-            BigDecimal precioVentaArs = precioVentaUsd.multiply(cotizacion)
-                    .setScale(2, RoundingMode.HALF_UP);
+            BigDecimal precioVentaUsd = precioService.precioVentaUsd(v, proveedor);
+            BigDecimal precioVentaArs = precioService.aArs(precioVentaUsd, cotizacion);
 
             variantesDto.add(new VarianteCatalogoDTO(
                     v.getId(), v.getEspecificaciones(), precioVentaUsd, precioVentaArs));
@@ -93,7 +86,7 @@ public class CatalogoService {
             dto.setSeccion(nombresCategoria.getSeccion());
             dto.setCategoriaPadre(nombresCategoria.getCategoriaPadre());
         }
-        dto.setSku(sku(producto));
+        dto.setSku(producto.skuCamuflado());
         dto.setImagenes(imagenesDe(producto));
         dto.setUltimaActualizacion(ultimaAct);
         return dto;
@@ -111,16 +104,4 @@ public class CatalogoService {
         return urls;
     }
 
-    /**
-     * SKU camuflado: código corto del proveedor + identificador del artículo. No delata el proveedor
-     * (se ve como un código de referencia interno), pero permite cruzarlo con el sistema del mayorista.
-     */
-    private String sku(Producto producto) {
-        Proveedor proveedor = producto.getProveedor();
-        String prefijo = (proveedor != null && proveedor.getCodigo() != null && !proveedor.getCodigo().isBlank())
-                ? proveedor.getCodigo() : "FT";
-        String sufijo = (producto.getCodigoExterno() != null && !producto.getCodigoExterno().isBlank())
-                ? producto.getCodigoExterno() : "P" + producto.getId();
-        return prefijo + "-" + sufijo;
-    }
 }

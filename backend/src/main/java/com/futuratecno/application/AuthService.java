@@ -146,12 +146,10 @@ public class AuthService {
         usuarioRepository.save(u);
 
         String enlace = baseUrl + "/restablecer?token=" + tokenPlano;
-        try {
-            emailService.enviarHtml(u.getEmail(), "Restablecer tu contraseña — FuturaTecno", emailReset(enlace));
-        } catch (Exception e) {
-            // No propagamos el error al cliente (evita filtrar existencia del email); queda en el log.
-            logger.error("No se pudo enviar el email de reseteo a {}: {}", u.getEmail(), e.toString());
-        }
+        // Asíncrono a propósito: la respuesta al cliente es siempre la misma (no filtra si el email
+        // existe), así que no tiene sentido hacerlo esperar a que responda el proveedor de mail.
+        // Los errores quedan en el log dentro de EmailService.
+        emailService.enviarHtmlAsync(u.getEmail(), "Restablecer tu contraseña — FuturaTecno", emailReset(enlace));
     }
 
     /**
