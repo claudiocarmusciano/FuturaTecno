@@ -19,6 +19,12 @@
 - **Mayoristas modulares:** cada distribuidor tiene su propio `ApiClient` + `ImportService` + `Controller`. Elit y Invid conviven sin pisarse. Dedup por `codigo_externo` + `fuente`.
 - **Railway bloquea la salida SMTP** (puertos 25/465/587, política antispam) → los mails **no** pueden ir por SMTP. Un intento contra `smtp.gmail.com` no falla con error de credenciales: cuelga y muere en `ConnectException: Connection timed out`, porque nunca llega a autenticar. Por eso `EmailService` manda por la **API HTTP de Resend** (443). Cualquier integración saliente nueva: verificar que no dependa de un puerto no-HTTP.
 - **Los mails van asíncronos y con timeout.** `EmailService#enviarHtmlAsync` (`@EnableAsync`) — el mail es un efecto secundario y no debe demorar ni tumbar la operación que lo dispara. Sin timeout explícito, un SMTP/HTTP colgado se queda con un hilo de Tomcat indefinidamente (pasó: un `forgot-password` tardaba ~5 min).
+- **Pedidos: los precios se guardan CONGELADOS.** El precio de venta es derivado y se recalcula todos los días (cotización + costos del mayorista), así que `pedido_items` copia nombre, SKU, especificaciones e importes al confirmar. `producto_id`/`variante_id` quedan solo para trazabilidad — **nunca** mostrar un pedido leyendo el producto vivo, mostraría precios de hoy y no los que el cliente aceptó.
+- **El backend recalcula el precio del pedido.** El carrito manda solo `varianteId` + `cantidad`. Si se confiara en un importe del cliente, cualquiera pediría un iPhone a un dólar.
+- **Los pedidos vencen a las 06:30 AR** (`PedidoScheduler`), que es cuando la sync pisa precios y stock. Es un scheduler **aparte** del de sincronización a propósito: apagar `SYNC_ENABLED` no debe dejar pedidos vivos con precios viejos.
+- **No se descuenta stock al pedir.** `Variante.stock` lo pisa la sync diaria, así que cualquier descuento local se perdería a la mañana. El pedido es una solicitud, no una reserva.
+- **El carrito no requiere cuenta** (vive en localStorage); la sesión se pide recién al confirmar. Al abrir `/carrito` se revalidan los precios contra la API.
+- **Ojo con `SecurityConfig`:** la cadena termina en `anyRequest().permitAll()`. Toda ruta privada nueva hay que listarla explícitamente (como `/api/pedidos/**`), o nace pública.
 - **Repo público en GitHub** — NUNCA commitear secrets. Las credenciales van solo en `backend/.env` (gitignored) y en Railway.
 
 ## Convenciones
