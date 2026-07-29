@@ -19,7 +19,6 @@ function LoginPage() {
     setCargando(true)
     try {
       const data = await login(email, password)
-      // Admin va al panel; usuario común al catálogo.
       // Si venía de una pantalla que exige sesión (ej. el checkout), vuelve ahí.
       // Si no, admin al panel y usuario común al catálogo.
       navigate(location.state?.from || (data.rol === 'ADMIN' ? '/admin' : '/catalogo'))
@@ -57,7 +56,7 @@ function LoginPage() {
         <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginBottom: '24px', textAlign: 'center' }}>Ingresá a tu cuenta</p>
 
         {error && (
-          <div style={{ background: '#fff1f0', color: '#d70015', border: '1px solid #ffd9d6', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
+          <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
             {error}
           </div>
         )}
@@ -85,7 +84,7 @@ function LoginPage() {
           ¿No tenés cuenta? <Link to="/registro" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Registrate</Link>
         </p>
         <p style={{ fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
-          <Link to="/catalogo" style={{ color: '#888' }}>← Volver al catálogo</Link>
+          <Link to="/catalogo" style={{ color: 'var(--color-text-muted)' }}>← Volver al catálogo</Link>
         </p>
       </div>
     </div>

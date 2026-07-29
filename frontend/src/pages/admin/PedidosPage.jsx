@@ -110,7 +110,11 @@ function PedidosPage() {
                         <select
                           value=""
                           onChange={e => e.target.value && cambiarEstado(p.id, e.target.value)}
-                          style={{ padding: '6px 8px', fontSize: '13px', border: '1px solid var(--color-border)', borderRadius: '6px' }}
+                          style={{
+                            padding: '6px 8px', fontSize: '13px', borderRadius: '6px',
+                            border: '1px solid var(--color-border)',
+                            background: 'var(--color-surface-2)', color: 'var(--color-text)'
+                          }}
                         >
                           <option value="">—</option>
                           {ESTADOS.filter(e => e !== p.estado).map(e => (

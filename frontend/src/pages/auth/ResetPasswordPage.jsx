@@ -46,14 +46,14 @@ function ResetPasswordPage() {
         <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Nueva contraseña</h1>
 
         {ok ? (
-          <div style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--color-lime-tint)', color: 'var(--color-lime)', border: '1px solid rgba(200,224,72,0.3)', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
             ✅ Tu contraseña se actualizó.
             <p style={{ marginTop: '12px' }}>
               <Link to="/login" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Iniciá sesión</Link>
             </p>
           </div>
         ) : !token ? (
-          <div style={{ background: '#fff1f0', color: '#d70015', border: '1px solid #ffd9d6', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
             Enlace inválido: falta el token. Volvé a pedir el reseteo.
             <p style={{ marginTop: '12px' }}>
               <Link to="/recuperar" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Pedir un nuevo enlace</Link>
@@ -65,7 +65,7 @@ function ResetPasswordPage() {
               Elegí una contraseña nueva para tu cuenta.
             </p>
             {error && (
-              <div style={{ background: '#fff1f0', color: '#d70015', border: '1px solid #ffd9d6', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
+              <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
                 {error}
               </div>
             )}

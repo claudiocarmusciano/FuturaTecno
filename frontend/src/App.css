@@ -1,16 +1,20 @@
-/* ===== Design tokens — FuturaTecno (verde lima + oscuros) ===== */
+/* ===== Design tokens — FuturaTecno (verde lima sobre oscuro) =====
+   El sitio es dark: mismos fondos que la landing (Landing.css), para que el header
+   oscuro deje de ser una isla sobre un cuerpo claro. Los nombres de los tokens no
+   cambiaron, así que todo lo que usa var(--color-*) sigue solo. */
 :root {
-  --color-bg: #f6f7f2;            /* claro con un levísimo tinte verdoso */
-  --color-surface: #ffffff;
-  --color-text: #181a15;
-  --color-text-muted: #74786c;
-  --color-border: #e6e8df;
+  --color-bg: #16181d;            /* mismo dark de la landing */
+  --color-surface: #1b1e25;       /* tarjetas: un escalón por encima del fondo */
+  --color-surface-2: #22262e;     /* inputs, hovers de fila */
+  --color-text: #e9ebee;
+  --color-text-muted: #9aa0ab;
+  --color-border: rgba(255, 255, 255, 0.09);
 
   /* Marca: verde lima del logo */
   --color-lime: #c8e048;         /* lima de marca (fills, acentos) */
   --color-lime-dark: #b2cc2e;    /* hover de fills */
-  --color-lime-deep: #5d6b14;    /* lima legible como texto/link sobre claro */
-  --color-lime-tint: #f1f6d8;    /* fondo suave (chips, banners) */
+  --color-lime-deep: #5d6b14;    /* lima legible como texto SOBRE CLARO (ej. encima del lima) */
+  --color-lime-tint: rgba(200, 224, 72, 0.12);   /* fondo suave (chips, banners) */
 
   /* Superficies oscuras (header público / sidebar admin) */
   --color-dark: #16181d;
@@ -19,19 +23,37 @@
 
   --color-primary: var(--color-lime);        /* color de relleno de marca */
   --color-primary-dark: var(--color-lime-dark);
-  --color-accent: var(--color-lime-deep);    /* texto/links/íconos sobre claro */
+  /* Sobre fondo oscuro el link legible es el lima brillante, no el deep (que es
+     para texto sobre claro). Ver la convención de colores en CLAUDE.md. */
+  --color-accent: var(--color-lime);
   --color-accent-light: var(--color-lime-tint);
   --gradient-marca: linear-gradient(135deg, #d2ea54 0%, #b2cc2e 100%);
-  --color-price: #74786c;
-  --color-danger: #d70015;
+  --color-price: #9aa0ab;
+  --color-danger: #ff6b5e;        /* rojo legible sobre oscuro */
+  --color-danger-bg: rgba(255, 107, 94, 0.12);
   --radius: 16px;
   --radius-sm: 10px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
-  --shadow-hover: 0 14px 40px rgba(0, 0, 0, 0.10);
+  /* En oscuro la sombra suave no se ve: se compensa con más opacidad. */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 14px 40px rgba(0, 0, 0, 0.55);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Le avisa al navegador que el tema es oscuro: pinta scrollbars, el desplegable de los
+   <select>, los date pickers y el autofill acorde, cosas que no se pueden estilar a mano. */
+:root { color-scheme: dark; }
+
+/* Los controles nativos caen al blanco del navegador si nadie les da fondo, y en tema oscuro
+   eso deja recuadros blancos sueltos. Se fija el default acá para no depender de que cada
+   pantalla lo declare; los estilos propios de cada control siguen ganando. */
+input, select, textarea {
+  background-color: var(--color-surface-2);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+option { background-color: var(--color-surface-2); color: var(--color-text); }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter',
@@ -178,13 +200,13 @@ a { color: var(--color-accent); text-decoration: none; }
 .btn:active { transform: scale(0.98); }
 .btn-primary { background: var(--gradient-marca); color: #16181d; font-weight: 600; }
 .btn-primary:hover { filter: brightness(0.96); }
-.btn-secondary { background-color: var(--color-lime-tint); color: #2c331a; }
-.btn-secondary:hover { background-color: #e7f0c2; }
+.btn-secondary { background-color: var(--color-lime-tint); color: var(--color-lime); }
+.btn-secondary:hover { background-color: rgba(200, 224, 72, 0.2); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ===== Forms ===== */
 .form-group { margin-bottom: 18px; }
-.form-group label { display: block; margin-bottom: 7px; font-weight: 500; font-size: 13px; color: #424245; }
+.form-group label { display: block; margin-bottom: 7px; font-weight: 500; font-size: 13px; color: var(--color-text-muted); }
 .form-group input,
 .form-group textarea,
 .form-group select {
@@ -194,7 +216,7 @@ a { color: var(--color-accent); text-decoration: none; }
   border-radius: var(--radius-sm);
   font-size: 15px;
   color: var(--color-text);
-  background-color: #fff;
+  background-color: var(--color-surface-2);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .form-group input:focus,
@@ -204,7 +226,7 @@ a { color: var(--color-accent); text-decoration: none; }
   border-color: var(--color-lime-dark);
   box-shadow: 0 0 0 4px rgba(178, 204, 46, 0.22);
 }
-.form-group input::placeholder, .form-group textarea::placeholder { color: #b0b0b8; }
+.form-group input::placeholder, .form-group textarea::placeholder { color: #6b7280; }
 
 /* ===== Tablas ===== */
 .table { width: 100%; border-collapse: collapse; margin-top: 18px; }
@@ -221,9 +243,9 @@ a { color: var(--color-accent); text-decoration: none; }
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
-  border-bottom-color: #d2d2d7;
+  border-bottom-color: var(--color-border);
 }
-.table tbody tr:hover { background-color: #fbfbfd; }
+.table tbody tr:hover { background-color: var(--color-surface-2); }
 
 /* Botones de acción sutiles (editar / eliminar) — con un tinte suave de color */
 .btn-accion {
@@ -237,20 +259,20 @@ a { color: var(--color-accent); text-decoration: none; }
   padding: 6px 12px;
   border-radius: 8px;
   margin-right: 6px;
-  color: var(--color-lime-deep);    /* verde de marca (Editar) */
+  color: var(--color-lime);         /* verde de marca (Editar) */
   background: var(--color-lime-tint);
   transition: background 0.15s, color 0.15s;
 }
 .btn-accion svg { width: 14px; height: 14px; }
-.btn-accion:hover { background: #e7f0c2; }
-.btn-accion.danger { color: #d70015; background: #fff1f0; }   /* rojo apagado (Eliminar) */
-.btn-accion.danger:hover { background: #ffe1de; }
+.btn-accion:hover { background: rgba(200, 224, 72, 0.2); }
+.btn-accion.danger { color: var(--color-danger); background: var(--color-danger-bg); }   /* Eliminar */
+.btn-accion.danger:hover { background: rgba(255, 107, 94, 0.22); }
 
 /* Chip / badge categoría */
 .chip-categoria {
   display: inline-block;
   background: var(--color-lime-tint);
-  color: #4c5520;
+  color: var(--color-lime);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;

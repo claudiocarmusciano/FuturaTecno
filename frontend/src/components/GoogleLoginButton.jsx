@@ -53,7 +53,8 @@ function GoogleLoginButton({ onCredential, onError, text = 'signin_with', divide
       divRef.current.innerHTML = ''
       window.google.accounts.id.renderButton(divRef.current, {
         type: 'standard',
-        theme: 'outline',
+        theme: 'filled_black',   // el sitio es dark; 'outline' renderiza un botón blanco
+
         size: 'large',
         text,          // signin_with / signup_with / continue_with
         shape: 'rectangular',
@@ -72,9 +73,9 @@ function GoogleLoginButton({ onCredential, onError, text = 'signin_with', divide
     <>
       {divider && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
-          <div style={{ flex: 1, height: 1, background: '#e5e5e5' }} />
-          <span style={{ fontSize: 12, color: '#999' }}>o</span>
-          <div style={{ flex: 1, height: 1, background: '#e5e5e5' }} />
+          <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
+          <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>o</span>
+          <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
         </div>
       )}
       <div ref={divRef} style={{ display: 'flex', justifyContent: 'center' }} />
