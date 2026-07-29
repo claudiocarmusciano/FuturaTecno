@@ -20,7 +20,9 @@ function LoginPage() {
     try {
       const data = await login(email, password)
       // Admin va al panel; usuario común al catálogo.
-      navigate(data.rol === 'ADMIN' ? (location.state?.from || '/admin') : '/catalogo')
+      // Si venía de una pantalla que exige sesión (ej. el checkout), vuelve ahí.
+      // Si no, admin al panel y usuario común al catálogo.
+      navigate(location.state?.from || (data.rol === 'ADMIN' ? '/admin' : '/catalogo'))
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión.')
     } finally {
@@ -33,7 +35,9 @@ function LoginPage() {
     setCargando(true)
     try {
       const data = await loginConGoogle(credential)
-      navigate(data.rol === 'ADMIN' ? (location.state?.from || '/admin') : '/catalogo')
+      // Si venía de una pantalla que exige sesión (ej. el checkout), vuelve ahí.
+      // Si no, admin al panel y usuario común al catálogo.
+      navigate(location.state?.from || (data.rol === 'ADMIN' ? '/admin' : '/catalogo'))
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión con Google.')
     } finally {

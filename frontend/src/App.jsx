@@ -10,9 +10,15 @@ import ImportarElitPage from './pages/admin/ImportarElitPage'
 import ImportarInvidPage from './pages/admin/ImportarInvidPage'
 import CargarJsonPage from './pages/admin/CargarJsonPage'
 import UsuariosPage from './pages/admin/UsuariosPage'
+import PedidosPage from './pages/admin/PedidosPage'
 import CatalogPage from './pages/public/CatalogPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
 import LandingPage from './pages/public/LandingPage'
+import CartPage from './pages/public/CartPage'
+import CheckoutPage from './pages/public/CheckoutPage'
+import MisPedidosPage from './pages/public/MisPedidosPage'
+import PedidoDetailPage from './pages/public/PedidoDetailPage'
+import RutaPrivada from './auth/RutaPrivada'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
@@ -30,6 +36,11 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route path="/catalogo" element={<CatalogPage />} />
           <Route path="/producto/:id" element={<ProductDetailPage />} />
+          {/* El carrito y el checkout son públicos: la sesión se pide recién al confirmar. */}
+          <Route path="/carrito" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/mis-pedidos" element={<RutaPrivada><MisPedidosPage /></RutaPrivada>} />
+          <Route path="/pedido/:numero" element={<RutaPrivada><PedidoDetailPage /></RutaPrivada>} />
         </Route>
 
         <Route path="/login" element={<LoginPage />} />
@@ -44,6 +55,7 @@ function App() {
           <Route path="importar-elit" element={<ImportarElitPage />} />
           <Route path="importar-invid" element={<ImportarInvidPage />} />
           <Route path="cargar-json" element={<CargarJsonPage />} />
+          <Route path="pedidos" element={<PedidosPage />} />
           <Route path="productos" element={<ProductosPage />} />
           <Route path="imagenes" element={<ImagesPage />} />
           <Route path="usuarios" element={<UsuariosPage />} />

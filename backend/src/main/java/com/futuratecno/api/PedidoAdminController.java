@@ -42,12 +42,17 @@ public class PedidoAdminController {
         if (estado == null || estado.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Falta el estado."));
         }
+        EstadoPedido nuevo;
         try {
-            EstadoPedido nuevo = EstadoPedido.valueOf(estado.trim().toUpperCase());
+            nuevo = EstadoPedido.valueOf(estado.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Sin reenviar el mensaje de valueOf: filtra el nombre completo de la clase Java.
+            return ResponseEntity.badRequest().body(Map.of("error", "Estado desconocido: " + estado));
+        }
+        try {
             return ResponseEntity.ok(pedidoService.cambiarEstado(id, nuevo));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "No se pudo cambiar el estado: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 }

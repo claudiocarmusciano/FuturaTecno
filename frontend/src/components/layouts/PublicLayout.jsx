@@ -1,9 +1,12 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import { useCart } from '../../cart/CartContext'
+import CartBadge from '../CartBadge'
 import './PublicLayout.css'
 
 function PublicLayout() {
   const { user, isAdmin, logout } = useAuth()
+  const { cantidadTotal } = useCart()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -21,6 +24,7 @@ function PublicLayout() {
             {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>
+                <Link to="/mis-pedidos">Mis pedidos</Link>
                 <span style={{ color: '#9a9d92', fontSize: '14px' }}>Hola, {user.nombre || user.email}</span>
                 <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>
               </>
@@ -30,6 +34,7 @@ function PublicLayout() {
                 <Link to="/registro">Registrarse</Link>
               </>
             )}
+            <CartBadge cantidad={cantidadTotal} />
           </nav>
         </div>
       </header>

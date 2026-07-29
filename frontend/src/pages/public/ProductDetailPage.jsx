@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
+import { useCart } from '../../cart/CartContext'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -28,6 +29,8 @@ function ProductDetailPage() {
   const [error, setError] = useState('')
   const [eta, setEta] = useState(null)
   const [imagenActiva, setImagenActiva] = useState(0)
+  const { agregar } = useCart()
+  const [agregado, setAgregado] = useState(null)   // id de la variante recién agregada (feedback)
 
   useEffect(() => {
     setCargando(true)
@@ -128,10 +131,28 @@ function ProductDetailPage() {
               {v.especificaciones && (
                 <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>{v.especificaciones}</p>
               )}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
                 <strong style={{ fontSize: '28px', color: 'var(--color-text)', letterSpacing: '-0.02em' }}>US$ {formatNumber(v.precioUsd)}</strong>
                 <span style={{ color: 'var(--color-price)', fontSize: '17px' }}>$ {formatNumber(v.precioArs)}</span>
               </div>
+              {/* El carrito es por variante: el precio vive en la variante, no en el producto. */}
+              <button
+                type="button"
+                onClick={() => { agregar(producto, v); setAgregado(v.id) }}
+                style={{
+                  marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: agregado === v.id ? 'var(--color-accent-light)' : 'var(--color-lime)',
+                  color: '#16181d', border: agregado === v.id ? '1px solid var(--color-lime)' : 'none',
+                  padding: '11px 22px', borderRadius: '8px', fontSize: '15px', fontWeight: 600, cursor: 'pointer'
+                }}
+              >
+                {agregado === v.id ? '✓ Agregado al carrito' : '🛒 Agregar al carrito'}
+              </button>
+              {agregado === v.id && (
+                <Link to="/carrito" style={{ marginLeft: '14px', fontSize: '14px', color: 'var(--color-accent)', fontWeight: 600 }}>
+                  Ver carrito →
+                </Link>
+              )}
             </div>
           ))}
 

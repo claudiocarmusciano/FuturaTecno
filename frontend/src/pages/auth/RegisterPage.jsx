@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import GoogleLoginButton from '../../components/GoogleLoginButton'
 import PasswordInput from '../../components/PasswordInput'
@@ -7,6 +7,9 @@ import PasswordInput from '../../components/PasswordInput'
 function RegisterPage() {
   const { register, loginConGoogle } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  // Si llegó desde una pantalla que exige sesión (ej. el checkout), vuelve ahí al registrarse.
+  const destino = location.state?.from || '/catalogo'
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,7 +26,7 @@ function RegisterPage() {
     setCargando(true)
     try {
       await register(email, password, nombre)
-      navigate('/catalogo') // queda logueado, va al catálogo
+      navigate(destino) // queda logueado
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo registrar.')
     } finally {
@@ -36,7 +39,7 @@ function RegisterPage() {
     setCargando(true)
     try {
       await loginConGoogle(credential)
-      navigate('/catalogo') // queda logueado, va al catálogo
+      navigate(destino) // queda logueado
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo registrar con Google.')
     } finally {
