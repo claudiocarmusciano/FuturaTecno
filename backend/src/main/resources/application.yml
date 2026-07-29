@@ -21,6 +21,11 @@ spring:
     locations: classpath:db/migration
 server:
   port: ${PORT:8080}
+  # Railway termina el TLS en el borde y nos pasa el request por HTTP plano. Sin esto,
+  # ServletUriComponentsBuilder arma las URLs con scheme http:// y el enlace del email de
+  # reseteo sale sin cifrar (con el token adentro). Con "framework", Spring registra el
+  # ForwardedHeaderFilter y respeta X-Forwarded-Proto / X-Forwarded-Host.
+  forward-headers-strategy: framework
 
 anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
