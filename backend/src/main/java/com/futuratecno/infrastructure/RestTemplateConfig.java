@@ -32,4 +32,17 @@ public class RestTemplateConfig {
                 .setReadTimeout(Duration.ofSeconds(8))
                 .build();
     }
+
+    /**
+     * RestTemplate para la API de Resend. Con timeouts explícitos: el envío de mails nunca debe
+     * poder colgar un hilo indefinidamente (el SMTP anterior no tenía timeout y dejaba requests
+     * de varios minutos esperando una conexión que Railway bloqueaba).
+     */
+    @Bean(name = "mailRestTemplate")
+    public RestTemplate mailRestTemplate(RestTemplateBuilder builder) {
+        return builder
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(10))
+                .build();
+    }
 }

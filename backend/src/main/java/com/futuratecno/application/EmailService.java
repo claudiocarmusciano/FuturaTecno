@@ -1,26 +1,40 @@
 package com.futuratecno.application;
 
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * Envío de emails por SMTP. Configurable con env vars (mismo criterio que el resto de integraciones):
- * si no hay MAIL_HOST/MAIL_FROM, {@link #estaConfigurado()} es false y el sistema sigue funcionando
- * sin mandar correos (útil en dev). Hoy se usa para el "olvidé mi contraseña".
+ * Envío de emails por la API HTTP de Resend (https://resend.com).
+ *
+ * <p>No usamos SMTP: Railway bloquea el tráfico saliente a los puertos SMTP (25/465/587) como
+ * política antispam, así que cualquier intento contra smtp.gmail.com muere en
+ * "ConnectException: Connection timed out" después de colgar el hilo del request varios minutos.
+ * Resend manda por HTTPS/443, que sí sale.
+ *
+ * <p>Mismo criterio que el resto de integraciones: si no hay RESEND_API_KEY / MAIL_FROM,
+ * {@link #estaConfigurado()} es false y el sistema sigue funcionando sin mandar correos (útil en dev).
  */
 @Service
 public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private static final String API_URL = "https://api.resend.com/emails";
 
-    @Value("${spring.mail.host:}")
-    private String host;
+    private final RestTemplate restTemplate;
+
+    @Value("${app.mail.resend-api-key:}")
+    private String apiKey;
 
     @Value("${app.mail.from:}")
     private String from;
@@ -28,32 +42,55 @@ public class EmailService {
     @Value("${app.mail.from-name:FuturaTecno}")
     private String fromName;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailService(@Qualifier("mailRestTemplate") RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     public boolean estaConfigurado() {
-        return host != null && !host.isBlank() && from != null && !from.isBlank();
+        return apiKey != null && !apiKey.isBlank() && from != null && !from.isBlank();
     }
 
-    /** Envía un email HTML. Lanza RuntimeException si falla el envío. */
+    /**
+     * Envía un email HTML de forma sincrónica. Lanza RuntimeException si falla.
+     * Para todo lo que dispara un usuario final preferí {@link #enviarHtmlAsync}: este método
+     * hace esperar al request hasta que Resend responda.
+     */
     public void enviarHtml(String para, String asunto, String htmlBody) {
         if (!estaConfigurado()) {
-            logger.warn("Email NO enviado (SMTP sin configurar: faltan MAIL_HOST / MAIL_FROM). Destinatario: {}", para);
+            logger.warn("Email NO enviado (Resend sin configurar: faltan RESEND_API_KEY / MAIL_FROM). Destinatario: {}", para);
             return;
         }
         try {
-            MimeMessage msg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(msg, "UTF-8");
-            helper.setFrom(from, fromName);
-            helper.setTo(para);
-            helper.setSubject(asunto);
-            helper.setText(htmlBody, true);
-            mailSender.send(msg);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+
+            Map<String, Object> body = Map.of(
+                    "from", fromName + " <" + from + ">",
+                    "to", List.of(para),
+                    "subject", asunto,
+                    "html", htmlBody);
+
+            restTemplate.postForObject(API_URL, new HttpEntity<>(body, headers), String.class);
             logger.info("Email enviado a {} (asunto: {})", para, asunto);
         } catch (Exception e) {
             logger.error("Falló el envío de email a {}: {}", para, e.toString());
             throw new RuntimeException("No se pudo enviar el email.", e);
+        }
+    }
+
+    /**
+     * Igual que {@link #enviarHtml} pero en otro hilo y sin propagar errores: el mail es un efecto
+     * secundario y nunca debe demorar ni hacer fallar la operación que lo dispara (un pedido se
+     * guarda igual aunque Resend esté caído). El resultado queda en el log.
+     */
+    @Async
+    public void enviarHtmlAsync(String para, String asunto, String htmlBody) {
+        try {
+            enviarHtml(para, asunto, htmlBody);
+        } catch (Exception e) {
+            // Ya quedó logueado en enviarHtml; acá solo evitamos que la excepción muera
+            // silenciosamente en el executor.
         }
     }
 }
