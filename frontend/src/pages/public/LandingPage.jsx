@@ -180,7 +180,7 @@ function LandingPage() {
         <div className="lp-wrap">
           <span className="lp-eyebrow">Por qué FuturaTecno</span>
           <h2 className="lp-title">Comprar tecnología, simple y transparente.</h2>
-          <p className="lp-lead">Un catálogo claro, precios reales y una persona del otro lado. Sin vueltas.</p>
+          <p className="lp-lead">Un catálogo claro, precios reales y una atención personalizada del otro lado. Sin vueltas.</p>
           <div className="lp-features">
             {FEATURES.map(f => (
               <div className="lp-feature" key={f.t}>
