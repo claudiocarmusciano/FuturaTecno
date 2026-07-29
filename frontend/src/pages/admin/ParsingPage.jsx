@@ -110,10 +110,10 @@ function ParsingPage() {
   const inputStyle = {
     width: '100%',
     padding: '4px 6px',
-    border: '1px solid #ccc',
+    border: '1px solid var(--color-border)',
     borderRadius: '3px',
     fontSize: '13px',
-    color: '#1a1a1a'
+    color: 'var(--color-text)'
   }
 
   return (
@@ -149,7 +149,7 @@ function ParsingPage() {
       </div>
 
       {resultado && (
-        <div className="card" style={{ borderLeft: '4px solid #28a745', color: '#155724' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--color-lime)', color: 'var(--color-lime)' }}>
           {resultado}
         </div>
       )}
@@ -169,7 +169,7 @@ function ParsingPage() {
       {preview.length > 0 && (
         <div className="card">
           <h2>Previsualización de Productos</h2>
-          <p style={{ marginBottom: '10px', color: '#555' }}>
+          <p style={{ marginBottom: '10px', color: 'var(--color-text-muted)' }}>
             {cotizacion && (
               <>Cotización: <strong>dólar oficial ${formatNumber(cotizacion)} ARS/USD</strong>. </>
             )}

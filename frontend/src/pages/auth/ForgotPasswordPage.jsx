@@ -36,16 +36,16 @@ function ForgotPasswordPage() {
         </p>
 
         {enviado ? (
-          <div style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--color-lime-tint)', color: 'var(--color-lime)', border: '1px solid rgba(200,224,72,0.3)', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
             📧 {enviado}
-            <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '10px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px' }}>
               Revisá tu casilla (y la carpeta de spam). El enlace vence en 1 hora.
             </p>
           </div>
         ) : (
           <>
             {error && (
-              <div style={{ background: '#fff1f0', color: '#d70015', border: '1px solid #ffd9d6', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
+              <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
                 {error}
               </div>
             )}

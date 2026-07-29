@@ -159,7 +159,7 @@ INVID_PASSWORD=tu_contraseña`}
           <div style={{ marginTop: '16px', background: 'var(--color-lime-tint)', borderRadius: '10px', padding: '12px 14px' }}>
             <strong>{preview.total}</strong> producto(s) coinciden con el filtro.
             {preview.muestra?.length > 0 && (
-              <ul style={{ margin: '8px 0 0 18px', fontSize: '13px', color: '#4c5520' }}>
+              <ul style={{ margin: '8px 0 0 18px', fontSize: '13px', color: 'var(--color-lime)' }}>
                 {preview.muestra.map((n, i) => <li key={i}>{n}</li>)}
               </ul>
             )}

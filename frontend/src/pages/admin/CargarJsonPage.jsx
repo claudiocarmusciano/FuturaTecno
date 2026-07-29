@@ -3,7 +3,7 @@ import axios from 'axios'
 
 const inputStyle = {
   padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)',
-  borderRadius: '8px', color: 'var(--color-text)', background: '#fff', width: '100%'
+  borderRadius: '8px', color: 'var(--color-text)', background: 'var(--color-surface-2)', width: '100%'
 }
 
 const EJEMPLO = `{
@@ -84,7 +84,7 @@ function CargarJsonPage() {
       </p>
 
       {error && (
-        <div style={{ background: '#fff1f0', color: '#d70015', border: '1px solid #ffd9d6', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
+        <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
           {typeof error === 'string' ? error : 'Ocurrió un error.'}
         </div>
       )}
@@ -156,7 +156,7 @@ function CargarJsonPage() {
                   <tr key={i}>
                     <td>{it.producto}</td>
                     <td>{it.estado === 'omitido' ? `omitido — ${it.motivo}` : it.estado}</td>
-                    <td>{it.categoria || (it.estado === 'omitido' ? '—' : <span style={{ color: '#b45309' }}>sin categoría (asignar a mano)</span>)}</td>
+                    <td>{it.categoria || (it.estado === 'omitido' ? '—' : <span style={{ color: '#f0b429' }}>sin categoría (asignar a mano)</span>)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -121,4 +121,18 @@ public class Producto extends BaseEntity {
     public void setActivo(Boolean activo) {
         this.activo = activo;
     }
+
+    /**
+     * SKU camuflado: código corto del proveedor + identificador del artículo. No delata al
+     * proveedor (se lee como una referencia interna), pero permite cruzarlo con el sistema del
+     * mayorista. Lo usan el catálogo y el snapshot de los pedidos, por eso vive acá y no en un
+     * servicio.
+     */
+    public String skuCamuflado() {
+        String prefijo = (proveedor != null && proveedor.getCodigo() != null && !proveedor.getCodigo().isBlank())
+                ? proveedor.getCodigo() : "FT";
+        String sufijo = (codigoExterno != null && !codigoExterno.isBlank())
+                ? codigoExterno : "P" + getId();
+        return prefijo + "-" + sufijo;
+    }
 }

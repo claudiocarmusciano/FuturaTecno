@@ -22,7 +22,7 @@ function StatCard({ label, valor, sub, to }) {
 
 function Dashboard() {
   const { user } = useAuth()
-  const [data, setData] = useState({ productos: [], usuarios: [], proveedores: [], cotizacion: null })
+  const [data, setData] = useState({ productos: [], usuarios: [], proveedores: [], cotizacion: null, pendientes: [] })
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
@@ -31,12 +31,13 @@ function Dashboard() {
       axios.get('/api/admin/usuarios').then(r => r.data).catch(() => []),
       axios.get('/api/admin/proveedores').then(r => r.data).catch(() => []),
       axios.get('/api/cotizacion').then(r => r.data).catch(() => null),
-    ]).then(([productos, usuarios, proveedores, cotizacion]) => {
-      setData({ productos, usuarios, proveedores, cotizacion })
+      axios.get('/api/admin/pedidos?estado=PENDIENTE').then(r => r.data).catch(() => []),
+    ]).then(([productos, usuarios, proveedores, cotizacion, pendientes]) => {
+      setData({ productos, usuarios, proveedores, cotizacion, pendientes })
     }).finally(() => setCargando(false))
   }, [])
 
-  const { productos, usuarios, proveedores, cotizacion } = data
+  const { productos, usuarios, proveedores, cotizacion, pendientes } = data
   const sinImagen = productos.filter(p => !p.imagenUrl).length
 
   return (
@@ -49,6 +50,12 @@ function Dashboard() {
       ) : (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '18px', marginBottom: '18px' }}>
+            <StatCard
+              label="Pedidos pendientes"
+              valor={pendientes.length}
+              sub={pendientes.length > 0 ? 'Vencen a las 06:30' : 'Nada por atender'}
+              to="/admin/pedidos"
+            />
             <StatCard label="Productos publicados" valor={productos.length} to="/admin/productos" />
             <StatCard label="Clientes registrados" valor={usuarios.length} sub="Base de emails" to="/admin/usuarios" />
             <StatCard label="Proveedores" valor={proveedores.length} to="/admin/proveedores" />

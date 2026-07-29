@@ -79,7 +79,7 @@ function ImagesPage() {
         <button onClick={buscarImagenes} className="btn btn-primary" disabled={buscando}>
           {buscando ? 'Buscando imágenes...' : 'Buscar imágenes faltantes (automático)'}
         </button>
-        {mensaje && <p style={{ marginTop: '12px', color: '#333' }}>{mensaje}</p>}
+        {mensaje && <p style={{ marginTop: '12px', color: 'var(--color-text)' }}>{mensaje}</p>}
       </div>
 
       <div className="card">
@@ -109,19 +109,19 @@ function ImagesPage() {
                              onError={(e) => { e.target.style.opacity = '0.2' }}
                              onLoad={(e) => { e.target.style.opacity = '1' }} />
                       ) : (
-                        <span style={{ color: '#bbb', fontSize: '12px' }}>—</span>
+                        <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>—</span>
                       )
                     })()}
                   </td>
                   <td>
                     {[p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')}
-                    <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                       Última actualización: {formatFecha(p.ultimaActualizacion)}
                     </div>
                   </td>
                   <td>
                     <input
-                      style={{ width: '100%', padding: '4px 6px', border: '1px solid #ccc', borderRadius: '3px', fontSize: '13px', color: '#1a1a1a' }}
+                      style={{ width: '100%', padding: '4px 6px', border: '1px solid var(--color-border)', borderRadius: '3px', fontSize: '13px', color: 'var(--color-text)' }}
                       value={edits[p.id] ?? p.imagenUrl ?? ''}
                       placeholder="https://..."
                       onChange={(e) => setEdits(prev => ({ ...prev, [p.id]: e.target.value }))}

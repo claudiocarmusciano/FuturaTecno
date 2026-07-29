@@ -138,7 +138,7 @@ function ProveedoresPage() {
               {proveedores.map(p => (
                 <tr key={p.id}>
                   <td>{p.nombre}</td>
-                  <td style={{ color: '#888', fontSize: '13px' }}>{p.codigo}</td>
+                  <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{p.codigo}</td>
                   <td>{p.margenPorcentaje}%</td>
                   <td>{p.fletePorcentaje}%</td>
                   <td style={{ whiteSpace: 'nowrap' }}>

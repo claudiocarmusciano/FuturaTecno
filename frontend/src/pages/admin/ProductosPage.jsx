@@ -22,8 +22,8 @@ const calcularVenta = (precio, moneda, ed) => {
 }
 
 const inputStyle = {
-  width: '100%', padding: '6px 8px', border: '1px solid #ccc',
-  borderRadius: '4px', fontSize: '13px', color: '#1a1a1a'
+  width: '100%', padding: '6px 8px', border: '1px solid var(--color-border)',
+  borderRadius: '4px', fontSize: '13px', color: 'var(--color-text)'
 }
 
 function ProductosPage() {
@@ -189,10 +189,10 @@ function ProductosPage() {
   return (
     <div>
       <h1>Productos</h1>
-      {mensaje && <div className="card" style={{ borderLeft: '4px solid #28a745', color: '#155724' }}>{mensaje}</div>}
+      {mensaje && <div className="card" style={{ borderLeft: '4px solid var(--color-lime)', color: 'var(--color-lime)' }}>{mensaje}</div>}
 
       <div className="card">
-        <p style={{ fontSize: '13px', color: '#555', marginBottom: '10px' }}>
+        <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '10px' }}>
           Clasifica automáticamente (mapeo manual + IA) los productos que todavía no tienen categoría asignada.
         </p>
         <button onClick={clasificarFaltantes} className="btn btn-secondary" disabled={clasificando}>
@@ -215,13 +215,13 @@ function ProductosPage() {
           style={{ borderLeft: '4px solid var(--color-lime)', maxWidth: '820px', width: '100%', marginTop: '30px', maxHeight: '88vh', overflowY: 'auto' }}
         >
           <h2 style={{ marginBottom: '4px' }}>Editar producto</h2>
-          <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
             Proveedor: {editData.proveedor || '—'} (no editable)
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '10px' }}>
             <div>
-              <label style={{ fontSize: '12px', color: '#555' }}>Categoría</label>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Categoría</label>
               <select style={inputStyle} value={catPath.topId} onChange={e => elegirCategoria(e.target.value)}>
                 <option value="">—</option>
                 {arbol.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
@@ -229,7 +229,7 @@ function ProductosPage() {
             </div>
             {(nodoDe[catPath.topId]?.hijos?.length > 0) && (
               <div>
-                <label style={{ fontSize: '12px', color: '#555' }}>Subcategoría</label>
+                <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Subcategoría</label>
                 <select style={inputStyle} value={catPath.subId} onChange={e => elegirSubcategoria(e.target.value)}>
                   <option value="">—</option>
                   {nodoDe[catPath.topId].hijos.map(sc => <option key={sc.id} value={sc.id}>{sc.nombre}</option>)}
@@ -240,17 +240,17 @@ function ProductosPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '18px' }}>
             <div>
-              <label style={{ fontSize: '12px', color: '#555' }}>Marca</label>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Marca</label>
               <input style={inputStyle} value={editData.marca || ''} onChange={e => setCampo('marca', e.target.value)} />
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: '#555' }}>Modelo</label>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Modelo</label>
               <input style={inputStyle} value={editData.modelo || ''} onChange={e => setCampo('modelo', e.target.value)} />
             </div>
           </div>
 
           <h3 style={{ fontSize: '15px', marginBottom: '4px' }}>Variantes / Precios</h3>
-          <p style={{ fontSize: '12px', color: '#888', marginBottom: '8px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
             El precio que cargás es el <strong>costo</strong>. La venta se calcula con flete {Number(editData.fletePorcentaje) || 0}% + margen {Number(editData.margenPorcentaje) || 0}% · dólar ${formatNumber(editData.cotizacion)}.
           </p>
           <table className="table">
@@ -278,8 +278,8 @@ function ProductosPage() {
                     </td>
                     <td><input style={inputStyle} type="number" step="0.01" value={v.precio ?? ''} onChange={e => setVariante(idx, 'precio', e.target.value)} /></td>
                     <td><input style={inputStyle} type="number" value={v.stock ?? 0} onChange={e => setVariante(idx, 'stock', e.target.value)} /></td>
-                    <td style={{ whiteSpace: 'nowrap', color: '#1a1a1a' }}>{venta.usd != null ? `US$ ${formatNumber(venta.usd)}` : '-'}</td>
-                    <td style={{ whiteSpace: 'nowrap', color: '#28a745' }}>{venta.ars != null ? `$ ${formatNumber(venta.ars)}` : '-'}</td>
+                    <td style={{ whiteSpace: 'nowrap', color: 'var(--color-text)' }}>{venta.usd != null ? `US$ ${formatNumber(venta.usd)}` : '-'}</td>
+                    <td style={{ whiteSpace: 'nowrap', color: 'var(--color-lime)' }}>{venta.ars != null ? `$ ${formatNumber(venta.ars)}` : '-'}</td>
                   </tr>
                 )
               })}
@@ -305,7 +305,7 @@ function ProductosPage() {
                    onChange={e => { setSoloSinCategoria(e.target.checked); setSeleccionados(new Set()) }} />
             Solo sin categoría
           </label>
-          <span style={{ fontSize: '13px', color: '#888' }}>{productosVisibles.length} producto(s)</span>
+          <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{productosVisibles.length} producto(s)</span>
         </div>
 
         {/* Barra de asignación masiva de categoría */}
@@ -313,7 +313,7 @@ function ProductosPage() {
           <div style={{ background: 'var(--color-accent-light)', border: '1px solid var(--color-lime-dark)', borderRadius: '10px', padding: '12px 14px', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <strong style={{ fontSize: '14px', alignSelf: 'center' }}>{seleccionados.size} seleccionado(s)</strong>
             <div>
-              <label style={{ fontSize: '12px', color: '#555', display: 'block' }}>Categoría</label>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block' }}>Categoría</label>
               <select style={inputStyle} value={catMasiva.topId} onChange={e => setCatMasiva({ topId: e.target.value, subId: '' })}>
                 <option value="">—</option>
                 {arbol.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
@@ -321,7 +321,7 @@ function ProductosPage() {
             </div>
             {(nodoDe[catMasiva.topId]?.hijos?.length > 0) && (
               <div>
-                <label style={{ fontSize: '12px', color: '#555', display: 'block' }}>Subcategoría</label>
+                <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block' }}>Subcategoría</label>
                 <select style={inputStyle} value={catMasiva.subId} onChange={e => setCatMasiva(prev => ({ ...prev, subId: e.target.value }))}>
                   <option value="">—</option>
                   {nodoDe[catMasiva.topId].hijos.map(sc => <option key={sc.id} value={sc.id}>{sc.nombre}</option>)}
@@ -364,15 +364,15 @@ function ProductosPage() {
                   <td>
                     {p.imagenUrl
                       ? <img src={p.imagenUrl} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain' }} onError={e => { e.target.style.opacity = '0.2' }} />
-                      : <span style={{ color: '#bbb', fontSize: '12px' }}>—</span>}
+                      : <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>—</span>}
                   </td>
                   <td>{[p.marca, p.modelo].filter(Boolean).join(' ')}</td>
                   <td style={{ fontSize: '13px' }}>
                     {p.categoria || <span style={{ color: '#dc3545' }}>(sin categoría)</span>}
                   </td>
-                  <td style={{ color: '#888', fontSize: '13px' }}>{p.proveedor}</td>
-                  <td style={{ color: '#888', fontSize: '13px' }}>{p.sku}</td>
-                  <td style={{ color: '#999', fontSize: '12px' }}>{formatFecha(p.ultimaActualizacion)}</td>
+                  <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{p.proveedor}</td>
+                  <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{p.sku}</td>
+                  <td style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>{formatFecha(p.ultimaActualizacion)}</td>
                   <td>
                     <button onClick={() => abrirEdicion(p.id)} className="btn-accion"><IconEdit /> Editar</button>
                   </td>

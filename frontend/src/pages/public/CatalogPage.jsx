@@ -15,6 +15,10 @@ const formatFechaLarga = (isoDate) => {
   return new Date(y, m - 1, d).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
+// Orden por defecto del catálogo: del más barato al más caro. "relevancia" (el orden en que
+// los devuelve la API) queda como opción, pero ya no es lo primero que ve el visitante.
+const ORDEN_POR_DEFECTO = 'precio-asc'
+
 // Precio "desde" del producto: el menor precio USD entre sus variantes (para ordenar/filtrar).
 const precioDesde = (p) => {
   const precios = (p.variantes || []).map(v => Number(v.precioUsd)).filter(n => n > 0)
@@ -91,7 +95,7 @@ function MarcaDropdown({ marca, marcas, onChange }) {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%',
           padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)', borderRadius: '8px',
-          background: '#fff', color: 'var(--color-text)', cursor: 'pointer'
+          background: 'var(--color-surface-2)', color: 'var(--color-text)', cursor: 'pointer'
         }}
       >
         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{marca || 'Todas las marcas'}</span>
@@ -100,8 +104,8 @@ function MarcaDropdown({ marca, marcas, onChange }) {
       {abierto && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 20,
-          background: '#fff', border: '1px solid var(--color-border)', borderRadius: '8px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: '280px', overflowY: 'auto', padding: '4px'
+          background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '8px',
+          boxShadow: 'var(--shadow)', maxHeight: '280px', overflowY: 'auto', padding: '4px'
         }}>
           <button type="button" onClick={() => elegir('')} style={opcionMarca(marca === '')}>Todas</button>
           {marcas.map(m => (
@@ -132,7 +136,7 @@ function CatalogPage() {
 
   const [busqueda, setBusqueda] = useState(() => searchParams.get('q') || '')
   const [marca, setMarca] = useState(() => searchParams.get('marca') || '')
-  const [orden, setOrden] = useState(() => searchParams.get('orden') || '')   // '', 'precio-asc', 'precio-desc'
+  const [orden, setOrden] = useState(() => searchParams.get('orden') || ORDEN_POR_DEFECTO)   // 'relevancia', 'precio-asc', 'precio-desc'
   const [precioMin, setPrecioMin] = useState(() => searchParams.get('min') || '')
   const [precioMax, setPrecioMax] = useState(() => searchParams.get('max') || '')
   const [eta, setEta] = useState(null)
@@ -144,7 +148,7 @@ function CatalogPage() {
     if (categoriaId) params.cat = String(categoriaId)
     if (marca) params.marca = marca
     if (busqueda) params.q = busqueda
-    if (orden) params.orden = orden
+    if (orden && orden !== ORDEN_POR_DEFECTO) params.orden = orden
     if (precioMin) params.min = precioMin
     if (precioMax) params.max = precioMax
     setSearchParams(params, { replace: true })
@@ -242,9 +246,9 @@ function CatalogPage() {
   }, [productos, busqueda, idsFiltro, marca, orden, precioMin, precioMax])
 
   const limpiarTodo = () => {
-    setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(''); setPrecioMin(''); setPrecioMax('')
+    setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(ORDEN_POR_DEFECTO); setPrecioMin(''); setPrecioMax('')
   }
-  const hayFiltros = categoriaId || marca || busqueda || orden || precioMin || precioMax
+  const hayFiltros = categoriaId || marca || busqueda || orden !== ORDEN_POR_DEFECTO || precioMin || precioMax
 
   if (cargando) return (<div><h1>Catálogo</h1><div className="card"><p>Cargando productos...</p></div></div>)
   if (error) return (<div><h1>Catálogo</h1><div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div></div>)
@@ -252,7 +256,7 @@ function CatalogPage() {
 
   const inputFiltro = {
     padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)',
-    borderRadius: '8px', color: 'var(--color-text)', background: '#fff'
+    borderRadius: '8px', color: 'var(--color-text)', background: 'var(--color-surface-2)'
   }
 
   return (
@@ -262,9 +266,9 @@ function CatalogPage() {
       {eta?.fechaEntrega && (
         <div style={{
           background: 'var(--color-accent-light)', border: '1px solid var(--color-border)', borderRadius: '12px',
-          padding: '12px 16px', margin: '18px 0 20px', fontSize: '14px', color: '#424245'
+          padding: '12px 16px', margin: '18px 0 20px', fontSize: '14px', color: 'var(--color-text-muted)'
         }}>
-          🚚 Comprando hoy, tu pedido llega aprox. el <strong style={{ color: '#1d1d1f' }}>{formatFechaLarga(eta.fechaEntrega)}</strong> ({eta.diasHabiles} días hábiles).
+          🚚 Comprando hoy, tu pedido llega aprox. el <strong style={{ color: 'var(--color-text)' }}>{formatFechaLarga(eta.fechaEntrega)}</strong> ({eta.diasHabiles} días hábiles).
         </div>
       )}
 
@@ -326,7 +330,7 @@ function CatalogPage() {
               <div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '6px', fontWeight: 600 }}>Ordenar por</div>
                 <select value={orden} onChange={e => setOrden(e.target.value)} style={inputFiltro}>
-                  <option value="">Relevancia</option>
+                  <option value="relevancia">Relevancia</option>
                   <option value="precio-asc">Precio: menor a mayor</option>
                   <option value="precio-desc">Precio: mayor a menor</option>
                 </select>
@@ -335,7 +339,7 @@ function CatalogPage() {
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '6px', fontWeight: 600 }}>
                   Precio en US$
                   {rangoPrecios && (
-                    <span style={{ fontWeight: 400, color: '#9ca3af' }}> (entre {rangoPrecios.min} y {rangoPrecios.max})</span>
+                    <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}> (entre {rangoPrecios.min} y {rangoPrecios.max})</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -355,7 +359,7 @@ function CatalogPage() {
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '4px', fontSize: '14px' }}>
             Mostrando <strong>{filtrados.length}</strong> de {productos.length} producto(s)
           </p>
-          <p style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '22px' }}>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
             Las imágenes son meramente ilustrativas · Stock sujeto a disponibilidad
             {cotizacion?.valor && <> · 💵 Precios calculados al {cotizacion.fuente} ${formatNumber(cotizacion.valor)}</>}
           </p>
@@ -366,22 +370,25 @@ function CatalogPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '20px' }}>
               {filtrados.map(p => (
                 <Link key={p.id} to={`/producto/${p.id}`} className="producto-card">
+                  {/* Tile blanco a propósito: las fotos de los mayoristas vienen recortadas sobre
+                      blanco o en PNG transparente, y sobre el fondo oscuro un producto negro
+                      desaparecería. */}
                   {p.imagenUrl ? (
                     <img
                       src={p.imagenUrl}
                       alt={`${p.marca} ${p.modelo}`}
-                      style={{ width: '100%', height: '180px', objectFit: 'contain', marginBottom: '14px', background: '#fff' }}
+                      style={{ width: '100%', height: '180px', objectFit: 'contain', marginBottom: '14px', background: '#fff', borderRadius: '8px' }}
                       onError={(e) => { e.target.style.display = 'none' }}
                     />
                   ) : (
                     <div style={{
-                      width: '100%', height: '180px', marginBottom: '14px', background: '#f1f5f9',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', fontSize: '13px', borderRadius: '8px'
+                      width: '100%', height: '180px', marginBottom: '14px', background: 'var(--color-surface-2)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '13px', borderRadius: '8px'
                     }}>Sin imagen</div>
                   )}
                   {p.categoria && <span className="chip-categoria" style={{ marginBottom: '8px' }}>{p.categoria}</span>}
                   <h3 style={{ margin: '8px 0 4px', fontSize: '16px' }}>{p.marca} {p.modelo}</h3>
-                  {p.sku && <p style={{ margin: '0 0 12px', fontSize: '11px', color: '#9ca3af' }}>Cód. {p.sku}</p>}
+                  {p.sku && <p style={{ margin: '0 0 12px', fontSize: '11px', color: 'var(--color-text-muted)' }}>Cód. {p.sku}</p>}
 
                   {p.variantes.map(v => (
                     <div key={v.id} style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', marginTop: '10px' }}>

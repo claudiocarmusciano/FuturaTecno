@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
+import { useCart } from '../../cart/CartContext'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -28,6 +29,8 @@ function ProductDetailPage() {
   const [error, setError] = useState('')
   const [eta, setEta] = useState(null)
   const [imagenActiva, setImagenActiva] = useState(0)
+  const { agregar } = useCart()
+  const [agregado, setAgregado] = useState(null)   // id de la variante recién agregada (feedback)
 
   useEffect(() => {
     setCargando(true)
@@ -58,7 +61,7 @@ function ProductDetailPage() {
   )
 
   if (cargando) return (<div>{volver}<div className="card" style={{ marginTop: '16px' }}><p>Cargando...</p></div></div>)
-  if (error || !producto) return (<div>{volver}<div className="card" style={{ marginTop: '16px', color: '#721c24' }}>{error || 'Producto no disponible.'}</div></div>)
+  if (error || !producto) return (<div>{volver}<div className="card" style={{ marginTop: '16px', color: 'var(--color-danger)' }}>{error || 'Producto no disponible.'}</div></div>)
 
   const nombre = nombreProducto(producto)
   const mensaje = `Hola ${NOMBRE_NEGOCIO}, me interesa el ${nombre} que vi en el catálogo. ¿Está disponible?`
@@ -79,7 +82,7 @@ function ProductDetailPage() {
                 <img
                   src={actual}
                   alt={nombre}
-                  style={{ width: '100%', height: '320px', objectFit: 'contain', background: '#fff', borderRadius: '6px' }}
+                  style={{ width: '100%', height: '320px', objectFit: 'contain', background: '#fff', borderRadius: '10px' }}
                   onError={(e) => { e.target.style.display = 'none' }}
                 />
                 {imagenes.length > 1 && (
@@ -103,8 +106,8 @@ function ProductDetailPage() {
               </>
             ) : (
               <div style={{
-                width: '100%', height: '320px', background: '#f0f0f0', borderRadius: '6px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb'
+                width: '100%', height: '320px', background: 'var(--color-surface-2)', borderRadius: '10px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)'
               }}>Sin imagen</div>
             )
           })()}
@@ -121,36 +124,54 @@ function ProductDetailPage() {
             <span className="chip-categoria" style={{ marginBottom: '12px' }}>{producto.categoria}</span>
           )}
           <h1 style={{ margin: '8px 0 4px', fontSize: '30px' }}>{producto.marca} {producto.modelo}</h1>
-          {producto.sku && <p style={{ margin: '0 0 20px', fontSize: '12px', color: '#9ca3af' }}>Cód. {producto.sku}</p>}
+          {producto.sku && <p style={{ margin: '0 0 20px', fontSize: '12px', color: 'var(--color-text-muted)' }}>Cód. {producto.sku}</p>}
 
           {producto.variantes.map(v => (
             <div key={v.id} style={{ borderTop: '1px solid var(--color-border)', padding: '16px 0' }}>
               {v.especificaciones && (
                 <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>{v.especificaciones}</p>
               )}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
                 <strong style={{ fontSize: '28px', color: 'var(--color-text)', letterSpacing: '-0.02em' }}>US$ {formatNumber(v.precioUsd)}</strong>
                 <span style={{ color: 'var(--color-price)', fontSize: '17px' }}>$ {formatNumber(v.precioArs)}</span>
               </div>
+              {/* El carrito es por variante: el precio vive en la variante, no en el producto. */}
+              <button
+                type="button"
+                onClick={() => { agregar(producto, v); setAgregado(v.id) }}
+                style={{
+                  marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: agregado === v.id ? 'var(--color-accent-light)' : 'var(--color-lime)',
+                  color: '#16181d', border: agregado === v.id ? '1px solid var(--color-lime)' : 'none',
+                  padding: '11px 22px', borderRadius: '8px', fontSize: '15px', fontWeight: 600, cursor: 'pointer'
+                }}
+              >
+                {agregado === v.id ? '✓ Agregado al carrito' : '🛒 Agregar al carrito'}
+              </button>
+              {agregado === v.id && (
+                <Link to="/carrito" style={{ marginLeft: '14px', fontSize: '14px', color: 'var(--color-accent)', fontWeight: 600 }}>
+                  Ver carrito →
+                </Link>
+              )}
             </div>
           ))}
 
           <p style={{ fontSize: '13px', color: 'var(--color-price)', margin: '12px 0 2px' }}>Stock sujeto a disponibilidad</p>
           {producto.ultimaActualizacion && (
-            <p style={{ fontSize: '12px', color: '#888', margin: '0 0 2px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 2px' }}>
               Última actualización: {formatFecha(producto.ultimaActualizacion)}
             </p>
           )}
-          <p style={{ fontSize: '12px', color: '#999', margin: '0 0 16px' }}>Las imágenes son meramente ilustrativas.</p>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 16px' }}>Las imágenes son meramente ilustrativas.</p>
 
           {/* Estimación de entrega (ETA) */}
           {eta?.fechaEntrega && (
             <div style={{
               background: 'var(--color-accent-light)', border: '1px solid var(--color-border)', borderRadius: '12px',
-              padding: '14px 16px', marginBottom: '20px', fontSize: '14px', color: '#424245'
+              padding: '14px 16px', marginBottom: '20px', fontSize: '14px', color: 'var(--color-text-muted)'
             }}>
               🚚 <strong>Entrega estimada:</strong> {formatFechaLarga(eta.fechaEntrega)}
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                 Comprando hoy{eta.antesDeCorte ? '' : ` (después de las ${eta.horaCorte}:00 hs)`} · {eta.diasHabiles} días hábiles · no incluye fines de semana ni feriados.
               </div>
             </div>
@@ -170,7 +191,7 @@ function ProductDetailPage() {
           >
             <span style={{ fontSize: '20px' }}>💬</span> Consultar por WhatsApp
           </a>
-          <p style={{ fontSize: '12px', color: '#999', marginTop: '10px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px' }}>
             Te abrimos un chat con el producto ya identificado.
           </p>
         </div>
