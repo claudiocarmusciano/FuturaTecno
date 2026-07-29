@@ -17,6 +17,8 @@
 - **MercadoLibre bloquea scraping server-side** → cualquier request no-browser devuelve 302 a "suspicious-traffic". Las imágenes ML no se pueden auto-obtener. Flujo manual: Admin → Imágenes → "🔍 Buscar" abre Google Images → el usuario copia la URL de la imagen → la pega → preview → Guardar.
 - **Sincronización automática diaria:** `SincronizacionScheduler` a las 06:30 AR (configurable con `SYNC_CRON`). Modo "solo existentes": actualiza precio/stock de productos ya importados, no crea nuevos.
 - **Mayoristas modulares:** cada distribuidor tiene su propio `ApiClient` + `ImportService` + `Controller`. Elit y Invid conviven sin pisarse. Dedup por `codigo_externo` + `fuente`.
+- **Railway bloquea la salida SMTP** (puertos 25/465/587, política antispam) → los mails **no** pueden ir por SMTP. Un intento contra `smtp.gmail.com` no falla con error de credenciales: cuelga y muere en `ConnectException: Connection timed out`, porque nunca llega a autenticar. Por eso `EmailService` manda por la **API HTTP de Resend** (443). Cualquier integración saliente nueva: verificar que no dependa de un puerto no-HTTP.
+- **Los mails van asíncronos y con timeout.** `EmailService#enviarHtmlAsync` (`@EnableAsync`) — el mail es un efecto secundario y no debe demorar ni tumbar la operación que lo dispara. Sin timeout explícito, un SMTP/HTTP colgado se queda con un hilo de Tomcat indefinidamente (pasó: un `forgot-password` tardaba ~5 min).
 - **Repo público en GitHub** — NUNCA commitear secrets. Las credenciales van solo en `backend/.env` (gitignored) y en Railway.
 
 ## Convenciones
@@ -55,7 +57,9 @@ cd frontend && npm run dev          # → http://localhost:5173
 | `ELIT_USER_ID` / `ELIT_TOKEN` | Credenciales mayorista Elit |
 | `INVID_BASE_URL` | Host de Invid/TornadoStore |
 | `GOOGLE_CLIENT_ID` | Client ID de "Sign in with Google" (OAuth Web, no secreto). Vacío = botón oculto. Lo sirve `GET /api/config` al frontend y lo usa `GoogleTokenVerifier` para validar el ID token. |
-| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_FROM` | SMTP para "olvidé mi contraseña" (`EmailService`). Vacío = no se manda email (el flujo responde igual pero el reseteo no llega). Gmail: `smtp.gmail.com:587` + app password. |
+| `RESEND_API_KEY` | API key de Resend (`re_...`) para mandar mails. Vacío = no se manda nada (el flujo responde igual, queda en el log). |
+| `MAIL_FROM` / `MAIL_FROM_NAME` | Remitente. **Tiene que ser del dominio verificado en Resend** (`no-responder@futuratecno.com.ar`); un Gmail se rechaza por dominio no verificado. |
+| `ADMIN_NOTIFY_EMAIL` | Destinatario de avisos internos. Si no está, usa `ADMIN_EMAIL`. |
 
 **Dominio:**
 - `futuratecno.com.ar` — **registrado** en NIC.ar (dominio "especial" pago; vence 2027-07-16). Falta **delegar el DNS** (todavía sin nameservers) para apuntarlo a Railway.
