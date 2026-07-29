@@ -21,6 +21,12 @@ spring:
     locations: classpath:db/migration
 server:
   port: ${PORT:8080}
+  # El catálogo entero son ~480 KB de JSON (y el bundle del frontend otros ~330 KB), y viajaban
+  # sin comprimir. Es texto muy repetitivo, así que gzip lo baja muchísimo por casi nada de CPU.
+  compression:
+    enabled: true
+    mime-types: application/json,application/javascript,text/css,text/html,text/plain
+    min-response-size: 2KB
   # Railway termina el TLS en el borde y nos pasa el request por HTTP plano. Sin esto,
   # ServletUriComponentsBuilder arma las URLs con scheme http:// y el enlace del email de
   # reseteo sale sin cifrar (con el token adentro). Con "framework", Spring registra el

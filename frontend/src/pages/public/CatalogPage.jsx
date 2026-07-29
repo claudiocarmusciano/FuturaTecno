@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { indexarArbol, idsHojaDe } from '../../utils/categorias'
+import { useCart } from '../../cart/CartContext'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -18,6 +19,36 @@ const formatFechaLarga = (isoDate) => {
 // Orden por defecto del catálogo: del más barato al más caro. "relevancia" (el orden en que
 // los devuelve la API) queda como opción, pero ya no es lo primero que ve el visitante.
 const ORDEN_POR_DEFECTO = 'precio-asc'
+
+// Cuántas tarjetas se pintan por página. 24 es divisible por 2, 3 y 4, así que la última fila
+// queda completa en cualquiera de los anchos de la grilla (auto-fill de 260px).
+// Ojo: la paginación es del lado del cliente — la API sigue devolviendo el catálogo entero.
+const POR_PAGINA = 24
+
+const botonPagina = (activo, deshabilitado) => ({
+  padding: '8px 14px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
+  border: `1px solid ${activo ? 'var(--color-lime)' : 'var(--color-border)'}`,
+  background: activo ? 'var(--color-lime)' : 'transparent',
+  color: activo ? '#16181d' : 'var(--color-text)',
+  cursor: deshabilitado ? 'default' : 'pointer',
+  opacity: deshabilitado ? 0.35 : 1
+})
+
+/**
+ * Números a mostrar: siempre la primera y la última, más una ventana alrededor de la actual.
+ * Con 603 productos son 26 páginas — listarlas todas sería una tira inusable en mobile.
+ */
+const paginasVisibles = (actual, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const nums = new Set([1, total, actual, actual - 1, actual + 1])
+  const ordenadas = [...nums].filter(n => n >= 1 && n <= total).sort((a, b) => a - b)
+  const out = []
+  ordenadas.forEach((n, i) => {
+    if (i > 0 && n - ordenadas[i - 1] > 1) out.push('…')
+    out.push(n)
+  })
+  return out
+}
 
 // Precio "desde" del producto: el menor precio USD entre sus variantes (para ordenar/filtrar).
 const precioDesde = (p) => {
@@ -141,6 +172,9 @@ function CatalogPage() {
   const [precioMax, setPrecioMax] = useState(() => searchParams.get('max') || '')
   const [eta, setEta] = useState(null)
   const [cotizacion, setCotizacion] = useState(null)
+  const { agregar } = useCart()
+  const [agregado, setAgregado] = useState(null)   // id del producto recién agregado (feedback)
+  const [pagina, setPagina] = useState(1)
 
   // Refleja los filtros actuales en la URL (replace: no ensucia el historial en cada tecla).
   useEffect(() => {
@@ -244,6 +278,20 @@ function CatalogPage() {
     if (orden === 'precio-desc') lista = [...lista].sort((a, b) => precioDesde(b) - precioDesde(a))
     return lista
   }, [productos, busqueda, idsFiltro, marca, orden, precioMin, precioMax])
+
+  // Cualquier cambio de filtro devuelve a la página 1: si estabas en la 12 y filtrás algo que
+  // deja 3 resultados, quedarías mirando una página vacía.
+  useEffect(() => { setPagina(1) }, [categoriaId, marca, busqueda, orden, precioMin, precioMax])
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA))
+  const paginaActual = Math.min(pagina, totalPaginas)
+  const desde = (paginaActual - 1) * POR_PAGINA
+  const visibles = filtrados.slice(desde, desde + POR_PAGINA)
+
+  const irAPagina = (n) => {
+    setPagina(Math.min(Math.max(1, n), totalPaginas))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const limpiarTodo = () => {
     setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(ORDEN_POR_DEFECTO); setPrecioMin(''); setPrecioMax('')
@@ -357,7 +405,10 @@ function CatalogPage() {
           </div>
 
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '4px', fontSize: '14px' }}>
-            Mostrando <strong>{filtrados.length}</strong> de {productos.length} producto(s)
+            {filtrados.length === 0
+              ? <>Sin resultados de {productos.length} producto(s)</>
+              : <>Mostrando <strong>{desde + 1}–{desde + visibles.length}</strong> de {filtrados.length}
+                  {filtrados.length !== productos.length && <> (filtrados de {productos.length})</>}</>}
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
             Las imágenes son meramente ilustrativas · Stock sujeto a disponibilidad
@@ -368,7 +419,7 @@ function CatalogPage() {
             <div className="card"><p>No hay productos que coincidan con los filtros.</p></div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '20px' }}>
-              {filtrados.map(p => (
+              {visibles.map(p => (
                 <Link key={p.id} to={`/producto/${p.id}`} className="producto-card">
                   {/* Tile blanco a propósito: las fotos de los mayoristas vienen recortadas sobre
                       blanco o en PNG transparente, y sobre el fondo oscuro un producto negro
@@ -391,7 +442,7 @@ function CatalogPage() {
                   {p.sku && <p style={{ margin: '0 0 12px', fontSize: '11px', color: 'var(--color-text-muted)' }}>Cód. {p.sku}</p>}
 
                   {p.variantes.map(v => (
-                    <div key={v.id} style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', marginTop: '10px' }}>
+                    <div key={v.id} style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', marginTop: '10px' }}>
                       {v.especificaciones && (
                         <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '6px' }}>{v.especificaciones}</p>
                       )}
@@ -405,14 +456,89 @@ function CatalogPage() {
                   <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
                     <p style={{ fontSize: '11px', color: 'var(--color-price)' }}>● Stock sujeto a disponibilidad</p>
                     {p.ultimaActualizacion && (
-                      <p style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>
+                      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                         Actualizado: {formatFecha(p.ultimaActualizacion)}
                       </p>
+                    )}
+
+                    {/* Con una sola variante se agrega desde acá; con varias hay que elegir cuál,
+                        así que la card lleva al detalle en vez de meter una al azar.
+                        preventDefault: el botón vive dentro del <Link> de la card. */}
+                    {p.variantes.length === 1 ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          agregar(p, p.variantes[0])
+                          setAgregado(p.id)
+                        }}
+                        style={{
+                          width: '100%', marginTop: '12px', padding: '10px', borderRadius: '8px',
+                          border: agregado === p.id ? '1px solid var(--color-lime)' : 'none',
+                          background: agregado === p.id ? 'var(--color-lime-tint)' : 'var(--color-lime)',
+                          color: agregado === p.id ? 'var(--color-lime)' : '#16181d',
+                          fontSize: '14px', fontWeight: 600, cursor: 'pointer'
+                        }}
+                      >
+                        {agregado === p.id ? '✓ En el carrito' : '🛒 Agregar al carrito'}
+                      </button>
+                    ) : (
+                      <div
+                        style={{
+                          width: '100%', marginTop: '12px', padding: '10px', borderRadius: '8px',
+                          border: '1px solid var(--color-border)', background: 'transparent',
+                          color: 'var(--color-accent)', fontSize: '14px', fontWeight: 600, textAlign: 'center'
+                        }}
+                      >
+                        Ver {p.variantes.length} opciones →
+                      </div>
                     )}
                   </div>
                 </Link>
               ))}
             </div>
+          )}
+
+          {totalPaginas > 1 && (
+            <nav
+              aria-label="Paginación del catálogo"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '28px' }}
+            >
+              <button
+                type="button"
+                onClick={() => irAPagina(paginaActual - 1)}
+                disabled={paginaActual === 1}
+                style={botonPagina(false, paginaActual === 1)}
+              >
+                ← Anterior
+              </button>
+
+              {paginasVisibles(paginaActual, totalPaginas).map((n, i) => (
+                n === '…' ? (
+                  <span key={`sep-${i}`} style={{ color: 'var(--color-text-muted)', padding: '0 4px' }}>…</span>
+                ) : (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => irAPagina(n)}
+                    aria-current={n === paginaActual ? 'page' : undefined}
+                    style={botonPagina(n === paginaActual, false)}
+                  >
+                    {n}
+                  </button>
+                )
+              ))}
+
+              <button
+                type="button"
+                onClick={() => irAPagina(paginaActual + 1)}
+                disabled={paginaActual === totalPaginas}
+                style={botonPagina(false, paginaActual === totalPaginas)}
+              >
+                Siguiente →
+              </button>
+            </nav>
           )}
         </div>
       </div>

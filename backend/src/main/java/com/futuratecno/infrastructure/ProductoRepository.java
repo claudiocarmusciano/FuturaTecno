@@ -15,4 +15,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Optional<Producto> findByProveedorIdAndMarcaAndModelo(Long proveedorId, String marca, String modelo);
 
     Optional<Producto> findByProveedorIdAndCodigoExterno(Long proveedorId, String codigoExterno);
+
+    /** Cuántos productos quedarían sin categoría si se borrara esa categoría. */
+    long countByCategoriaId(Long categoriaId);
 }

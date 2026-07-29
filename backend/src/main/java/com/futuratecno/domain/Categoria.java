@@ -3,8 +3,11 @@ package com.futuratecno.domain;
 import jakarta.persistence.*;
 
 /**
- * Nodo de un árbol fijo de 3 niveles (sección > categoría > subcategoría), sembrado
- * completo por la migración V9. No se crea ni edita desde la app.
+ * Nodo del árbol de categorías: dos niveles (categoría > subcategoría), sembrado por la
+ * migración V10 y editable desde el admin (ver CategoriaService y CategoriaAdminController).
+ *
+ * <p>Ojo: `CategoriaService` cachea el árbol entero en memoria, así que toda escritura tiene
+ * que recargarlo o el cambio no se ve hasta reiniciar.
  */
 @Entity
 @Table(name = "categorias")
@@ -32,3 +35,6 @@ public class Categoria extends BaseEntity {
         this.padre = padre;
     }
 }
+
+
+
