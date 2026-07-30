@@ -96,7 +96,15 @@
 .lp-ph { height: 96px; border-radius: 9px; margin-bottom: 11px; overflow: hidden; background: #fff; display: flex; align-items: center; justify-content: center; }
 .lp-ph img { max-width: 86%; max-height: 86%; object-fit: contain; }
 .lp-chip { display: inline-block; font-size: 10px; color: var(--lp-lime); background: var(--lp-lime-soft); padding: 3px 9px; border-radius: 999px; font-weight: 600; margin-bottom: 8px; }
-.lp-mock-card .lp-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; font-family: 'Sora', sans-serif; }
+/* min-height reserva el espacio de 2 líneas SIEMPRE, aunque el nombre real ocupe solo 1: sin esto,
+   la card mide distinto según el largo del nombre y, al reemplazar el fallback (nombres cortos)
+   por datos reales (recortados a 34 caracteres, casi siempre 2 líneas), la card crece de golpe.
+   Como .lp-mc3 se ancla con bottom:0, crecer la corre hacia arriba y tapa a la de al lado. */
+.lp-mock-card .lp-name {
+  font-size: 13px; font-weight: 600; margin-bottom: 6px; font-family: 'Sora', sans-serif;
+  line-height: 1.3; min-height: 2.6em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 .lp-mock-card .lp-price { font-size: 16px; font-weight: 800; font-family: 'Sora', sans-serif; }
 .lp-mock-card .lp-price small { color: var(--lp-lime); font-size: 12px; font-weight: 600; }
 .lp-mc1 { top: 0; left: 0; transform: rotate(-4deg); z-index: 2; }
@@ -169,8 +177,14 @@
   .lp-nav { height: 80px; }
   .lp-nav-logo img { height: 48px; }
   .lp-hero-grid { grid-template-columns: 1fr; gap: 30px; }
-  .lp-mockup { height: 430px; max-width: 380px; margin: 0 auto; }
+  .lp-mockup { height: 440px; max-width: 380px; margin: 0 auto; }
   .lp-mock-card { width: 190px; }
+  /* Con 190px de ancho, mc1 (izq) + mc2 (der) ya llenan los 380px del contenedor borde a borde:
+     no queda lugar para una tercera card sin taparlas fuerte (a diferencia de desktop, donde el
+     contenedor es más ancho). Se oculta mc3 y se separa mc2 lo suficiente en vertical para que no
+     se pisen ni con el nombre reservado a 2 líneas. */
+  .lp-mc2 { top: 220px; }
+  .lp-mc3 { display: none; }
   .lp-stats { grid-template-columns: repeat(2, 1fr); gap: 26px; }
   .lp-features { grid-template-columns: 1fr; }
   .lp-prod-grid { grid-template-columns: repeat(2, 1fr); }
