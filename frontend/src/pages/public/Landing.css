@@ -80,9 +80,12 @@
   font-family: 'Sora', sans-serif; line-height: 1.2;
 }
 .lp-btn svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
-.lp-btn-primary { background: var(--lp-lime); color: #16181d; box-shadow: 0 8px 26px rgba(200, 224, 72, .28); }
+/* !important porque ".lp a { color: inherit }" (línea 32, especificidad clase+etiqueta) le gana
+   a una clase sola como ".lp-btn-primary" — sin esto el botón hereda el --lp-text casi blanco de
+   la landing y el texto se pierde contra el lima. Mismo criterio que .lp-nav-cta, más arriba. */
+.lp-btn-primary { background: var(--lp-lime); color: #16181d !important; box-shadow: 0 8px 26px rgba(200, 224, 72, .28); }
 .lp-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(200, 224, 72, .42); }
-.lp-btn-wa { background: #25D366; color: #fff; box-shadow: 0 8px 26px rgba(37, 211, 102, .28); }
+.lp-btn-wa { background: #25D366; color: #fff !important; box-shadow: 0 8px 26px rgba(37, 211, 102, .28); }
 .lp-btn-wa:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(37, 211, 102, .42); }
 
 /* Tarjetas de producto flotando */
@@ -177,14 +180,16 @@
   .lp-nav { height: 80px; }
   .lp-nav-logo img { height: 48px; }
   .lp-hero-grid { grid-template-columns: 1fr; gap: 30px; }
-  .lp-mockup { height: 440px; max-width: 380px; margin: 0 auto; }
-  .lp-mock-card { width: 190px; }
-  /* Con 190px de ancho, mc1 (izq) + mc2 (der) ya llenan los 380px del contenedor borde a borde:
-     no queda lugar para una tercera card sin taparlas fuerte (a diferencia de desktop, donde el
-     contenedor es más ancho). Se oculta mc3 y se separa mc2 lo suficiente en vertical para que no
-     se pisen ni con el nombre reservado a 2 líneas. */
-  .lp-mc2 { top: 220px; }
-  .lp-mc3 { display: none; }
+  /* width:100% es necesario, no cosmético: .lp-mockup es un item de grid cuyos únicos hijos son
+     position:absolute (no aportan tamaño). Con margin:0 auto pero sin width propio, CSS Grid deja
+     de estirarlo (el auto-margin desactiva el stretch) y su ancho colapsa a 0 — entonces left:0 y
+     right:0 de las cards terminan apuntando al mismo punto. Por eso "a veces" se veía bien: era
+     casualidad de que ambos lados cayeran en el centro del viewport, no un contenedor real. */
+  .lp-mockup { width: 100%; max-width: 380px; margin: 0 auto; height: 620px; }
+  .lp-mock-card { width: 155px; }
+  .lp-mc1 { top: 0; left: 0; }
+  .lp-mc2 { top: 50px; right: 0; }
+  .lp-mc3 { top: 340px; bottom: auto; left: 30px; }
   .lp-stats { grid-template-columns: repeat(2, 1fr); gap: 26px; }
   .lp-features { grid-template-columns: 1fr; }
   .lp-prod-grid { grid-template-columns: repeat(2, 1fr); }
