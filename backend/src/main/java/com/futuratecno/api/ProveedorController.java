@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,9 +29,38 @@ public class ProveedorController {
         List<Proveedor> proveedores = proveedorRepository.findAll();
         List<ProveedorDTO> dtos = proveedores.stream()
             .filter(p -> Boolean.TRUE.equals(p.getActivo()))
-            .map(this::toDTO)
+            .map(p -> {
+                ProveedorDTO dto = toDTO(p);
+                dto.setCantidadProductos(productoRepository.countByProveedorIdAndActivo(p.getId(), true));
+                return dto;
+            })
             .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
+    }
+
+    /**
+     * Da de baja TODOS los productos activos del proveedor, dejando el proveedor en pie para
+     * poder reimportar. Distinto de DELETE /{id}, que además da de baja al proveedor.
+     *
+     * <p>Es baja lógica (activo=false), como todo borrado del sistema: los productos siguen en la
+     * base y los pedidos que los referencian mantienen su trazabilidad (igual que los importes,
+     * el pedido guarda un snapshot propio y no depende del producto vivo).
+     */
+    @DeleteMapping("/{id}/productos")
+    public ResponseEntity<?> eliminarProductos(@PathVariable Long id) {
+        return proveedorRepository.findById(id)
+            .map(proveedor -> {
+                List<Producto> productos = productoRepository.findByProveedorIdAndActivo(id, true);
+                for (Producto p : productos) {
+                    p.setActivo(false);
+                }
+                productoRepository.saveAll(productos);
+                return ResponseEntity.ok(Map.of(
+                        "eliminados", productos.size(),
+                        "mensaje", productos.size() + " producto(s) de " + proveedor.getNombre()
+                                + " dados de baja."));
+            })
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}")

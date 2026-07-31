@@ -65,6 +65,26 @@ function ProveedoresPage() {
     setFormData(formVacio)
   }
 
+  // Vacía el catálogo de un proveedor SIN darlo de baja, para poder reimportarlo limpio.
+  // Es baja lógica, pero masiva y no hay "deshacer" en el panel: se confirma con el número
+  // de productos a la vista.
+  const handleEliminarProductos = async (id, nombre, cantidad) => {
+    if (!cantidad) return
+    if (!window.confirm(
+      `¿Dar de baja los ${cantidad} productos de "${nombre}"?\n\n` +
+      `El proveedor se mantiene, así que podés volver a importarlos. ` +
+      `Los productos dejan de verse en el catálogo.`
+    )) return
+    try {
+      const { data } = await axios.delete(`/api/admin/proveedores/${id}/productos`)
+      setMensaje(data.mensaje)
+      cargarProveedores()
+    } catch (error) {
+      console.error('Error al eliminar productos del proveedor:', error)
+      setMensaje('Error al eliminar los productos del proveedor.')
+    }
+  }
+
   const handleEliminar = async (id, nombre) => {
     if (!window.confirm(`¿Eliminar el proveedor "${nombre}"? Sus productos dejarán de mostrarse.`)) return
     try {
@@ -131,6 +151,7 @@ function ProveedoresPage() {
                 <th>Código</th>
                 <th>Margen %</th>
                 <th>Flete %</th>
+                <th>Productos</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -141,8 +162,19 @@ function ProveedoresPage() {
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{p.codigo}</td>
                   <td>{p.margenPorcentaje}%</td>
                   <td>{p.fletePorcentaje}%</td>
+                  <td>{p.cantidadProductos ?? 0}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <button onClick={() => handleEditar(p)} className="btn-accion"><IconEdit /> Editar</button>
+                    <button
+                      onClick={() => handleEliminarProductos(p.id, p.nombre, p.cantidadProductos)}
+                      className="btn-accion danger"
+                      disabled={!p.cantidadProductos}
+                      title={p.cantidadProductos
+                        ? `Dar de baja los ${p.cantidadProductos} productos, conservando el proveedor`
+                        : 'Este proveedor no tiene productos'}
+                    >
+                      <IconTrash /> Borrar productos
+                    </button>
                     <button onClick={() => handleEliminar(p.id, p.nombre)} className="btn-accion danger"><IconTrash /> Eliminar</button>
                   </td>
                 </tr>

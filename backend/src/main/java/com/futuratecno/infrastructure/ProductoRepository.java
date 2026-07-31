@@ -18,4 +18,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     /** Cuántos productos quedarían sin categoría si se borrara esa categoría. */
     long countByCategoriaId(Long categoriaId);
+
+    /** Productos activos de un proveedor, para mostrarlo en el panel sin traerlos todos. */
+    long countByProveedorIdAndActivo(Long proveedorId, Boolean activo);
 }

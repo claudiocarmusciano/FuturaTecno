@@ -13,6 +13,9 @@ public class ProveedorDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    /** Productos activos del proveedor. Solo se completa en el listado, para el panel. */
+    private Long cantidadProductos;
+
     public ProveedorDTO() {}
 
     public ProveedorDTO(Long id, String nombre, String codigo, BigDecimal margenPorcentaje, BigDecimal fletePorcentaje, Boolean activo, LocalDateTime createdAt, LocalDateTime updatedAt) {
@@ -88,5 +91,13 @@ public class ProveedorDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Long getCantidadProductos() {
+        return cantidadProductos;
+    }
+
+    public void setCantidadProductos(Long cantidadProductos) {
+        this.cantidadProductos = cantidadProductos;
     }
 }
