@@ -31,6 +31,13 @@
 - **El costo de envío también se congela.** Mismo criterio que los precios: el checkout manda solo CP + modalidad, `PedidoService` **recotiza server-side** y guarda el importe. Si Andreani no responde en ese momento, el pedido igual se crea con `costo_envio_ars` en null ("a cotizar") — la cotización nunca bloquea una venta.
 - **Repo público en GitHub** — NUNCA commitear secrets. Las credenciales van solo en `backend/.env` (gitignored) y en Railway.
 
+## Límites conocidos (escalabilidad)
+Medido el 2026-07-31 con **1.545 productos activos**. Nada de esto está roto hoy, pero son los techos que hay que mirar cuando el catálogo crezca.
+- **N+1 en el catálogo — es el cuello de botella real.** `CatalogoService.toDTO()` hace **dos queries por producto** (variantes + imágenes) y `ProductoAdminService.listar()` una (variantes). Con 1.545 productos son ~3.100 queries por request: `GET /api/productos` tarda **9-14 s**. Crece lineal, así que ~5.000 productos ya araña el timeout del proxy. Arreglo: `JOIN FETCH` o `@EntityGraph` en `findByActivo`, y armar el DTO desde la colección ya cargada.
+- **La paginación del catálogo es falsa.** `GET /api/productos` **acepta pero ignora** `page` y `size`: siempre devuelve todo (1 MB, 162 KB con gzip) y el frontend pagina de a 24 en el navegador. Ojo al medir: pedir páginas en un bucle devuelve la misma lista repetida (así conté 36.783 productos que en realidad eran 1.545 × 24).
+- **El buscador del admin filtra en el cliente** (`ProductosPage`), sobre el listado completo que ya viene cargado. A este volumen es instantáneo; si el catálogo crece un orden de magnitud hay que pasarlo a server-side junto con la paginación.
+- **940 de los 1.545 productos (60%) tienen `categoria_id` en null** y por eso **no se les puede cotizar el envío** (sin categoría no se resuelve el peso). Peor: `EnvioService` corta la cotización del **carrito entero** si un solo ítem no resuelve medidas. El botón "Clasificar categorías faltantes" depende de `ANTHROPIC_API_KEY`, que hoy no tiene crédito. La salida sin IA es mapear por reglas el texto crudo que el mayorista deja en `productos.categoria` (lo guardan `ElitImportService` e `InvidImportService`).
+
 ## Convenciones
 - **Auth:** catálogo público sin auth. Solo `/api/admin/**` requiere rol ADMIN. `/api/auth/register` crea rol USUARIO (sin acceso admin).
 - **Admin único:** creado desde env vars `ADMIN_EMAIL` / `ADMIN_PASSWORD` por `AdminInitializer` al arrancar.
