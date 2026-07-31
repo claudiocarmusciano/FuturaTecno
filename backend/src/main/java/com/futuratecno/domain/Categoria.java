@@ -19,6 +19,21 @@ public class Categoria extends BaseEntity {
     @JoinColumn(name = "padre_id")
     private Categoria padre;
 
+    // Peso/dimensiones por defecto para cotizar envío de los productos de esta categoría, cuando
+    // el producto no tiene su propio valor cargado (V14). Se resuelve hoja primero, padre después
+    // — ver la lógica de resolución en el servicio de envíos.
+    @Column(name = "peso_gramos_default")
+    private Integer pesoGramosDefault;
+
+    @Column(name = "alto_cm_default")
+    private Integer altoCmDefault;
+
+    @Column(name = "ancho_cm_default")
+    private Integer anchoCmDefault;
+
+    @Column(name = "largo_cm_default")
+    private Integer largoCmDefault;
+
     public String getNombre() {
         return nombre;
     }
@@ -33,6 +48,38 @@ public class Categoria extends BaseEntity {
 
     public void setPadre(Categoria padre) {
         this.padre = padre;
+    }
+
+    public Integer getPesoGramosDefault() {
+        return pesoGramosDefault;
+    }
+
+    public void setPesoGramosDefault(Integer pesoGramosDefault) {
+        this.pesoGramosDefault = pesoGramosDefault;
+    }
+
+    public Integer getAltoCmDefault() {
+        return altoCmDefault;
+    }
+
+    public void setAltoCmDefault(Integer altoCmDefault) {
+        this.altoCmDefault = altoCmDefault;
+    }
+
+    public Integer getAnchoCmDefault() {
+        return anchoCmDefault;
+    }
+
+    public void setAnchoCmDefault(Integer anchoCmDefault) {
+        this.anchoCmDefault = anchoCmDefault;
+    }
+
+    public Integer getLargoCmDefault() {
+        return largoCmDefault;
+    }
+
+    public void setLargoCmDefault(Integer largoCmDefault) {
+        this.largoCmDefault = largoCmDefault;
     }
 }
 

@@ -119,6 +119,10 @@ public class ProductoAdminService {
         dto.setModelo(p.getModelo());
         dto.setProveedor(p.getProveedor() != null ? p.getProveedor().getNombre() : null);
         dto.setImagenUrl(p.getImagenUrl());
+        dto.setPesoGramos(p.getPesoGramos());
+        dto.setAltoCm(p.getAltoCm());
+        dto.setAnchoCm(p.getAnchoCm());
+        dto.setLargoCm(p.getLargoCm());
         if (p.getProveedor() != null) {
             dto.setMargenPorcentaje(p.getProveedor().getMargenPorcentaje());
             dto.setFletePorcentaje(p.getProveedor().getFletePorcentaje());
@@ -144,6 +148,12 @@ public class ProductoAdminService {
         if (dto.getCategoriaId() != null) producto.setCategoriaId(dto.getCategoriaId());
         if (dto.getMarca() != null && !dto.getMarca().isBlank()) producto.setMarca(dto.getMarca().trim());
         if (dto.getModelo() != null && !dto.getModelo().isBlank()) producto.setModelo(dto.getModelo().trim());
+        // A diferencia de marca/modelo, acá null es un valor válido y querido: "sin override,
+        // usar el default de la categoría". Por eso se pisa siempre, no solo cuando viene cargado.
+        producto.setPesoGramos(dto.getPesoGramos());
+        producto.setAltoCm(dto.getAltoCm());
+        producto.setAnchoCm(dto.getAnchoCm());
+        producto.setLargoCm(dto.getLargoCm());
         productoRepository.save(producto);
 
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();

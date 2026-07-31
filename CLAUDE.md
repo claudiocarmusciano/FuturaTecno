@@ -25,6 +25,8 @@
 - **No se descuenta stock al pedir.** `Variante.stock` lo pisa la sync diaria, así que cualquier descuento local se perdería a la mañana. El pedido es una solicitud, no una reserva.
 - **El carrito no requiere cuenta** (vive en localStorage); la sesión se pide recién al confirmar. Al abrir `/carrito` se revalidan los precios contra la API.
 - **Ojo con `SecurityConfig`:** la cadena termina en `anyRequest().permitAll()`. Toda ruta privada nueva hay que listarla explícitamente (como `/api/pedidos/**`), o nace pública.
+- **Confirmar un pedido exige `aceptaCompromiso: true` en el body.** Se valida en `PedidoService.crear()`, no solo en el checkbox del frontend — mismo criterio que el precio: no confiar en lo que manda el cliente.
+- **Peso/dimensiones para envío (V14):** `Producto` tiene `pesoGramos`/`altoCm`/`anchoCm`/`largoCm` opcionales (override real, se edita en Admin → Productos). Si están en `null`, hay que resolver por el default de `Categoria` (mismos 4 campos con sufijo `_default`): primero la subcategoría (hoja), si no tiene, la categoría padre. Ningún mayorista (Elit/Invid) ni Icecat con el plan actual traen este dato — confirmado pegándole a la API de Icecat en vivo, el plan da `GeneralInfo`/`Gallery` pero no `FeaturesGroups` (ahí vive el peso). Los defaults por categoría se cargaron a mano en la V14 y solo se editan por SQL directo, no hay UI para eso todavía.
 - **Repo público en GitHub** — NUNCA commitear secrets. Las credenciales van solo en `backend/.env` (gitignored) y en Railway.
 
 ## Convenciones

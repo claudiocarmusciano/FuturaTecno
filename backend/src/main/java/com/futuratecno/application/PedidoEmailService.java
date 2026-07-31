@@ -75,8 +75,9 @@ public class PedidoEmailService {
           .append("que rehacerlo con los precios del día.</span>");
         sb.append("</div>");
 
-        sb.append("<p style=\"color:#555;font-size:14px\">Nos vamos a contactar para confirmarte disponibilidad y ")
-          .append("coordinar la entrega.</p>");
+        sb.append("<p style=\"color:#555;font-size:14px\">Confirmar este pedido implica un ")
+          .append("<strong>compromiso de compra</strong>. Nos vamos a contactar para coordinar el pago y ")
+          .append("la entrega.</p>");
         sb.append("<p style=\"color:#888;font-size:12px\">FuturaTecno · Tu tecnología. Tu futuro.</p>");
         sb.append("</div>");
         return sb.toString();

@@ -249,6 +249,46 @@ function ProductosPage() {
             </div>
           </div>
 
+          <h3 style={{ fontSize: '15px', marginBottom: '4px' }}>Peso y dimensiones (para cotizar envío)</h3>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+            Opcional: si se deja vacío, se usa el default de la categoría. Cargalo solo si este producto puntual pesa
+            o mide distinto al resto de su categoría.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Peso (g)</label>
+              <input
+                style={inputStyle} type="number" min="1" placeholder="default categoría"
+                value={editData.pesoGramos ?? ''}
+                onChange={e => setCampo('pesoGramos', e.target.value === '' ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Alto (cm)</label>
+              <input
+                style={inputStyle} type="number" min="1" placeholder="default categoría"
+                value={editData.altoCm ?? ''}
+                onChange={e => setCampo('altoCm', e.target.value === '' ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Ancho (cm)</label>
+              <input
+                style={inputStyle} type="number" min="1" placeholder="default categoría"
+                value={editData.anchoCm ?? ''}
+                onChange={e => setCampo('anchoCm', e.target.value === '' ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Largo (cm)</label>
+              <input
+                style={inputStyle} type="number" min="1" placeholder="default categoría"
+                value={editData.largoCm ?? ''}
+                onChange={e => setCampo('largoCm', e.target.value === '' ? null : Number(e.target.value))}
+              />
+            </div>
+          </div>
+
           <h3 style={{ fontSize: '15px', marginBottom: '4px' }}>Variantes / Precios</h3>
           <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
             El precio que cargás es el <strong>costo</strong>. La venta se calcula con flete {Number(editData.fletePorcentaje) || 0}% + margen {Number(editData.margenPorcentaje) || 0}% · dólar ${formatNumber(editData.cotizacion)}.

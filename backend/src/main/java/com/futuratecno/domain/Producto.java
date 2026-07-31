@@ -36,6 +36,20 @@ public class Producto extends BaseEntity {
     @Column(length = 50)
     private String fuente;
 
+    // Peso/dimensiones reales del producto (V14), para cotizar envío. Opcionales: si están en
+    // null se usa el default de la categoría (ver CategoriaService / servicio de envíos).
+    @Column(name = "peso_gramos")
+    private Integer pesoGramos;
+
+    @Column(name = "alto_cm")
+    private Integer altoCm;
+
+    @Column(name = "ancho_cm")
+    private Integer anchoCm;
+
+    @Column(name = "largo_cm")
+    private Integer largoCm;
+
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
     private List<Variante> variantes;
 
@@ -104,6 +118,38 @@ public class Producto extends BaseEntity {
 
     public void setFuente(String fuente) {
         this.fuente = fuente;
+    }
+
+    public Integer getPesoGramos() {
+        return pesoGramos;
+    }
+
+    public void setPesoGramos(Integer pesoGramos) {
+        this.pesoGramos = pesoGramos;
+    }
+
+    public Integer getAltoCm() {
+        return altoCm;
+    }
+
+    public void setAltoCm(Integer altoCm) {
+        this.altoCm = altoCm;
+    }
+
+    public Integer getAnchoCm() {
+        return anchoCm;
+    }
+
+    public void setAnchoCm(Integer anchoCm) {
+        this.anchoCm = anchoCm;
+    }
+
+    public Integer getLargoCm() {
+        return largoCm;
+    }
+
+    public void setLargoCm(Integer largoCm) {
+        this.largoCm = largoCm;
     }
 
     public List<Variante> getVariantes() {

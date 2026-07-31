@@ -22,6 +22,7 @@ function CheckoutPage() {
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [notas, setNotas] = useState('')
+  const [aceptaCompromiso, setAceptaCompromiso] = useState(false)
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
 
@@ -84,7 +85,8 @@ function CheckoutPage() {
         items: items.map(i => ({ varianteId: i.varianteId, cantidad: i.cantidad })),
         nombreContacto: nombre,
         telefonoContacto: telefono,
-        notas
+        notas,
+        aceptaCompromiso
       })
       vaciar()
       // Abre WhatsApp con el pedido completo y deja al usuario en el detalle.
@@ -157,6 +159,20 @@ function CheckoutPage() {
           style={{ width: '100%', padding: '10px', marginBottom: '16px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '15px', fontFamily: 'inherit' }}
         />
 
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '18px', cursor: 'pointer', fontSize: '14px' }}>
+          <input
+            type="checkbox"
+            checked={aceptaCompromiso}
+            onChange={e => setAceptaCompromiso(e.target.checked)}
+            required
+            style={{ marginTop: '3px', width: '16px', height: '16px', flexShrink: 0, cursor: 'pointer' }}
+          />
+          <span>
+            Entiendo que <strong>confirmar este pedido implica un compromiso de compra</strong>.{' '}
+            {NOMBRE_NEGOCIO} se va a contactar para coordinar el pago y la entrega.
+          </span>
+        </label>
+
         {error && <p style={{ color: 'var(--color-danger, #c0392b)', fontSize: '14px' }}>{error}</p>}
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -165,10 +181,10 @@ function CheckoutPage() {
           </Link>
           <button
             type="submit"
-            disabled={enviando}
+            disabled={enviando || !aceptaCompromiso}
             style={{
               padding: '12px 26px', borderRadius: '8px', border: 'none',
-              cursor: enviando ? 'default' : 'pointer', opacity: enviando ? 0.6 : 1,
+              cursor: (enviando || !aceptaCompromiso) ? 'default' : 'pointer', opacity: (enviando || !aceptaCompromiso) ? 0.6 : 1,
               background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, fontSize: '16px'
             }}
           >

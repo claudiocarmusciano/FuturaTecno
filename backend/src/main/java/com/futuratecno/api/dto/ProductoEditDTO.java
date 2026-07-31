@@ -14,6 +14,12 @@ public class ProductoEditDTO {
     private String imagenUrl;
     private List<VarianteEditDTO> variantes;
 
+    // Peso/dimensiones propios del producto (override del default de categoría). Null = no cargado.
+    private Integer pesoGramos;
+    private Integer altoCm;
+    private Integer anchoCm;
+    private Integer largoCm;
+
     // Datos para que el editor calcule el precio de venta en vivo (solo lectura).
     private BigDecimal margenPorcentaje;
     private BigDecimal fletePorcentaje;
@@ -53,4 +59,16 @@ public class ProductoEditDTO {
 
     public List<VarianteEditDTO> getVariantes() { return variantes; }
     public void setVariantes(List<VarianteEditDTO> variantes) { this.variantes = variantes; }
+
+    public Integer getPesoGramos() { return pesoGramos; }
+    public void setPesoGramos(Integer pesoGramos) { this.pesoGramos = pesoGramos; }
+
+    public Integer getAltoCm() { return altoCm; }
+    public void setAltoCm(Integer altoCm) { this.altoCm = altoCm; }
+
+    public Integer getAnchoCm() { return anchoCm; }
+    public void setAnchoCm(Integer anchoCm) { this.anchoCm = anchoCm; }
+
+    public Integer getLargoCm() { return largoCm; }
+    public void setLargoCm(Integer largoCm) { this.largoCm = largoCm; }
 }

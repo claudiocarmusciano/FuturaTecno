@@ -82,6 +82,10 @@ public class PedidoService {
         if (req.getItems() == null || req.getItems().isEmpty()) {
             throw new IllegalArgumentException("El pedido no tiene artículos.");
         }
+        if (!Boolean.TRUE.equals(req.getAceptaCompromiso())) {
+            throw new IllegalArgumentException(
+                    "Tenés que aceptar que confirmar el pedido implica un compromiso de compra.");
+        }
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario)
                 .filter(u -> Boolean.TRUE.equals(u.getActivo()))
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado."));
