@@ -19,6 +19,12 @@ public class PedidoDTO {
     private LocalDateTime createdAt;
     private List<PedidoItemDTO> items;
 
+    // Envío elegido en el checkout. Todo null = retiro / a coordinar. Costo null con modo
+    // cargado = la modalidad quedó elegida pero Andreani no respondió al confirmar ("a cotizar").
+    private String cpDestino;
+    private String modoEnvio;
+    private BigDecimal costoEnvioArs;
+
     /** Email del cliente. Solo se completa para el admin; en el historial propio sobra. */
     private String usuarioEmail;
 
@@ -62,4 +68,13 @@ public class PedidoDTO {
 
     public String getUsuarioEmail() { return usuarioEmail; }
     public void setUsuarioEmail(String usuarioEmail) { this.usuarioEmail = usuarioEmail; }
+
+    public String getCpDestino() { return cpDestino; }
+    public void setCpDestino(String cpDestino) { this.cpDestino = cpDestino; }
+
+    public String getModoEnvio() { return modoEnvio; }
+    public void setModoEnvio(String modoEnvio) { this.modoEnvio = modoEnvio; }
+
+    public BigDecimal getCostoEnvioArs() { return costoEnvioArs; }
+    public void setCostoEnvioArs(BigDecimal costoEnvioArs) { this.costoEnvioArs = costoEnvioArs; }
 }

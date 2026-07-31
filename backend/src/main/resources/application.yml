@@ -61,6 +61,14 @@ invid:
   username: ${INVID_USERNAME:}
   password: ${INVID_PASSWORD:}
 
+andreani:
+  # Credencial de la cuenta Pyme, generada en el portal de Andreani (Integraciones → WooCommerce).
+  # Vacía = cotización de envío desactivada (el checkout sigue andando, sin costo de envío).
+  hash: ${ANDREANI_HASH:}
+  # Código postal desde donde se despacha (origen de todas las cotizaciones).
+  cp-origen: ${ANDREANI_CP_ORIGEN:}
+  base-url: ${ANDREANI_BASE_URL:https://woocommerce-api-acom.andreani.com}
+
 sync:
   enabled: ${SYNC_ENABLED:true}
   cron: ${SYNC_CRON:0 30 6 * * *}   # 06:30 hora Argentina, todos los días

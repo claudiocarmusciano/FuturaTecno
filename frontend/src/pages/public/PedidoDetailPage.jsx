@@ -7,6 +7,15 @@ import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+// Mismos códigos que devuelve Andreani (ver CheckoutPage).
+const ETIQUETA_ENVIO = {
+  'estándar': 'Envío a domicilio',
+  'sucursal': 'Retiro en sucursal Andreani',
+  'llega hoy': 'Llega hoy (a domicilio)',
+  'bigger': 'Envío de paquete grande'
+}
+const etiquetaEnvio = (codigo) => ETIQUETA_ENVIO[codigo] || `Envío ${codigo}`
+
 const formatFechaHora = (iso) =>
   iso ? new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
 
@@ -100,6 +109,26 @@ function PedidoDetailPage() {
           Precios congelados al dólar ${formatNumber(pedido.cotizacionUsada)} del día del pedido.
         </p>
       </div>
+
+      {pedido.modoEnvio && (
+        <div className="card">
+          <h2 style={{ fontSize: '17px', marginTop: 0 }}>Envío</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <span>
+              {etiquetaEnvio(pedido.modoEnvio)}
+              {pedido.cpDestino && <span style={{ color: 'var(--color-text-muted)' }}> · CP {pedido.cpDestino}</span>}
+            </span>
+            <strong style={{ whiteSpace: 'nowrap' }}>
+              {pedido.costoEnvioArs != null ? `$ ${formatNumber(pedido.costoEnvioArs)}` : 'A cotizar'}
+            </strong>
+          </div>
+          {pedido.costoEnvioArs != null && (
+            <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+              Costo estimado de Andreani al momento del pedido. Se confirma al cerrarlo.
+            </p>
+          )}
+        </div>
+      )}
 
       {(pedido.nombreContacto || pedido.telefonoContacto || pedido.notas) && (
         <div className="card">

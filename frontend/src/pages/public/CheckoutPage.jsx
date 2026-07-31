@@ -8,6 +8,17 @@ import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+// Andreani devuelve el código de la modalidad en su propia jerga ("estándar", "sucursal").
+// Se traduce para el cliente, pero lo que se guarda y se manda al backend es el código original:
+// las modalidades son de ellos y pueden aparecer nuevas, que caen al default.
+const ETIQUETA_ENVIO = {
+  'estándar': 'Envío a tu domicilio',
+  'sucursal': 'Retiro en sucursal Andreani',
+  'llega hoy': 'Llega hoy (a domicilio)',
+  'bigger': 'Envío de paquete grande'
+}
+const etiquetaEnvio = (codigo) => ETIQUETA_ENVIO[codigo] || `Envío ${codigo}`
+
 /** Arma el mensaje de WhatsApp con el pedido completo (antes era de a un producto por vez). */
 const mensajeWhatsapp = (pedido) => {
   const lineas = pedido.items.map(i => `• ${i.cantidad}× ${i.productoNombre} — US$ ${formatNumber(i.subtotalUsd)}`)
@@ -25,6 +36,13 @@ function CheckoutPage() {
   const [aceptaCompromiso, setAceptaCompromiso] = useState(false)
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
+
+  // Envío: la cotización es opcional. Si no se cotiza (o Andreani no responde), el pedido
+  // sale igual y el costo se coordina al contactar al cliente.
+  const [cp, setCp] = useState('')
+  const [cotizando, setCotizando] = useState(false)
+  const [envio, setEnvio] = useState(null)      // respuesta de /api/envio/cotizar
+  const [modoEnvio, setModoEnvio] = useState('') // código elegido ('' = a coordinar)
 
   useEffect(() => {
     if (user?.nombre) setNombre(user.nombre)
@@ -76,6 +94,29 @@ function CheckoutPage() {
     )
   }
 
+  const cotizarEnvio = async () => {
+    setError('')
+    setCotizando(true)
+    setEnvio(null)
+    setModoEnvio('')
+    try {
+      const { data } = await axios.post('/api/envio/cotizar', {
+        cpDestino: cp,
+        items: items.map(i => ({ varianteId: i.varianteId, cantidad: i.cantidad }))
+      })
+      setEnvio(data)
+      if (data.disponible && data.opciones.length > 0) {
+        setModoEnvio(data.opciones[0].codigo)
+      }
+    } catch (err) {
+      setEnvio({ disponible: false, mensaje: err.response?.data?.error || 'No pudimos cotizar el envío.' })
+    } finally {
+      setCotizando(false)
+    }
+  }
+
+  const opcionElegida = envio?.opciones?.find(o => o.codigo === modoEnvio) || null
+
   const confirmar = async (e) => {
     e.preventDefault()
     setError('')
@@ -86,7 +127,10 @@ function CheckoutPage() {
         nombreContacto: nombre,
         telefonoContacto: telefono,
         notas,
-        aceptaCompromiso
+        aceptaCompromiso,
+        // Solo el CP y la modalidad: el costo lo recotiza el backend al confirmar.
+        cpDestino: modoEnvio ? cp : null,
+        modoEnvio: modoEnvio || null
       })
       vaciar()
       // Abre WhatsApp con el pedido completo y deja al usuario en el detalle.
@@ -118,6 +162,98 @@ function CheckoutPage() {
           <span>US$ {formatNumber(totalUsd)}</span>
         </div>
         <div style={{ textAlign: 'right', color: 'var(--color-price)' }}>$ {formatNumber(totalArs)}</div>
+        {opcionElegida && (
+          <div style={{ textAlign: 'right', fontSize: '14px', color: 'var(--color-text-muted)', marginTop: '6px' }}>
+            + envío estimado $ {formatNumber(opcionElegida.totalArs)} ={' '}
+            <strong style={{ color: 'var(--color-price)' }}>
+              $ {formatNumber(totalArs + Number(opcionElegida.totalArs))}
+            </strong>
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <h2 style={{ fontSize: '17px', marginTop: 0 }}>Envío</h2>
+        <p style={{ margin: '0 0 12px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
+          Poné tu código postal para ver cuánto sale el envío por Andreani. Es opcional: si preferís,
+          lo coordinamos cuando te contactemos.
+        </p>
+
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <input
+            value={cp}
+            onChange={e => setCp(e.target.value)}
+            placeholder="Código postal"
+            inputMode="numeric"
+            maxLength={8}
+            style={{ flex: '1 1 160px', padding: '10px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '15px' }}
+          />
+          <button
+            type="button"
+            onClick={cotizarEnvio}
+            disabled={cotizando || cp.trim().length < 4}
+            style={{
+              padding: '10px 20px', borderRadius: '8px', border: '1px solid var(--color-border)',
+              background: 'transparent', color: 'var(--color-text)', fontWeight: 600, fontSize: '15px',
+              cursor: (cotizando || cp.trim().length < 4) ? 'default' : 'pointer',
+              opacity: (cotizando || cp.trim().length < 4) ? 0.6 : 1
+            }}
+          >
+            {cotizando ? 'Cotizando...' : 'Cotizar envío'}
+          </button>
+        </div>
+
+        {envio && !envio.disponible && (
+          <p style={{ margin: '12px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
+            {envio.mensaje}
+          </p>
+        )}
+
+        {envio?.disponible && (
+          <div style={{ marginTop: '14px' }}>
+            {envio.opciones.map(o => (
+              <label
+                key={o.codigo}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
+                  marginBottom: '8px', cursor: 'pointer', borderRadius: '8px',
+                  border: `1px solid ${modoEnvio === o.codigo ? 'var(--color-lime)' : 'var(--color-border)'}`
+                }}
+              >
+                <input
+                  type="radio"
+                  name="modoEnvio"
+                  checked={modoEnvio === o.codigo}
+                  onChange={() => setModoEnvio(o.codigo)}
+                  style={{ width: '16px', height: '16px', flexShrink: 0, cursor: 'pointer' }}
+                />
+                <span style={{ flex: 1 }}>{etiquetaEnvio(o.codigo)}</span>
+                <strong style={{ whiteSpace: 'nowrap' }}>$ {formatNumber(o.totalArs)}</strong>
+              </label>
+            ))}
+
+            <label
+              style={{
+                display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
+                cursor: 'pointer', borderRadius: '8px',
+                border: `1px solid ${modoEnvio === '' ? 'var(--color-lime)' : 'var(--color-border)'}`
+              }}
+            >
+              <input
+                type="radio"
+                name="modoEnvio"
+                checked={modoEnvio === ''}
+                onChange={() => setModoEnvio('')}
+                style={{ width: '16px', height: '16px', flexShrink: 0, cursor: 'pointer' }}
+              />
+              <span style={{ flex: 1 }}>Prefiero coordinarlo con ustedes</span>
+            </label>
+
+            <p style={{ margin: '10px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+              Los costos son estimados de Andreani y se confirman al cerrar el pedido.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Advertencia de vigencia: se acordó avisarlo al confirmar (y va también en el email). */}

@@ -52,6 +52,18 @@ public class Pedido extends BaseEntity {
     @Column(name = "vence_en", nullable = false)
     private LocalDateTime venceEn;
 
+    // Envío elegido en el checkout (V15). Todo nullable: null = retiro / a coordinar. El costo
+    // está congelado al confirmar (recotizado server-side); si Andreani no respondió en ese
+    // momento queda la modalidad con costo null ("a cotizar").
+    @Column(name = "cp_destino", length = 10)
+    private String cpDestino;
+
+    @Column(name = "modo_envio", length = 30)
+    private String modoEnvio;
+
+    @Column(name = "costo_envio_ars")
+    private BigDecimal costoEnvioArs;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItem> items = new ArrayList<>();
 
@@ -133,6 +145,30 @@ public class Pedido extends BaseEntity {
 
     public void setVenceEn(LocalDateTime venceEn) {
         this.venceEn = venceEn;
+    }
+
+    public String getCpDestino() {
+        return cpDestino;
+    }
+
+    public void setCpDestino(String cpDestino) {
+        this.cpDestino = cpDestino;
+    }
+
+    public String getModoEnvio() {
+        return modoEnvio;
+    }
+
+    public void setModoEnvio(String modoEnvio) {
+        this.modoEnvio = modoEnvio;
+    }
+
+    public BigDecimal getCostoEnvioArs() {
+        return costoEnvioArs;
+    }
+
+    public void setCostoEnvioArs(BigDecimal costoEnvioArs) {
+        this.costoEnvioArs = costoEnvioArs;
     }
 
     public List<PedidoItem> getItems() {

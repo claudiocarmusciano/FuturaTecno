@@ -66,6 +66,7 @@ public class PedidoEmailService {
         sb.append("<p style=\"font-size:18px\"><strong>Total: US$ ").append(fmt(pedido.getTotalUsd()))
           .append("</strong> <span style=\"color:#555\">(aprox. $ ").append(fmt(pedido.getTotalArs()))
           .append(")</span></p>");
+        sb.append(lineaEnvio(pedido));
 
         // La advertencia de vigencia que se acordó mostrar también en el checkout.
         sb.append("<div style=\"background:#FFF8E1;border-left:4px solid #C8E048;padding:12px 14px;margin:18px 0\">");
@@ -101,6 +102,7 @@ public class PedidoEmailService {
           .append("</strong> · $ ").append(fmt(pedido.getTotalArs()))
           .append(" <span style=\"color:#888;font-size:13px\">(dólar ").append(fmt(pedido.getCotizacionUsada()))
           .append(")</span></p>");
+        sb.append(lineaEnvio(pedido));
         sb.append("<p style=\"color:#b26a00\"><strong>Vence el ").append(corteEnAr(pedido.getVenceEn()))
           .append(" h.</strong> Después pasa a VENCIDO automáticamente.</p>");
         sb.append("</div>");
@@ -127,6 +129,23 @@ public class PedidoEmailService {
             sb.append("</tr>");
         }
         sb.append("</table>");
+        return sb.toString();
+    }
+
+    /** Línea de envío elegido en el checkout. Vacía si no eligió (retiro / a coordinar). */
+    private String lineaEnvio(Pedido pedido) {
+        if (pedido.getModoEnvio() == null) return "";
+        StringBuilder sb = new StringBuilder();
+        sb.append("<p><strong>Envío:</strong> Andreani ").append(escapar(pedido.getModoEnvio()))
+          .append(" a CP ").append(escapar(pedido.getCpDestino() != null ? pedido.getCpDestino() : "—"))
+          .append(" — ");
+        if (pedido.getCostoEnvioArs() != null) {
+            sb.append("$ ").append(fmt(pedido.getCostoEnvioArs()))
+              .append(" <span style=\"color:#888;font-size:13px\">(estimado)</span>");
+        } else {
+            sb.append("costo a cotizar");
+        }
+        sb.append("</p>");
         return sb.toString();
     }
 

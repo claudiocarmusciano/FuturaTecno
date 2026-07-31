@@ -48,19 +48,22 @@ public class PedidoService {
     private final CotizacionService cotizacionService;
     private final PrecioService precioService;
     private final PedidoEmailService pedidoEmailService;
+    private final EnvioService envioService;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          VarianteRepository varianteRepository,
                          UsuarioRepository usuarioRepository,
                          CotizacionService cotizacionService,
                          PrecioService precioService,
-                         PedidoEmailService pedidoEmailService) {
+                         PedidoEmailService pedidoEmailService,
+                         EnvioService envioService) {
         this.pedidoRepository = pedidoRepository;
         this.varianteRepository = varianteRepository;
         this.usuarioRepository = usuarioRepository;
         this.cotizacionService = cotizacionService;
         this.precioService = precioService;
         this.pedidoEmailService = pedidoEmailService;
+        this.envioService = envioService;
     }
 
     /**
@@ -148,6 +151,17 @@ public class PedidoService {
         pedido.setTotalUsd(totalUsd);
         pedido.setTotalArs(totalArs);
         pedido.setNumero(generarNumero());
+
+        // Envío: si el cliente eligió una modalidad, el costo se recotiza ACÁ y se congela —
+        // nunca el importe que haya visto el frontend. Si Andreani no responde en este momento,
+        // el pedido igual sale: queda la modalidad con costo null ("a cotizar", se coordina).
+        String modoEnvio = limpiar(req.getModoEnvio(), 30);
+        String cpDestino = limpiar(req.getCpDestino(), 10);
+        if (modoEnvio != null && cpDestino != null) {
+            pedido.setCpDestino(cpDestino);
+            pedido.setModoEnvio(modoEnvio);
+            pedido.setCostoEnvioArs(envioService.costoDeModalidad(cpDestino, modoEnvio, req.getItems()));
+        }
 
         Pedido guardado = pedidoRepository.save(pedido);
         logger.info("Pedido {} creado por {} ({} ítems, US$ {})",
@@ -260,6 +274,9 @@ public class PedidoService {
         dto.setNotas(p.getNotas());
         dto.setVenceEn(p.getVenceEn());
         dto.setCreatedAt(p.getCreatedAt());
+        dto.setCpDestino(p.getCpDestino());
+        dto.setModoEnvio(p.getModoEnvio());
+        dto.setCostoEnvioArs(p.getCostoEnvioArs());
         if (paraAdmin && p.getUsuario() != null) {
             dto.setUsuarioEmail(p.getUsuario().getEmail());
         }

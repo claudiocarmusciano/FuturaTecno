@@ -14,6 +14,11 @@ public class CrearPedidoRequest {
     // nada impide llamar al endpoint directo.
     private Boolean aceptaCompromiso;
 
+    // Envío elegido (opcionales). Solo viajan CP y modalidad: el costo NUNCA viene del cliente,
+    // se recotiza server-side al confirmar y se congela en el pedido.
+    private String cpDestino;
+    private String modoEnvio;
+
     public CrearPedidoRequest() {}
 
     public List<ItemPedidoRequest> getItems() { return items; }
@@ -30,4 +35,10 @@ public class CrearPedidoRequest {
 
     public String getNotas() { return notas; }
     public void setNotas(String notas) { this.notas = notas; }
+
+    public String getCpDestino() { return cpDestino; }
+    public void setCpDestino(String cpDestino) { this.cpDestino = cpDestino; }
+
+    public String getModoEnvio() { return modoEnvio; }
+    public void setModoEnvio(String modoEnvio) { this.modoEnvio = modoEnvio; }
 }

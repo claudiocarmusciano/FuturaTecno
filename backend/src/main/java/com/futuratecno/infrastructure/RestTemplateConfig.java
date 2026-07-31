@@ -45,4 +45,17 @@ public class RestTemplateConfig {
                 .setReadTimeout(Duration.ofSeconds(10))
                 .build();
     }
+
+    /**
+     * RestTemplate para la API de Andreani (cotización de envíos). La cotización corre dentro del
+     * request del checkout, así que una API lenta no puede colgar el hilo: mejor responder
+     * "sin cotización" que dejar al cliente esperando.
+     */
+    @Bean(name = "envioRestTemplate")
+    public RestTemplate envioRestTemplate(RestTemplateBuilder builder) {
+        return builder
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(10))
+                .build();
+    }
 }

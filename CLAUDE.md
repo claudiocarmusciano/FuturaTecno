@@ -27,6 +27,8 @@
 - **Ojo con `SecurityConfig`:** la cadena termina en `anyRequest().permitAll()`. Toda ruta privada nueva hay que listarla explícitamente (como `/api/pedidos/**`), o nace pública.
 - **Confirmar un pedido exige `aceptaCompromiso: true` en el body.** Se valida en `PedidoService.crear()`, no solo en el checkbox del frontend — mismo criterio que el precio: no confiar en lo que manda el cliente.
 - **Peso/dimensiones para envío (V14):** `Producto` tiene `pesoGramos`/`altoCm`/`anchoCm`/`largoCm` opcionales (override real, se edita en Admin → Productos). Si están en `null`, hay que resolver por el default de `Categoria` (mismos 4 campos con sufijo `_default`): primero la subcategoría (hoja), si no tiene, la categoría padre. Ningún mayorista (Elit/Invid) ni Icecat con el plan actual traen este dato — confirmado pegándole a la API de Icecat en vivo, el plan da `GeneralInfo`/`Gallery` pero no `FeaturesGroups` (ahí vive el peso). Los defaults por categoría se cargaron a mano en la V14 y solo se editan por SQL directo, no hay UI para eso todavía.
+- **Envío por Andreani (V15):** la cotización sale de la **API Pyme** (`woocommerce-api-acom.andreani.com`), que es el middleware del plugin de WooCommerce — **no** la API corporativa (`apis.andreani.com`, esa exige contrato comercial y nunca la conseguimos). Es la única vía para una cuenta Pyme, pero Andreani podría cambiarla sin avisar: por eso `AndreaniClient` degrada con gracia y el checkout funciona igual sin cotización. Auth: la credencial del portal (Integraciones → WooCommerce) va tal cual en `Authorization` a `POST /api/v1/Login`; la respuesta trae el `accessToken` (header `X-Auth-Token` de ahí en más) **y los contratos de la cuenta** — no hace falta conocer `cliente` ni `contrato`, los devuelve la API. Cotización: `POST /api/v1/Pyme/rates` con `{postal_code_origin, postal_code_destination, products[{quantity, price, dimensions{width,height,depth,grams}}]}`. Exige los 4 datos de peso/dimensiones de cada producto (de ahí la V14); si falta alguno no se cotiza. La modalidad "sucursal" viene repetida una vez por punto de retiro del CP → hay que quedarse con el mínimo por modalidad.
+- **El costo de envío también se congela.** Mismo criterio que los precios: el checkout manda solo CP + modalidad, `PedidoService` **recotiza server-side** y guarda el importe. Si Andreani no responde en ese momento, el pedido igual se crea con `costo_envio_ars` en null ("a cotizar") — la cotización nunca bloquea una venta.
 - **Repo público en GitHub** — NUNCA commitear secrets. Las credenciales van solo en `backend/.env` (gitignored) y en Railway.
 
 ## Convenciones
@@ -68,6 +70,8 @@ cd frontend && npm run dev          # → http://localhost:5173
 | `RESEND_API_KEY` | API key de Resend (`re_...`) para mandar mails. Vacío = no se manda nada (el flujo responde igual, queda en el log). |
 | `MAIL_FROM` / `MAIL_FROM_NAME` | Remitente. **Tiene que ser del dominio verificado en Resend** (`no-responder@futuratecno.com.ar`); un Gmail se rechaza por dominio no verificado. |
 | `ADMIN_NOTIFY_EMAIL` | Destinatario de avisos internos. Si no está, usa `ADMIN_EMAIL`. |
+| `ANDREANI_HASH` | Credencial de la cuenta Pyme de Andreani (portal → Integraciones → WooCommerce). Vacía = sin cotización de envío (el checkout sigue andando). |
+| `ANDREANI_CP_ORIGEN` | Código postal de despacho (origen de toda cotización). |
 
 **Dominio:**
 - `futuratecno.com.ar` — **registrado** en NIC.ar (dominio "especial" pago; vence 2027-07-16). Falta **delegar el DNS** (todavía sin nameservers) para apuntarlo a Railway.
