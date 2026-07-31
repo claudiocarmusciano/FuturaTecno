@@ -12,8 +12,8 @@ import java.time.Duration;
 public class RestTemplateConfig {
 
     /**
-     * RestTemplate por defecto (sin timeout corto) — usado por el parsing de Claude,
-     * que puede tardar varios segundos en listas grandes.
+     * RestTemplate por defecto (sin timeout corto) — lo usan las llamadas que pueden tardar
+     * varios segundos, como la clasificación de categorías con Claude.
      */
     @Bean
     @Primary

@@ -3,7 +3,7 @@
 ## Stack
 - **Backend:** Java 21 + Spring Boot 3.3 + Spring Security + JWT + JPA/Hibernate + Flyway + PostgreSQL 16
 - **Frontend:** React 18 + Vite + React Router + axios + Context auth | **JSX (no TypeScript)**
-- **AI:** Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) — parsing de listas de precios + búsqueda de imágenes
+- **AI:** Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) — clasificación de categorías + búsqueda de imágenes. **Opcional:** sin `ANTHROPIC_API_KEY` las dos degradan solas (la clasificación deja `categoria_id` en null para corregir a mano en Admin → Productos; las imágenes caen a Icecat). El parsing de listas de precios con IA **se eliminó** (2026-07-31): lo reemplazó "Cargar por JSON", que no consume API.
 - **Exchange rate:** dolarapi.com dólar oficial (cacheado en memoria)
 - **Deploy:** Railway, push a `main` = auto-deploy (~2-3 min) | URL: `https://futuratecno-production.up.railway.app`
 
@@ -61,7 +61,7 @@ cd frontend && npm run dev          # → http://localhost:5173
 | `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` | PostgreSQL managed (usar variables de Railway `${{Postgres.*}}`) |
 | `JWT_SECRET` | Clave JWT |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Admin inicial |
-| `ANTHROPIC_API_KEY` | Claude API para parsing e imágenes |
+| `ANTHROPIC_API_KEY` | Claude API para clasificar categorías y buscar imágenes. Vacía = las dos degradan solas, el resto del sistema anda igual. |
 | `ANTHROPIC_MODEL` | Modelo IA (default: `claude-haiku-4-5-20251001`) |
 | `SYNC_ENABLED` / `SYNC_CRON` | Sync automática (default: 06:30 AR) |
 | `ELIT_USER_ID` / `ELIT_TOKEN` | Credenciales mayorista Elit |

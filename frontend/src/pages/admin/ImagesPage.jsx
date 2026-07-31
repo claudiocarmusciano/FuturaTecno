@@ -87,7 +87,7 @@ function ImagesPage() {
         {cargando ? (
           <p>Cargando...</p>
         ) : productos.length === 0 ? (
-          <p>No hay productos. Importá una lista primero en "Parsing IA".</p>
+          <p>No hay productos. Importá una lista primero en "Cargar por JSON".</p>
         ) : (
           <table className="table">
             <thead>

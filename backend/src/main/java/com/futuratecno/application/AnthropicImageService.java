@@ -22,7 +22,8 @@ import java.util.regex.Pattern;
  *   1) Claude busca la página de compra del producto (sitio oficial de la marca o MercadoLibre Argentina).
  *   2) Se descarga esa página y se extrae el meta "og:image" (la imagen principal del producto).
  *
- * Usa la misma API de Anthropic que el parsing (no depende de Google/Bing/DuckDuckGo).
+ * Usa la API de Anthropic (no depende de Google/Bing/DuckDuckGo). Sin ANTHROPIC_API_KEY
+ * queda inactivo: {@code estaConfigurado()} devuelve false y la búsqueda cae a Icecat.
  */
 @Service
 public class AnthropicImageService {

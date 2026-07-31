@@ -378,7 +378,7 @@ function ProductosPage() {
         {cargando ? (
           <p>Cargando...</p>
         ) : productosVisibles.length === 0 ? (
-          <p>{soloSinCategoria ? 'No hay productos sin categoría 🎉' : 'No hay productos. Importá una lista en "Parsing IA".'}</p>
+          <p>{soloSinCategoria ? 'No hay productos sin categoría 🎉' : 'No hay productos. Importá una lista en "Cargar por JSON".'}</p>
         ) : (
           <table className="table">
             <thead>

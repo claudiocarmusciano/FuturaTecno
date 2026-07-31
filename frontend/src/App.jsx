@@ -3,7 +3,6 @@ import AdminLayout from './components/layouts/AdminLayout'
 import PublicLayout from './components/layouts/PublicLayout'
 import Dashboard from './pages/admin/Dashboard'
 import ProveedoresPage from './pages/admin/ProveedoresPage'
-import ParsingPage from './pages/admin/ParsingPage'
 import ProductosPage from './pages/admin/ProductosPage'
 import ImagesPage from './pages/admin/ImagesPage'
 import ImportarElitPage from './pages/admin/ImportarElitPage'
@@ -52,7 +51,6 @@ function App() {
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="proveedores" element={<ProveedoresPage />} />
-          <Route path="parsing" element={<ParsingPage />} />
           <Route path="importar-elit" element={<ImportarElitPage />} />
           <Route path="importar-invid" element={<ImportarInvidPage />} />
           <Route path="cargar-json" element={<CargarJsonPage />} />

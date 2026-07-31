@@ -35,7 +35,6 @@ function AdminLayout() {
           <Link to="/admin" className={`nav-link ${isActive('/admin')}`}>Dashboard</Link>
           <Link to="/admin/pedidos" className={`nav-link ${isActive('/admin/pedidos')}`}>Pedidos</Link>
           <Link to="/admin/proveedores" className={`nav-link ${isActive('/admin/proveedores')}`}>Proveedores</Link>
-          <Link to="/admin/parsing" className={`nav-link ${isActive('/admin/parsing')}`}>Parsing IA</Link>
           <Link to="/admin/importar-elit" className={`nav-link ${isActive('/admin/importar-elit')}`}>Importar de Elit</Link>
           <Link to="/admin/importar-invid" className={`nav-link ${isActive('/admin/importar-invid')}`}>Importar de Invid</Link>
           <Link to="/admin/cargar-json" className={`nav-link ${isActive('/admin/cargar-json')}`}>Cargar por JSON</Link>
