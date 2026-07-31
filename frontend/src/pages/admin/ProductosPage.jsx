@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { IconEdit } from '../../components/icons'
+import { IconEdit, IconSearch } from '../../components/icons'
 import { indexarArbol } from '../../utils/categorias'
 
 const formatFecha = (iso) =>
@@ -39,8 +39,9 @@ function ProductosPage() {
   const [catPath, setCatPath] = useState({ topId: '', subId: '' })
   const [clasificando, setClasificando] = useState(false)
 
-  // Filtro "solo sin categoría" + selección múltiple + cascada para asignación masiva.
+  // Filtro "solo sin categoría" + búsqueda + selección múltiple + cascada para asignación masiva.
   const [soloSinCategoria, setSoloSinCategoria] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
   const [seleccionados, setSeleccionados] = useState(new Set())
   const [catMasiva, setCatMasiva] = useState({ topId: '', subId: '' })
   const [asignando, setAsignando] = useState(false)
@@ -125,10 +126,23 @@ function ProductosPage() {
     return { ok: false }                                           // eligió la categoría pero falta la subcategoría
   }
 
-  // --- Selección múltiple + asignación masiva ---
-  const productosVisibles = soloSinCategoria
-    ? productos.filter(p => p.categoriaId == null)
-    : productos
+  // --- Filtros + selección múltiple + asignación masiva ---
+  // La búsqueda es en el navegador a propósito: el listado del admin ya viene entero (son ~1.500
+  // productos), así que filtrar acá es instantáneo y no agrega un viaje al backend por tecla.
+  // Si el catálogo creciera un orden de magnitud, esto hay que pasarlo a server-side.
+  const termino = busqueda.trim().toLowerCase()
+  const coincide = (p) => {
+    if (!termino) return true
+    // Se busca por palabras sueltas y en cualquier orden: "lenovo 15" encuentra
+    // "Lenovo IdeaPad Slim 3 15.6".
+    const texto = [p.marca, p.modelo, p.sku, p.categoria, p.especificaciones]
+      .filter(Boolean).join(' ').toLowerCase()
+    return termino.split(/\s+/).every(palabra => texto.includes(palabra))
+  }
+
+  const productosVisibles = productos
+    .filter(p => !soloSinCategoria || p.categoriaId == null)
+    .filter(coincide)
 
   const toggleSeleccion = (id) => setSeleccionados(prev => {
     const n = new Set(prev)
@@ -338,14 +352,50 @@ function ProductosPage() {
 
       {/* Lista de productos */}
       <div className="card">
-        {/* Filtro + contador */}
+        {/* Buscador + filtro + contador */}
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: '420px' }}>
+            <span style={{
+              position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
+              width: '16px', height: '16px', color: 'var(--color-text-muted)', pointerEvents: 'none'
+            }}>
+              <IconSearch />
+            </span>
+            <input
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder="Buscar por marca, modelo, SKU o categoría"
+              aria-label="Buscar productos"
+              style={{
+                width: '100%', padding: '8px 32px 8px 34px', fontSize: '14px',
+                border: '1px solid var(--color-border)', borderRadius: '8px',
+                background: 'transparent', color: 'var(--color-text)'
+              }}
+            />
+            {busqueda && (
+              <button
+                type="button"
+                onClick={() => setBusqueda('')}
+                aria-label="Limpiar búsqueda"
+                style={{
+                  position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px',
+                  lineHeight: 1, color: 'var(--color-text-muted)', padding: '2px 6px'
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
           <label style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '14px', cursor: 'pointer' }}>
             <input type="checkbox" checked={soloSinCategoria}
                    onChange={e => { setSoloSinCategoria(e.target.checked); setSeleccionados(new Set()) }} />
             Solo sin categoría
           </label>
-          <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{productosVisibles.length} producto(s)</span>
+          <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+            {productosVisibles.length} producto(s)
+            {termino && productos.length !== productosVisibles.length && ` de ${productos.length}`}
+          </span>
         </div>
 
         {/* Barra de asignación masiva de categoría */}
@@ -378,7 +428,11 @@ function ProductosPage() {
         {cargando ? (
           <p>Cargando...</p>
         ) : productosVisibles.length === 0 ? (
-          <p>{soloSinCategoria ? 'No hay productos sin categoría 🎉' : 'No hay productos. Importá una lista en "Cargar por JSON".'}</p>
+          <p>{termino
+            ? `No hay resultados para "${busqueda.trim()}".`
+            : soloSinCategoria
+              ? 'No hay productos sin categoría 🎉'
+              : 'No hay productos. Importá una lista en "Cargar por JSON".'}</p>
         ) : (
           <table className="table">
             <thead>
