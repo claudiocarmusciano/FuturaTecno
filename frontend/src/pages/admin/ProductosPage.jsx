@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { IconEdit, IconSearch } from '../../components/icons'
+import { IconEdit, IconSearch, IconTrash } from '../../components/icons'
 import { indexarArbol } from '../../utils/categorias'
 
 const formatFecha = (iso) =>
@@ -31,6 +31,7 @@ function ProductosPage() {
   const [cargando, setCargando] = useState(true)
   const [editData, setEditData] = useState(null)   // ProductoEditDTO en edición
   const [guardando, setGuardando] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [arbol, setArbol] = useState([])
   // topId = categoría de primer nivel elegida; subId = su subcategoría (si tiene). Algunas
@@ -200,6 +201,27 @@ function ProductosPage() {
     }
   }
 
+  // Baja lógica (activo=false): el producto deja de verse en catálogo y admin, pero un pedido
+  // que ya lo referencie conserva su trazabilidad (guarda su propio snapshot, no depende del
+  // producto vivo). No hay "deshacer" en el panel, por eso se confirma con el nombre a la vista.
+  const eliminarProducto = async () => {
+    const nombre = [editData.marca, editData.modelo].filter(Boolean).join(' ') || 'este producto'
+    if (!window.confirm(`¿Eliminar "${nombre}"? Deja de verse en el catálogo y en este listado.`)) return
+    setEliminando(true)
+    setMensaje('')
+    try {
+      await axios.delete(`/api/admin/productos/${editData.id}`)
+      setEditData(null)
+      await cargar()
+      setMensaje('Producto eliminado ✓')
+    } catch (e) {
+      console.error(e)
+      setMensaje('Error al eliminar: ' + (e.response?.data?.message || e.message))
+    } finally {
+      setEliminando(false)
+    }
+  }
+
   return (
     <div>
       <h1>Productos</h1>
@@ -340,11 +362,21 @@ function ProductosPage() {
             </tbody>
           </table>
 
-          <div style={{ marginTop: '14px' }}>
-            <button onClick={guardar} className="btn btn-primary" disabled={guardando} style={{ marginRight: '10px' }}>
-              {guardando ? 'Guardando...' : 'Guardar cambios'}
+          <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+            <div>
+              <button onClick={guardar} className="btn btn-primary" disabled={guardando || eliminando} style={{ marginRight: '10px' }}>
+                {guardando ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+              <button onClick={() => setEditData(null)} className="btn btn-secondary" disabled={guardando || eliminando}>Cancelar</button>
+            </div>
+            <button
+              onClick={eliminarProducto}
+              className="btn-accion danger"
+              disabled={guardando || eliminando}
+              title="Eliminar este producto"
+            >
+              <IconTrash /> {eliminando ? 'Eliminando...' : 'Eliminar producto'}
             </button>
-            <button onClick={() => setEditData(null)} className="btn btn-secondary">Cancelar</button>
           </div>
         </div>
         </div>
