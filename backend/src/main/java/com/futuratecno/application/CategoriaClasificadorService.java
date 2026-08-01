@@ -21,8 +21,12 @@ import java.util.Map;
  *   2) La categoría cruda sola, por si es una hoja de primer nivel (ej. "Tablets", "DESTACADOS").
  *   3) Mapeo manual de categorías crudas conocidas (gratis, instantáneo) para mayoristas que
  *      no mandan jerarquía (Elit) o cuando el nombre no calza exacto con el árbol.
- *   4) Si nada de lo anterior resolvió — categoría ambigua o nueva que nunca vimos — se le pide
+ *   4) Por el NOMBRE del producto ({@link ClasificadorPorNombre}), también gratis. Cubre a Elit,
+ *      cuyo vocabulario de categorías no calza con el árbol y dejaba el 60% del catálogo sin
+ *      clasificar (y por lo tanto sin peso resoluble, o sea sin cotización de envío).
+ *   5) Si nada de lo anterior resolvió — categoría ambigua o nueva que nunca vimos — se le pide
  *      a Claude que elija una hoja exacta de la lista cerrada, usando marca/modelo como contexto.
+ *      Sin ANTHROPIC_API_KEY este paso devuelve null y el producto queda para asignar a mano.
  *
  * El resultado se persiste en Producto.categoriaId y solo se recalcula si ese campo está en
  * null — así una corrección manual del admin no se pisa en el próximo sync, y no se vuelve
@@ -39,6 +43,7 @@ public class CategoriaClasificadorService {
 
     private final RestTemplate restTemplate;
     private final CategoriaService categoriaService;
+    private final ClasificadorPorNombre clasificadorPorNombre;
 
     @Value("${anthropic.api-key:}")
     private String apiKey;
@@ -46,9 +51,11 @@ public class CategoriaClasificadorService {
     @Value("${anthropic.model:claude-haiku-4-5-20251001}")
     private String model;
 
-    public CategoriaClasificadorService(RestTemplate restTemplate, CategoriaService categoriaService) {
+    public CategoriaClasificadorService(RestTemplate restTemplate, CategoriaService categoriaService,
+                                        ClasificadorPorNombre clasificadorPorNombre) {
         this.restTemplate = restTemplate;
         this.categoriaService = categoriaService;
+        this.clasificadorPorNombre = clasificadorPorNombre;
     }
 
     /** Clasifica sin categoría padre sugerida (mayoristas que no mandan jerarquía, ej. Elit). */
@@ -87,6 +94,17 @@ public class CategoriaClasificadorService {
                 logger.warn("Mapeo manual para '{}' apunta a un path inexistente: {}", categoriaCruda, pathManual);
             }
         }
+
+        // Por nombre del producto, sin IA. Va antes de Claude a propósito: es gratis, instantáneo
+        // y determinístico, y resuelve el 99% de lo que manda Elit (cuyo vocabulario de categorías
+        // no calza con nuestro árbol, así que nunca llegaba a clasificarse).
+        String pathPorNombre = clasificadorPorNombre.clasificar(producto);
+        if (pathPorNombre != null) {
+            Long id = categoriaService.idPorPath(pathPorNombre);
+            if (id != null) return id;
+            logger.warn("Clasificación por nombre apunta a un path inexistente: {}", pathPorNombre);
+        }
+
         return clasificarConIa(producto, categoriaCruda);
     }
 
