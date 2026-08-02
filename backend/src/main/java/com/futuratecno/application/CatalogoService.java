@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CatalogoService {
@@ -40,25 +42,48 @@ public class CatalogoService {
         this.precioService = precioService;
     }
 
+    /**
+     * Trae TODO el catálogo activo de una. Con miles de productos, hacer una query de variantes
+     * y otra de imágenes POR PRODUCTO volvía esto en miles de queries y varios segundos de
+     * respuesta — acá se traen las variantes y las imágenes de todo el catálogo en dos consultas
+     * (con IN), agrupadas por producto en memoria, en vez de una vez por producto.
+     */
     @Transactional(readOnly = true)
     public List<ProductoCatalogoDTO> listarCatalogo() {
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
+        List<Producto> productos = productoRepository.findByActivo(true);
+        if (productos.isEmpty()) return List.of();
+
+        List<Long> ids = productos.stream().map(Producto::getId).collect(Collectors.toList());
+        Map<Long, List<Variante>> variantesPorProducto = varianteRepository
+                .findByProductoIdInAndActivo(ids, true).stream()
+                .collect(Collectors.groupingBy(v -> v.getProducto().getId()));
+        Map<Long, List<Imagen>> imagenesPorProducto = imagenRepository
+                .findByProductoIdInAndActivoOrderByOrden(ids, true).stream()
+                .collect(Collectors.groupingBy(img -> img.getProducto().getId()));
+
         List<ProductoCatalogoDTO> resultado = new ArrayList<>();
-        for (Producto producto : productoRepository.findByActivo(true)) {
-            resultado.add(toDTO(producto, cotizacion));
+        for (Producto producto : productos) {
+            resultado.add(toDTO(producto, cotizacion,
+                    variantesPorProducto.getOrDefault(producto.getId(), List.of()),
+                    imagenesPorProducto.getOrDefault(producto.getId(), List.of())));
         }
         return resultado;
     }
 
+    /** Un solo producto: acá sí alcanza con las consultas puntuales, no hay N que multiplicar. */
     @Transactional(readOnly = true)
     public ProductoCatalogoDTO obtenerProducto(Long id) {
         Producto producto = productoRepository.findById(id)
                 .filter(p -> Boolean.TRUE.equals(p.getActivo()))
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + id));
-        return toDTO(producto, cotizacionService.obtenerCotizacionUsdArs());
+        List<Variante> variantes = varianteRepository.findByProductoIdAndActivo(id, true);
+        List<Imagen> imagenes = imagenRepository.findByProductoIdAndActivoOrderByOrden(id, true);
+        return toDTO(producto, cotizacionService.obtenerCotizacionUsdArs(), variantes, imagenes);
     }
 
-    private ProductoCatalogoDTO toDTO(Producto producto, BigDecimal cotizacion) {
+    private ProductoCatalogoDTO toDTO(Producto producto, BigDecimal cotizacion,
+                                      List<Variante> variantes, List<Imagen> imagenes) {
         Proveedor proveedor = producto.getProveedor();
 
         // La "última actualización" del artículo = la fecha más reciente entre el producto
@@ -66,7 +91,7 @@ public class CatalogoService {
         java.time.LocalDateTime ultimaAct = producto.getUpdatedAt();
 
         List<VarianteCatalogoDTO> variantesDto = new ArrayList<>();
-        for (Variante v : varianteRepository.findByProductoIdAndActivo(producto.getId(), true)) {
+        for (Variante v : variantes) {
             if (v.getUpdatedAt() != null && (ultimaAct == null || v.getUpdatedAt().isAfter(ultimaAct))) {
                 ultimaAct = v.getUpdatedAt();
             }
@@ -87,18 +112,18 @@ public class CatalogoService {
             dto.setCategoriaPadre(nombresCategoria.getCategoriaPadre());
         }
         dto.setSku(producto.skuCamuflado());
-        dto.setImagenes(imagenesDe(producto));
+        dto.setImagenes(imagenesDe(producto, imagenes));
         dto.setUltimaActualizacion(ultimaAct);
         return dto;
     }
 
     /** Imagen principal + galería (2ª/3ª) traída automáticamente por el importador (hoy solo Elit). */
-    private List<String> imagenesDe(Producto producto) {
+    private List<String> imagenesDe(Producto producto, List<Imagen> imagenes) {
         List<String> urls = new ArrayList<>();
         if (producto.getImagenUrl() != null && !producto.getImagenUrl().isBlank()) {
             urls.add(producto.getImagenUrl());
         }
-        for (Imagen img : imagenRepository.findByProductoIdAndActivoOrderByOrden(producto.getId(), true)) {
+        for (Imagen img : imagenes) {
             urls.add(img.getUrl());
         }
         return urls;

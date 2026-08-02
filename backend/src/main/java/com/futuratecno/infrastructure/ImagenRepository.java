@@ -8,4 +8,7 @@ import java.util.List;
 @Repository
 public interface ImagenRepository extends JpaRepository<Imagen, Long> {
     List<Imagen> findByProductoIdAndActivoOrderByOrden(Long productoId, Boolean activo);
+
+    /** Imágenes de varios productos en una sola consulta (ver VarianteRepository.findByProductoIdInAndActivo). */
+    List<Imagen> findByProductoIdInAndActivoOrderByOrden(List<Long> productoIds, Boolean activo);
 }

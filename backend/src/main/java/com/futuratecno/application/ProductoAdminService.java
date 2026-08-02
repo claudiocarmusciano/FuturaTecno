@@ -19,6 +19,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -50,10 +51,24 @@ public class ProductoAdminService {
         this.categoriaService = categoriaService;
     }
 
+    /**
+     * Con miles de productos, pedir las variantes de a uno por producto (lo que hacía antes)
+     * volvía este listado en miles de queries. Se traen las variantes de TODO el catálogo en una
+     * sola consulta (con IN) y se agrupan por producto en memoria.
+     */
     @Transactional(readOnly = true)
     public List<ProductoAdminDTO> listar() {
-        return productoRepository.findByActivo(true).stream()
+        List<Producto> productos = productoRepository.findByActivo(true);
+        if (productos.isEmpty()) return List.of();
+
+        List<Long> ids = productos.stream().map(Producto::getId).collect(Collectors.toList());
+        Map<Long, List<Variante>> variantesPorProducto = varianteRepository
+                .findByProductoIdInAndActivo(ids, true).stream()
+                .collect(Collectors.groupingBy(v -> v.getProducto().getId()));
+
+        return productos.stream()
                 .map(p -> {
+                    List<Variante> variantes = variantesPorProducto.getOrDefault(p.getId(), List.of());
                     var nombres = categoriaService.resolverNombres(p.getCategoriaId());
                     ProductoAdminDTO dto = new ProductoAdminDTO(
                             p.getId(),
@@ -64,10 +79,10 @@ public class ProductoAdminService {
                             p.getImagenUrl());
                     dto.setCategoriaId(p.getCategoriaId());
                     dto.setSku(sku(p));
-                    if (p.getVariantes() != null && !p.getVariantes().isEmpty()) {
-                        dto.setEspecificaciones(p.getVariantes().get(0).getEspecificaciones());
+                    if (!variantes.isEmpty()) {
+                        dto.setEspecificaciones(variantes.get(0).getEspecificaciones());
                     }
-                    dto.setUltimaActualizacion(calcularUltimaActualizacion(p));
+                    dto.setUltimaActualizacion(calcularUltimaActualizacion(p, variantes));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -86,9 +101,9 @@ public class ProductoAdminService {
     }
 
     /** Fecha más reciente entre el producto y sus variantes activas (refleja la última actualización de precio). */
-    private LocalDateTime calcularUltimaActualizacion(Producto p) {
+    private LocalDateTime calcularUltimaActualizacion(Producto p, List<Variante> variantesActivas) {
         LocalDateTime ultima = p.getUpdatedAt();
-        for (Variante v : varianteRepository.findByProductoIdAndActivo(p.getId(), true)) {
+        for (Variante v : variantesActivas) {
             if (v.getUpdatedAt() != null && (ultima == null || v.getUpdatedAt().isAfter(ultima))) {
                 ultima = v.getUpdatedAt();
             }

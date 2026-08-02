@@ -10,6 +10,13 @@ import java.util.Optional;
 public interface VarianteRepository extends JpaRepository<Variante, Long> {
     List<Variante> findByProductoIdAndActivo(Long productoId, Boolean activo);
 
+    /**
+     * Variantes de varios productos en una sola consulta. La usan el catálogo y el admin para no
+     * pagar una query por producto al listar (con miles de productos, eso vuelve el listado
+     * lentísimo — ver CatalogoService/ProductoAdminService).
+     */
+    List<Variante> findByProductoIdInAndActivo(List<Long> productoIds, Boolean activo);
+
     List<Variante> findByProductoId(Long productoId);
 
     Optional<Variante> findByProductoIdAndEspecificaciones(Long productoId, String especificaciones);
