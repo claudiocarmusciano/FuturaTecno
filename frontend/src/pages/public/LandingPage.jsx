@@ -134,6 +134,10 @@ function LandingPage() {
             {user ? (
               <>
                 <Link to="/mis-pedidos">Mis pedidos</Link>
+                {/* max-width + ellipsis: un nombre largo no debe poder romper el layout del nav. */}
+                <span style={{ color: 'var(--lp-muted)', fontSize: '14.5px', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={user.nombre || user.email}>
+                  Hola, {user.nombre || user.email}
+                </span>
                 <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>
               </>
             ) : (

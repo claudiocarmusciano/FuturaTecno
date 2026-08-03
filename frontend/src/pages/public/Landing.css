@@ -43,10 +43,14 @@
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--lp-border);
 }
-/* Mismo tamaño de logo que el header del catálogo (.header-logo: 72px / 48px mobile). */
-.lp-nav { display: flex; align-items: center; justify-content: space-between; height: 104px; }
+/* Mismo tamaño de logo que el header del catálogo (.header-logo: 72px / 48px mobile). min-height
+   (no height fijo): con sesión iniciada el nav suma "Mis pedidos"/"Hola, X"/"Salir" y en pantallas
+   angostas de escritorio (~1280px) puede necesitar una segunda línea — con height fijo, esa
+   segunda línea quedaba tapada en vez de visible. position:sticky ya reserva el lugar solo. */
+.lp-nav { display: flex; align-items: center; justify-content: space-between; min-height: 104px; flex-wrap: wrap; padding: 10px 0; gap: 10px; }
 .lp-nav-logo img { height: 72px; width: auto; display: block; }
-.lp-nav-links { display: flex; gap: 30px; align-items: center; }
+.lp-nav-links { display: flex; flex-wrap: wrap; gap: 12px 26px; align-items: center; }
+.lp-nav-links a, .lp-nav-links > span { white-space: nowrap; }
 .lp-nav-links a { color: var(--lp-muted); font-size: 14.5px; font-weight: 500; transition: color .15s; }
 .lp-nav-links a:hover { color: var(--lp-text); }
 .lp-nav-cta {
@@ -177,7 +181,9 @@
   }
   .lp-nav-links.abierto a { padding: 12px 0; width: 100%; }
   .lp-nav-toggle { display: block; }
-  .lp-nav { height: 80px; }
+  /* min-height (no solo height): en desktop la base usa min-height para poder crecer a 2 líneas
+     si hace falta; acá hay que pisar también el min, o el nav mobile queda alto de más. */
+  .lp-nav { height: 80px; min-height: 80px; }
   .lp-nav-logo img { height: 48px; }
   .lp-hero-grid { grid-template-columns: 1fr; gap: 30px; }
   /* width:100% es necesario, no cosmético: .lp-mockup es un item de grid cuyos únicos hijos son
