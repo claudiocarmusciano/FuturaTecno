@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuth } from '../../auth/AuthContext'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 import './Landing.css'
 
@@ -60,6 +61,13 @@ function LandingPage() {
   const [productos, setProductos] = useState([])
   const [arbol, setArbol] = useState([])
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const { user, isAdmin, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
 
   useEffect(() => {
     axios.get('/api/productos').then(r => setProductos(r.data)).catch(() => {})
@@ -122,6 +130,18 @@ function LandingPage() {
             <a href="#por-que">Por qué</a>
             <a href="#categorias">Categorías</a>
             <a href="#productos">Productos</a>
+            {isAdmin && <Link to="/admin">Panel Admin</Link>}
+            {user ? (
+              <>
+                <Link to="/mis-pedidos">Mis pedidos</Link>
+                <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>
+              </>
+            ) : (
+              <>
+                <Link to="/login">Ingresar</Link>
+                <Link to="/registro">Registrarse</Link>
+              </>
+            )}
             <Link to="/catalogo" className="lp-nav-cta">Ver catálogo →</Link>
           </nav>
           <button className="lp-nav-toggle" aria-label="Abrir menú" onClick={() => setMenuAbierto(v => !v)}>
@@ -259,7 +279,7 @@ function LandingPage() {
           <div className="lp-foot-links">
             <Link to="/catalogo">Catálogo</Link>
             <a href={waLink} target="_blank" rel="noreferrer">WhatsApp</a>
-            <Link to="/login">Ingresar</Link>
+            {user ? <Link to="/mis-pedidos">Mis pedidos</Link> : <Link to="/login">Ingresar</Link>}
           </div>
         </div>
       </footer>
