@@ -95,7 +95,11 @@ public class ClasificadorPorNombre {
         r.add(new Regla("all in one", "Computadoras > All in One"));
         r.add(new Regla("mini ?pc|\\bpc\\b.*\\bmini\\b", "Computadoras > Mini PC"));
         r.add(new Regla("\\bpc\\b|desktop", "Computadoras > PC"));
-        r.add(new Regla("tablet", "Tablets"));
+        // "tab"/"pad" solos: Samsung/Lenovo/Xiaomi rara vez escriben la palabra completa
+        // "tablet" ("Galaxy Tab", "Redmi Pad", "Idea Tab", "Mi Pad"). \b los aísla como palabra
+        // suelta para no pisar "mousepad"/"gamepad" (van pegados, sin espacio, y además esas
+        // reglas ya matchearon antes en la lista) ni "notebook" ni nada con "tab"/"pad" adentro.
+        r.add(new Regla("tablet|\\btab\\b|\\bpad\\b", "Tablets"));
         // Mobiliario
         r.add(new Regla("silla", "Sillas y escritorios > Sillas"));
         r.add(new Regla("escritorio", "Sillas y escritorios > Escritorios"));
@@ -182,6 +186,13 @@ public class ClasificadorPorNombre {
         if (contiene(cab, "impresora|multifuncion")) {
             if (contiene(cab, "multifuncion") || contiene(full, "multifuncion")) return "Impresoras > Multifunción";
             return contiene(full, "laser") ? "Impresoras > Laser" : "Impresoras > Ink Jet";
+        }
+        // Consolas: "playstation"/"ps4"/"ps5" y "xbox" en el encabezado ("PlayStation 5 Standard
+        // Bundle", "Xbox Series X 1TB"). Un "playstation" sin el 4 explícito asume PS5 (la
+        // consola vigente); si el mayorista vende algo PS4 lo va a decir.
+        if (contiene(cab, "playstation|\\bps[45]\\b|\\bxbox\\b")) {
+            if (contiene(cab, "\\bxbox\\b")) return "Consolas > X-Box";
+            return contiene(cab, "\\bps4\\b|playstation ?4") ? "Consolas > Playstation 4" : "Consolas > Playstation 5";
         }
         return null;
     }

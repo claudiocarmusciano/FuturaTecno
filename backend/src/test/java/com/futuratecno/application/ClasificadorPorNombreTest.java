@@ -76,6 +76,32 @@ class ClasificadorPorNombreTest {
     }
 
     @Test
+    @DisplayName("Tablets sin la palabra 'tablet': Samsung/Lenovo/Xiaomi dicen 'Tab' o 'Pad'")
+    void tabletsSinLaPalabraCompleta() {
+        assertEquals("Tablets", clasificar("Samsung", "Galaxy Tab S10+ SM-X820"));
+        assertEquals("Tablets", clasificar("Lenovo", "Idea Tab Plus TB361FU"));
+        assertEquals("Tablets", clasificar("Xiaomi", "Redmi Pad Pro 12.1"));
+        assertEquals("Tablets", clasificar("Xiaomi", "Pad 7 11.2"));
+        assertEquals("Tablets", clasificar("Toy Story", "Kids Tablet 7"));
+    }
+
+    @Test
+    @DisplayName("\\bpad\\b no le pisa la regla a 'gamepad'/'mousepad': van pegados, sin espacio")
+    void padNoPisaPalabrasCompuestas() {
+        assertEquals("Accesorios", clasificar("Redragon", "Gamepad Redragon Jupiter"));
+        assertEquals("Periféricos > Mousepads", clasificar("Xtech", "Mousepad Xtech Colonist"));
+    }
+
+    @Test
+    @DisplayName("Consolas: PlayStation 5 por defecto si no dice '4', PS4 explícito, y Xbox")
+    void consolas() {
+        assertEquals("Consolas > Playstation 5", clasificar("Sony", "PlayStation 5 Standard Bundle Astro"));
+        assertEquals("Consolas > Playstation 5", clasificar("Sony", "PlayStation 5 Slim Digital Bundle A"));
+        assertEquals("Consolas > Playstation 4", clasificar("Sony", "PlayStation 4 Slim 1TB Negro"));
+        assertEquals("Consolas > X-Box", clasificar("Microsoft", "Xbox Series X 1TB Black"));
+    }
+
+    @Test
     @DisplayName("Ante la duda devuelve null: mal categorizado es peor que sin categorizar")
     void anteLaDudaDevuelveNull() {
         assertNull(clasificar("ACME", "Dispositivo Acme XYZ-1000"));
