@@ -95,8 +95,8 @@ public class InvidApiClient {
 
     /**
      * Cuando se piden solo artículos con stock, el filtro se envía a Invid en cada página: hacerlo
-     * después de descargar el catálogo no ahorra consultas. Los precios cero siempre se descartan
-     * en el importador, por lo que también se excluyen desde el origen sin cambiar el resultado.
+     * después de descargar el catálogo no ahorra consultas. Los precios cero y no publicados nunca
+     * deben entrar al catálogo público, por lo que también se excluyen desde el origen.
      */
     public synchronized List<JsonNode> obtenerArticulos(boolean soloConStock) {
         Instant cacheTs = articulosCacheTs.get(soloConStock);
@@ -164,6 +164,7 @@ public class InvidApiClient {
     private String urlCatalogo(String url, boolean soloConStock) {
         StringBuilder out = new StringBuilder(url);
         if (!url.contains("exclude_zero_price=")) out.append(url.contains("?") ? '&' : '?').append("exclude_zero_price=1");
+        if (!url.contains("published_only=")) out.append(out.indexOf("?") >= 0 ? '&' : '?').append("published_only=1");
         if (soloConStock && !url.contains("exclude_zero_stock=")) out.append(out.indexOf("?") >= 0 ? '&' : '?').append("exclude_zero_stock=1");
         return out.toString();
     }
