@@ -38,6 +38,22 @@ const CATS_FALLBACK = [
   { id: 10, nombre: 'Conectividad' }, { id: 51, nombre: 'Impresoras' }, { id: 93, nombre: 'Tablets' },
 ]
 
+const BRANDS = [
+  { key: 'hp', name: 'HP', mark: 'hp' },
+  { key: 'razer', name: 'Razer', mark: 'RAZER' },
+  { key: 'amd', name: 'AMD', mark: 'AMD' },
+  { key: 'intel', name: 'Intel', mark: 'intel.' },
+  { key: 'hyperx', name: 'HyperX', mark: 'HyperX' },
+  { key: 'corsair', name: 'Corsair', mark: 'CORSAIR' },
+  { key: 'jbl', name: 'JBL', mark: 'JBL' },
+  { key: 'lenovo', name: 'Lenovo', mark: 'Lenovo' },
+  { key: 'lg', name: 'LG', mark: 'LG' },
+  { key: 'msi', name: 'MSI', mark: 'msi' },
+  { key: 'epson', name: 'Epson', mark: 'EPSON' },
+  { key: 'logitech', name: 'Logitech', mark: 'logitech' },
+  { key: 'tplink', name: 'TP-Link', mark: 'tp-link' },
+]
+
 const FEATURES = [
   { t: 'Precios en USD y pesos', d: 'Cada producto muestra su valor en dólares y en pesos, calculado con la cotización del día.',
     svg: <><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></> },
@@ -198,6 +214,20 @@ function LandingPage() {
           <div><div className="lp-stat-n">WhatsApp</div><div className="lp-stat-l">atención directa</div></div>
         </div>
       </div>
+
+      {/* MARCAS */}
+      <section className="lp-brands" aria-labelledby="marcas-title">
+        <div className="lp-wrap">
+          <p className="lp-brands-kicker" id="marcas-title">Algunas de las marcas que trabajamos</p>
+          <div className="lp-brand-grid">
+            {BRANDS.map(brand => (
+              <span className={`lp-brand lp-brand-${brand.key}`} key={brand.key} aria-label={brand.name}>
+                {brand.mark}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* POR QUÉ */}
       <section className="lp-block" id="por-que">

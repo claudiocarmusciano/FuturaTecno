@@ -125,6 +125,28 @@
 .lp-stat-n { font-family: 'Sora', sans-serif; font-size: 30px; font-weight: 800; color: var(--lp-lime); }
 .lp-stat-l { font-size: 13px; color: var(--lp-muted); }
 
+/* ===== marcas ===== */
+.lp-brands { background: #f4f5f1; color: #16181d; padding: 42px 0 46px; }
+.lp-brands-kicker { font-family: 'Sora', sans-serif; font-size: 12px; letter-spacing: 1.8px; text-transform: uppercase; text-align: center; color: #59606a; font-weight: 700; margin-bottom: 25px !important; }
+.lp-brand-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; align-items: center; }
+.lp-brand { min-height: 62px; display: flex; align-items: center; justify-content: center; color: #202226; font-family: Arial, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -.04em; transition: transform .16s, filter .16s; }
+.lp-brand:hover { transform: translateY(-3px); filter: saturate(1.15); }
+.lp-brand-hp { width: 49px; height: 49px; min-height: 0; justify-self: center; border-radius: 50%; background: #1596d2; color: #fff; font-size: 27px; font-weight: 500; font-style: italic; letter-spacing: -.13em; line-height: 1; }
+.lp-brand-razer { color: #4acb4a; font-size: 17px; letter-spacing: .27em; font-weight: 500; }
+.lp-brand-amd { font-size: 24px; font-weight: 800; letter-spacing: -.08em; }
+.lp-brand-intel { color: #147bba; font-size: 25px; font-weight: 600; letter-spacing: -.09em; }
+.lp-brand-hyperx { color: #3f4042; font-size: 20px; font-style: italic; font-weight: 700; }
+.lp-brand-hyperx::first-letter { color: #d72f3a; }
+.lp-brand-corsair { font-size: 16px; letter-spacing: .09em; font-weight: 800; }
+.lp-brand-jbl { justify-self: center; min-height: 48px; padding: 0 11px; background: #f4511e; color: #fff; font-size: 23px; letter-spacing: -.09em; }
+.lp-brand-lenovo { justify-self: center; min-height: 37px; padding: 0 10px; background: #e12629; color: #fff; font-size: 18px; letter-spacing: -.07em; }
+.lp-brand-lg { color: #9a1746; font-size: 28px; font-weight: 500; letter-spacing: -.15em; }
+.lp-brand-msi { font-size: 26px; font-style: italic; font-weight: 800; letter-spacing: -.1em; }
+.lp-brand-epson { color: #1d559c; font-size: 18px; font-weight: 800; letter-spacing: -.09em; }
+.lp-brand-logitech { font-size: 17px; font-weight: 700; letter-spacing: -.09em; }
+.lp-brand-tplink { font-size: 18px; font-weight: 500; letter-spacing: -.07em; }
+.lp-brand-tplink::first-letter { color: #21b7bc; font-weight: 800; }
+
 /* ===== secciones ===== */
 .lp-block { padding: 78px 0; position: relative; }
 .lp-eyebrow { font-family: 'Sora', sans-serif; font-size: 12.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--lp-lime); font-weight: 700; }
@@ -197,9 +219,14 @@
   .lp-mc2 { top: 50px; right: 0; }
   .lp-mc3 { top: 340px; bottom: auto; left: 30px; }
   .lp-stats { grid-template-columns: repeat(2, 1fr); gap: 26px; }
+  .lp-brand-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 16px; }
   .lp-features { grid-template-columns: 1fr; }
   .lp-prod-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 480px) {
+  .lp-brands { padding: 34px 0 38px; }
+  .lp-brands-kicker { font-size: 10.5px; letter-spacing: 1.35px; margin-bottom: 18px !important; }
+  .lp-brand-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .lp-brand { min-height: 53px; transform: scale(.88); }
   .lp-cta-band { padding: 40px 22px; }
 }
