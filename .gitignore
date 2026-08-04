@@ -41,3 +41,7 @@ postgres_data/
 # Misc
 *.log
 *.pid
+
+# Archivos de trabajo para la carga de pesos por categoría (no van al repo)
+pesos-categorias*.json
+pesos-categorias-PROMPT.md

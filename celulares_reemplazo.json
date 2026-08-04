@@ -1,0 +1,197 @@
+[
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S25 FE 128GB",
+    "especificaciones": {
+      "almacenamiento": "128GB",
+      "otros": "Color: Black"
+    },
+    "precio_usd": 609.79,
+    "imagenes": [
+      "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSfBSJr8W_7Jk2iMvEr3453funWjUUYj-gU0rYsC"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S25 FE 256GB",
+    "especificaciones": {
+      "almacenamiento": "256GB",
+      "otros": "Colores: Navy, Icy, White"
+    },
+    "precio_usd": 724.5,
+    "imagenes": [
+      "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTmE-90RpiXY3ugiNcssZLv-w5lv9R_MIZhymAjK"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S25 128GB",
+    "especificaciones": {
+      "almacenamiento": "128GB",
+      "otros": "Colores: Navy, Silver"
+    },
+    "precio_usd": 809.03,
+    "imagenes": [
+      "https://http2.mlstatic.com/D_NQ_NP_2X_777456-MLA100058619789_122025-F.webp"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S25 256GB",
+    "especificaciones": {
+      "almacenamiento": "256GB",
+      "otros": "Colores: Ice Blue, Navy, Silver"
+    },
+    "precio_usd": 821.1,
+    "imagenes": [
+      "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQu_R26Yzx9DOr334tEZxYCeUn7ScrPH7ECKQnPi"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S25 ULTRA 256GB",
+    "especificaciones": {
+      "almacenamiento": "256GB",
+      "otros": "Colores: Negro, Azul, Grey, White"
+    },
+    "precio_usd": 1026.38,
+    "imagenes": [
+      "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcT76ND8Nb9ohSnLdAP9d7u7zoaNkCL9ZbeMUNutBypSPBdg52x8Pjp_PQKlYsZ4p1xm85tyQDmsBJrHwNFgdgY-fPhR9aQhRsKbGpztb7BWI_Dcu0l5B_kSbaJ5J1aCh_gTKEwAmQ&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S25 ULTRA 512GB",
+    "especificaciones": {
+      "almacenamiento": "512GB",
+      "otros": "Colores: Negro, Gris"
+    },
+    "precio_usd": 1098.83,
+    "imagenes": [
+      "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcT76ND8Nb9ohSnLdAP9d7u7zoaNkCL9ZbeMUNutBypSPBdg52x8Pjp_PQKlYsZ4p1xm85tyQDmsBJrHwNFgdgY-fPhR9aQhRsKbGpztb7BWI_Dcu0l5B_kSbaJ5J1aCh_gTKEwAmQ&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S25 ULTRA 1TB",
+    "especificaciones": {
+      "almacenamiento": "1TB",
+      "otros": "Colores: White, Grey"
+    },
+    "precio_usd": 1171.28,
+    "imagenes": [
+      "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcT76ND8Nb9ohSnLdAP9d7u7zoaNkCL9ZbeMUNutBypSPBdg52x8Pjp_PQKlYsZ4p1xm85tyQDmsBJrHwNFgdgY-fPhR9aQhRsKbGpztb7BWI_Dcu0l5B_kSbaJ5J1aCh_gTKEwAmQ&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S26 256GB",
+    "especificaciones": {
+      "almacenamiento": "256GB",
+      "otros": "Colores: Black, Blue"
+    },
+    "precio_usd": 881.48,
+    "imagenes": [
+      "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTI8psjJ24BF2ug_eZG5kqKcKa9IiCiAXi3mIsQRpC9O4dvb4drPjDwIsucRtad022efoTtN_3cnCZfbEqqmvtsWdhz5AlCRnvfq8do7hcrTe3oNjEsqC_B9wODBF1l2KObf79Vz5JfkQ&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S26 512GB",
+    "especificaciones": {
+      "almacenamiento": "512GB",
+      "otros": "Color: Black"
+    },
+    "precio_usd": 1050.53,
+    "imagenes": [
+      "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcTI8psjJ24BF2ug_eZG5kqKcKa9IiCiAXi3mIsQRpC9O4dvb4drPjDwIsucRtad022efoTtN_3cnCZfbEqqmvtsWdhz5AlCRnvfq8do7hcrTe3oNjEsqC_B9wODBF1l2KObf79Vz5JfkQ&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S26 PLUS 256GB",
+    "especificaciones": {
+      "almacenamiento": "256GB",
+      "otros": "Color: Black"
+    },
+    "precio_usd": 1104.86,
+    "imagenes": [
+      "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTbdcPg9WYKL-w8HVv7s-lftc2bP8EpGV7vdI814NowHMgWkFhfAIAz2QekB4EqFDa56O-SpvmrA4yMDVMrIiRNPUqikYHCkEB1yBpv7vcvFfZttbBvbNkEMqU9QdhIhs_ixgpI-urBQus&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S26 PLUS 512GB",
+    "especificaciones": {
+      "almacenamiento": "512GB",
+      "otros": "Colores: Ice Blue, Violet"
+    },
+    "precio_usd": 1207.5,
+    "imagenes": [
+      "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTbdcPg9WYKL-w8HVv7s-lftc2bP8EpGV7vdI814NowHMgWkFhfAIAz2QekB4EqFDa56O-SpvmrA4yMDVMrIiRNPUqikYHCkEB1yBpv7vcvFfZttbBvbNkEMqU9QdhIhs_ixgpI-urBQus&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S26 ULTRA 256GB",
+    "especificaciones": {
+      "almacenamiento": "256GB",
+      "otros": "Color: Black"
+    },
+    "precio_usd": 1147.13,
+    "imagenes": [
+      "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQE4PPf28QEMrUg-k-G780BToYS8EM1KGoT0PoJRkiYgsGD0swkd29ItGt4C_IBZPtD_DhFVUqSE0xqA0CkrM8TPyX0r3iWOcocF8rDr85KlboqRD-wNGvbrNBIYCvqJL0oCFUhpt8Y2U4&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S26 ULTRA 512GB",
+    "especificaciones": {
+      "almacenamiento": "512GB",
+      "otros": "Colores: Black, Violet"
+    },
+    "precio_usd": 1364.48,
+    "imagenes": [
+      "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQE4PPf28QEMrUg-k-G780BToYS8EM1KGoT0PoJRkiYgsGD0swkd29ItGt4C_IBZPtD_DhFVUqSE0xqA0CkrM8TPyX0r3iWOcocF8rDr85KlboqRD-wNGvbrNBIYCvqJL0oCFUhpt8Y2U4&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "S26 ULTRA 1TB",
+    "especificaciones": {
+      "almacenamiento": "1TB",
+      "otros": "Color: Black"
+    },
+    "precio_usd": 1666.35,
+    "imagenes": [
+      "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcQE4PPf28QEMrUg-k-G780BToYS8EM1KGoT0PoJRkiYgsGD0swkd29ItGt4C_IBZPtD_DhFVUqSE0xqA0CkrM8TPyX0r3iWOcocF8rDr85KlboqRD-wNGvbrNBIYCvqJL0oCFUhpt8Y2U4&usqp=CAc"
+    ],
+    "categoria": "Celulares"
+  },
+  {
+    "marca": "SAMSUNG",
+    "modelo": "Z FLIP 8 512GB",
+    "especificaciones": {
+      "almacenamiento": "512GB",
+      "otros": "Color: Graphite"
+    },
+    "precio_usd": 1593.9,
+    "imagenes": [
+      "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcR0ryw_TSWFIHlGwrwZvfca5RLvpJBmLz6v5p-AAx24cZXGBmtaqHO54-EFPi6_CciEUG_SFh0zX81IL8KuUgTt-WhyrURvz8e5dUH89_TdUOSNtOvllOtm"
+    ],
+    "categoria": "Celulares"
+  }
+]

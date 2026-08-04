@@ -96,7 +96,7 @@ function CargarJsonPage() {
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
             <select value={proveedorId} onChange={e => setProveedorId(e.target.value)} style={{ ...inputStyle, maxWidth: '320px' }}>
               <option value="">— Elegí un proveedor —</option>
-              {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.codigo ? ` (${p.codigo})` : ''}</option>)}
+              {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.codigo ? ` (${p.codigo})` : ''} — ID {p.id}</option>)}
             </select>
             <button className="btn btn-secondary" onClick={() => setCrearNuevo(true)}>+ Nuevo proveedor</button>
           </div>
