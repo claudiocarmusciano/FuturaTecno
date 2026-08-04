@@ -128,19 +128,23 @@
 /* ===== marcas ===== */
 .lp-brands { background: #242831; color: #f2f3f5; padding: 42px 0 46px; }
 .lp-brands-kicker { font-family: 'Sora', sans-serif; font-size: 12px; letter-spacing: 1.8px; text-transform: uppercase; text-align: center; color: #b4bac3; font-weight: 700; margin-bottom: 25px !important; }
-.lp-brand-grid { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 12px; align-items: center; }
-.lp-brand { grid-column: span 2; min-height: 62px; display: flex; align-items: center; justify-content: center; color: #f2f3f5; font-family: Arial, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -.04em; transition: transform .16s, filter .16s; }
-.lp-brand:nth-child(8) { grid-column: 2 / span 2; }
+.lp-brand-marquee { overflow: hidden; margin: 0 -22px; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.lp-brand-track { display: flex; width: max-content; animation: lp-marcas 34s linear infinite; }
+.lp-brand-marquee:hover .lp-brand-track { animation-play-state: paused; }
+.lp-brand { width: 148px; min-height: 62px; display: flex; flex: 0 0 148px; align-items: center; justify-content: center; color: #f2f3f5; font-family: Arial, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -.04em; transition: transform .16s, filter .16s; }
+.lp-brand-track:hover .lp-brand { filter: saturate(.65); }
+.lp-brand-track .lp-brand:hover { transform: translateY(-3px); filter: saturate(1.15); }
+@keyframes lp-marcas { to { transform: translateX(-50%); } }
 .lp-brand:hover { transform: translateY(-3px); filter: saturate(1.15); }
-.lp-brand-hp { width: 49px; height: 49px; min-height: 0; justify-self: center; border-radius: 50%; background: #1596d2; color: #fff; font-size: 27px; font-weight: 500; font-style: italic; letter-spacing: -.13em; line-height: 1; }
+.lp-brand-hp { flex-basis: 49px; width: 49px; height: 49px; min-height: 0; margin: 0 49.5px; border-radius: 50%; background: #1596d2; color: #fff; font-size: 27px; font-weight: 500; font-style: italic; letter-spacing: -.13em; line-height: 1; }
 .lp-brand-razer { color: #4acb4a; font-size: 17px; letter-spacing: .27em; font-weight: 500; }
 .lp-brand-amd { font-size: 24px; font-weight: 800; letter-spacing: -.08em; }
 .lp-brand-intel { color: #147bba; font-size: 25px; font-weight: 600; letter-spacing: -.09em; }
 .lp-brand-hyperx { color: #3f4042; font-size: 20px; font-style: italic; font-weight: 700; }
 .lp-brand-hyperx::first-letter { color: #d72f3a; }
 .lp-brand-corsair { font-size: 16px; letter-spacing: .09em; font-weight: 800; }
-.lp-brand-jbl { justify-self: center; min-height: 48px; padding: 0 11px; background: #f4511e; color: #fff; font-size: 23px; letter-spacing: -.09em; }
-.lp-brand-lenovo { justify-self: center; min-height: 37px; padding: 0 10px; background: #e12629; color: #fff; font-size: 18px; letter-spacing: -.07em; }
+.lp-brand-jbl { flex-basis: 48px; min-height: 48px; margin: 0 50px; padding: 0 11px; background: #f4511e; color: #fff; font-size: 23px; letter-spacing: -.09em; }
+.lp-brand-lenovo { flex-basis: 90px; min-height: 37px; margin: 0 29px; padding: 0 10px; background: #e12629; color: #fff; font-size: 18px; letter-spacing: -.07em; }
 .lp-brand-lg { color: #9a1746; font-size: 28px; font-weight: 500; letter-spacing: -.15em; }
 .lp-brand-msi { font-size: 26px; font-style: italic; font-weight: 800; letter-spacing: -.1em; }
 .lp-brand-epson { color: #1d559c; font-size: 18px; font-weight: 800; letter-spacing: -.09em; }
@@ -220,17 +224,16 @@
   .lp-mc2 { top: 50px; right: 0; }
   .lp-mc3 { top: 340px; bottom: auto; left: 30px; }
   .lp-stats { grid-template-columns: repeat(2, 1fr); gap: 26px; }
-  .lp-brand-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 16px; }
-  .lp-brand { grid-column: auto; }
-  .lp-brand:nth-child(13) { grid-column: 2 / span 2; }
   .lp-features { grid-template-columns: 1fr; }
   .lp-prod-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 480px) {
   .lp-brands { padding: 34px 0 38px; }
   .lp-brands-kicker { font-size: 10.5px; letter-spacing: 1.35px; margin-bottom: 18px !important; }
-  .lp-brand-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-  .lp-brand { min-height: 53px; transform: scale(.88); }
-  .lp-brand:nth-child(13) { grid-column: 2; }
+  .lp-brand { width: 126px; min-height: 53px; flex-basis: 126px; transform: scale(.88); }
   .lp-cta-band { padding: 40px 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-brand-track { animation: none; }
 }

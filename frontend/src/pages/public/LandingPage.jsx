@@ -219,12 +219,14 @@ function LandingPage() {
       <section className="lp-brands" aria-labelledby="marcas-title">
         <div className="lp-wrap">
           <p className="lp-brands-kicker" id="marcas-title">Algunas de las marcas que trabajamos</p>
-          <div className="lp-brand-grid">
-            {BRANDS.map(brand => (
-              <span className={`lp-brand lp-brand-${brand.key}`} key={brand.key} aria-label={brand.name}>
+          <div className="lp-brand-marquee">
+            <div className="lp-brand-track">
+              {[...BRANDS, ...BRANDS].map((brand, index) => (
+              <span className={`lp-brand lp-brand-${brand.key}`} key={`${brand.key}-${index}`} aria-hidden={index >= BRANDS.length}>
                 {brand.mark}
               </span>
             ))}
+            </div>
           </div>
         </div>
       </section>
