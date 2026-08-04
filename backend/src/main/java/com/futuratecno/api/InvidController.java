@@ -42,7 +42,7 @@ public class InvidController {
     public ResponseEntity<?> previsualizar(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body != null ? body : Map.of();
         return ejecutar(() -> invidImportService.previsualizar(
-                str(b.get("categoria")), str(b.get("marca")), dec(b.get("precioMinUsd"))));
+                str(b.get("categoria")), str(b.get("marca")), Boolean.TRUE.equals(b.get("soloConStock")), dec(b.get("precioMinUsd"))));
     }
 
     @PostMapping("/importar")

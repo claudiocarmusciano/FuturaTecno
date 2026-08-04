@@ -54,7 +54,9 @@ public class InvidImportService {
     }
 
     public Map<String, Object> filtros() {
-        List<JsonNode> arts = invidApiClient.obtenerArticulos();
+        // El formulario importa con stock por defecto; usar la misma caché evita una segunda
+        // recorrida completa si primero se cargan las opciones y luego se previsualiza/importa.
+        List<JsonNode> arts = invidApiClient.obtenerArticulos(true);
         TreeSet<String> categorias = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         TreeSet<String> marcas = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         for (JsonNode a : arts) {
@@ -69,8 +71,8 @@ public class InvidImportService {
         return out;
     }
 
-    public Map<String, Object> previsualizar(String categoria, String marca, BigDecimal precioMinUsd) {
-        List<JsonNode> arts = invidApiClient.obtenerArticulos();
+    public Map<String, Object> previsualizar(String categoria, String marca, boolean soloConStock, BigDecimal precioMinUsd) {
+        List<JsonNode> arts = invidApiClient.obtenerArticulos(soloConStock);
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
         int total = 0;
         List<String> muestra = new ArrayList<>();
@@ -104,7 +106,7 @@ public class InvidImportService {
         if (!estaConfigurado()) {
             throw new IllegalStateException("La API de Invid no está configurada (faltan INVID_BASE_URL / INVID_USERNAME / INVID_PASSWORD).");
         }
-        List<JsonNode> arts = invidApiClient.obtenerArticulos();
+        List<JsonNode> arts = invidApiClient.obtenerArticulos(soloConStock);
         Proveedor proveedor = obtenerOcrearProveedor();
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
 

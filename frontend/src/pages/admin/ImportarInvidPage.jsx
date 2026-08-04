@@ -39,7 +39,7 @@ function ImportarInvidPage() {
   const previsualizar = async () => {
     setPreviewLoading(true); setError(''); setPreview(null); setResultado(null)
     try {
-      const res = await axios.post('/api/admin/invid/previsualizar', { categoria, marca, precioMinUsd })
+      const res = await axios.post('/api/admin/invid/previsualizar', { categoria, marca, soloConStock, precioMinUsd })
       setPreview(res.data)
     } catch (e) {
       setError(e.response?.data?.error || 'Error al previsualizar.')

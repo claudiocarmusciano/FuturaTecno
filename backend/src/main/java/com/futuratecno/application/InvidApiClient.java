@@ -18,14 +18,14 @@ import java.util.Map;
 /**
  * Cliente de la API de Invid Computers (APIv1). Autenticación JWT:
  *   POST /api/v1/auth.php {username,password} -> access_token (Bearer, 24 h).
- * Catálogo: GET /api/v1/articulo.php (Bearer), paginado por next_page_url (100/página, 200 req/hora).
+ * Catálogo: GET /api/v1/articulo.php (Bearer), paginado por next_page_url (100/página, 50 req/hora).
  * Credenciales por variables de entorno (INVID_BASE_URL, INVID_USERNAME, INVID_PASSWORD) — nunca en código.
  */
 @Service
 public class InvidApiClient {
     private static final Logger logger = LoggerFactory.getLogger(InvidApiClient.class);
     private static final int TOPE_PAGINAS = 300;          // tope de seguridad (300 x 100 = 30.000 items)
-    private static final long CACHE_MINUTOS = 10;          // cachea el catálogo para respetar el rate-limit
+    private static final long CACHE_MINUTOS = 55;          // la cuota oficial es por hora: evita re-recorrer el catálogo en la misma ventana
 
     private final RestTemplate restTemplate;
 
@@ -42,9 +42,10 @@ public class InvidApiClient {
     private String token;
     private Instant tokenExpira;
 
-    // Catálogo cacheado (para no llamar a la API en filtros + preview + import por separado).
-    private List<JsonNode> articulosCache;
-    private Instant articulosCacheTs;
+    // Catálogos cacheados por modo de stock. Así preview+import reutilizan exactamente la misma
+    // descarga; no mezclamos el catálogo completo con el que Invid ya filtró sin stock.
+    private final Map<Boolean, List<JsonNode>> articulosCache = new HashMap<>();
+    private final Map<Boolean, Instant> articulosCacheTs = new HashMap<>();
 
     public InvidApiClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -89,9 +90,20 @@ public class InvidApiClient {
 
     /** Trae TODO el catálogo siguiendo next_page_url. Cacheado {@value #CACHE_MINUTOS} min. */
     public synchronized List<JsonNode> obtenerArticulos() {
-        if (articulosCache != null && articulosCacheTs != null
-                && Duration.between(articulosCacheTs, Instant.now()).toMinutes() < CACHE_MINUTOS) {
-            return articulosCache;
+        return obtenerArticulos(false);
+    }
+
+    /**
+     * Cuando se piden solo artículos con stock, el filtro se envía a Invid en cada página: hacerlo
+     * después de descargar el catálogo no ahorra consultas. Los precios cero siempre se descartan
+     * en el importador, por lo que también se excluyen desde el origen sin cambiar el resultado.
+     */
+    public synchronized List<JsonNode> obtenerArticulos(boolean soloConStock) {
+        Instant cacheTs = articulosCacheTs.get(soloConStock);
+        List<JsonNode> cache = articulosCache.get(soloConStock);
+        if (cache != null && cacheTs != null
+                && Duration.between(cacheTs, Instant.now()).toMinutes() < CACHE_MINUTOS) {
+            return cache;
         }
         String jwt = obtenerToken();
         HttpHeaders headers = new HttpHeaders();
@@ -100,7 +112,7 @@ public class InvidApiClient {
         HttpEntity<Void> req = new HttpEntity<>(headers);
 
         List<JsonNode> acumulado = new ArrayList<>();
-        String url = base() + "/api/v1/articulo.php";
+        String url = urlCatalogo(base() + "/api/v1/articulo.php", soloConStock);
         int paginas = 0;
 
         while (url != null && paginas < TOPE_PAGINAS) {
@@ -109,7 +121,17 @@ public class InvidApiClient {
                 resp = restTemplate.exchange(url, HttpMethod.GET, req, JsonNode.class);
             } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {
                 logger.warn("Invid: rate-limit (429) alcanzado en la página {}", paginas);
-                throw new IllegalStateException("Invid limitó las consultas (200/hora). Probá de nuevo más tarde.");
+                String espera = e.getResponseHeaders() != null ? e.getResponseHeaders().getFirst("Retry-After") : null;
+                String detalle = "Probá de nuevo más tarde.";
+                if (espera != null) {
+                    try {
+                        detalle = "Esperá aproximadamente " + Math.max(1, Long.parseLong(espera) / 60) + " minuto(s).";
+                    } catch (NumberFormatException ignored) {
+                        // Si Invid mandase un Retry-After no numérico, mantenemos un error claro.
+                    }
+                }
+                throw new IllegalStateException("Invid limitó las consultas (50/hora). "
+                        + detalle);
             }
             JsonNode bodyResp = resp.getBody();
             if (bodyResp == null) break;
@@ -122,20 +144,28 @@ public class InvidApiClient {
             }
 
             String next = bodyResp.path("next_page_url").asText(null);
-            url = (next == null || next.isBlank() || "null".equalsIgnoreCase(next)) ? null : resolver(next);
+            url = (next == null || next.isBlank() || "null".equalsIgnoreCase(next)) ? null : urlCatalogo(resolver(next), soloConStock);
             paginas++;
         }
 
-        articulosCache = acumulado;
-        articulosCacheTs = Instant.now();
-        logger.info("Invid: catálogo traído ({} artículos, {} páginas)", acumulado.size(), paginas);
+        articulosCache.put(soloConStock, acumulado);
+        articulosCacheTs.put(soloConStock, Instant.now());
+        logger.info("Invid: catálogo traído ({} artículos, {} páginas, soloConStock={})", acumulado.size(), paginas, soloConStock);
         return acumulado;
     }
 
     /** Fuerza refrescar el catálogo en la próxima llamada. */
     public synchronized void invalidarCache() {
-        articulosCache = null;
-        articulosCacheTs = null;
+        articulosCache.clear();
+        articulosCacheTs.clear();
+    }
+
+    /** Agrega filtros soportados por la API manteniéndolos también en las URLs de paginación. */
+    private String urlCatalogo(String url, boolean soloConStock) {
+        StringBuilder out = new StringBuilder(url);
+        if (!url.contains("exclude_zero_price=")) out.append(url.contains("?") ? '&' : '?').append("exclude_zero_price=1");
+        if (soloConStock && !url.contains("exclude_zero_stock=")) out.append(out.indexOf("?") >= 0 ? '&' : '?').append("exclude_zero_stock=1");
+        return out.toString();
     }
 
     /**
