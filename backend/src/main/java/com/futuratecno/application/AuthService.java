@@ -46,8 +46,12 @@ public class AuthService {
     @Transactional
     public AuthResponse registrar(RegisterRequest req) {
         String email = req.getEmail() != null ? req.getEmail().trim().toLowerCase() : "";
-        if (email.isEmpty() || req.getPassword() == null || req.getPassword().length() < 6) {
-            throw new IllegalArgumentException("Email válido y contraseña de al menos 6 caracteres son obligatorios.");
+        String nombre = req.getNombre() != null ? req.getNombre().trim() : "";
+        String apellido = req.getApellido() != null ? req.getApellido().trim() : "";
+        String celular = normalizarCelularArgentino(req.getCelular());
+        if (email.isEmpty() || req.getPassword() == null || req.getPassword().length() < 6
+                || nombre.isEmpty() || apellido.isEmpty() || celular == null) {
+            throw new IllegalArgumentException("Nombre, apellido, celular argentino válido, email y contraseña de al menos 6 caracteres son obligatorios.");
         }
         if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("Ya existe una cuenta con ese email.");
@@ -56,13 +60,30 @@ public class AuthService {
         Usuario u = new Usuario();
         u.setEmail(email);
         u.setPassword(passwordEncoder.encode(req.getPassword()));
-        u.setNombre(req.getNombre() != null ? req.getNombre().trim() : null);
+        u.setNombre(nombre);
+        u.setApellido(apellido);
+        u.setCelular(celular);
         u.setRol("USUARIO");
         u.setActivo(true);
         usuarioRepository.save(u);
 
         String token = jwtService.generarToken(u.getEmail(), u.getRol());
         return new AuthResponse(token, u.getEmail(), u.getNombre(), u.getRol());
+    }
+
+    /** Guarda los celulares argentinos en un único formato internacional: +54 9 + área/número. */
+    private String normalizarCelularArgentino(String valor) {
+        if (valor == null) return null;
+        String digitos = valor.replaceAll("\\D", "");
+        if (digitos.startsWith("549")) {
+            digitos = digitos.substring(3);
+        } else if (digitos.startsWith("54")) {
+            digitos = digitos.substring(2);
+            if (digitos.startsWith("9")) digitos = digitos.substring(1);
+        } else if (digitos.startsWith("0")) {
+            digitos = digitos.substring(1);
+        }
+        return digitos.matches("[1-9][0-9]{9}") ? "+549" + digitos : null;
     }
 
     @Transactional(readOnly = true)

@@ -41,8 +41,8 @@ export function AuthProvider({ children }) {
     return res.data
   }
 
-  const register = async (email, password, nombre) => {
-    const res = await axios.post('/api/auth/register', { email, password, nombre })
+  const register = async (email, password, nombre, apellido, celular) => {
+    const res = await axios.post('/api/auth/register', { email, password, nombre, apellido, celular })
     guardarSesion(res.data)
     return res.data
   }

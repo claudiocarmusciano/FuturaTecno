@@ -4,6 +4,16 @@ import { useAuth } from '../../auth/AuthContext'
 import GoogleLoginButton from '../../components/GoogleLoginButton'
 import PasswordInput from '../../components/PasswordInput'
 
+const celularArgentinoValido = (valor) => {
+  let digitos = valor.replace(/\D/g, '')
+  if (digitos.startsWith('549')) digitos = digitos.slice(3)
+  else if (digitos.startsWith('54')) {
+    digitos = digitos.slice(2)
+    if (digitos.startsWith('9')) digitos = digitos.slice(1)
+  } else if (digitos.startsWith('0')) digitos = digitos.slice(1)
+  return /^[1-9]\d{9}$/.test(digitos)
+}
+
 function RegisterPage() {
   const { register, loginConGoogle } = useAuth()
   const navigate = useNavigate()
@@ -11,6 +21,8 @@ function RegisterPage() {
   // Si llegó desde una pantalla que exige sesión (ej. el checkout), vuelve ahí al registrarse.
   const destino = location.state?.from || '/catalogo'
   const [nombre, setNombre] = useState('')
+  const [apellido, setApellido] = useState('')
+  const [celular, setCelular] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -23,9 +35,13 @@ function RegisterPage() {
       setError('La contraseña debe tener al menos 6 caracteres.')
       return
     }
+    if (!celularArgentinoValido(celular)) {
+      setError('Ingresá un celular argentino válido, con código de área y sin 0 ni 15.')
+      return
+    }
     setCargando(true)
     try {
-      await register(email, password, nombre)
+      await register(email, password, nombre, apellido, celular)
       navigate(destino) // queda logueado
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo registrar.')
@@ -57,7 +73,7 @@ function RegisterPage() {
         </div>
         <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Crear cuenta</h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginBottom: '24px', textAlign: 'center' }}>
-          Registrate para recibir novedades y ofertas.
+          Creá tu cuenta para recibir novedades, ofertas y participar de sorteos.
         </p>
 
         {error && (
@@ -67,9 +83,22 @@ function RegisterPage() {
         )}
 
         <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
+            <div className="form-group">
+              <label>Nombre</label>
+              <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} autoComplete="given-name" required />
+            </div>
+            <div className="form-group">
+              <label>Apellido</label>
+              <input type="text" value={apellido} onChange={e => setApellido(e.target.value)} autoComplete="family-name" required />
+            </div>
+          </div>
           <div className="form-group">
-            <label>Nombre (opcional)</label>
-            <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} autoComplete="name" />
+            <label>Celular</label>
+            <input type="tel" value={celular} onChange={e => setCelular(e.target.value)} autoComplete="tel" inputMode="tel" placeholder="11 1234-5678" required />
+            <small style={{ display: 'block', color: 'var(--color-text-muted)', marginTop: '6px', lineHeight: 1.45 }}>
+              Ingresalo con código de área, sin 0 ni 15. Ej.: 11 1234-5678.
+            </small>
           </div>
           <div className="form-group">
             <label>Email</label>
@@ -83,6 +112,11 @@ function RegisterPage() {
             {cargando ? 'Creando...' : 'Crear cuenta'}
           </button>
         </form>
+
+        <div style={{ marginTop: '16px', padding: '12px 14px', borderRadius: '10px', background: 'var(--color-bg-alt)', color: 'var(--color-text-muted)', fontSize: '12.5px', lineHeight: 1.5 }}>
+          Tu celular se utiliza para recibir notificaciones, ofertas, promociones y regalos. Es requisito para participar de los sorteos; podés darte de baja del grupo de difusión cuando quieras.<br /><br />
+          Para participar de los sorteos también necesitás seguirnos en Instagram: <strong style={{ color: 'var(--color-text)' }}>@futuratecnoargentina</strong>.
+        </div>
 
         <GoogleLoginButton onCredential={handleGoogle} onError={setError} text="signup_with" divider />
 
