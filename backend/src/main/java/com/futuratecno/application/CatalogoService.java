@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class CatalogoService {
+    private static final BigDecimal PRECIO_MINIMO_CATALOGO_USD = new BigDecimal("200");
 
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
@@ -64,9 +65,10 @@ public class CatalogoService {
 
         List<ProductoCatalogoDTO> resultado = new ArrayList<>();
         for (Producto producto : productos) {
-            resultado.add(toDTO(producto, cotizacion,
+            ProductoCatalogoDTO dto = toDTO(producto, cotizacion,
                     variantesPorProducto.getOrDefault(producto.getId(), List.of()),
-                    imagenesPorProducto.getOrDefault(producto.getId(), List.of())));
+                    imagenesPorProducto.getOrDefault(producto.getId(), List.of()));
+            if (!dto.getVariantes().isEmpty()) resultado.add(dto);
         }
         return resultado;
     }
@@ -79,7 +81,11 @@ public class CatalogoService {
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + id));
         List<Variante> variantes = varianteRepository.findByProductoIdAndActivo(id, true);
         List<Imagen> imagenes = imagenRepository.findByProductoIdAndActivoOrderByOrden(id, true);
-        return toDTO(producto, cotizacionService.obtenerCotizacionUsdArs(), variantes, imagenes);
+        ProductoCatalogoDTO dto = toDTO(producto, cotizacionService.obtenerCotizacionUsdArs(), variantes, imagenes);
+        if (dto.getVariantes().isEmpty()) {
+            throw new IllegalArgumentException("Producto no disponible en catálogo");
+        }
+        return dto;
     }
 
     private ProductoCatalogoDTO toDTO(Producto producto, BigDecimal cotizacion,
@@ -97,6 +103,8 @@ public class CatalogoService {
             }
             BigDecimal precioVentaUsd = precioService.precioVentaUsd(v, proveedor);
             BigDecimal precioVentaArs = precioService.aArs(precioVentaUsd, cotizacion);
+            // El catálogo público solo exhibe artículos cuyo precio final de venta supera US$ 200.
+            if (precioVentaUsd.compareTo(PRECIO_MINIMO_CATALOGO_USD) <= 0) continue;
 
             variantesDto.add(new VarianteCatalogoDTO(
                     v.getId(), v.getEspecificaciones(), precioVentaUsd, precioVentaArs));
