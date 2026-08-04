@@ -23,7 +23,8 @@ public class UsuarioAdminController {
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> listar() {
         List<UsuarioDTO> usuarios = usuarioRepository.findByRolOrderByCreatedAtDesc("USUARIO").stream()
-                .map(u -> new UsuarioDTO(u.getId(), u.getEmail(), u.getNombre(), u.getRol(), u.getCreatedAt()))
+                .map(u -> new UsuarioDTO(u.getId(), u.getEmail(), u.getNombre(), u.getApellido(),
+                        u.getCelular(), u.getRol(), u.getCreatedAt()))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(usuarios);
     }

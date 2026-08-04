@@ -16,8 +16,8 @@ function UsuariosPage() {
   }, [])
 
   const exportarCSV = () => {
-    const filas = [['Email', 'Nombre', 'Fecha de registro']]
-    usuarios.forEach(u => filas.push([u.email, u.nombre || '', formatFecha(u.fechaRegistro)]))
+    const filas = [['Email', 'Nombre', 'Apellido', 'Celular', 'Fecha de registro']]
+    usuarios.forEach(u => filas.push([u.email, u.nombre || '', u.apellido || '', u.celular || '', formatFecha(u.fechaRegistro)]))
     const csv = filas.map(f => f.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -51,6 +51,8 @@ function UsuariosPage() {
               <tr>
                 <th>Email</th>
                 <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Celular</th>
                 <th>Fecha de registro</th>
               </tr>
             </thead>
@@ -59,6 +61,8 @@ function UsuariosPage() {
                 <tr key={u.id}>
                   <td>{u.email}</td>
                   <td>{u.nombre || '—'}</td>
+                  <td>{u.apellido || '—'}</td>
+                  <td>{u.celular || '—'}</td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{formatFecha(u.fechaRegistro)}</td>
                 </tr>
               ))}
