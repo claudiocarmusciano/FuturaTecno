@@ -5,6 +5,7 @@ import com.futuratecno.api.dto.BuscarImagenesResponse;
 import com.futuratecno.api.dto.ClasificarCategoriasResponse;
 import com.futuratecno.api.dto.ProductoAdminDTO;
 import com.futuratecno.api.dto.ProductoEditDTO;
+import com.futuratecno.api.dto.IdsRequest;
 import com.futuratecno.application.ProductoAdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,6 +66,12 @@ public class ProductoAdminController {
     public ResponseEntity<?> asignarCategoria(@RequestBody AsignarCategoriaRequest req) {
         int n = productoAdminService.asignarCategoriaMasiva(req.getIds(), req.getCategoriaId());
         return ResponseEntity.ok(Map.of("actualizados", n, "mensaje", "Categoría asignada a " + n + " producto(s)."));
+    }
+
+    @PostMapping("/dar-de-baja")
+    public ResponseEntity<?> darDeBaja(@RequestBody IdsRequest req) {
+        int n = productoAdminService.eliminarMasivamente(req.getIds());
+        return ResponseEntity.ok(Map.of("eliminados", n, "mensaje", n + " producto(s) dados de baja."));
     }
 
     @DeleteMapping("/{id}")

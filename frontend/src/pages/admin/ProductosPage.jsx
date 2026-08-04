@@ -46,6 +46,7 @@ function ProductosPage() {
   const [seleccionados, setSeleccionados] = useState(new Set())
   const [catMasiva, setCatMasiva] = useState({ topId: '', subId: '' })
   const [asignando, setAsignando] = useState(false)
+  const [eliminandoMasiva, setEliminandoMasiva] = useState(false)
 
   const { padreDe, nodoDe } = indexarArbol(arbol)
 
@@ -176,6 +177,25 @@ function ProductosPage() {
       setMensaje('Error al asignar categoría: ' + (e.response?.data?.message || e.message))
     } finally {
       setAsignando(false)
+    }
+  }
+
+  const eliminarMasivamente = async () => {
+    const cantidad = seleccionados.size
+    if (cantidad === 0) return
+    if (!window.confirm(`¿Dar de baja ${cantidad} producto(s)? Dejarán de verse en el catálogo y en este listado.`)) return
+    setEliminandoMasiva(true)
+    setMensaje('')
+    try {
+      const res = await axios.post('/api/admin/productos/dar-de-baja', { ids: [...seleccionados] })
+      setSeleccionados(new Set())
+      await cargar()
+      setMensaje(res.data?.mensaje || `${cantidad} producto(s) dados de baja ✓`)
+    } catch (e) {
+      console.error(e)
+      setMensaje('Error al dar de baja los productos: ' + (e.response?.data?.message || e.message))
+    } finally {
+      setEliminandoMasiva(false)
     }
   }
 
@@ -450,10 +470,13 @@ function ProductosPage() {
                 </select>
               </div>
             )}
-            <button onClick={asignarMasiva} className="btn btn-primary" disabled={asignando}>
+            <button onClick={asignarMasiva} className="btn btn-primary" disabled={asignando || eliminandoMasiva}>
               {asignando ? 'Asignando...' : `Asignar categoría a ${seleccionados.size}`}
             </button>
-            <button onClick={() => setSeleccionados(new Set())} className="btn btn-secondary">Limpiar selección</button>
+            <button onClick={eliminarMasivamente} className="btn-accion danger" disabled={asignando || eliminandoMasiva}>
+              <IconTrash /> {eliminandoMasiva ? 'Dando de baja...' : `Dar de baja ${seleccionados.size}`}
+            </button>
+            <button onClick={() => setSeleccionados(new Set())} className="btn btn-secondary" disabled={asignando || eliminandoMasiva}>Limpiar selección</button>
           </div>
         )}
 

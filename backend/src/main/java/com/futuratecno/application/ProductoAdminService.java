@@ -119,6 +119,13 @@ public class ProductoAdminService {
         productoRepository.save(producto);
     }
 
+    /** Da de baja varios productos sin borrarlos físicamente. */
+    @Transactional
+    public int eliminarMasivamente(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return 0;
+        return productoRepository.desactivarPorIds(ids);
+    }
+
     /** Devuelve un producto con sus variantes en formato editable (precio en moneda de origen). */
     @Transactional(readOnly = true)
     public ProductoEditDTO obtenerParaEditar(Long productoId) {
