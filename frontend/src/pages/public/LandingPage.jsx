@@ -43,7 +43,7 @@ const FEATURES = [
     svg: <><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></> },
   { t: 'Envíos a todo el país', d: 'Te lo llevamos a donde estés, con una estimación clara de cuándo llega tu pedido.',
     svg: <><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></> },
-  { t: 'Atención por WhatsApp', d: 'Consultá disponibilidad y comprá hablando con una persona, no con un bot.',
+  { t: 'Atención por WhatsApp', d: 'Consultá disponibilidad y comprá con atención personalizada del otro lado, no con un bot.',
     svg: <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /> },
   { t: 'Catálogo amplio', d: 'Notebooks, PC, componentes, monitores, periféricos, redes, almacenamiento y más.',
     svg: <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></> },
