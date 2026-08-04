@@ -11,6 +11,7 @@ function ImagesPage() {
   const [buscando, setBuscando] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [edits, setEdits] = useState({}) // { [productoId]: urlEnEdicion }
+  const [busqueda, setBusqueda] = useState('')
 
   const cargar = async () => {
     setCargando(true)
@@ -67,6 +68,14 @@ function ImagesPage() {
 
   const conImagen = productos.filter(p => p.imagenUrl).length
   const sinImagen = productos.length - conImagen
+  const terminoBusqueda = busqueda.trim().toLowerCase()
+  const productosFiltrados = terminoBusqueda
+    ? productos.filter(p => [p.categoria, p.marca, p.modelo, p.proveedor, p.sku, p.especificaciones]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(terminoBusqueda))
+    : productos
 
   return (
     <div>
@@ -84,10 +93,20 @@ function ImagesPage() {
 
       <div className="card">
         <h2>Productos</h2>
+        <input
+          type="search"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar por marca, modelo, categoría, proveedor o SKU..."
+          aria-label="Buscar productos"
+          style={{ width: '100%', maxWidth: '560px', marginBottom: '16px', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '14px', color: 'var(--color-text)', background: 'var(--color-surface-2)' }}
+        />
         {cargando ? (
           <p>Cargando...</p>
         ) : productos.length === 0 ? (
           <p>No hay productos. Importá una lista primero en "Cargar por JSON".</p>
+        ) : productosFiltrados.length === 0 ? (
+          <p>No hay productos que coincidan con “{busqueda}”.</p>
         ) : (
           <table className="table">
             <thead>
@@ -99,7 +118,7 @@ function ImagesPage() {
               </tr>
             </thead>
             <tbody>
-              {productos.map(p => (
+              {productosFiltrados.map(p => (
                 <tr key={p.id}>
                   <td>
                     {(() => {
