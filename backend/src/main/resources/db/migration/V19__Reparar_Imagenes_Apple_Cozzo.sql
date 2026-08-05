@@ -24,9 +24,9 @@ WITH imagenes_validas(codigo_externo, url) AS (
 )
 UPDATE productos p
 SET imagen_url = i.url
-FROM imagenes_validas i
-JOIN proveedores pr ON pr.id = p.proveedor_id
+FROM imagenes_validas i, proveedores pr
 WHERE pr.codigo = 'COZ'
+  AND pr.id = p.proveedor_id
   AND p.codigo_externo = i.codigo_externo;
 
 UPDATE imagenes galeria
