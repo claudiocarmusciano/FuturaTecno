@@ -42,6 +42,7 @@ function ProductosPage() {
 
   // Filtro "solo sin categoría" + búsqueda + selección múltiple + cascada para asignación masiva.
   const [soloSinCategoria, setSoloSinCategoria] = useState(false)
+  const [proveedorFiltro, setProveedorFiltro] = useState('')
   const [busqueda, setBusqueda] = useState('')
   const [seleccionados, setSeleccionados] = useState(new Set())
   const [catMasiva, setCatMasiva] = useState({ topId: '', subId: '' })
@@ -144,7 +145,10 @@ function ProductosPage() {
 
   const productosVisibles = productos
     .filter(p => !soloSinCategoria || p.categoriaId == null)
+    .filter(p => !proveedorFiltro || p.proveedor === proveedorFiltro)
     .filter(coincide)
+  const proveedores = [...new Set(productos.map(p => p.proveedor).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'es'))
 
   const toggleSeleccion = (id) => setSeleccionados(prev => {
     const n = new Set(prev)
@@ -307,38 +311,38 @@ function ProductosPage() {
 
           <h3 style={{ fontSize: '15px', marginBottom: '4px' }}>Peso y dimensiones (para cotizar envío)</h3>
           <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
-            Opcional: si se deja vacío, se usa el default de la categoría. Cargalo solo si este producto puntual pesa
-            o mide distinto al resto de su categoría.
+            Si se deja vacío, se usa el valor por defecto de la categoría. Cargalo solo si este producto puntual pesa
+            o mide distinto al resto de su categoría; al guardar queda como un ajuste propio del producto.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginBottom: '18px' }}>
             <div>
-              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Peso (g)</label>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Peso (g) · default: {editData.pesoGramosDefault ?? '—'}</label>
               <input
-                style={inputStyle} type="number" min="1" placeholder="default categoría"
+                style={inputStyle} type="number" min="1" placeholder={editData.pesoGramosDefault != null ? `${editData.pesoGramosDefault} g` : 'sin default'}
                 value={editData.pesoGramos ?? ''}
                 onChange={e => setCampo('pesoGramos', e.target.value === '' ? null : Number(e.target.value))}
               />
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Alto (cm)</label>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Alto (cm) · default: {editData.altoCmDefault ?? '—'}</label>
               <input
-                style={inputStyle} type="number" min="1" placeholder="default categoría"
+                style={inputStyle} type="number" min="1" placeholder={editData.altoCmDefault != null ? `${editData.altoCmDefault} cm` : 'sin default'}
                 value={editData.altoCm ?? ''}
                 onChange={e => setCampo('altoCm', e.target.value === '' ? null : Number(e.target.value))}
               />
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Ancho (cm)</label>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Ancho (cm) · default: {editData.anchoCmDefault ?? '—'}</label>
               <input
-                style={inputStyle} type="number" min="1" placeholder="default categoría"
+                style={inputStyle} type="number" min="1" placeholder={editData.anchoCmDefault != null ? `${editData.anchoCmDefault} cm` : 'sin default'}
                 value={editData.anchoCm ?? ''}
                 onChange={e => setCampo('anchoCm', e.target.value === '' ? null : Number(e.target.value))}
               />
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Largo (cm)</label>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Largo (cm) · default: {editData.largoCmDefault ?? '—'}</label>
               <input
-                style={inputStyle} type="number" min="1" placeholder="default categoría"
+                style={inputStyle} type="number" min="1" placeholder={editData.largoCmDefault != null ? `${editData.largoCmDefault} cm` : 'sin default'}
                 value={editData.largoCm ?? ''}
                 onChange={e => setCampo('largoCm', e.target.value === '' ? null : Number(e.target.value))}
               />
@@ -444,6 +448,15 @@ function ProductosPage() {
                    onChange={e => { setSoloSinCategoria(e.target.checked); setSeleccionados(new Set()) }} />
             Solo sin categoría
           </label>
+          <select
+            value={proveedorFiltro}
+            onChange={e => { setProveedorFiltro(e.target.value); setSeleccionados(new Set()) }}
+            aria-label="Filtrar por proveedor"
+            style={{ padding: '7px 9px', border: '1px solid var(--color-border)', borderRadius: '8px', background: 'transparent', color: 'var(--color-text)', fontSize: '14px' }}
+          >
+            <option value="">Todos los proveedores</option>
+            {proveedores.map(proveedor => <option key={proveedor} value={proveedor}>{proveedor}</option>)}
+          </select>
           <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
             {productosVisibles.length} producto(s)
             {termino && productos.length !== productosVisibles.length && ` de ${productos.length}`}

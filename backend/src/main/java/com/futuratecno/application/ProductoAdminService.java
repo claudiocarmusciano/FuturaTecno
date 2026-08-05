@@ -7,6 +7,8 @@ import com.futuratecno.api.dto.ProductoEditDTO;
 import com.futuratecno.api.dto.VarianteEditDTO;
 import com.futuratecno.domain.Producto;
 import com.futuratecno.domain.Variante;
+import com.futuratecno.domain.Categoria;
+import com.futuratecno.infrastructure.CategoriaRepository;
 import com.futuratecno.infrastructure.ProductoRepository;
 import com.futuratecno.infrastructure.VarianteRepository;
 import org.slf4j.Logger;
@@ -34,6 +36,7 @@ public class ProductoAdminService {
     private final CotizacionService cotizacionService;
     private final CategoriaClasificadorService categoriaClasificadorService;
     private final CategoriaService categoriaService;
+    private final CategoriaRepository categoriaRepository;
 
     public ProductoAdminService(ProductoRepository productoRepository,
                                 VarianteRepository varianteRepository,
@@ -41,7 +44,8 @@ public class ProductoAdminService {
                                 AnthropicImageService anthropicImageService,
                                 CotizacionService cotizacionService,
                                 CategoriaClasificadorService categoriaClasificadorService,
-                                CategoriaService categoriaService) {
+                                CategoriaService categoriaService,
+                                CategoriaRepository categoriaRepository) {
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.icecatService = icecatService;
@@ -49,6 +53,7 @@ public class ProductoAdminService {
         this.cotizacionService = cotizacionService;
         this.categoriaClasificadorService = categoriaClasificadorService;
         this.categoriaService = categoriaService;
+        this.categoriaRepository = categoriaRepository;
     }
 
     /**
@@ -145,6 +150,12 @@ public class ProductoAdminService {
         dto.setAltoCm(p.getAltoCm());
         dto.setAnchoCm(p.getAnchoCm());
         dto.setLargoCm(p.getLargoCm());
+        Categoria hoja = p.getCategoriaId() != null ? categoriaRepository.findById(p.getCategoriaId()).orElse(null) : null;
+        Categoria padre = hoja != null ? hoja.getPadre() : null;
+        dto.setPesoGramosDefault(primero(hoja != null ? hoja.getPesoGramosDefault() : null, padre != null ? padre.getPesoGramosDefault() : null));
+        dto.setAltoCmDefault(primero(hoja != null ? hoja.getAltoCmDefault() : null, padre != null ? padre.getAltoCmDefault() : null));
+        dto.setAnchoCmDefault(primero(hoja != null ? hoja.getAnchoCmDefault() : null, padre != null ? padre.getAnchoCmDefault() : null));
+        dto.setLargoCmDefault(primero(hoja != null ? hoja.getLargoCmDefault() : null, padre != null ? padre.getLargoCmDefault() : null));
         if (p.getProveedor() != null) {
             dto.setMargenPorcentaje(p.getProveedor().getMargenPorcentaje());
             dto.setFletePorcentaje(p.getProveedor().getFletePorcentaje());
@@ -159,6 +170,11 @@ public class ProductoAdminService {
         }
         dto.setVariantes(variantes);
         return dto;
+    }
+
+    private Integer primero(Integer... valores) {
+        for (Integer valor : valores) if (valor != null) return valor;
+        return null;
     }
 
     /** Actualiza los datos del producto y de cada variante. Recalcula el costo USD según la moneda. */

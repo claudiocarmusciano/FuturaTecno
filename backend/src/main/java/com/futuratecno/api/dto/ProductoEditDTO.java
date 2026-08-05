@@ -20,6 +20,12 @@ public class ProductoEditDTO {
     private Integer anchoCm;
     private Integer largoCm;
 
+    // Valores aplicados desde la categoría cuando el producto no tiene un override propio.
+    private Integer pesoGramosDefault;
+    private Integer altoCmDefault;
+    private Integer anchoCmDefault;
+    private Integer largoCmDefault;
+
     // Datos para que el editor calcule el precio de venta en vivo (solo lectura).
     private BigDecimal margenPorcentaje;
     private BigDecimal fletePorcentaje;
@@ -71,4 +77,16 @@ public class ProductoEditDTO {
 
     public Integer getLargoCm() { return largoCm; }
     public void setLargoCm(Integer largoCm) { this.largoCm = largoCm; }
+
+    public Integer getPesoGramosDefault() { return pesoGramosDefault; }
+    public void setPesoGramosDefault(Integer pesoGramosDefault) { this.pesoGramosDefault = pesoGramosDefault; }
+
+    public Integer getAltoCmDefault() { return altoCmDefault; }
+    public void setAltoCmDefault(Integer altoCmDefault) { this.altoCmDefault = altoCmDefault; }
+
+    public Integer getAnchoCmDefault() { return anchoCmDefault; }
+    public void setAnchoCmDefault(Integer anchoCmDefault) { this.anchoCmDefault = anchoCmDefault; }
+
+    public Integer getLargoCmDefault() { return largoCmDefault; }
+    public void setLargoCmDefault(Integer largoCmDefault) { this.largoCmDefault = largoCmDefault; }
 }
