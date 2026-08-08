@@ -14,6 +14,7 @@ import CategoriasPage from './pages/admin/CategoriasPage'
 import CatalogPage from './pages/public/CatalogPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
 import LandingPage from './pages/public/LandingPage'
+import PreLandingPage from './pages/public/PreLandingPage'
 import CartPage from './pages/public/CartPage'
 import CheckoutPage from './pages/public/CheckoutPage'
 import MisPedidosPage from './pages/public/MisPedidosPage'
@@ -30,8 +31,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* La home es la landing (tiene su propio header/footer). El catálogo vive en /catalogo. */}
-        <Route path="/" element={<LandingPage />} />
+        {/* La home presenta el sorteo y guía a quienes llegan por primera vez. */}
+        <Route path="/" element={<PreLandingPage />} />
+        <Route path="/inicio" element={<LandingPage />} />
 
         <Route element={<PublicLayout />}>
           <Route path="/catalogo" element={<CatalogPage />} />
