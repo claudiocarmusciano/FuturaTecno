@@ -10,6 +10,10 @@ public class UsuarioDTO {
     private String celular;
     private String rol;
     private LocalDateTime fechaRegistro;
+    private Boolean emailVerificado;
+    private Boolean whatsappVerificado;
+    private Boolean whatsappAgendado;
+    private String whatsappVerificacionCodigo;
 
     public UsuarioDTO() {}
 
@@ -43,4 +47,13 @@ public class UsuarioDTO {
 
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
     public void setFechaRegistro(LocalDateTime fechaRegistro) { this.fechaRegistro = fechaRegistro; }
+
+    public Boolean getEmailVerificado() { return emailVerificado; }
+    public void setEmailVerificado(Boolean emailVerificado) { this.emailVerificado = emailVerificado; }
+    public Boolean getWhatsappVerificado() { return whatsappVerificado; }
+    public void setWhatsappVerificado(Boolean whatsappVerificado) { this.whatsappVerificado = whatsappVerificado; }
+    public Boolean getWhatsappAgendado() { return whatsappAgendado; }
+    public void setWhatsappAgendado(Boolean whatsappAgendado) { this.whatsappAgendado = whatsappAgendado; }
+    public String getWhatsappVerificacionCodigo() { return whatsappVerificacionCodigo; }
+    public void setWhatsappVerificacionCodigo(String whatsappVerificacionCodigo) { this.whatsappVerificacionCodigo = whatsappVerificacionCodigo; }
 }

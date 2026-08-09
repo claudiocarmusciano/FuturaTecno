@@ -59,7 +59,7 @@ function RegisterPage() {
         </div>
         <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Crear cuenta</h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginBottom: '24px', textAlign: 'center' }}>
-          Creá tu cuenta. Después verificaremos tu WhatsApp y activaremos tu email para participar del sorteo.
+          Creá tu cuenta, activá tu email y después validaremos tu WhatsApp para participar del sorteo.
         </p>
 
         {error && (

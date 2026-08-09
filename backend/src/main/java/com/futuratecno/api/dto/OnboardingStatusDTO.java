@@ -1,7 +1,8 @@
 package com.futuratecno.api.dto;
 
 public record OnboardingStatusDTO(boolean whatsappVerificado, boolean emailVerificado,
-                                  boolean whatsappAgendado, boolean instagramCompletado) {
-    public boolean pasoUnoCompleto() { return whatsappVerificado && emailVerificado; }
-    public boolean completo() { return pasoUnoCompleto() && whatsappAgendado && instagramCompletado; }
+                                  boolean whatsappAgendado, boolean instagramCompletado,
+                                  String whatsappVerificacionCodigo) {
+    public boolean pasoUnoCompleto() { return emailVerificado; }
+    public boolean completo() { return pasoUnoCompleto() && whatsappVerificado && instagramCompletado; }
 }

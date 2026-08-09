@@ -28,24 +28,21 @@ public class AuthService {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final long RESET_TOKEN_TTL_MINUTOS = 60;   // el enlace de reseteo vale 1 hora
     private static final long ACTIVACION_TOKEN_TTL_MINUTOS = 24 * 60;
-    private static final long CODIGO_WHATSAPP_TTL_MINUTOS = 10;
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final GoogleTokenVerifier googleTokenVerifier;
     private final EmailService emailService;
-    private final WhatsAppVerificationService whatsAppVerificationService;
 
     public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, GoogleTokenVerifier googleTokenVerifier,
-                       EmailService emailService, WhatsAppVerificationService whatsAppVerificationService) {
+                       EmailService emailService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.googleTokenVerifier = googleTokenVerifier;
         this.emailService = emailService;
-        this.whatsAppVerificationService = whatsAppVerificationService;
     }
 
     @Transactional
@@ -61,9 +58,6 @@ public class AuthService {
         if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("Ya existe una cuenta con ese email.");
         }
-        if (!whatsAppVerificationService.estaConfigurado()) {
-            throw new IllegalStateException("La verificación por WhatsApp todavía no está configurada.");
-        }
         if (!emailService.estaConfigurado()) {
             throw new IllegalStateException("La activación por email todavía no está configurada.");
         }
@@ -76,36 +70,17 @@ public class AuthService {
         u.setCelular(celular);
         u.setRol("USUARIO");
         u.setActivo(true);
-        String codigoWhatsapp = String.format("%06d", RANDOM.nextInt(1_000_000));
         String tokenEmail = generarTokenPlano();
-        u.setWhatsappCodigoHash(hash(codigoWhatsapp));
-        u.setWhatsappCodigoExpira(LocalDateTime.now().plusMinutes(CODIGO_WHATSAPP_TTL_MINUTOS));
+        u.setWhatsappVerificacionCodigo(generarCodigoWhatsapp());
         u.setEmailActivacionToken(hash(tokenEmail));
         u.setEmailActivacionExpira(LocalDateTime.now().plusMinutes(ACTIVACION_TOKEN_TTL_MINUTOS));
         usuarioRepository.save(u);
 
-        // La plantilla de Meta es la que lleva el OTP; Resend manda el botón de activación.
-        whatsAppVerificationService.enviarCodigo(celular, codigoWhatsapp);
         String enlace = baseUrl + "/activar-cuenta?token=" + tokenEmail;
         emailService.enviarHtmlAsync(email, "Activá tu cuenta — FuturaTecno", emailActivacion(enlace));
 
         String token = jwtService.generarToken(u.getEmail(), u.getRol());
         return new AuthResponse(token, u.getEmail(), u.getNombre(), u.getRol());
-    }
-
-    @Transactional
-    public void verificarWhatsapp(String email, String codigo) {
-        Usuario u = usuarioPorEmail(email);
-        String limpio = codigo == null ? "" : codigo.trim();
-        if (!limpio.matches("[0-9]{6}") || u.getWhatsappCodigoHash() == null
-                || u.getWhatsappCodigoExpira() == null || u.getWhatsappCodigoExpira().isBefore(LocalDateTime.now())
-                || !hash(limpio).equals(u.getWhatsappCodigoHash())) {
-            throw new IllegalArgumentException("El código es inválido o venció. Registrate de nuevo para recibir otro.");
-        }
-        u.setWhatsappVerificado(true);
-        u.setWhatsappCodigoHash(null);
-        u.setWhatsappCodigoExpira(null);
-        usuarioRepository.save(u);
     }
 
     @Transactional
@@ -125,23 +100,42 @@ public class AuthService {
     public OnboardingStatusDTO estadoOnboarding(String email) {
         Usuario u = usuarioPorEmail(email);
         return new OnboardingStatusDTO(Boolean.TRUE.equals(u.getWhatsappVerificado()), Boolean.TRUE.equals(u.getEmailVerificado()),
-                Boolean.TRUE.equals(u.getPasoWhatsappAgendado()), Boolean.TRUE.equals(u.getPasoInstagramCompletado()));
+                Boolean.TRUE.equals(u.getPasoWhatsappAgendado()), Boolean.TRUE.equals(u.getPasoInstagramCompletado()),
+                u.getWhatsappVerificacionCodigo());
     }
 
     @Transactional
     public OnboardingStatusDTO completarPaso(String email, int paso) {
         Usuario u = usuarioPorEmail(email);
         if (paso == 2) {
-            if (!Boolean.TRUE.equals(u.getWhatsappVerificado()) || !Boolean.TRUE.equals(u.getEmailVerificado())) {
-                throw new IllegalArgumentException("Primero verificá tu WhatsApp y activá el email.");
+            if (!Boolean.TRUE.equals(u.getEmailVerificado())) {
+                throw new IllegalArgumentException("Primero activá tu email.");
             }
             u.setPasoWhatsappAgendado(true);
         } else if (paso == 3) {
-            if (!Boolean.TRUE.equals(u.getPasoWhatsappAgendado())) throw new IllegalArgumentException("Primero completá el paso 2.");
+            if (!Boolean.TRUE.equals(u.getWhatsappVerificado())) throw new IllegalArgumentException("Esperá a que validemos tu mensaje de WhatsApp.");
             u.setPasoInstagramCompletado(true);
         } else throw new IllegalArgumentException("Paso inválido.");
         usuarioRepository.save(u);
         return estadoOnboarding(email);
+    }
+
+    @Transactional
+    public void validarWhatsappManual(Long usuarioId) {
+        Usuario u = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado."));
+        if (!Boolean.TRUE.equals(u.getPasoWhatsappAgendado())) {
+            throw new IllegalArgumentException("El usuario todavía no confirmó que envió el mensaje por WhatsApp.");
+        }
+        u.setWhatsappVerificado(true);
+        usuarioRepository.save(u);
+    }
+
+    private String generarCodigoWhatsapp() {
+        final String caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        StringBuilder codigo = new StringBuilder("FT-");
+        for (int i = 0; i < 6; i++) codigo.append(caracteres.charAt(RANDOM.nextInt(caracteres.length())));
+        return codigo.toString();
     }
 
     private Usuario usuarioPorEmail(String email) {

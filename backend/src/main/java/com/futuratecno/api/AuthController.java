@@ -6,7 +6,6 @@ import com.futuratecno.api.dto.GoogleLoginRequest;
 import com.futuratecno.api.dto.LoginRequest;
 import com.futuratecno.api.dto.RegisterRequest;
 import com.futuratecno.api.dto.ResetPasswordRequest;
-import com.futuratecno.api.dto.VerificarWhatsappRequest;
 import org.springframework.security.core.Authentication;
 import com.futuratecno.application.AuthService;
 import org.springframework.http.HttpStatus;
@@ -50,12 +49,6 @@ public class AuthController {
     @GetMapping("/onboarding")
     public ResponseEntity<?> onboarding(Authentication auth) {
         return ResponseEntity.ok(authService.estadoOnboarding(auth.getName()));
-    }
-
-    @PostMapping("/onboarding/verificar-whatsapp")
-    public ResponseEntity<?> verificarWhatsapp(Authentication auth, @RequestBody VerificarWhatsappRequest req) {
-        try { authService.verificarWhatsapp(auth.getName(), req.getCodigo()); return ResponseEntity.ok(authService.estadoOnboarding(auth.getName())); }
-        catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 
     @PostMapping("/onboarding/paso/{paso}")

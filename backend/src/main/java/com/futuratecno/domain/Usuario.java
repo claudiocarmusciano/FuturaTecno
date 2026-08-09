@@ -44,6 +44,8 @@ public class Usuario extends BaseEntity {
     private String whatsappCodigoHash;
     @Column(name = "whatsapp_codigo_expira")
     private java.time.LocalDateTime whatsappCodigoExpira;
+    @Column(name = "whatsapp_verificacion_codigo")
+    private String whatsappVerificacionCodigo;
     @Column(name = "paso_whatsapp_agendado", nullable = false)
     private Boolean pasoWhatsappAgendado = false;
     @Column(name = "paso_instagram_completado", nullable = false)
@@ -91,6 +93,8 @@ public class Usuario extends BaseEntity {
     public void setWhatsappCodigoHash(String whatsappCodigoHash) { this.whatsappCodigoHash = whatsappCodigoHash; }
     public java.time.LocalDateTime getWhatsappCodigoExpira() { return whatsappCodigoExpira; }
     public void setWhatsappCodigoExpira(java.time.LocalDateTime whatsappCodigoExpira) { this.whatsappCodigoExpira = whatsappCodigoExpira; }
+    public String getWhatsappVerificacionCodigo() { return whatsappVerificacionCodigo; }
+    public void setWhatsappVerificacionCodigo(String whatsappVerificacionCodigo) { this.whatsappVerificacionCodigo = whatsappVerificacionCodigo; }
     public Boolean getPasoWhatsappAgendado() { return pasoWhatsappAgendado; }
     public void setPasoWhatsappAgendado(Boolean pasoWhatsappAgendado) { this.pasoWhatsappAgendado = pasoWhatsappAgendado; }
     public Boolean getPasoInstagramCompletado() { return pasoInstagramCompletado; }
