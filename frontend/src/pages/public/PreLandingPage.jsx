@@ -42,7 +42,7 @@ function PreLandingPage() {
     : undefined
   return <main className="prelanding">
     <div className="prelanding-glow prelanding-glow-one" /><div className="prelanding-glow prelanding-glow-two" />
-    <header className="prelanding-header"><Link to="/inicio"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link><Link className="prelanding-skip" to="/inicio">Ya tengo cuenta · Ver catálogo →</Link></header>
+    <header className="prelanding-header"><Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>{isAuth && estado ? <Link className="prelanding-skip" to="/inicio">Ver catálogo →</Link> : <Link className="prelanding-skip" to="/login">Ya tengo cuenta · Iniciar sesión →</Link>}</header>
     <section className="prelanding-content"><div className="prelanding-copy">
       <span className="prelanding-badge"><span /> Sorteo especial de bienvenida</span>
       <h1>Tu próximo upgrade puede ser una <strong>silla gamer ergonómica.</strong></h1>

@@ -42,7 +42,7 @@
 .prelanding-reminder svg { flex: 0 0 19px; width: 19px; height: 19px; fill: none; stroke: #c8e048; stroke-width: 1.8; }
 .prelanding-prize { min-height: 560px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; background: radial-gradient(ellipse at 50% 37%, #f2f6c9 0%, #d7e77c 28%, #a2b640 53%, #4d5a1c 100%); border: 1px solid rgba(220,239,117,.65); border-radius: 30px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 30px 75px rgba(0,0,0,.38); }
 .prelanding-prize::after { content: ''; position: absolute; width: 80%; height: 24px; bottom: 70px; border-radius: 50%; background: rgba(0,0,0,.5); filter: blur(15px); }
-.prelanding-prize > p { position: absolute; top: 25px; z-index: 2; text-transform: uppercase; letter-spacing: .17em; color: #e5f179; font-size: 11px; font-weight: 800; }
+.prelanding-prize > p { position: absolute; top: 24px; z-index: 2; text-transform: uppercase; letter-spacing: .15em; color: #f5f7d6; background: rgba(22,24,29,.86); border: 1px solid rgba(226,242,123,.85); box-shadow: 0 5px 18px rgba(0,0,0,.32); border-radius: 999px; padding: 8px 14px; font-size: 11px; font-weight: 850; }
 .prelanding-prize img { z-index: 1; width: min(95%, 465px); max-height: 480px; object-fit: contain; object-position: bottom; mix-blend-mode: multiply; filter: brightness(1.13) contrast(1.22) drop-shadow(0 23px 17px rgba(0,0,0,.34)); margin-bottom: 10px; }
 .prelanding-prize-name { position: absolute; z-index: 3; left: 26px; bottom: 63px; text-transform: uppercase; line-height: .88; color: #fff; letter-spacing: -.06em; font-size: clamp(29px, 3vw, 47px); font-weight: 850; }
 .prelanding-prize-name span { color: #c8e048; }

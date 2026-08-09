@@ -34,11 +34,11 @@ function App() {
       <Routes>
         {/* La home presenta el sorteo y guía a quienes llegan por primera vez. */}
         <Route path="/" element={<PreLandingPage />} />
-        <Route path="/inicio" element={<LandingPage />} />
+        <Route path="/inicio" element={<RutaPrivada><LandingPage /></RutaPrivada>} />
 
         <Route element={<PublicLayout />}>
-          <Route path="/catalogo" element={<CatalogPage />} />
-          <Route path="/producto/:id" element={<ProductDetailPage />} />
+          <Route path="/catalogo" element={<RutaPrivada><CatalogPage /></RutaPrivada>} />
+          <Route path="/producto/:id" element={<RutaPrivada><ProductDetailPage /></RutaPrivada>} />
           {/* El carrito y el checkout son públicos: la sesión se pide recién al confirmar. */}
           <Route path="/carrito" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
