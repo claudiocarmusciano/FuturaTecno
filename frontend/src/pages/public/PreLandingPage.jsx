@@ -7,11 +7,26 @@ import './PreLanding.css'
 const instagramUrl = 'https://www.instagram.com/futuratecnoargentina'
 
 function PreLandingPage() {
-  const { isAuth } = useAuth()
+  const { isAuth, logout } = useAuth()
   const [estado, setEstado] = useState(null)
+  const [estadoCargado, setEstadoCargado] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [guardando, setGuardando] = useState(false)
-  const actualizar = () => isAuth && axios.get('/api/auth/onboarding').then(r => setEstado(r.data)).catch(() => {})
+  const actualizar = () => {
+    if (!isAuth) {
+      setEstado(null)
+      setEstadoCargado(true)
+      return
+    }
+    setEstadoCargado(false)
+    axios.get('/api/auth/onboarding')
+      .then(r => setEstado(r.data))
+      .catch(e => {
+        setEstado(null)
+        if ([401, 403].includes(e.response?.status)) logout()
+      })
+      .finally(() => setEstadoCargado(true))
+  }
   useEffect(() => { actualizar() }, [isAuth])
   const completar = async paso => {
     setMensaje(''); setGuardando(true)
@@ -21,6 +36,7 @@ function PreLandingPage() {
   const pasoUno = estado?.pasoUnoCompleto
   const pasoDos = estado?.whatsappAgendado
   const pasoTres = estado?.instagramCompletado
+  const necesitaRegistro = estadoCargado && (!isAuth || !estado)
   const whatsappUrl = estado?.whatsappVerificacionCodigo
     ? 'https://wa.me/5492284381111?text=' + encodeURIComponent(`Hola FuturaTecno, verifico mi registro para el sorteo: ${estado.whatsappVerificacionCodigo}`)
     : undefined
@@ -33,8 +49,8 @@ function PreLandingPage() {
       <p className="prelanding-lead">Si es tu primera vez en FuturaTecno, registrate y completá estos pasos para participar del sorteo.</p>
       <ol className="prelanding-steps">
         <li className={pasoUno ? 'completo' : ''}><span className="prelanding-step-number">1</span><div><b>{pasoUno ? 'Email activado.' : 'Registrate con tu número de WhatsApp.'}</b><small>{pasoUno ? 'Tu cuenta ya está confirmada.' : 'Te enviaremos un botón de activación por email.'}</small>
-          {isAuth && !pasoUno && <small className="prelanding-email-note">Revisá tu email y hacé clic en <b>Activar cuenta</b>. Después volvé acá.</small>}</div>
-          {!isAuth ? <Link className="prelanding-action primary" to="/registro">Registrarme →</Link> : pasoUno ? <span className="prelanding-done">✓ Listo</span> : null}</li>
+          {isAuth && estado && !pasoUno && <small className="prelanding-email-note">Revisá tu email y hacé clic en <b>Activar cuenta</b>. Después volvé acá.</small>}</div>
+          {necesitaRegistro ? <Link className="prelanding-action primary" to="/registro">Completar registro →</Link> : pasoUno ? <span className="prelanding-done">✓ Listo</span> : null}</li>
         <li className={estado?.whatsappVerificado ? 'completo' : (!pasoUno ? 'bloqueado' : '')}><span className="prelanding-step-number">2</span><div><b>{estado?.whatsappVerificado ? 'WhatsApp validado.' : pasoDos ? 'Estamos validando tu WhatsApp.' : 'Agendanos y mandanos un mensaje.'}</b><small>{estado?.whatsappVerificado ? 'Confirmamos que el número ingresado es tuyo.' : pasoDos ? 'Buscaremos tu código en WhatsApp y confirmaremos el paso.' : 'Guardá nuestro número y enviá el mensaje precompletado para validar tu celular.'}</small></div>
           {estado?.whatsappVerificado ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className="prelanding-action whatsapp" href={pasoUno ? whatsappUrl : undefined} target="_blank" rel="noreferrer" onClick={e => !pasoUno && e.preventDefault()}>Abrir WhatsApp</a><button className="prelanding-action outline" disabled={!pasoUno || pasoDos || guardando} onClick={() => completar(2)}>Ya lo hice</button></div>}</li>
         <li className={pasoTres ? 'completo' : (!estado?.whatsappVerificado ? 'bloqueado' : '')}><span className="prelanding-step-number">3</span><div><b>{pasoTres ? 'Instagram completado.' : 'Seguinos y etiquetá a 3 amigos en Instagram.'}</b><small>Hacelo en el posteo del sorteo para dejar registrada tu participación.</small></div>
