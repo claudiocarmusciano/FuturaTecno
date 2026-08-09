@@ -41,8 +41,7 @@ public class AuthController {
     @GetMapping("/activar-cuenta")
     public ResponseEntity<?> activarCuenta(@RequestParam String token) {
         try {
-            authService.activarEmail(token);
-            return ResponseEntity.ok(Map.of("mensaje", "Email activado."));
+            return ResponseEntity.ok(authService.activarEmail(token));
         } catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 

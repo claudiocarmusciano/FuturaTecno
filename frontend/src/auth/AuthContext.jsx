@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 
 const AuthContext = createContext(null)
@@ -29,11 +29,11 @@ export function AuthProvider({ children }) {
     setListo(true)
   }, [])
 
-  const guardarSesion = (data) => {
+  const guardarSesion = useCallback((data) => {
     localStorage.setItem('auth', JSON.stringify(data))
     aplicarToken(data.token)
     setUser(data)
-  }
+  }, [])
 
   const login = async (email, password) => {
     const res = await axios.post('/api/auth/login', { email, password })
@@ -67,6 +67,7 @@ export function AuthProvider({ children }) {
     isAuth: !!user,
     login,
     register,
+    guardarSesion,
     loginConGoogle,
     logout
   }

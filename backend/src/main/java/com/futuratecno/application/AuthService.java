@@ -84,7 +84,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void activarEmail(String tokenPlano) {
+    public AuthResponse activarEmail(String tokenPlano) {
         if (tokenPlano == null || tokenPlano.isBlank()) throw new IllegalArgumentException("Enlace de activación inválido.");
         Usuario u = usuarioRepository.findByEmailActivacionToken(hash(tokenPlano)).orElse(null);
         if (u == null || u.getEmailActivacionExpira() == null || u.getEmailActivacionExpira().isBefore(LocalDateTime.now())) {
@@ -94,6 +94,8 @@ public class AuthService {
         u.setEmailActivacionToken(null);
         u.setEmailActivacionExpira(null);
         usuarioRepository.save(u);
+        String token = jwtService.generarToken(u.getEmail(), u.getRol());
+        return new AuthResponse(token, u.getEmail(), u.getNombre(), u.getRol());
     }
 
     @Transactional(readOnly = true)
