@@ -61,6 +61,15 @@ invid:
   username: ${INVID_USERNAME:}
   password: ${INVID_PASSWORD:}
 
+whatsapp:
+  meta:
+    # Cloud API directa: crear estas credenciales en Meta for Developers y una plantilla
+    # de autenticación (por defecto, "codigo_verificacion") con una variable para el OTP.
+    access-token: ${WHATSAPP_META_ACCESS_TOKEN:}
+    phone-number-id: ${WHATSAPP_META_PHONE_NUMBER_ID:}
+    template: ${WHATSAPP_META_TEMPLATE:codigo_verificacion}
+    api-version: ${WHATSAPP_META_API_VERSION:v22.0}
+
 andreani:
   # Credencial de la cuenta Pyme, generada en el portal de Andreani (Integraciones → WooCommerce).
   # Vacía = cotización de envío desactivada (el checkout sigue andando, sin costo de envío).

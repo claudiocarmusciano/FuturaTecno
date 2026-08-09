@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
-import GoogleLoginButton from '../../components/GoogleLoginButton'
 import PasswordInput from '../../components/PasswordInput'
 
 const celularArgentinoValido = (valor) => {
@@ -15,11 +14,11 @@ const celularArgentinoValido = (valor) => {
 }
 
 function RegisterPage() {
-  const { register, loginConGoogle } = useAuth()
+  const { register } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   // Si llegó desde una pantalla que exige sesión (ej. el checkout), vuelve ahí al registrarse.
-  const destino = location.state?.from || '/catalogo'
+  const destino = location.state?.from || '/'
   const [nombre, setNombre] = useState('')
   const [apellido, setApellido] = useState('')
   const [celular, setCelular] = useState('')
@@ -50,19 +49,6 @@ function RegisterPage() {
     }
   }
 
-  const handleGoogle = async (credential) => {
-    setError('')
-    setCargando(true)
-    try {
-      await loginConGoogle(credential)
-      navigate(destino) // queda logueado
-    } catch (err) {
-      setError(err.response?.data?.error || 'No se pudo registrar con Google.')
-    } finally {
-      setCargando(false)
-    }
-  }
-
   return (
     <div style={{ maxWidth: '400px', margin: '60px auto', padding: '0 20px' }}>
       <div className="card">
@@ -73,7 +59,7 @@ function RegisterPage() {
         </div>
         <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Crear cuenta</h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginBottom: '24px', textAlign: 'center' }}>
-          Creá tu cuenta para recibir novedades, ofertas y participar de sorteos.
+          Creá tu cuenta. Después verificaremos tu WhatsApp y activaremos tu email para participar del sorteo.
         </p>
 
         {error && (
@@ -117,8 +103,6 @@ function RegisterPage() {
           Tu celular se utiliza para recibir notificaciones, ofertas, promociones y regalos. Es requisito para participar de los sorteos; podés darte de baja del grupo de difusión cuando quieras.<br /><br />
           Para participar de los sorteos también necesitás seguirnos en Instagram: <strong style={{ color: 'var(--color-text)' }}>@futuratecnoargentina</strong>.
         </div>
-
-        <GoogleLoginButton onCredential={handleGoogle} onError={setError} text="signup_with" divider />
 
         <p style={{ fontSize: '14px', marginTop: '16px', textAlign: 'center' }}>
           ¿Ya tenés cuenta? <Link to="/login" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Iniciá sesión</Link>

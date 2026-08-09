@@ -36,6 +36,23 @@ public class Usuario extends BaseEntity {
     @Column(name = "reset_token_expira")
     private java.time.LocalDateTime resetTokenExpira;
 
+    @Column(name = "email_verificado", nullable = false)
+    private Boolean emailVerificado = false;
+    @Column(name = "whatsapp_verificado", nullable = false)
+    private Boolean whatsappVerificado = false;
+    @Column(name = "whatsapp_codigo_hash")
+    private String whatsappCodigoHash;
+    @Column(name = "whatsapp_codigo_expira")
+    private java.time.LocalDateTime whatsappCodigoExpira;
+    @Column(name = "paso_whatsapp_agendado", nullable = false)
+    private Boolean pasoWhatsappAgendado = false;
+    @Column(name = "paso_instagram_completado", nullable = false)
+    private Boolean pasoInstagramCompletado = false;
+    @Column(name = "email_activacion_token")
+    private String emailActivacionToken;
+    @Column(name = "email_activacion_expira")
+    private java.time.LocalDateTime emailActivacionExpira;
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
@@ -65,4 +82,21 @@ public class Usuario extends BaseEntity {
 
     public java.time.LocalDateTime getResetTokenExpira() { return resetTokenExpira; }
     public void setResetTokenExpira(java.time.LocalDateTime resetTokenExpira) { this.resetTokenExpira = resetTokenExpira; }
+
+    public Boolean getEmailVerificado() { return emailVerificado; }
+    public void setEmailVerificado(Boolean emailVerificado) { this.emailVerificado = emailVerificado; }
+    public Boolean getWhatsappVerificado() { return whatsappVerificado; }
+    public void setWhatsappVerificado(Boolean whatsappVerificado) { this.whatsappVerificado = whatsappVerificado; }
+    public String getWhatsappCodigoHash() { return whatsappCodigoHash; }
+    public void setWhatsappCodigoHash(String whatsappCodigoHash) { this.whatsappCodigoHash = whatsappCodigoHash; }
+    public java.time.LocalDateTime getWhatsappCodigoExpira() { return whatsappCodigoExpira; }
+    public void setWhatsappCodigoExpira(java.time.LocalDateTime whatsappCodigoExpira) { this.whatsappCodigoExpira = whatsappCodigoExpira; }
+    public Boolean getPasoWhatsappAgendado() { return pasoWhatsappAgendado; }
+    public void setPasoWhatsappAgendado(Boolean pasoWhatsappAgendado) { this.pasoWhatsappAgendado = pasoWhatsappAgendado; }
+    public Boolean getPasoInstagramCompletado() { return pasoInstagramCompletado; }
+    public void setPasoInstagramCompletado(Boolean pasoInstagramCompletado) { this.pasoInstagramCompletado = pasoInstagramCompletado; }
+    public String getEmailActivacionToken() { return emailActivacionToken; }
+    public void setEmailActivacionToken(String emailActivacionToken) { this.emailActivacionToken = emailActivacionToken; }
+    public java.time.LocalDateTime getEmailActivacionExpira() { return emailActivacionExpira; }
+    public void setEmailActivacionExpira(java.time.LocalDateTime emailActivacionExpira) { this.emailActivacionExpira = emailActivacionExpira; }
 }

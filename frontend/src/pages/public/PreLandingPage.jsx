@@ -1,79 +1,54 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import axios from 'axios'
+import { useAuth } from '../../auth/AuthContext'
 import './PreLanding.css'
 
-const whatsappUrl = 'https://wa.me/5492284381111?text=' + encodeURIComponent(
-  '¡Hola FuturaTecno! Ya quiero participar del sorteo de la silla gamer.'
-)
+const whatsappUrl = 'https://wa.me/5492284381111?text=' + encodeURIComponent('¡Hola FuturaTecno! Ya quiero participar del sorteo de la silla gamer.')
 const instagramUrl = 'https://www.instagram.com/futuratecnoargentina'
 
-const Icon = ({ children }) => <svg viewBox="0 0 24 24" aria-hidden="true">{children}</svg>
-
 function PreLandingPage() {
-  return (
-    <main className="prelanding">
-      <div className="prelanding-glow prelanding-glow-one" />
-      <div className="prelanding-glow prelanding-glow-two" />
-
-      <header className="prelanding-header">
-        <Link to="/inicio" aria-label="Ir a FuturaTecno">
-          <img src="/logo.png?v=2" alt="FuturaTecno" />
-        </Link>
-        <Link className="prelanding-skip" to="/inicio">Ya tengo cuenta · Ver catálogo →</Link>
-      </header>
-
-      <section className="prelanding-content">
-        <div className="prelanding-copy">
-          <span className="prelanding-badge"><span /> Sorteo especial de bienvenida</span>
-          <h1>Tu próximo upgrade puede ser una <strong>silla gamer ergonómica.</strong></h1>
-          <p className="prelanding-lead">
-            Si es tu primera vez en FuturaTecno, registrate y completá estos pasos para participar del sorteo.
-          </p>
-
-          <ol className="prelanding-steps">
-            <li>
-              <span className="prelanding-step-number">1</span>
-              <div><b>Registrate con tu número de WhatsApp.</b><small>Así podemos identificar tu participación y avisarte las novedades.</small></div>
-              <Link className="prelanding-action primary" to="/registro">
-                Registrarme <span>→</span>
-              </Link>
-            </li>
-            <li>
-              <span className="prelanding-step-number">2</span>
-              <div><b>Abrí WhatsApp y agendanos.</b><small>Guardá el número de FuturaTecno para recibir novedades del sorteo.</small></div>
-              <a className="prelanding-action whatsapp" href={whatsappUrl} target="_blank" rel="noreferrer">
-                <Icon><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.5 4.1 1.5 5.9L0 24l6.5-1.7a11.8 11.8 0 0 0 5.6 1.4h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.5-8.4ZM12.1 21.7a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.9 1 1-3.8-.2-.4a9.7 9.7 0 0 1-1.5-5.2C2.1 6.3 6.5 2 12 2c2.6 0 5.1 1 7 2.9a9.8 9.8 0 0 1 2.9 7c0 5.4-4.4 9.8-9.8 9.8Zm5.4-7.3c-.3-.1-1.8-.9-2.1-1s-.5-.1-.7.2-.8 1-1 1.2-.3.2-.6.1c-1.8-.9-3-2.5-3.3-3-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5s0-.4 0-.5c-.1-.1-.7-1.7-1-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4s-1 1-1 2.5 1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.1 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2.1-1.4.3-.7.3-1.3.2-1.4-.1-.1-.3-.2-.6-.4Z" /></Icon>
-                Abrir WhatsApp
-              </a>
-            </li>
-            <li>
-              <span className="prelanding-step-number">3</span>
-              <div><b>Seguinos y etiquetá a 3 amigos en Instagram.</b><small>Hacelo en el posteo del sorteo para dejar registrada tu participación.</small></div>
-              <a className="prelanding-action instagram" href={instagramUrl} target="_blank" rel="noreferrer">
-                <Icon><rect x="2.5" y="2.5" width="19" height="19" rx="5" /><circle cx="12" cy="12" r="4.2" /><circle cx="17.7" cy="6.6" r="1" /></Icon>
-                Ir a Instagram
-              </a>
-            </li>
-          </ol>
-
-          <div className="prelanding-reminder">
-            <Icon><path d="M12 2 2.8 5.7v5.5c0 5.2 3.9 9.8 9.2 10.8 5.3-1 9.2-5.6 9.2-10.8V5.7L12 2Zm0 17.9c-3.7-.9-6.2-4.2-6.2-8.7V7.7L12 5.2l6.2 2.5v3.5c0 4.5-2.5 7.8-6.2 8.7Z" /><path d="m8.6 11.8 2.1 2.1 4.7-4.8" /></Icon>
-            <span><b>¡Importante!</b> Registrarte y completar los tres pasos es condición para participar.</span>
-          </div>
-        </div>
-
-        <aside className="prelanding-prize" aria-label="Premio del sorteo">
-          <div className="prelanding-prize-orbit orbit-one" />
-          <div className="prelanding-prize-orbit orbit-two" />
-          <p>Premio del sorteo</p>
-          <img src="/silla-sorteo.png" alt="Silla gamer ergonómica negra" />
-          <div className="prelanding-prize-name">Silla gamer<br /><span>ergonómica</span></div>
-          <div className="prelanding-prize-tag">Con apoyacabeza · soporte lumbar · apoyapiés</div>
-        </aside>
-      </section>
-
-      <footer className="prelanding-footer">© {new Date().getFullYear()} FuturaTecno · Tu tecnología. Tu futuro.</footer>
-    </main>
-  )
+  const { isAuth } = useAuth()
+  const [estado, setEstado] = useState(null)
+  const [codigo, setCodigo] = useState('')
+  const [mensaje, setMensaje] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const actualizar = () => isAuth && axios.get('/api/auth/onboarding').then(r => setEstado(r.data)).catch(() => {})
+  useEffect(() => { actualizar() }, [isAuth])
+  const verificar = async () => {
+    setMensaje(''); setGuardando(true)
+    try { const r = await axios.post('/api/auth/onboarding/verificar-whatsapp', { codigo }); setEstado(r.data); setCodigo('') }
+    catch (e) { setMensaje(e.response?.data?.error || 'No se pudo verificar el código.') } finally { setGuardando(false) }
+  }
+  const completar = async paso => {
+    setMensaje(''); setGuardando(true)
+    try { const r = await axios.post(`/api/auth/onboarding/paso/${paso}`); setEstado(r.data) }
+    catch (e) { setMensaje(e.response?.data?.error || 'No se pudo guardar el paso.') } finally { setGuardando(false) }
+  }
+  const pasoUno = estado?.pasoUnoCompleto
+  const pasoDos = estado?.whatsappAgendado
+  const pasoTres = estado?.instagramCompletado
+  return <main className="prelanding">
+    <div className="prelanding-glow prelanding-glow-one" /><div className="prelanding-glow prelanding-glow-two" />
+    <header className="prelanding-header"><Link to="/inicio"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link><Link className="prelanding-skip" to="/inicio">Ya tengo cuenta · Ver catálogo →</Link></header>
+    <section className="prelanding-content"><div className="prelanding-copy">
+      <span className="prelanding-badge"><span /> Sorteo especial de bienvenida</span>
+      <h1>Tu próximo upgrade puede ser una <strong>silla gamer ergonómica.</strong></h1>
+      <p className="prelanding-lead">Si es tu primera vez en FuturaTecno, registrate y completá estos pasos para participar del sorteo.</p>
+      <ol className="prelanding-steps">
+        <li className={pasoUno ? 'completo' : ''}><span className="prelanding-step-number">1</span><div><b>{pasoUno ? 'WhatsApp y email verificados.' : 'Registrate con tu número de WhatsApp.'}</b><small>{pasoUno ? 'Tu registro ya está confirmado.' : 'Te enviaremos un código por WhatsApp y un botón de activación por email.'}</small>
+          {isAuth && !pasoUno && <><div className="prelanding-verify"><input value={codigo} onChange={e => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" placeholder="Código de 6 dígitos" /><button className="prelanding-action primary" disabled={guardando || codigo.length !== 6} onClick={verificar}>Ya lo hice</button></div>{!estado?.emailVerificado && <small className="prelanding-email-note">Revisá tu email y hacé clic en <b>Activar cuenta</b>. Después volvé acá.</small>}</>}</div>
+          {!isAuth ? <Link className="prelanding-action primary" to="/registro">Registrarme →</Link> : pasoUno ? <span className="prelanding-done">✓ Listo</span> : null}</li>
+        <li className={pasoDos ? 'completo' : (!pasoUno ? 'bloqueado' : '')}><span className="prelanding-step-number">2</span><div><b>{pasoDos ? 'WhatsApp agendado.' : 'Abrí WhatsApp y agendanos.'}</b><small>Guardá el número de FuturaTecno para recibir novedades del sorteo.</small></div>
+          {pasoDos ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className="prelanding-action whatsapp" href={pasoUno ? whatsappUrl : undefined} target="_blank" rel="noreferrer" onClick={e => !pasoUno && e.preventDefault()}>Abrir WhatsApp</a><button className="prelanding-action outline" disabled={!pasoUno || guardando} onClick={() => completar(2)}>Ya lo hice</button></div>}</li>
+        <li className={pasoTres ? 'completo' : (!pasoDos ? 'bloqueado' : '')}><span className="prelanding-step-number">3</span><div><b>{pasoTres ? 'Instagram completado.' : 'Seguinos y etiquetá a 3 amigos en Instagram.'}</b><small>Hacelo en el posteo del sorteo para dejar registrada tu participación.</small></div>
+          {pasoTres ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className="prelanding-action instagram" href={pasoDos ? instagramUrl : undefined} target="_blank" rel="noreferrer" onClick={e => !pasoDos && e.preventDefault()}>Ir a Instagram</a><button className="prelanding-action outline" disabled={!pasoDos || guardando} onClick={() => completar(3)}>Ya lo hice</button></div>}</li>
+      </ol>
+      {mensaje && <p className="prelanding-message">{mensaje}</p>}
+      {pasoTres && <Link className="prelanding-finish" to="/inicio">¡Listo! Ir a la landing principal →</Link>}
+      <div className="prelanding-reminder"><span>✓</span><span><b>¡Importante!</b> Registrarte y completar los tres pasos es condición para participar.</span></div>
+    </div><aside className="prelanding-prize" aria-label="Sorteo Bienvenida"><div className="prelanding-prize-orbit orbit-one" /><div className="prelanding-prize-orbit orbit-two" /><p>Sorteo Bienvenida</p><img src="/silla-sorteo.png" alt="Silla gamer ergonómica negra" /><div className="prelanding-prize-name">Silla gamer<br /><span>ergonómica</span></div><div className="prelanding-prize-tag">Con apoyacabeza · soporte lumbar · apoyapiés</div></aside></section>
+    <footer className="prelanding-footer">© {new Date().getFullYear()} FuturaTecno · Tu tecnología. Tu futuro.</footer>
+  </main>
 }
-
 export default PreLandingPage

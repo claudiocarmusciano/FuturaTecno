@@ -3,6 +3,7 @@ package com.futuratecno.application;
 import com.futuratecno.api.dto.AuthResponse;
 import com.futuratecno.api.dto.LoginRequest;
 import com.futuratecno.api.dto.RegisterRequest;
+import com.futuratecno.api.dto.OnboardingStatusDTO;
 import com.futuratecno.domain.Usuario;
 import com.futuratecno.infrastructure.UsuarioRepository;
 import com.futuratecno.infrastructure.security.GoogleTokenVerifier;
@@ -26,25 +27,29 @@ public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final long RESET_TOKEN_TTL_MINUTOS = 60;   // el enlace de reseteo vale 1 hora
+    private static final long ACTIVACION_TOKEN_TTL_MINUTOS = 24 * 60;
+    private static final long CODIGO_WHATSAPP_TTL_MINUTOS = 10;
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final GoogleTokenVerifier googleTokenVerifier;
     private final EmailService emailService;
+    private final WhatsAppVerificationService whatsAppVerificationService;
 
     public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, GoogleTokenVerifier googleTokenVerifier,
-                       EmailService emailService) {
+                       EmailService emailService, WhatsAppVerificationService whatsAppVerificationService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.googleTokenVerifier = googleTokenVerifier;
         this.emailService = emailService;
+        this.whatsAppVerificationService = whatsAppVerificationService;
     }
 
     @Transactional
-    public AuthResponse registrar(RegisterRequest req) {
+    public AuthResponse registrar(RegisterRequest req, String baseUrl) {
         String email = req.getEmail() != null ? req.getEmail().trim().toLowerCase() : "";
         String nombre = req.getNombre() != null ? req.getNombre().trim() : "";
         String apellido = req.getApellido() != null ? req.getApellido().trim() : "";
@@ -56,6 +61,12 @@ public class AuthService {
         if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("Ya existe una cuenta con ese email.");
         }
+        if (!whatsAppVerificationService.estaConfigurado()) {
+            throw new IllegalStateException("La verificación por WhatsApp todavía no está configurada.");
+        }
+        if (!emailService.estaConfigurado()) {
+            throw new IllegalStateException("La activación por email todavía no está configurada.");
+        }
 
         Usuario u = new Usuario();
         u.setEmail(email);
@@ -65,10 +76,77 @@ public class AuthService {
         u.setCelular(celular);
         u.setRol("USUARIO");
         u.setActivo(true);
+        String codigoWhatsapp = String.format("%06d", RANDOM.nextInt(1_000_000));
+        String tokenEmail = generarTokenPlano();
+        u.setWhatsappCodigoHash(hash(codigoWhatsapp));
+        u.setWhatsappCodigoExpira(LocalDateTime.now().plusMinutes(CODIGO_WHATSAPP_TTL_MINUTOS));
+        u.setEmailActivacionToken(hash(tokenEmail));
+        u.setEmailActivacionExpira(LocalDateTime.now().plusMinutes(ACTIVACION_TOKEN_TTL_MINUTOS));
         usuarioRepository.save(u);
+
+        // La plantilla de Meta es la que lleva el OTP; Resend manda el botón de activación.
+        whatsAppVerificationService.enviarCodigo(celular, codigoWhatsapp);
+        String enlace = baseUrl + "/activar-cuenta?token=" + tokenEmail;
+        emailService.enviarHtmlAsync(email, "Activá tu cuenta — FuturaTecno", emailActivacion(enlace));
 
         String token = jwtService.generarToken(u.getEmail(), u.getRol());
         return new AuthResponse(token, u.getEmail(), u.getNombre(), u.getRol());
+    }
+
+    @Transactional
+    public void verificarWhatsapp(String email, String codigo) {
+        Usuario u = usuarioPorEmail(email);
+        String limpio = codigo == null ? "" : codigo.trim();
+        if (!limpio.matches("[0-9]{6}") || u.getWhatsappCodigoHash() == null
+                || u.getWhatsappCodigoExpira() == null || u.getWhatsappCodigoExpira().isBefore(LocalDateTime.now())
+                || !hash(limpio).equals(u.getWhatsappCodigoHash())) {
+            throw new IllegalArgumentException("El código es inválido o venció. Registrate de nuevo para recibir otro.");
+        }
+        u.setWhatsappVerificado(true);
+        u.setWhatsappCodigoHash(null);
+        u.setWhatsappCodigoExpira(null);
+        usuarioRepository.save(u);
+    }
+
+    @Transactional
+    public void activarEmail(String tokenPlano) {
+        if (tokenPlano == null || tokenPlano.isBlank()) throw new IllegalArgumentException("Enlace de activación inválido.");
+        Usuario u = usuarioRepository.findByEmailActivacionToken(hash(tokenPlano)).orElse(null);
+        if (u == null || u.getEmailActivacionExpira() == null || u.getEmailActivacionExpira().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("El enlace de activación es inválido o venció.");
+        }
+        u.setEmailVerificado(true);
+        u.setEmailActivacionToken(null);
+        u.setEmailActivacionExpira(null);
+        usuarioRepository.save(u);
+    }
+
+    @Transactional(readOnly = true)
+    public OnboardingStatusDTO estadoOnboarding(String email) {
+        Usuario u = usuarioPorEmail(email);
+        return new OnboardingStatusDTO(Boolean.TRUE.equals(u.getWhatsappVerificado()), Boolean.TRUE.equals(u.getEmailVerificado()),
+                Boolean.TRUE.equals(u.getPasoWhatsappAgendado()), Boolean.TRUE.equals(u.getPasoInstagramCompletado()));
+    }
+
+    @Transactional
+    public OnboardingStatusDTO completarPaso(String email, int paso) {
+        Usuario u = usuarioPorEmail(email);
+        if (paso == 2) {
+            if (!Boolean.TRUE.equals(u.getWhatsappVerificado()) || !Boolean.TRUE.equals(u.getEmailVerificado())) {
+                throw new IllegalArgumentException("Primero verificá tu WhatsApp y activá el email.");
+            }
+            u.setPasoWhatsappAgendado(true);
+        } else if (paso == 3) {
+            if (!Boolean.TRUE.equals(u.getPasoWhatsappAgendado())) throw new IllegalArgumentException("Primero completá el paso 2.");
+            u.setPasoInstagramCompletado(true);
+        } else throw new IllegalArgumentException("Paso inválido.");
+        usuarioRepository.save(u);
+        return estadoOnboarding(email);
+    }
+
+    private Usuario usuarioPorEmail(String email) {
+        return usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new IllegalArgumentException("Cuenta no encontrada."));
     }
 
     /** Guarda los celulares argentinos en un único formato internacional: +54 9 + área/número. */
@@ -229,5 +307,16 @@ public class AuthService {
               <p style="font-size: 12px; color: #999;">Si el botón no funciona, copiá y pegá este enlace:<br>%s</p>
             </div>
             """.formatted(enlace, enlace);
+    }
+
+    private String emailActivacion(String enlace) {
+        return """
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #16181d;">
+              <h2>¡Bienvenido a FuturaTecno!</h2>
+              <p>Para terminar tu registro y participar del sorteo, confirmá que este email es tuyo.</p>
+              <p style="text-align: center; margin: 28px 0;"><a href="%s" style="background: #C8E048; color: #16181d; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; display: inline-block;">Activar cuenta</a></p>
+              <p style="font-size: 13px; color: #666;">El enlace vence en 24 horas.</p>
+            </div>
+            """.formatted(enlace);
     }
 }

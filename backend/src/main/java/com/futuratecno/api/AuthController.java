@@ -6,6 +6,8 @@ import com.futuratecno.api.dto.GoogleLoginRequest;
 import com.futuratecno.api.dto.LoginRequest;
 import com.futuratecno.api.dto.RegisterRequest;
 import com.futuratecno.api.dto.ResetPasswordRequest;
+import com.futuratecno.api.dto.VerificarWhatsappRequest;
+import org.springframework.security.core.Authentication;
 import com.futuratecno.application.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +30,38 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@RequestBody RegisterRequest req) {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(authService.registrar(req));
+            String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+            return ResponseEntity.status(HttpStatus.CREATED).body(authService.registrar(req, baseUrl));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/activar-cuenta")
+    public ResponseEntity<?> activarCuenta(@RequestParam String token) {
+        try {
+            authService.activarEmail(token);
+            return ResponseEntity.ok(Map.of("mensaje", "Email activado."));
+        } catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
+    }
+
+    @GetMapping("/onboarding")
+    public ResponseEntity<?> onboarding(Authentication auth) {
+        return ResponseEntity.ok(authService.estadoOnboarding(auth.getName()));
+    }
+
+    @PostMapping("/onboarding/verificar-whatsapp")
+    public ResponseEntity<?> verificarWhatsapp(Authentication auth, @RequestBody VerificarWhatsappRequest req) {
+        try { authService.verificarWhatsapp(auth.getName(), req.getCodigo()); return ResponseEntity.ok(authService.estadoOnboarding(auth.getName())); }
+        catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
+    }
+
+    @PostMapping("/onboarding/paso/{paso}")
+    public ResponseEntity<?> completarPaso(Authentication auth, @PathVariable int paso) {
+        try { return ResponseEntity.ok(authService.completarPaso(auth.getName(), paso)); }
+        catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 
     @PostMapping("/login")

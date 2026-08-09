@@ -24,6 +24,7 @@ import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
+import ActivateAccountPage from './pages/auth/ActivateAccountPage'
 import ProtectedRoute from './auth/ProtectedRoute'
 import './App.css'
 
@@ -49,6 +50,7 @@ function App() {
         <Route path="/registro" element={<RegisterPage />} />
         <Route path="/recuperar" element={<ForgotPasswordPage />} />
         <Route path="/restablecer" element={<ResetPasswordPage />} />
+        <Route path="/activar-cuenta" element={<ActivateAccountPage />} />
 
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
