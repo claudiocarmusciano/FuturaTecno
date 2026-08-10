@@ -24,7 +24,7 @@
 .prelanding-action.whatsapp { color: #eafff0; background: #1f9f5b; }
 .prelanding-action.instagram { color: #fff; background: linear-gradient(135deg, #7437bd, #d62e88 55%, #f79545); }
 .prelanding-action.outline { background: transparent; color: #dfea90; border: 1px solid rgba(200,224,72,.45); }
-.prelanding-action:disabled { opacity: .42; cursor: not-allowed; transform: none; }
+.prelanding-action:disabled, .prelanding-action.disabled { opacity: .42; cursor: not-allowed; transform: none; pointer-events: none; }
 .prelanding-steps li.completo { border-color: rgba(200,224,72,.5); background: rgba(76,92,25,.25); }
 .prelanding-steps li.completo .prelanding-step-number { background: #ddea83; }
 .prelanding-steps li.bloqueado { opacity: .47; }
