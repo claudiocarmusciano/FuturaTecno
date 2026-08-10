@@ -33,7 +33,8 @@ function PreLandingPage() {
     try { const r = await axios.post(`/api/auth/onboarding/paso/${paso}`); setEstado(r.data) }
     catch (e) { setMensaje(e.response?.data?.error || 'No se pudo guardar el paso.') } finally { setGuardando(false) }
   }
-  const pasoUno = estado?.pasoUnoCompleto
+  // La API expone el estado base como `emailVerificado`; los métodos calculados del DTO no viajan en JSON.
+  const pasoUno = Boolean(estado?.emailVerificado)
   const pasoDos = estado?.whatsappAgendado
   const pasoTres = estado?.instagramCompletado
   const necesitaRegistro = estadoCargado && (!isAuth || !estado)
