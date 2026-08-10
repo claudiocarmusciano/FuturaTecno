@@ -115,7 +115,7 @@ public class AuthService {
             }
             u.setPasoWhatsappAgendado(true);
         } else if (paso == 3) {
-            if (!Boolean.TRUE.equals(u.getWhatsappVerificado())) throw new IllegalArgumentException("Esperá a que validemos tu mensaje de WhatsApp.");
+            if (!Boolean.TRUE.equals(u.getPasoWhatsappAgendado())) throw new IllegalArgumentException("Primero completá el paso 2.");
             u.setPasoInstagramCompletado(true);
         } else throw new IllegalArgumentException("Paso inválido.");
         usuarioRepository.save(u);
