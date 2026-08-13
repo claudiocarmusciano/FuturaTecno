@@ -14,6 +14,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByResetToken(String resetToken);
     Optional<Usuario> findByEmailActivacionToken(String emailActivacionToken);
     boolean existsByEmailIgnoreCase(String email);
+    boolean existsByDni(String dni);
     List<Usuario> findByRolOrderByCreatedAtDesc(String rol);
     long countByRol(String rol);
 }

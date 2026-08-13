@@ -22,6 +22,8 @@ function RegisterPage() {
   const [nombre, setNombre] = useState('')
   const [apellido, setApellido] = useState('')
   const [celular, setCelular] = useState('')
+  const [dni, setDni] = useState('')
+  const [fechaNacimiento, setFechaNacimiento] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -38,9 +40,17 @@ function RegisterPage() {
       setError('Ingresá un celular argentino válido, con código de área y sin 0 ni 15.')
       return
     }
+    if (!/^\d{7,8}$/.test(dni)) {
+      setError('Ingresá un DNI argentino válido, sin puntos.')
+      return
+    }
+    if (!fechaNacimiento || new Date(`${fechaNacimiento}T00:00:00`) > new Date()) {
+      setError('Ingresá una fecha de nacimiento válida.')
+      return
+    }
     setCargando(true)
     try {
-      await register(email, password, nombre, apellido, celular)
+      await register(email, password, nombre, apellido, celular, dni, fechaNacimiento)
       navigate(destino) // queda logueado
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo registrar.')
@@ -57,9 +67,9 @@ function RegisterPage() {
             <img src="/logo.png?v=2" alt="FuturaTecno" style={{ height: '66px', width: 'auto', display: 'block' }} />
           </span>
         </div>
-        <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Crear cuenta</h1>
+        <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Preinscripción al sorteo</h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginBottom: '24px', textAlign: 'center' }}>
-          Creá tu cuenta, activá tu email y después validaremos tu WhatsApp para participar del sorteo.
+          Dejanos tus datos, activá tu email y completá los pasos para participar del sorteo.
         </p>
 
         {error && (
@@ -86,6 +96,16 @@ function RegisterPage() {
               Ingresalo con código de área, sin 0 ni 15. Ej.: 11 1234-5678.
             </small>
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
+            <div className="form-group">
+              <label>DNI</label>
+              <input type="text" value={dni} onChange={e => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))} inputMode="numeric" autoComplete="off" placeholder="Sin puntos" required />
+            </div>
+            <div className="form-group">
+              <label>Fecha de nacimiento</label>
+              <input type="date" value={fechaNacimiento} onChange={e => setFechaNacimiento(e.target.value)} max={new Date().toISOString().slice(0, 10)} autoComplete="bday" required />
+            </div>
+          </div>
           <div className="form-group">
             <label>Email</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
@@ -95,7 +115,7 @@ function RegisterPage() {
             <PasswordInput value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" />
           </div>
           <button type="submit" className="btn btn-primary" disabled={cargando} style={{ width: '100%' }}>
-            {cargando ? 'Creando...' : 'Crear cuenta'}
+            {cargando ? 'Registrando...' : 'Completar preinscripción'}
           </button>
         </form>
 
@@ -108,7 +128,7 @@ function RegisterPage() {
           ¿Ya tenés cuenta? <Link to="/login" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Iniciá sesión</Link>
         </p>
         <p style={{ fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
-          <Link to="/catalogo" style={{ color: 'var(--color-text-muted)' }}>← Volver al catálogo</Link>
+          <Link to="/" style={{ color: 'var(--color-text-muted)' }}>← Volver al sorteo</Link>
         </p>
       </div>
     </div>

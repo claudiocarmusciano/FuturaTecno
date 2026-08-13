@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.HexFormat;
 
@@ -51,12 +52,20 @@ public class AuthService {
         String nombre = req.getNombre() != null ? req.getNombre().trim() : "";
         String apellido = req.getApellido() != null ? req.getApellido().trim() : "";
         String celular = normalizarCelularArgentino(req.getCelular());
+        String dni = req.getDni() != null ? req.getDni().replaceAll("\\D", "") : "";
+        LocalDate fechaNacimiento;
+        try { fechaNacimiento = LocalDate.parse(req.getFechaNacimiento()); }
+        catch (Exception e) { fechaNacimiento = null; }
         if (email.isEmpty() || req.getPassword() == null || req.getPassword().length() < 6
-                || nombre.isEmpty() || apellido.isEmpty() || celular == null) {
-            throw new IllegalArgumentException("Nombre, apellido, celular argentino válido, email y contraseña de al menos 6 caracteres son obligatorios.");
+                || nombre.isEmpty() || apellido.isEmpty() || celular == null || !dni.matches("[0-9]{7,8}")
+                || fechaNacimiento == null || fechaNacimiento.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Nombre, apellido, DNI válido, fecha de nacimiento, celular argentino válido, email y contraseña de al menos 6 caracteres son obligatorios.");
         }
         if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("Ya existe una cuenta con ese email.");
+        }
+        if (usuarioRepository.existsByDni(dni)) {
+            throw new IllegalArgumentException("Ese DNI ya está registrado para el sorteo.");
         }
         if (!emailService.estaConfigurado()) {
             throw new IllegalStateException("La activación por email todavía no está configurada.");
@@ -68,6 +77,8 @@ public class AuthService {
         u.setNombre(nombre);
         u.setApellido(apellido);
         u.setCelular(celular);
+        u.setDni(dni);
+        u.setFechaNacimiento(fechaNacimiento);
         u.setRol("USUARIO");
         u.setActivo(true);
         String tokenEmail = generarTokenPlano();

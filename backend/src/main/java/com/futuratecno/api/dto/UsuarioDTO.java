@@ -8,6 +8,8 @@ public class UsuarioDTO {
     private String nombre;
     private String apellido;
     private String celular;
+    private String dni;
+    private java.time.LocalDate fechaNacimiento;
     private String rol;
     private LocalDateTime fechaRegistro;
     private Boolean emailVerificado;
@@ -41,6 +43,11 @@ public class UsuarioDTO {
 
     public String getCelular() { return celular; }
     public void setCelular(String celular) { this.celular = celular; }
+
+    public String getDni() { return dni; }
+    public void setDni(String dni) { this.dni = dni; }
+    public java.time.LocalDate getFechaNacimiento() { return fechaNacimiento; }
+    public void setFechaNacimiento(java.time.LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }

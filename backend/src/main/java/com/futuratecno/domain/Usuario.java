@@ -24,6 +24,12 @@ public class Usuario extends BaseEntity {
     @Column(length = 20)
     private String celular;
 
+    @Column(length = 8)
+    private String dni;
+
+    @Column(name = "fecha_nacimiento")
+    private java.time.LocalDate fechaNacimiento;
+
     @Column(nullable = false)
     private String rol = "USUARIO";   // "ADMIN" o "USUARIO"
 
@@ -72,6 +78,11 @@ public class Usuario extends BaseEntity {
 
     public String getCelular() { return celular; }
     public void setCelular(String celular) { this.celular = celular; }
+
+    public String getDni() { return dni; }
+    public void setDni(String dni) { this.dni = dni; }
+    public java.time.LocalDate getFechaNacimiento() { return fechaNacimiento; }
+    public void setFechaNacimiento(java.time.LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }

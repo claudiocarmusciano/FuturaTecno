@@ -20,7 +20,6 @@ function PublicLayout() {
         <div className="header-container">
           <Link to="/" className="logo"><img src="/logo.png?v=2" alt="FuturaTecno" className="header-logo" /></Link>
           <nav className="public-nav">
-            <Link to="/catalogo">Catálogo</Link>
             {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>

@@ -35,6 +35,10 @@
 .prelanding-email-note { color: #d6dc90 !important; margin-top: 7px !important; }
 .prelanding-message { color: #ffb5aa; font-size: 12px; margin-top: 10px; }
 .prelanding-finish { display: inline-flex; margin-top: 15px; background: #c8e048; color: #17191d; border-radius: 9px; padding: 11px 16px; font-size: 13px; font-weight: 800; }
+.prelanding-soon { display: flex; gap: 12px; margin-top: 16px; padding: 17px; border: 1px solid rgba(200,224,72,.55); background: rgba(89,104,23,.25); border-radius: 13px; color: #edf2c3; }
+.prelanding-soon > span { display: grid; place-items: center; flex: 0 0 25px; height: 25px; border-radius: 50%; background: #c8e048; color: #17191d; font-weight: 900; }
+.prelanding-soon b { color: #f5f7d8; font-size: 14px; }
+.prelanding-soon p { margin: 5px 0 0; color: #d0d7a2; font-size: 12.5px; line-height: 1.45; }
 .prelanding-action svg { fill: currentColor; stroke: none; width: 16px; height: 16px; }
 .prelanding-action.instagram svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
 .prelanding-reminder { display: flex; align-items: flex-start; gap: 9px; margin-top: 16px; padding: 12px 14px; background: rgba(200,224,72,.08); border: 1px solid rgba(200,224,72,.22); color: #cdd2b6; border-radius: 11px; font-size: 12.5px; line-height: 1.45; }

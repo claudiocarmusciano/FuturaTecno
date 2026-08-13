@@ -21,7 +21,7 @@ function LoginPage() {
       const data = await login(email, password)
       // Si venía de una pantalla que exige sesión (ej. el checkout), vuelve ahí.
       // Si no, admin al panel y usuario común al catálogo.
-      navigate(location.state?.from || (data.rol === 'ADMIN' ? '/admin' : '/catalogo'))
+      navigate(location.state?.from || (data.rol === 'ADMIN' ? '/admin' : '/'))
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión.')
     } finally {
@@ -36,7 +36,7 @@ function LoginPage() {
       const data = await loginConGoogle(credential)
       // Si venía de una pantalla que exige sesión (ej. el checkout), vuelve ahí.
       // Si no, admin al panel y usuario común al catálogo.
-      navigate(location.state?.from || (data.rol === 'ADMIN' ? '/admin' : '/catalogo'))
+      navigate(location.state?.from || (data.rol === 'ADMIN' ? '/admin' : '/'))
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo iniciar sesión con Google.')
     } finally {
@@ -84,7 +84,7 @@ function LoginPage() {
           ¿No tenés cuenta? <Link to="/registro" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Registrate</Link>
         </p>
         <p style={{ fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
-          <Link to="/catalogo" style={{ color: 'var(--color-text-muted)' }}>← Volver al catálogo</Link>
+          <Link to="/" style={{ color: 'var(--color-text-muted)' }}>← Volver al sorteo</Link>
         </p>
       </div>
     </div>

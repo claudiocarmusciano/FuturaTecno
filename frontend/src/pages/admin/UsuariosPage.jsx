@@ -25,8 +25,8 @@ function UsuariosPage() {
   }
 
   const exportarCSV = () => {
-    const filas = [['Email', 'Nombre', 'Apellido', 'Celular', 'Email activado', 'WhatsApp', 'Código WhatsApp', 'Fecha de registro']]
-    usuarios.forEach(u => filas.push([u.email, u.nombre || '', u.apellido || '', u.celular || '', u.emailVerificado ? 'Sí' : 'No', u.whatsappVerificado ? 'Validado' : (u.whatsappAgendado ? 'Pendiente' : 'Sin solicitar'), u.whatsappVerificacionCodigo || '', formatFecha(u.fechaRegistro)]))
+    const filas = [['Email', 'Nombre', 'Apellido', 'DNI', 'Nacimiento', 'Celular', 'Email activado', 'WhatsApp', 'Código WhatsApp', 'Fecha de registro']]
+    usuarios.forEach(u => filas.push([u.email, u.nombre || '', u.apellido || '', u.dni || '', formatFecha(u.fechaNacimiento), u.celular || '', u.emailVerificado ? 'Sí' : 'No', u.whatsappVerificado ? 'Validado' : (u.whatsappAgendado ? 'Pendiente' : 'Sin solicitar'), u.whatsappVerificacionCodigo || '', formatFecha(u.fechaRegistro)]))
     const csv = filas.map(f => f.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -61,6 +61,8 @@ function UsuariosPage() {
                 <th>Email</th>
                 <th>Nombre</th>
                 <th>Apellido</th>
+                <th>DNI</th>
+                <th>Nacimiento</th>
                 <th>Celular</th>
                 <th>Validación</th>
                 <th>Código WhatsApp</th>
@@ -73,6 +75,8 @@ function UsuariosPage() {
                   <td>{u.email}</td>
                   <td>{u.nombre || '—'}</td>
                   <td>{u.apellido || '—'}</td>
+                  <td>{u.dni || '—'}</td>
+                  <td>{formatFecha(u.fechaNacimiento)}</td>
                   <td>{u.celular || '—'}</td>
                   <td>{u.whatsappVerificado ? <span style={{ color: 'var(--color-success)' }}>✓ Validado</span> : u.whatsappAgendado ? <button className="btn btn-primary" style={{ padding: '4px 9px', fontSize: '12px' }} onClick={() => validarWhatsapp(u.id)}>Validar</button> : <span style={{ color: 'var(--color-text-muted)' }}>Pendiente</span>}</td>
                   <td><code>{u.whatsappVerificacionCodigo || '—'}</code></td>

@@ -47,6 +47,8 @@ public class UsuarioAdminController {
         UsuarioDTO dto = new UsuarioDTO(u.getId(), u.getEmail(), u.getNombre(), u.getApellido(),
                 u.getCelular(), u.getRol(), u.getCreatedAt());
         dto.setEmailVerificado(u.getEmailVerificado());
+        dto.setDni(u.getDni());
+        dto.setFechaNacimiento(u.getFechaNacimiento());
         dto.setWhatsappVerificado(u.getWhatsappVerificado());
         dto.setWhatsappAgendado(u.getPasoWhatsappAgendado());
         dto.setWhatsappVerificacionCodigo(u.getWhatsappVerificacionCodigo());

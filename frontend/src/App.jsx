@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AdminLayout from './components/layouts/AdminLayout'
 import PublicLayout from './components/layouts/PublicLayout'
 import Dashboard from './pages/admin/Dashboard'
@@ -34,11 +34,11 @@ function App() {
       <Routes>
         {/* La home presenta el sorteo y guía a quienes llegan por primera vez. */}
         <Route path="/" element={<PreLandingPage />} />
-        <Route path="/inicio" element={<RutaPrivada><LandingPage /></RutaPrivada>} />
+        <Route path="/inicio" element={<Navigate to="/" replace />} />
 
         <Route element={<PublicLayout />}>
-          <Route path="/catalogo" element={<RutaPrivada><CatalogPage /></RutaPrivada>} />
-          <Route path="/producto/:id" element={<RutaPrivada><ProductDetailPage /></RutaPrivada>} />
+          <Route path="/catalogo" element={<Navigate to="/" replace />} />
+          <Route path="/producto/:id" element={<Navigate to="/" replace />} />
           {/* El carrito y el checkout son públicos: la sesión se pide recién al confirmar. */}
           <Route path="/carrito" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />

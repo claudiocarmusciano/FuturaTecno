@@ -43,7 +43,7 @@ function PreLandingPage() {
     : undefined
   return <main className="prelanding">
     <div className="prelanding-glow prelanding-glow-one" /><div className="prelanding-glow prelanding-glow-two" />
-    <header className="prelanding-header"><Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>{isAuth && estado ? <Link className="prelanding-skip" to="/inicio">Ver catálogo →</Link> : <Link className="prelanding-skip" to="/login">Ya tengo cuenta →</Link>}</header>
+    <header className="prelanding-header"><Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>{!isAuth && <Link className="prelanding-skip" to="/login">Ya tengo cuenta →</Link>}</header>
     <section className="prelanding-content"><div className="prelanding-copy">
       <span className="prelanding-badge"><span /> Sorteo especial de bienvenida</span>
       <h1>Tu próximo upgrade puede ser una <strong>silla gamer ergonómica.</strong></h1>
@@ -58,7 +58,7 @@ function PreLandingPage() {
           {pasoTres ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className="prelanding-action instagram" href={pasoDos ? instagramUrl : undefined} target="_blank" rel="noreferrer" onClick={e => !pasoDos && e.preventDefault()}>Ir a Instagram</a><button className="prelanding-action outline" disabled={!pasoDos || guardando} onClick={() => completar(3)}>Ya lo hice</button></div>}</li>
       </ol>
       {mensaje && <p className="prelanding-message">{mensaje}</p>}
-      {pasoTres && <Link className="prelanding-finish" to="/inicio">¡Listo! Ir a la landing principal →</Link>}
+      {pasoTres && <div className="prelanding-soon" role="status"><span>✓</span><div><b>¡Preinscripción completada!</b><p>Próximamente tendrás acceso al gran catálogo tecnológico y con precios increíbles.</p><p>Ah! Y también tendrás regalos para cada cumpleaños tuyo.</p></div></div>}
       <div className="prelanding-reminder"><span>✓</span><span><b>¡Importante!</b> Registrarte y completar los tres pasos es condición para participar.</span></div>
     </div><aside className="prelanding-prize" aria-label="Sorteo Bienvenida"><div className="prelanding-prize-orbit orbit-one" /><div className="prelanding-prize-orbit orbit-two" /><p>Sorteo Bienvenida</p><img src="/silla-sorteo.png" alt="Silla gamer ergonómica negra" /><div className="prelanding-prize-name">Silla gamer<br /><span>ergonómica</span></div><div className="prelanding-prize-tag">Con apoyacabeza · soporte lumbar · apoyapiés</div></aside></section>
     <footer className="prelanding-footer">© {new Date().getFullYear()} FuturaTecno · Tu tecnología. Tu futuro.</footer>
