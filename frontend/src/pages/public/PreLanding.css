@@ -35,10 +35,15 @@
 .prelanding-email-note { color: #d6dc90 !important; margin-top: 7px !important; }
 .prelanding-message { color: #ffb5aa; font-size: 12px; margin-top: 10px; }
 .prelanding-finish { display: inline-flex; margin-top: 15px; background: #c8e048; color: #17191d; border-radius: 9px; padding: 11px 16px; font-size: 13px; font-weight: 800; }
-.prelanding-soon { display: flex; gap: 12px; margin-top: 16px; padding: 17px; border: 1px solid rgba(200,224,72,.55); background: rgba(89,104,23,.25); border-radius: 13px; color: #edf2c3; }
-.prelanding-soon > span { display: grid; place-items: center; flex: 0 0 25px; height: 25px; border-radius: 50%; background: #c8e048; color: #17191d; font-weight: 900; }
-.prelanding-soon b { color: #f5f7d8; font-size: 14px; }
-.prelanding-soon p { margin: 5px 0 0; color: #d0d7a2; font-size: 12.5px; line-height: 1.45; }
+.prelanding-modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 22px; background: rgba(8,10,13,.77); backdrop-filter: blur(7px); }
+.prelanding-modal { width: min(100%, 490px); padding: 34px clamp(24px, 5vw, 46px); text-align: center; border: 1px solid rgba(220,241,116,.72); border-radius: 22px; color: #eef1ee; background: radial-gradient(circle at 50% 0%, rgba(200,224,72,.2), transparent 48%), #1c2020; box-shadow: 0 30px 100px rgba(0,0,0,.55); }
+.prelanding-modal-check { display: grid; place-items: center; width: 54px; height: 54px; margin: 0 auto 18px; border-radius: 50%; background: #c8e048; color: #16181d; box-shadow: 0 0 0 8px rgba(200,224,72,.13); font-size: 27px; font-weight: 900; }
+.prelanding-modal-label { display: block; margin-bottom: 10px; color: #d9ee75; font-size: 10px; font-weight: 850; letter-spacing: .14em; }
+.prelanding-modal h2 { color: #fff; font-size: clamp(27px, 6vw, 36px); line-height: 1.05; letter-spacing: -.035em; }
+.prelanding-modal p { margin: 15px 0 0; color: #c6cbd0; font-size: 15px; line-height: 1.52; }
+.prelanding-modal p strong { color: #ddea83; }
+.prelanding-modal-close { margin-top: 24px; padding: 11px 22px; border: 0; border-radius: 9px; background: #c8e048; color: #17191d; cursor: pointer; font-size: 13px; font-weight: 850; }
+.prelanding-modal-note { display: block; margin-top: 23px; color: #9ca38d; font-size: 12px; }
 .prelanding-action svg { fill: currentColor; stroke: none; width: 16px; height: 16px; }
 .prelanding-action.instagram svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
 .prelanding-reminder { display: flex; align-items: flex-start; gap: 9px; margin-top: 16px; padding: 12px 14px; background: rgba(200,224,72,.08); border: 1px solid rgba(200,224,72,.22); color: #cdd2b6; border-radius: 11px; font-size: 12.5px; line-height: 1.45; }

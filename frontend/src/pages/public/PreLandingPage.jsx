@@ -12,6 +12,7 @@ function PreLandingPage() {
   const [estadoCargado, setEstadoCargado] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [modalCerrado, setModalCerrado] = useState(false)
   const actualizar = () => {
     if (!isAuth) {
       setEstado(null)
@@ -30,7 +31,7 @@ function PreLandingPage() {
   useEffect(() => { actualizar() }, [isAuth])
   const completar = async paso => {
     setMensaje(''); setGuardando(true)
-    try { const r = await axios.post(`/api/auth/onboarding/paso/${paso}`); setEstado(r.data) }
+    try { const r = await axios.post(`/api/auth/onboarding/paso/${paso}`); setEstado(r.data); if (paso === 3) setModalCerrado(false) }
     catch (e) { setMensaje(e.response?.data?.error || 'No se pudo guardar el paso.') } finally { setGuardando(false) }
   }
   // La API expone el estado base como `emailVerificado`; los métodos calculados del DTO no viajan en JSON.
@@ -58,7 +59,7 @@ function PreLandingPage() {
           {pasoTres ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className="prelanding-action instagram" href={pasoDos ? instagramUrl : undefined} target="_blank" rel="noreferrer" onClick={e => !pasoDos && e.preventDefault()}>Ir a Instagram</a><button className="prelanding-action outline" disabled={!pasoDos || guardando} onClick={() => completar(3)}>Ya lo hice</button></div>}</li>
       </ol>
       {mensaje && <p className="prelanding-message">{mensaje}</p>}
-      {pasoTres && <div className="prelanding-soon" role="status"><span>✓</span><div><b>¡Preinscripción completada!</b><p>Próximamente tendrás acceso al gran catálogo tecnológico y con precios increíbles.</p><p>Ah! Y también tendrás regalos para cada cumpleaños tuyo.</p></div></div>}
+      {pasoTres && !modalCerrado && <div className="prelanding-modal-backdrop" role="presentation"><section className="prelanding-modal" role="dialog" aria-modal="true" aria-labelledby="prelanding-modal-title"><span className="prelanding-modal-check">✓</span><span className="prelanding-modal-label">PREINSCRIPCIÓN CONFIRMADA</span><h2 id="prelanding-modal-title">¡Ya estás participando!</h2><p>Próximamente tendrás acceso al gran catálogo tecnológico y con precios increíbles.</p><p><strong>Ah!</strong> Y también tendrás regalos para cada cumpleaños tuyo.</p><button className="prelanding-modal-close" onClick={() => setModalCerrado(true)}>Entendido</button><span className="prelanding-modal-note">Gracias por sumarte a FuturaTecno.</span></section></div>}
       <div className="prelanding-reminder"><span>✓</span><span><b>¡Importante!</b> Registrarte y completar los tres pasos es condición para participar.</span></div>
     </div><aside className="prelanding-prize" aria-label="Sorteo Bienvenida"><div className="prelanding-prize-orbit orbit-one" /><div className="prelanding-prize-orbit orbit-two" /><p>Sorteo Bienvenida</p><img src="/silla-sorteo.png" alt="Silla gamer ergonómica negra" /><div className="prelanding-prize-name">Silla gamer<br /><span>ergonómica</span></div><div className="prelanding-prize-tag">Con apoyacabeza · soporte lumbar · apoyapiés</div></aside></section>
     <footer className="prelanding-footer">© {new Date().getFullYear()} FuturaTecno · Tu tecnología. Tu futuro.</footer>
