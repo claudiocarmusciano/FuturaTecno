@@ -3,10 +3,12 @@ package com.futuratecno.application;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.futuratecno.api.dto.EnvioCotizacionDTO;
 import com.futuratecno.api.dto.ItemPedidoRequest;
+import com.futuratecno.api.dto.ProductoSinEnvioDTO;
 import com.futuratecno.domain.Categoria;
 import com.futuratecno.domain.Producto;
 import com.futuratecno.domain.Variante;
 import com.futuratecno.infrastructure.CategoriaRepository;
+import com.futuratecno.infrastructure.ProductoRepository;
 import com.futuratecno.infrastructure.VarianteRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,17 +38,20 @@ public class EnvioService {
     private final AndreaniClient andreaniClient;
     private final VarianteRepository varianteRepository;
     private final CategoriaRepository categoriaRepository;
+    private final ProductoRepository productoRepository;
     private final PrecioService precioService;
     private final CotizacionService cotizacionService;
 
     public EnvioService(AndreaniClient andreaniClient,
                         VarianteRepository varianteRepository,
                         CategoriaRepository categoriaRepository,
+                        ProductoRepository productoRepository,
                         PrecioService precioService,
                         CotizacionService cotizacionService) {
         this.andreaniClient = andreaniClient;
         this.varianteRepository = varianteRepository;
         this.categoriaRepository = categoriaRepository;
+        this.productoRepository = productoRepository;
         this.precioService = precioService;
         this.cotizacionService = cotizacionService;
     }
@@ -162,6 +167,23 @@ public class EnvioService {
         }
     }
 
+    /** Auditoría administrativa: productos activos que hoy caerían en "a coordinar". */
+    @Transactional(readOnly = true)
+    public List<ProductoSinEnvioDTO> productosSinMedidasCotizables() {
+        Map<Long, Categoria> cacheCategorias = new HashMap<>();
+        List<ProductoSinEnvioDTO> resultado = new ArrayList<>();
+        for (Producto producto : productoRepository.findByActivo(true)) {
+            List<String> faltantes = faltantes(producto, cacheCategorias);
+            if (faltantes.isEmpty()) continue;
+            Categoria categoria = producto.getCategoriaId() == null ? null : cacheCategorias.computeIfAbsent(
+                    producto.getCategoriaId(), id -> categoriaRepository.findById(id).orElse(null));
+            resultado.add(new ProductoSinEnvioDTO(producto.getId(), nombreProducto(producto),
+                    categoria == null ? "Sin categoría" : pathCategoria(categoria), producto.getCategoriaId(),
+                    String.join(", ", faltantes)));
+        }
+        return resultado;
+    }
+
     /**
      * Peso y dimensiones efectivos de un producto: override propio, si no default de la
      * subcategoría, si no de la categoría padre. Campo por campo. Null si algo queda sin dato.
@@ -193,6 +215,35 @@ public class EnvioService {
             return null;
         }
         return new Medidas(peso, alto, ancho, largo);
+    }
+
+    private List<String> faltantes(Producto producto, Map<Long, Categoria> cache) {
+        Categoria hoja = null;
+        Categoria padre = null;
+        if (producto.getCategoriaId() != null) {
+            hoja = cache.computeIfAbsent(producto.getCategoriaId(), id -> categoriaRepository.findById(id).orElse(null));
+            padre = hoja != null ? hoja.getPadre() : null;
+        }
+        List<String> faltantes = new ArrayList<>();
+        if (!valido(primero(producto.getPesoGramos(), hoja != null ? hoja.getPesoGramosDefault() : null,
+                padre != null ? padre.getPesoGramosDefault() : null))) faltantes.add("peso");
+        if (!valido(primero(producto.getAltoCm(), hoja != null ? hoja.getAltoCmDefault() : null,
+                padre != null ? padre.getAltoCmDefault() : null))) faltantes.add("alto");
+        if (!valido(primero(producto.getAnchoCm(), hoja != null ? hoja.getAnchoCmDefault() : null,
+                padre != null ? padre.getAnchoCmDefault() : null))) faltantes.add("ancho");
+        if (!valido(primero(producto.getLargoCm(), hoja != null ? hoja.getLargoCmDefault() : null,
+                padre != null ? padre.getLargoCmDefault() : null))) faltantes.add("largo");
+        return faltantes;
+    }
+
+    private boolean valido(Integer valor) { return valor != null && valor > 0; }
+
+    private String nombreProducto(Producto producto) {
+        return (producto.getMarca() + " " + producto.getModelo()).trim();
+    }
+
+    private String pathCategoria(Categoria categoria) {
+        return categoria.getPadre() == null ? categoria.getNombre() : categoria.getPadre().getNombre() + " > " + categoria.getNombre();
     }
 
     private Integer primero(Integer... valores) {

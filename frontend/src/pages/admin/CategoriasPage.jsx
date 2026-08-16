@@ -14,6 +14,9 @@ function CategoriasPage() {
   const [editando, setEditando] = useState(null)      // id en edición
   const [nombreEdit, setNombreEdit] = useState('')
   const [padreEdit, setPadreEdit] = useState('')      // '' = primer nivel
+  const [medidasEdit, setMedidasEdit] = useState({ pesoGramosDefault: '', altoCmDefault: '', anchoCmDefault: '', largoCmDefault: '' })
+  const [sinCotizar, setSinCotizar] = useState([])
+  const [auditando, setAuditando] = useState(true)
 
   const [creandoEn, setCreandoEn] = useState(null)    // id del padre, o 'raiz'
   const [nombreNuevo, setNombreNuevo] = useState('')
@@ -27,6 +30,14 @@ function CategoriasPage() {
   }, [])
 
   useEffect(() => { cargar() }, [cargar])
+  const cargarAuditoria = useCallback(() => {
+    setAuditando(true)
+    axios.get('/api/admin/envios/sin-cotizar')
+      .then(res => setSinCotizar(res.data))
+      .catch(() => setError('No se pudo auditar la cotización de envíos.'))
+      .finally(() => setAuditando(false))
+  }, [])
+  useEffect(() => { cargarAuditoria() }, [cargarAuditoria])
 
   const raices = arbol.map(c => ({ id: c.id, nombre: c.nombre }))
 
@@ -51,9 +62,10 @@ function CategoriasPage() {
     try {
       await axios.put(`/api/admin/categorias/${id}`, {
         nombre: nombreEdit,
-        padreId: padreEdit === '' ? null : Number(padreEdit)
+        padreId: padreEdit === '' ? null : Number(padreEdit),
+        ...medidasNumericas(medidasEdit)
       })
-      setEditando(null); cargar()
+      setEditando(null); cargar(); cargarAuditoria()
     } catch (err) { manejarError(err, 'No se pudo guardar el cambio.') }
   }
 
@@ -70,8 +82,21 @@ function CategoriasPage() {
     setEditando(cat.id)
     setNombreEdit(cat.nombre)
     setPadreEdit(cat.padreId == null ? '' : String(cat.padreId))
+    setMedidasEdit({
+      pesoGramosDefault: cat.pesoGramosDefault ?? '', altoCmDefault: cat.altoCmDefault ?? '',
+      anchoCmDefault: cat.anchoCmDefault ?? '', largoCmDefault: cat.largoCmDefault ?? ''
+    })
     setCreandoEn(null)
   }
+
+  const medidasNumericas = (medidas) => Object.fromEntries(Object.entries(medidas).map(([clave, valor]) => [clave, valor === '' ? null : Number(valor)]))
+
+  const camposMedidas = () => <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flexBasis: '100%', paddingLeft: '2px' }}>
+    <small style={{ width: '100%', color: 'var(--color-text-muted)' }}>Valores por defecto para cotizar envío. Vacío = hereda de la categoría padre.</small>
+    {[['pesoGramosDefault', 'Peso (g)'], ['altoCmDefault', 'Alto (cm)'], ['anchoCmDefault', 'Ancho (cm)'], ['largoCmDefault', 'Largo (cm)']].map(([campo, etiqueta]) => (
+      <label key={campo} style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{etiqueta}<input type="number" min="1" value={medidasEdit[campo]} onChange={e => setMedidasEdit(actual => ({ ...actual, [campo]: e.target.value }))} style={{ ...inputEstilo, display: 'block', width: '102px', marginTop: '3px' }} /></label>
+    ))}
+  </div>
 
   const fila = (cat, esSub) => (
     <div
@@ -98,6 +123,7 @@ function CategoriasPage() {
               <option key={r.id} value={r.id}>Dentro de {r.nombre}</option>
             ))}
           </select>
+          {camposMedidas()}
           <button type="button" className="btn-accion" onClick={() => guardar(cat.id)}>Guardar</button>
           <button type="button" className="btn-accion" onClick={() => setEditando(null)}>Cancelar</button>
         </>
@@ -111,6 +137,11 @@ function CategoriasPage() {
             {cat.cantidadProductos === 0
               ? 'sin productos'
               : `${cat.cantidadProductos} producto${cat.cantidadProductos === 1 ? '' : 's'}`}
+          </span>
+          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+            Envío: {cat.pesoGramosDefault && cat.altoCmDefault && cat.anchoCmDefault && cat.largoCmDefault
+              ? `${cat.pesoGramosDefault} g · ${cat.altoCmDefault}×${cat.anchoCmDefault}×${cat.largoCmDefault} cm`
+              : 'hereda o falta completar'}
           </span>
           <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button type="button" className="btn-accion" onClick={() => empezarEdicion(cat)}>Editar</button>
@@ -162,6 +193,20 @@ function CategoriasPage() {
       )}
 
       <div className="card">
+        <h2 style={{ fontSize: '17px', marginTop: 0 }}>Auditoría de cotización de envíos</h2>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Productos que hoy no pueden cotizar por Andreani porque les falta peso o alguna medida. Completá los valores de su categoría o editá el producto puntualmente.</p>
+        {auditando ? <p>Cargando auditoría...</p> : sinCotizar.length === 0 ? <p style={{ color: 'var(--color-success)' }}>✓ Todos los productos activos tienen peso y dimensiones resolubles.</p> : <>
+          <p style={{ color: 'var(--color-danger)', fontWeight: 700 }}>{sinCotizar.length} producto(s) sin cotización automática.</p>
+          <div style={{ overflowX: 'auto', maxHeight: '300px' }}><table className="table"><thead><tr><th>Producto</th><th>Categoría</th><th>Falta</th></tr></thead><tbody>{sinCotizar.map(p => <tr key={p.productoId}><td>{p.producto}</td><td>{p.categoria}</td><td>{p.faltan}</td></tr>)}</tbody></table></div>
+        </>}
+        <button type="button" className="btn btn-secondary" onClick={cargarAuditoria} disabled={auditando} style={{ marginTop: '12px' }}>↻ Actualizar reporte</button>
+      </div>
+
+      <div className="card">
+        <h2 style={{ fontSize: '17px', marginTop: 0 }}>Categorías y valores por defecto</h2>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+          Cada categoría puede aportar peso y dimensiones para que Andreani cotice los productos que no tienen medidas propias.
+        </p>
         {arbol.map(raiz => (
           <Fragment key={raiz.id}>
             {fila(raiz, false)}

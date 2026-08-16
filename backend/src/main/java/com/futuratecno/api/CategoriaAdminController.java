@@ -31,7 +31,8 @@ public class CategoriaAdminController {
     public ResponseEntity<?> crear(@RequestBody CategoriaRequest req) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(categoriaService.crear(req.getNombre(), req.getPadreId()));
+                    .body(categoriaService.crear(req.getNombre(), req.getPadreId(), req.getPesoGramosDefault(),
+                            req.getAltoCmDefault(), req.getAnchoCmDefault(), req.getLargoCmDefault()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -40,7 +41,8 @@ public class CategoriaAdminController {
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody CategoriaRequest req) {
         try {
-            return ResponseEntity.ok(categoriaService.actualizar(id, req.getNombre(), req.getPadreId()));
+            return ResponseEntity.ok(categoriaService.actualizar(id, req.getNombre(), req.getPadreId(),
+                    req.getPesoGramosDefault(), req.getAltoCmDefault(), req.getAnchoCmDefault(), req.getLargoCmDefault()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

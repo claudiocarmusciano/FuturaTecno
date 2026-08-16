@@ -178,11 +178,15 @@ public class CategoriaService {
         dto.setPadreId(c.getPadre() != null ? c.getPadre().getId() : null);
         dto.setCantidadProductos(productoRepository.countByCategoriaId(c.getId()));
         dto.setHijos(hijos);
+        dto.setPesoGramosDefault(c.getPesoGramosDefault());
+        dto.setAltoCmDefault(c.getAltoCmDefault());
+        dto.setAnchoCmDefault(c.getAnchoCmDefault());
+        dto.setLargoCmDefault(c.getLargoCmDefault());
         return dto;
     }
 
     @Transactional
-    public CategoriaAdminDTO crear(String nombre, Long padreId) {
+    public CategoriaAdminDTO crear(String nombre, Long padreId, Integer peso, Integer alto, Integer ancho, Integer largo) {
         String limpio = validarNombre(nombre);
         Categoria padre = resolverPadre(padreId, null);
         verificarNombreLibre(limpio, padreId, null);
@@ -190,6 +194,7 @@ public class CategoriaService {
         Categoria c = new Categoria();
         c.setNombre(limpio);
         c.setPadre(padre);
+        aplicarMedidas(c, peso, alto, ancho, largo);
         categoriaRepository.save(c);
         cargar();
         return aAdminDTO(porId.get(c.getId()));
@@ -197,7 +202,7 @@ public class CategoriaService {
 
     /** Renombra y/o mueve de padre. padreId null = pasa a ser categoría de primer nivel. */
     @Transactional
-    public CategoriaAdminDTO actualizar(Long id, String nombre, Long padreId) {
+    public CategoriaAdminDTO actualizar(Long id, String nombre, Long padreId, Integer peso, Integer alto, Integer ancho, Integer largo) {
         Categoria c = categoriaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("La categoría no existe."));
         String limpio = validarNombre(nombre);
@@ -213,6 +218,7 @@ public class CategoriaService {
 
         c.setNombre(limpio);
         c.setPadre(padre);
+        aplicarMedidas(c, peso, alto, ancho, largo);
         categoriaRepository.save(c);
         cargar();
         return aAdminDTO(porId.get(id));
@@ -263,6 +269,21 @@ public class CategoriaService {
             throw new IllegalArgumentException("El nombre no puede superar los 100 caracteres.");
         }
         return limpio;
+    }
+
+    private void aplicarMedidas(Categoria categoria, Integer peso, Integer alto, Integer ancho, Integer largo) {
+        validarMedida("Peso", peso);
+        validarMedida("Alto", alto);
+        validarMedida("Ancho", ancho);
+        validarMedida("Largo", largo);
+        categoria.setPesoGramosDefault(peso);
+        categoria.setAltoCmDefault(alto);
+        categoria.setAnchoCmDefault(ancho);
+        categoria.setLargoCmDefault(largo);
+    }
+
+    private void validarMedida(String nombre, Integer valor) {
+        if (valor != null && valor <= 0) throw new IllegalArgumentException(nombre + " debe ser mayor a cero.");
     }
 
     /** Valida el padre elegido: existe, no es la propia categoría y no es ya una subcategoría. */

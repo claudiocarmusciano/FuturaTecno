@@ -13,6 +13,10 @@ public class CategoriaAdminDTO {
     private Long padreId;
     private long cantidadProductos;
     private List<CategoriaAdminDTO> hijos;
+    private Integer pesoGramosDefault;
+    private Integer altoCmDefault;
+    private Integer anchoCmDefault;
+    private Integer largoCmDefault;
 
     public CategoriaAdminDTO() {}
 
@@ -30,4 +34,13 @@ public class CategoriaAdminDTO {
 
     public List<CategoriaAdminDTO> getHijos() { return hijos; }
     public void setHijos(List<CategoriaAdminDTO> hijos) { this.hijos = hijos; }
+
+    public Integer getPesoGramosDefault() { return pesoGramosDefault; }
+    public void setPesoGramosDefault(Integer pesoGramosDefault) { this.pesoGramosDefault = pesoGramosDefault; }
+    public Integer getAltoCmDefault() { return altoCmDefault; }
+    public void setAltoCmDefault(Integer altoCmDefault) { this.altoCmDefault = altoCmDefault; }
+    public Integer getAnchoCmDefault() { return anchoCmDefault; }
+    public void setAnchoCmDefault(Integer anchoCmDefault) { this.anchoCmDefault = anchoCmDefault; }
+    public Integer getLargoCmDefault() { return largoCmDefault; }
+    public void setLargoCmDefault(Integer largoCmDefault) { this.largoCmDefault = largoCmDefault; }
 }
