@@ -24,9 +24,18 @@ function UsuariosPage() {
     }
   }
 
+  const validarInstagram = async (id) => {
+    try {
+      const res = await axios.post(`/api/admin/usuarios/${id}/validar-instagram`)
+      setUsuarios(actuales => actuales.map(u => u.id === id ? res.data : u))
+    } catch (err) {
+      alert(err.response?.data?.error || 'No se pudo validar Instagram.')
+    }
+  }
+
   const exportarCSV = () => {
-    const filas = [['Email', 'Nombre', 'Apellido', 'DNI', 'Nacimiento', 'Celular', 'Email activado', 'WhatsApp', 'Código WhatsApp', 'Fecha de registro']]
-    usuarios.forEach(u => filas.push([u.email, u.nombre || '', u.apellido || '', u.dni || '', formatFecha(u.fechaNacimiento), u.celular || '', u.emailVerificado ? 'Sí' : 'No', u.whatsappVerificado ? 'Validado' : (u.whatsappAgendado ? 'Pendiente' : 'Sin solicitar'), u.whatsappVerificacionCodigo || '', formatFecha(u.fechaRegistro)]))
+    const filas = [['Email', 'Nombre', 'Apellido', 'DNI', 'Nacimiento', 'Celular', 'Instagram', 'Email activado', 'WhatsApp', 'Instagram validado', 'Código de sorteo', 'Bases aceptadas', 'Fecha de registro']]
+    usuarios.forEach(u => filas.push([u.email, u.nombre || '', u.apellido || '', u.dni || '', formatFecha(u.fechaNacimiento), u.celular || '', u.instagramUsuario || '', u.emailVerificado ? 'Sí' : 'No', u.whatsappVerificado ? 'Validado' : (u.whatsappAgendado ? 'Pendiente' : 'Sin solicitar'), u.instagramVerificado ? 'Validado' : (u.instagramCompletado ? 'Pendiente' : 'Sin solicitar'), u.codigoSorteo || '', u.basesAceptadasEn ? new Date(u.basesAceptadasEn).toLocaleString('es-AR') : '', formatFecha(u.fechaRegistro)]))
     const csv = filas.map(f => f.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -64,8 +73,11 @@ function UsuariosPage() {
                 <th>DNI</th>
                 <th>Nacimiento</th>
                 <th>Celular</th>
-                <th>Validación</th>
+                <th>WhatsApp</th>
                 <th>Código WhatsApp</th>
+                <th>Instagram</th>
+                <th>Validación Instagram</th>
+                <th>Código de sorteo</th>
                 <th>Fecha de registro</th>
               </tr>
             </thead>
@@ -80,6 +92,9 @@ function UsuariosPage() {
                   <td>{u.celular || '—'}</td>
                   <td>{u.whatsappVerificado ? <span style={{ color: 'var(--color-success)' }}>✓ Validado</span> : u.whatsappAgendado ? <button className="btn btn-primary" style={{ padding: '4px 9px', fontSize: '12px' }} onClick={() => validarWhatsapp(u.id)}>Validar</button> : <span style={{ color: 'var(--color-text-muted)' }}>Pendiente</span>}</td>
                   <td><code>{u.whatsappVerificacionCodigo || '—'}</code></td>
+                  <td>{u.instagramUsuario || '—'}</td>
+                  <td>{u.instagramVerificado ? <span style={{ color: 'var(--color-success)' }}>✓ Validado</span> : u.instagramCompletado ? <button className="btn btn-primary" style={{ padding: '4px 9px', fontSize: '12px' }} onClick={() => validarInstagram(u.id)}>Validar</button> : <span style={{ color: 'var(--color-text-muted)' }}>Pendiente</span>}</td>
+                  <td><code>{u.codigoSorteo || '—'}</code></td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{formatFecha(u.fechaRegistro)}</td>
                 </tr>
               ))}

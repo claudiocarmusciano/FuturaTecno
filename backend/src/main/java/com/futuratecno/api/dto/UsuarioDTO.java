@@ -16,6 +16,11 @@ public class UsuarioDTO {
     private Boolean whatsappVerificado;
     private Boolean whatsappAgendado;
     private String whatsappVerificacionCodigo;
+    private String instagramUsuario;
+    private Boolean instagramCompletado;
+    private Boolean instagramVerificado;
+    private String codigoSorteo;
+    private LocalDateTime basesAceptadasEn;
 
     public UsuarioDTO() {}
 
@@ -63,4 +68,14 @@ public class UsuarioDTO {
     public void setWhatsappAgendado(Boolean whatsappAgendado) { this.whatsappAgendado = whatsappAgendado; }
     public String getWhatsappVerificacionCodigo() { return whatsappVerificacionCodigo; }
     public void setWhatsappVerificacionCodigo(String whatsappVerificacionCodigo) { this.whatsappVerificacionCodigo = whatsappVerificacionCodigo; }
+    public String getInstagramUsuario() { return instagramUsuario; }
+    public void setInstagramUsuario(String instagramUsuario) { this.instagramUsuario = instagramUsuario; }
+    public Boolean getInstagramCompletado() { return instagramCompletado; }
+    public void setInstagramCompletado(Boolean instagramCompletado) { this.instagramCompletado = instagramCompletado; }
+    public Boolean getInstagramVerificado() { return instagramVerificado; }
+    public void setInstagramVerificado(Boolean instagramVerificado) { this.instagramVerificado = instagramVerificado; }
+    public String getCodigoSorteo() { return codigoSorteo; }
+    public void setCodigoSorteo(String codigoSorteo) { this.codigoSorteo = codigoSorteo; }
+    public LocalDateTime getBasesAceptadasEn() { return basesAceptadasEn; }
+    public void setBasesAceptadasEn(LocalDateTime basesAceptadasEn) { this.basesAceptadasEn = basesAceptadasEn; }
 }

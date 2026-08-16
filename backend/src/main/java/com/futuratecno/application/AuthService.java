@@ -53,19 +53,25 @@ public class AuthService {
         String apellido = req.getApellido() != null ? req.getApellido().trim() : "";
         String celular = normalizarCelularArgentino(req.getCelular());
         String dni = req.getDni() != null ? req.getDni().replaceAll("\\D", "") : "";
+        String instagramUsuario = normalizarInstagram(req.getInstagramUsuario());
         LocalDate fechaNacimiento;
         try { fechaNacimiento = LocalDate.parse(req.getFechaNacimiento()); }
         catch (Exception e) { fechaNacimiento = null; }
         if (email.isEmpty() || req.getPassword() == null || req.getPassword().length() < 6
                 || nombre.isEmpty() || apellido.isEmpty() || celular == null || !dni.matches("[0-9]{7,8}")
-                || fechaNacimiento == null || fechaNacimiento.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("Nombre, apellido, DNI válido, fecha de nacimiento, celular argentino válido, email y contraseña de al menos 6 caracteres son obligatorios.");
+                || fechaNacimiento == null || fechaNacimiento.isAfter(LocalDate.now())
+                || fechaNacimiento.plusYears(15).isAfter(LocalDate.now()) || instagramUsuario == null
+                || !Boolean.TRUE.equals(req.getAceptaBases())) {
+            throw new IllegalArgumentException("Completá nombre, apellido, DNI, fecha de nacimiento (mínimo 15 años), celular argentino, email, Instagram, contraseña y aceptación de las Bases y Condiciones.");
         }
         if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("Ya existe una cuenta con ese email.");
         }
         if (usuarioRepository.existsByDni(dni)) {
             throw new IllegalArgumentException("Ese DNI ya está registrado para el sorteo.");
+        }
+        if (usuarioRepository.existsByCelular(celular)) {
+            throw new IllegalArgumentException("Ese número de celular ya está registrado para el sorteo.");
         }
         if (!emailService.estaConfigurado()) {
             throw new IllegalStateException("La activación por email todavía no está configurada.");
@@ -79,6 +85,8 @@ public class AuthService {
         u.setCelular(celular);
         u.setDni(dni);
         u.setFechaNacimiento(fechaNacimiento);
+        u.setInstagramUsuario(instagramUsuario);
+        u.setBasesAceptadasEn(LocalDateTime.now());
         u.setRol("USUARIO");
         u.setActivo(true);
         String tokenEmail = generarTokenPlano();
@@ -88,7 +96,7 @@ public class AuthService {
         usuarioRepository.save(u);
 
         String enlace = baseUrl + "/activar-cuenta?token=" + tokenEmail;
-        emailService.enviarHtmlAsync(email, "Activá tu cuenta — FuturaTecno", emailActivacion(enlace));
+        emailService.enviarHtmlAsync(email, "Activá tu cuenta — Futura Tecno", emailActivacion(enlace));
 
         String token = jwtService.generarToken(u.getEmail(), u.getRol());
         return new AuthResponse(token, u.getEmail(), u.getNombre(), u.getRol());
@@ -114,7 +122,7 @@ public class AuthService {
         Usuario u = usuarioPorEmail(email);
         return new OnboardingStatusDTO(Boolean.TRUE.equals(u.getWhatsappVerificado()), Boolean.TRUE.equals(u.getEmailVerificado()),
                 Boolean.TRUE.equals(u.getPasoWhatsappAgendado()), Boolean.TRUE.equals(u.getPasoInstagramCompletado()),
-                u.getWhatsappVerificacionCodigo());
+                Boolean.TRUE.equals(u.getInstagramVerificado()), u.getWhatsappVerificacionCodigo(), u.getCodigoSorteo(), u.getInstagramUsuario());
     }
 
     @Transactional
@@ -141,7 +149,32 @@ public class AuthService {
             throw new IllegalArgumentException("El usuario todavía no confirmó que envió el mensaje por WhatsApp.");
         }
         u.setWhatsappVerificado(true);
+        asignarCodigoSorteoSiCorresponde(u);
         usuarioRepository.save(u);
+    }
+
+    @Transactional
+    public void validarInstagramManual(Long usuarioId) {
+        Usuario u = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado."));
+        if (!Boolean.TRUE.equals(u.getPasoInstagramCompletado())) {
+            throw new IllegalArgumentException("El usuario todavía no confirmó el paso de Instagram.");
+        }
+        u.setInstagramVerificado(true);
+        asignarCodigoSorteoSiCorresponde(u);
+        usuarioRepository.save(u);
+    }
+
+    private void asignarCodigoSorteoSiCorresponde(Usuario u) {
+        if (u.getCodigoSorteo() != null || !Boolean.TRUE.equals(u.getEmailVerificado())
+                || !Boolean.TRUE.equals(u.getWhatsappVerificado()) || !Boolean.TRUE.equals(u.getInstagramVerificado())) {
+            return;
+        }
+        String codigo;
+        do { codigo = generarCodigoSorteo(); } while (usuarioRepository.existsByCodigoSorteo(codigo));
+        u.setCodigoSorteo(codigo);
+        u.setCodigoSorteoAsignadoEn(LocalDateTime.now());
+        emailService.enviarHtmlAsync(u.getEmail(), "Tu código de sorteo — Futura Tecno", emailCodigoSorteo(codigo));
     }
 
     private String generarCodigoWhatsapp() {
@@ -149,6 +182,19 @@ public class AuthService {
         StringBuilder codigo = new StringBuilder("FT-");
         for (int i = 0; i < 6; i++) codigo.append(caracteres.charAt(RANDOM.nextInt(caracteres.length())));
         return codigo.toString();
+    }
+
+    private String generarCodigoSorteo() {
+        final String caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        StringBuilder codigo = new StringBuilder("FT26-");
+        for (int i = 0; i < 8; i++) codigo.append(caracteres.charAt(RANDOM.nextInt(caracteres.length())));
+        return codigo.toString();
+    }
+
+    private String normalizarInstagram(String valor) {
+        if (valor == null) return null;
+        String usuario = valor.trim().replaceFirst("^@", "");
+        return usuario.matches("[A-Za-z0-9._]{1,30}") ? "@" + usuario : null;
     }
 
     private Usuario usuarioPorEmail(String email) {
@@ -302,7 +348,7 @@ public class AuthService {
         return """
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #16181d;">
               <h2 style="color: #16181d;">Restablecer tu contraseña</h2>
-              <p>Recibimos un pedido para restablecer la contraseña de tu cuenta en FuturaTecno.</p>
+              <p>Recibimos un pedido para restablecer la contraseña de tu cuenta en Futura Tecno.</p>
               <p>Hacé clic en el botón para elegir una nueva contraseña. El enlace vence en 1 hora.</p>
               <p style="text-align: center; margin: 28px 0;">
                 <a href="%s" style="background: #C8E048; color: #16181d; text-decoration: none;
@@ -319,11 +365,24 @@ public class AuthService {
     private String emailActivacion(String enlace) {
         return """
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #16181d;">
-              <h2>¡Bienvenido a FuturaTecno!</h2>
+              <h2>¡Bienvenido a Futura Tecno!</h2>
               <p>Para terminar tu registro y participar del sorteo, confirmá que este email es tuyo.</p>
               <p style="text-align: center; margin: 28px 0;"><a href="%s" style="background: #C8E048; color: #16181d; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; display: inline-block;">Activar cuenta</a></p>
               <p style="font-size: 13px; color: #666;">El enlace vence en 24 horas.</p>
             </div>
             """.formatted(enlace);
+    }
+
+    private String emailCodigoSorteo(String codigo) {
+        return """
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #16181d;">
+              <h2 style="color: #16181d;">¡Tu inscripción fue validada!</h2>
+              <p>Ya cumpliste los requisitos del Sorteo Bienvenida de Futura Tecno.</p>
+              <p>Tu código único de sorteo es:</p>
+              <p style="margin: 24px 0; padding: 16px; text-align: center; background: #16181d; border-radius: 10px; color: #C8E048; font-size: 24px; font-weight: bold; letter-spacing: 2px;">%s</p>
+              <p>Guardalo: será el código incluido en el padrón público anonimizado que se comunicará el 01/10/2026.</p>
+              <p style="font-size: 13px; color: #666;">El sorteo se realizará el 02/10/2026. Consultá las Bases y Condiciones en futuratecno.com.ar.</p>
+            </div>
+            """.formatted(codigo);
     }
 }

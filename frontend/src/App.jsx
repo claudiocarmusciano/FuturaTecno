@@ -15,6 +15,7 @@ import CatalogPage from './pages/public/CatalogPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
 import LandingPage from './pages/public/LandingPage'
 import PreLandingPage from './pages/public/PreLandingPage'
+import BasesSorteoPage from './pages/public/BasesSorteoPage'
 import CartPage from './pages/public/CartPage'
 import CheckoutPage from './pages/public/CheckoutPage'
 import MisPedidosPage from './pages/public/MisPedidosPage'
@@ -35,6 +36,7 @@ function App() {
         {/* La home presenta el sorteo y guía a quienes llegan por primera vez. */}
         <Route path="/" element={<PreLandingPage />} />
         <Route path="/inicio" element={<Navigate to="/" replace />} />
+        <Route path="/bases-y-condiciones" element={<BasesSorteoPage />} />
 
         <Route element={<PublicLayout />}>
           <Route path="/catalogo" element={<Navigate to="/" replace />} />

@@ -8,6 +8,8 @@ public class RegisterRequest {
     private String celular;
     private String dni;
     private String fechaNacimiento;
+    private String instagramUsuario;
+    private Boolean aceptaBases;
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -29,4 +31,10 @@ public class RegisterRequest {
 
     public String getFechaNacimiento() { return fechaNacimiento; }
     public void setFechaNacimiento(String fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+
+    public String getInstagramUsuario() { return instagramUsuario; }
+    public void setInstagramUsuario(String instagramUsuario) { this.instagramUsuario = instagramUsuario; }
+
+    public Boolean getAceptaBases() { return aceptaBases; }
+    public void setAceptaBases(Boolean aceptaBases) { this.aceptaBases = aceptaBases; }
 }

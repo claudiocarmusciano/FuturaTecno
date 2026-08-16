@@ -43,6 +43,17 @@ public class UsuarioAdminController {
         }
     }
 
+    @PostMapping("/{id}/validar-instagram")
+    public ResponseEntity<?> validarInstagram(@PathVariable Long id) {
+        try {
+            authService.validarInstagramManual(id);
+            return usuarioRepository.findById(id).map(this::aDto).map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
+
     private UsuarioDTO aDto(Usuario u) {
         UsuarioDTO dto = new UsuarioDTO(u.getId(), u.getEmail(), u.getNombre(), u.getApellido(),
                 u.getCelular(), u.getRol(), u.getCreatedAt());
@@ -52,6 +63,11 @@ public class UsuarioAdminController {
         dto.setWhatsappVerificado(u.getWhatsappVerificado());
         dto.setWhatsappAgendado(u.getPasoWhatsappAgendado());
         dto.setWhatsappVerificacionCodigo(u.getWhatsappVerificacionCodigo());
+        dto.setInstagramUsuario(u.getInstagramUsuario());
+        dto.setInstagramCompletado(u.getPasoInstagramCompletado());
+        dto.setInstagramVerificado(u.getInstagramVerificado());
+        dto.setCodigoSorteo(u.getCodigoSorteo());
+        dto.setBasesAceptadasEn(u.getBasesAceptadasEn());
         return dto;
     }
 }

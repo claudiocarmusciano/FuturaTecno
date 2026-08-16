@@ -1,0 +1,15 @@
+.bases-page { min-height: 100vh; padding: 28px clamp(18px, 5vw, 72px); color: #e9ebee; background: radial-gradient(circle at 18% -8%, rgba(200,224,72,.16), transparent 31%), #16181d; }
+.bases-header { max-width: 900px; margin: 0 auto 38px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.bases-header img { height: 58px; display: block; }
+.bases-back { color: #ddea83; font-size: 14px; font-weight: 700; }
+.bases-card { max-width: 900px; margin: 0 auto; padding: clamp(24px, 5vw, 54px); border: 1px solid rgba(255,255,255,.1); border-radius: 22px; background: rgba(28,31,38,.92); box-shadow: 0 24px 70px rgba(0,0,0,.22); }
+.bases-eyebrow { color: #ddea83; font-size: 11px; letter-spacing: .14em; font-weight: 850; }
+.bases-card h1 { margin: 7px 0; color: #fff; font-size: clamp(32px, 5vw, 48px); letter-spacing: -.045em; }
+.bases-intro { margin: 0 0 34px; padding: 11px 13px; border-left: 3px solid #c8e048; background: rgba(200,224,72,.08); color: #e4ecad; font-weight: 700; }
+.bases-card section { margin-top: 26px; }
+.bases-card h2 { margin-bottom: 9px; color: #ddea83; font-size: 17px; }
+.bases-card p, .bases-card li { color: #c5cbd3; font-size: 15px; line-height: 1.65; }
+.bases-card p + p { margin-top: 11px; }
+.bases-card ol { padding-left: 27px; margin-top: 9px; }
+.bases-footer { max-width: 900px; margin: 25px auto 0; text-align: center; color: #858b95; font-size: 12px; }
+@media (max-width: 560px) { .bases-page { padding: 20px 14px; } .bases-header img { height: 48px; } .bases-card { border-radius: 16px; } .bases-card p, .bases-card li { font-size: 14px; } }

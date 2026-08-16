@@ -56,6 +56,16 @@ public class Usuario extends BaseEntity {
     private Boolean pasoWhatsappAgendado = false;
     @Column(name = "paso_instagram_completado", nullable = false)
     private Boolean pasoInstagramCompletado = false;
+    @Column(name = "instagram_usuario")
+    private String instagramUsuario;
+    @Column(name = "instagram_verificado", nullable = false)
+    private Boolean instagramVerificado = false;
+    @Column(name = "bases_aceptadas_en")
+    private java.time.LocalDateTime basesAceptadasEn;
+    @Column(name = "codigo_sorteo")
+    private String codigoSorteo;
+    @Column(name = "codigo_sorteo_asignado_en")
+    private java.time.LocalDateTime codigoSorteoAsignadoEn;
     @Column(name = "email_activacion_token")
     private String emailActivacionToken;
     @Column(name = "email_activacion_expira")
@@ -110,6 +120,16 @@ public class Usuario extends BaseEntity {
     public void setPasoWhatsappAgendado(Boolean pasoWhatsappAgendado) { this.pasoWhatsappAgendado = pasoWhatsappAgendado; }
     public Boolean getPasoInstagramCompletado() { return pasoInstagramCompletado; }
     public void setPasoInstagramCompletado(Boolean pasoInstagramCompletado) { this.pasoInstagramCompletado = pasoInstagramCompletado; }
+    public String getInstagramUsuario() { return instagramUsuario; }
+    public void setInstagramUsuario(String instagramUsuario) { this.instagramUsuario = instagramUsuario; }
+    public Boolean getInstagramVerificado() { return instagramVerificado; }
+    public void setInstagramVerificado(Boolean instagramVerificado) { this.instagramVerificado = instagramVerificado; }
+    public java.time.LocalDateTime getBasesAceptadasEn() { return basesAceptadasEn; }
+    public void setBasesAceptadasEn(java.time.LocalDateTime basesAceptadasEn) { this.basesAceptadasEn = basesAceptadasEn; }
+    public String getCodigoSorteo() { return codigoSorteo; }
+    public void setCodigoSorteo(String codigoSorteo) { this.codigoSorteo = codigoSorteo; }
+    public java.time.LocalDateTime getCodigoSorteoAsignadoEn() { return codigoSorteoAsignadoEn; }
+    public void setCodigoSorteoAsignadoEn(java.time.LocalDateTime codigoSorteoAsignadoEn) { this.codigoSorteoAsignadoEn = codigoSorteoAsignadoEn; }
     public String getEmailActivacionToken() { return emailActivacionToken; }
     public void setEmailActivacionToken(String emailActivacionToken) { this.emailActivacionToken = emailActivacionToken; }
     public java.time.LocalDateTime getEmailActivacionExpira() { return emailActivacionExpira; }
