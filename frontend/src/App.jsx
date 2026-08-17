@@ -39,8 +39,8 @@ function App() {
         <Route path="/bases-y-condiciones" element={<BasesSorteoPage />} />
 
         <Route element={<PublicLayout />}>
-          <Route path="/catalogo" element={<Navigate to="/" replace />} />
-          <Route path="/producto/:id" element={<Navigate to="/" replace />} />
+          <Route path="/catalogo" element={<CatalogPage />} />
+          <Route path="/producto/:id" element={<ProductDetailPage />} />
           {/* El carrito y el checkout son públicos: la sesión se pide recién al confirmar. */}
           <Route path="/carrito" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
