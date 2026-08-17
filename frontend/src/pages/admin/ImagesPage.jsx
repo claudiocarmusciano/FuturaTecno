@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Link } from 'react-router-dom'
 import { IconTrash } from '../../components/icons'
 
 const formatFecha = (iso) =>
@@ -133,7 +134,13 @@ function ImagesPage() {
                     })()}
                   </td>
                   <td>
-                    {[p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')}
+                    <Link
+                      to={`/admin/productos?editar=${p.id}`}
+                      title="Editar producto completo"
+                      style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-lime)', textUnderlineOffset: '4px' }}
+                    >
+                      {[p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')}
+                    </Link>
                     <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                       Última actualización: {formatFecha(p.ultimaActualizacion)}
                     </div>
