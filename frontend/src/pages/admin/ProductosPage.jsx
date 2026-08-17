@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { useSearchParams } from 'react-router-dom'
 import { IconEdit, IconSearch, IconTrash } from '../../components/icons'
 import { indexarArbol } from '../../utils/categorias'
 
@@ -27,6 +28,7 @@ const inputStyle = {
 }
 
 function ProductosPage() {
+  const [searchParams] = useSearchParams()
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [editData, setEditData] = useState(null)   // ProductoEditDTO en edición
@@ -83,6 +85,13 @@ function ProductosPage() {
       setMensaje('Error al abrir el producto.')
     }
   }
+
+  // Permite llegar desde los reportes administrativos a la edición de un producto puntual.
+  // La URL se conserva para que el enlace se pueda abrir también en otra pestaña.
+  useEffect(() => {
+    const productoId = Number(searchParams.get('editar'))
+    if (Number.isInteger(productoId) && productoId > 0) abrirEdicion(productoId)
+  }, [searchParams])
 
   const elegirCategoria = (id) => {
     const tieneHijos = (nodoDe[id]?.hijos || []).length > 0
