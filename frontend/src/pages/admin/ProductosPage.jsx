@@ -318,6 +318,25 @@ function ProductosPage() {
             </div>
           </div>
 
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 110px', gap: '12px', alignItems: 'end', marginBottom: '18px' }}>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>URL de imagen principal</label>
+              <input
+                style={inputStyle}
+                type="url"
+                placeholder="https://ejemplo.com/imagen.jpg"
+                value={editData.imagenUrl || ''}
+                onChange={e => setCampo('imagenUrl', e.target.value)}
+              />
+              <small style={{ color: 'var(--color-text-muted)', display: 'block', marginTop: '4px' }}>Vacío = producto sin imagen.</small>
+            </div>
+            <div style={{ height: '88px', border: '1px solid var(--color-border)', borderRadius: '6px', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {editData.imagenUrl
+                ? <img src={editData.imagenUrl} alt="Vista previa de la imagen principal" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={e => { e.currentTarget.style.display = 'none' }} />
+                : <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Sin imagen</span>}
+            </div>
+          </div>
+
           <h3 style={{ fontSize: '15px', marginBottom: '4px' }}>Peso y dimensiones (para cotizar envío)</h3>
           <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
             Si se deja vacío, se usa el valor por defecto de la categoría. Cargalo solo si este producto puntual pesa

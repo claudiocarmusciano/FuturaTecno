@@ -186,6 +186,9 @@ public class ProductoAdminService {
         if (dto.getCategoriaId() != null) producto.setCategoriaId(dto.getCategoriaId());
         if (dto.getMarca() != null && !dto.getMarca().isBlank()) producto.setMarca(dto.getMarca().trim());
         if (dto.getModelo() != null && !dto.getModelo().isBlank()) producto.setModelo(dto.getModelo().trim());
+        // La imagen se puede corregir desde el editor. Un campo vacío elimina la URL inválida.
+        producto.setImagenUrl(dto.getImagenUrl() != null && !dto.getImagenUrl().isBlank()
+                ? dto.getImagenUrl().trim() : null);
         // A diferencia de marca/modelo, acá null es un valor válido y querido: "sin override,
         // usar el default de la categoría". Por eso se pisa siempre, no solo cuando viene cargado.
         producto.setPesoGramos(dto.getPesoGramos());
