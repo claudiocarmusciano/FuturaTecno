@@ -27,6 +27,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import ActivateAccountPage from './pages/auth/ActivateAccountPage'
 import ProtectedRoute from './auth/ProtectedRoute'
+import SoloAdmin from './auth/SoloAdmin'
 import './App.css'
 
 function App() {
@@ -39,8 +40,10 @@ function App() {
         <Route path="/bases-y-condiciones" element={<BasesSorteoPage />} />
 
         <Route element={<PublicLayout />}>
-          <Route path="/catalogo" element={<CatalogPage />} />
-          <Route path="/producto/:id" element={<ProductDetailPage />} />
+          {/* Catálogo cerrado mientras dura la pre-landing del sorteo: lo ve solo
+              el admin (enlace "Ver Catálogo" del panel); el visitante vuelve a "/". */}
+          <Route path="/catalogo" element={<SoloAdmin><CatalogPage /></SoloAdmin>} />
+          <Route path="/producto/:id" element={<SoloAdmin><ProductDetailPage /></SoloAdmin>} />
           {/* El carrito y el checkout son públicos: la sesión se pide recién al confirmar. */}
           <Route path="/carrito" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
