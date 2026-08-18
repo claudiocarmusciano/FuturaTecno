@@ -48,3 +48,6 @@ postgres_data/
 # Archivos de trabajo para la carga de pesos por categoría (no van al repo)
 pesos-categorias*.json
 pesos-categorias-PROMPT.md
+
+# Bot de atención (Forja) — vive acá pero es un proyecto aparte, no del e-commerce.
+starter/
