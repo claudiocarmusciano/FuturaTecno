@@ -68,8 +68,6 @@
 .prelanding-prize-orbit { position: absolute; border: 1px solid rgba(200,224,72,.22); border-radius: 50%; }
 .orbit-one { width: 420px; height: 420px; top: 74px; }
 .orbit-two { width: 590px; height: 590px; top: -7px; border-color: rgba(200,224,72,.11); }
-.prelanding-footer { color: #6f7580; text-align: center; font-size: 11px; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.prelanding-footer-chat a { color: #C8E048; text-decoration: none; font-weight: 600; }
-.prelanding-footer-chat a:hover { text-decoration: underline; }
+.prelanding-footer { color: #6f7580; text-align: center; font-size: 11px; padding: 10px; }
 @media (max-width: 900px) { .prelanding-content { grid-template-columns: 1fr; max-width: 660px; gap: 32px; } .prelanding-copy { order: 2; } .prelanding-prize { min-height: 455px; order: 1; } .prelanding-prize img { max-height: 385px; } }
 @media (max-width: 580px) { .prelanding { padding: 20px 16px 12px; } .prelanding-header img { height: 49px; } .prelanding-skip { font-size: 12px; } .prelanding-content { margin-top: 36px; } .prelanding h1 { font-size: 39px; } .prelanding-steps li { grid-template-columns: 30px minmax(0, 1fr); gap: 10px; } .prelanding-steps > li > .prelanding-action, .prelanding-steps > li > .prelanding-actions, .prelanding-steps > li > .prelanding-done { grid-column: 2; min-width: 0; } .prelanding-steps > li > .prelanding-actions { justify-content: flex-start; } .prelanding-action { width: max-content; max-width: 100%; } .prelanding-prize { min-height: 370px; border-radius: 22px; } .prelanding-prize img { max-height: 320px; width: 94%; } .prelanding-prize-name { bottom: 55px; left: 18px; font-size: 35px; } .prelanding-prize-tag { bottom: 25px; left: 20px; font-size: 9px; } }
