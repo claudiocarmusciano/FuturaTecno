@@ -1,5 +1,10 @@
+# builder en MAYÚSCULAS y con la ruta explícita: Railway migró el servicio a
+# Railpack (2026-08-18) y con el valor en minúsculas la validación falla en
+# silencio y cae al detector automático — que no sabe construir este repo
+# (Java + Node juntos) y aborta con "could not determine how to build the app".
 [build]
-builder = "dockerfile"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 healthcheckPath = "/api/health"
