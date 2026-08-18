@@ -65,7 +65,13 @@ function PreLandingPage() {
       {estado?.codigoSorteo && <div className="prelanding-ticket"><span>Tu código de sorteo</span><code>{estado.codigoSorteo}</code><small>También te lo enviamos por email. Guardalo hasta el sorteo.</small></div>}
       <div className="prelanding-reminder"><span>✓</span><span><b>¡Importante!</b> Registrarte y completar los tres pasos es condición para participar. <strong>Sin obligación de compra.</strong> <Link to="/bases-y-condiciones">Ver Bases y Condiciones</Link>.</span></div>
     </div><aside className="prelanding-prize" aria-label="Sorteo Bienvenida"><div className="prelanding-prize-orbit orbit-one" /><div className="prelanding-prize-orbit orbit-two" /><p>Sorteo Bienvenida</p><img src="/silla-sorteo.png" alt="Silla Gamer Raptor Throne S10 negra" /><div className="prelanding-prize-name">Silla Gamer<br /><span>Raptor Throne S10</span></div><div className="prelanding-prize-tag">Negra · Tela · Envío a todo el país</div></aside></section>
-    <footer className="prelanding-footer">© {new Date().getFullYear()} FuturaTecno · Tu tecnología. Tu futuro.</footer>
+    <footer className="prelanding-footer">
+      <span>© {new Date().getFullYear()} FuturaTecno · Tu tecnología. Tu futuro.</span>
+      <span className="prelanding-footer-chat">
+        ¿Preferís Telegram? Escribinos a{' '}
+        <a href="https://t.me/futuratecno_bot" target="_blank" rel="noreferrer">@futuratecno_bot</a>
+      </span>
+    </footer>
   </main>
 }
 export default PreLandingPage
