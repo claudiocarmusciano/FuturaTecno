@@ -131,8 +131,10 @@ a { color: var(--color-accent); text-decoration: none; }
   .detalle-grid img { height: 280px !important; }
   .main-content { padding: 24px 16px; }
   h1 { font-size: 30px; }
-  /* Tablas anchas: el card scrollea horizontalmente en vez de romper el layout */
-  .card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* Tablas anchas: solo sus cards scrollean horizontalmente. Aplicarlo a todas
+     las tarjetas convierte el overflow vertical en auto en iOS y puede cortar
+     botones o contenido que quede cerca de su borde inferior. */
+  .card:has(.table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .table { min-width: 560px; }
 
   .catalogo-layout { grid-template-columns: 1fr; gap: 16px; }
@@ -227,6 +229,15 @@ a { color: var(--color-accent); text-decoration: none; }
   box-shadow: 0 0 0 4px rgba(178, 204, 46, 0.22);
 }
 .form-group input::placeholder, .form-group textarea::placeholder { color: #6b7280; }
+
+/* El control nativo de fecha de iOS puede conservar un ancho mínimo propio e
+   invadir la otra columna. Se limita dentro de la grilla sin quitar su selector
+   de calendario ni alterar los demás inputs. */
+.registro-fecha-nacimiento input[type='date'] {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
 
 /* ===== Tablas ===== */
 .table { width: 100%; border-collapse: collapse; margin-top: 18px; }

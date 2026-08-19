@@ -115,7 +115,7 @@ function RegisterPage() {
               <label>DNI</label>
               <input type="text" value={dni} onChange={e => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))} inputMode="numeric" autoComplete="off" placeholder="Sin puntos" required />
             </div>
-            <div className="form-group">
+            <div className="form-group registro-fecha-nacimiento">
               <label>Fecha de nacimiento</label>
               <input type="date" value={fechaNacimiento} onChange={e => setFechaNacimiento(e.target.value)} max={new Date().toISOString().slice(0, 10)} autoComplete="bday" required />
             </div>
