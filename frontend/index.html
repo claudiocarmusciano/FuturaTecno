@@ -23,5 +23,35 @@
             data-tema="oscuro"
             data-color="#c8e048"
             data-saludo="¡Hola! ¿Qué estás buscando? Contame y te oriento."></script>
+    <script>
+      // Safari/iOS hace zoom al enfocar controles con letra menor a 16px. El
+      // widget vive dentro de un Shadow DOM abierto, por eso este ajuste queda
+      // limitado al chat y no deshabilita el zoom ni afecta la accesibilidad
+      // del resto del sitio.
+      (function () {
+        function ajustarChatMovil() {
+          const widget = document.querySelector('[data-forja-widget]')
+          const raiz = widget?.shadowRoot
+          if (!raiz || raiz.querySelector('[data-futuratecno-chat-mobile]')) return
+
+          const estilo = document.createElement('style')
+          estilo.setAttribute('data-futuratecno-chat-mobile', '')
+          estilo.textContent = `
+            @media (max-width: 600px) {
+              .pie { min-width: 0; }
+              .pie textarea { min-width: 0; font-size: 16px !important; }
+              .pie .enviar { flex: 0 0 50px; width: 50px; padding: 0; }
+            }
+          `
+          raiz.appendChild(estilo)
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', ajustarChatMovil)
+        } else {
+          ajustarChatMovil()
+        }
+      })()
+    </script>
   </body>
 </html>
