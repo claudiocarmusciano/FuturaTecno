@@ -7,7 +7,7 @@ import './PreLanding.css'
 const instagramUrl = 'https://www.instagram.com/futuratecnoargentina'
 
 function PreLandingPage() {
-  const { isAuth, logout } = useAuth()
+  const { isAuth, user, logout } = useAuth()
   const [estado, setEstado] = useState(null)
   const [estadoCargado, setEstadoCargado] = useState(false)
   const [mensaje, setMensaje] = useState('')
@@ -45,7 +45,7 @@ function PreLandingPage() {
     : undefined
   return <main className="prelanding">
     <div className="prelanding-glow prelanding-glow-one" /><div className="prelanding-glow prelanding-glow-two" />
-    <header className="prelanding-header"><Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>{!isAuth && <Link className="prelanding-skip" to="/login">Ya tengo cuenta →</Link>}</header>
+    <header className="prelanding-header"><Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>{isAuth ? <div className="prelanding-session"><span>Sesión iniciada{user?.email ? `: ${user.email}` : ''}</span><button type="button" onClick={logout}>Salir</button></div> : <Link className="prelanding-skip" to="/login">Ya tengo cuenta →</Link>}</header>
     <section className="prelanding-content"><div className="prelanding-copy">
       <span className="prelanding-badge"><span /> Sorteo especial de bienvenida</span>
       <h1>Tu próximo upgrade puede ser una <strong>silla gamer ergonómica.</strong></h1>
@@ -55,9 +55,9 @@ function PreLandingPage() {
         <li className={pasoUno ? 'completo' : ''}><span className="prelanding-step-number">1</span><div><b>{pasoUno ? 'Email activado.' : 'Registrate con tu número de WhatsApp.'}</b><small>{pasoUno ? 'Tu cuenta ya está confirmada.' : 'Te enviaremos un botón de activación por email.'}</small>
           {isAuth && estado && !pasoUno && <small className="prelanding-email-note">Revisá tu email y hacé clic en <b>Activar cuenta</b>. Después volvé acá.</small>}</div>
           {necesitaRegistro ? <Link className="prelanding-action primary" to="/registro">Comenzar registro →</Link> : pasoUno ? <span className="prelanding-done">✓ Listo</span> : null}</li>
-        <li className={estado?.whatsappVerificado ? 'completo' : (!pasoUno ? 'bloqueado' : '')}><span className="prelanding-step-number">2</span><div><b>{estado?.whatsappVerificado ? 'WhatsApp validado.' : pasoDos ? 'Estamos validando tu WhatsApp.' : 'Agendanos y mandanos un mensaje.'}</b><small>{estado?.whatsappVerificado ? 'Confirmamos que el número ingresado es tuyo.' : pasoDos ? 'Buscaremos tu código en WhatsApp y confirmaremos el paso.' : 'Guardá nuestro número y enviá el mensaje precompletado para validar tu celular.'}</small></div>
+        <li className={estado?.whatsappVerificado ? 'completo' : (!pasoUno ? 'bloqueado' : '')}><span className="prelanding-step-number">2</span><div><b>{estado?.whatsappVerificado ? 'WhatsApp validado.' : pasoDos ? 'Estamos validando tu WhatsApp.' : 'Agendanos y mandanos un mensaje.'}</b><small>{estado?.whatsappVerificado ? 'Confirmamos que el número ingresado es tuyo.' : pasoDos ? 'Ya registramos que enviaste el mensaje. No hace falta que hagas nada más en este paso.' : 'Guardá nuestro número y enviá el mensaje precompletado para validar tu celular.'}</small></div>
           {estado?.whatsappVerificado ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className={`prelanding-action whatsapp${pasoDos ? ' disabled' : ''}`} href={pasoUno && !pasoDos ? whatsappUrl : undefined} target="_blank" rel="noreferrer" onClick={e => (!pasoUno || pasoDos) && e.preventDefault()}>Abrir WhatsApp</a><button className="prelanding-action outline" disabled={!pasoUno || pasoDos || guardando} onClick={() => completar(2)}>Ya lo hice</button></div>}</li>
-        <li className={pasoTres ? 'completo' : (!pasoDos ? 'bloqueado' : (instagramPendiente ? 'pendiente' : ''))}><span className="prelanding-step-number">3</span><div><b>{pasoTres ? 'Instagram validado.' : instagramPendiente ? 'Estamos validando tu Instagram.' : 'Seguinos y etiquetá a 3 amigos en Instagram.'}</b><small>{pasoTres ? 'Tu participación ya quedó validada.' : instagramPendiente ? `Verificaremos ${estado?.instagramUsuario || 'tu usuario'} y la consigna del sorteo.` : 'Hacelo en el posteo del sorteo para dejar registrada tu participación.'}</small></div>
+        <li className={pasoTres ? 'completo' : (!pasoDos ? 'bloqueado' : (instagramPendiente ? 'pendiente' : ''))}><span className="prelanding-step-number">3</span><div><b>{pasoTres ? 'Instagram validado.' : instagramPendiente ? 'Estamos validando tu Instagram.' : 'Seguinos y etiquetá a 3 amigos en Instagram.'}</b><small>{pasoTres ? 'Tu participación ya quedó validada.' : instagramPendiente ? `Ya registramos tu aviso. Verificaremos ${estado?.instagramUsuario || 'tu usuario'} y la consigna del sorteo.` : 'Hacelo en el posteo del sorteo para dejar registrada tu participación.'}</small></div>
           {pasoTres ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className={`prelanding-action instagram${instagramPendiente ? ' disabled' : ''}`} href={pasoDos && !instagramPendiente ? instagramUrl : undefined} target="_blank" rel="noreferrer" onClick={e => (!pasoDos || instagramPendiente) && e.preventDefault()}>Ir a Instagram</a><button className="prelanding-action outline" disabled={!pasoDos || instagramPendiente || guardando} onClick={() => completar(3)}>Ya lo hice</button></div>}</li>
       </ol>
       {mensaje && <p className="prelanding-message">{mensaje}</p>}
