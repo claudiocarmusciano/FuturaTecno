@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { IconEdit, IconSearch, IconTrash } from '../../components/icons'
 import { indexarArbol } from '../../utils/categorias'
 
@@ -29,6 +29,7 @@ const inputStyle = {
 
 function ProductosPage() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [editData, setEditData] = useState(null)   // ProductoEditDTO en edición
@@ -50,6 +51,7 @@ function ProductosPage() {
   const [catMasiva, setCatMasiva] = useState({ topId: '', subId: '' })
   const [asignando, setAsignando] = useState(false)
   const [eliminandoMasiva, setEliminandoMasiva] = useState(false)
+  const volverACategorias = searchParams.get('origen') === 'categorias'
 
   const { padreDe, nodoDe } = indexarArbol(arbol)
 
@@ -223,6 +225,10 @@ function ProductosPage() {
     try {
       // Se manda el categoriaId computado del selector (evita guardar null por desincronización).
       await axios.put(`/api/admin/productos/${editData.id}`, { ...editData, categoriaId: cat.id })
+      if (volverACategorias) {
+        navigate('/admin/categorias')
+        return
+      }
       setEditData(null)
       await cargar()
       setMensaje('Producto actualizado ✓')
@@ -244,6 +250,10 @@ function ProductosPage() {
     setMensaje('')
     try {
       await axios.delete(`/api/admin/productos/${editData.id}`)
+      if (volverACategorias) {
+        navigate('/admin/categorias')
+        return
+      }
       setEditData(null)
       await cargar()
       setMensaje('Producto eliminado ✓')
