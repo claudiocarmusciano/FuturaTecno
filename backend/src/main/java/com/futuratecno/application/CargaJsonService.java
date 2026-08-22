@@ -87,8 +87,10 @@ public class CargaJsonService {
                 producto.setMarca(marca);
                 producto.setModelo(modelo);
                 producto.setFuente(FUENTE);
-                producto.setActivo(true);
             }
+            // Una nueva carga manual debe volver a publicar un producto que se había dado de baja.
+            // De lo contrario figura como "actualizado" pero continúa oculto del panel y catálogo.
+            producto.setActivo(true);
             producto.setCategoria(limpiar(art.getCategoria()));
 
             List<String> imagenes = imagenesLimpias(art.getImagenes());
