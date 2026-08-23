@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { useCart } from '../../cart/CartContext'
 import CartBadge from '../CartBadge'
@@ -8,6 +8,8 @@ function PublicLayout() {
   const { user, isAdmin, logout } = useAuth()
   const { cantidadTotal } = useCart()
   const navigate = useNavigate()
+  const location = useLocation()
+  const esVistaCatalogo = location.pathname === '/catalogo' || location.pathname.startsWith('/producto/')
 
   const handleLogout = () => {
     logout()
@@ -15,7 +17,7 @@ function PublicLayout() {
   }
 
   return (
-    <div className="public-layout">
+    <div className={`public-layout${esVistaCatalogo ? ' public-layout-catalogo' : ''}`}>
       <header className="public-header">
         <div className="header-container">
           <Link to="/" className="logo"><img src="/logo.png?v=2" alt="FuturaTecno" className="header-logo" /></Link>

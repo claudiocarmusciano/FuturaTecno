@@ -5,6 +5,18 @@
   background-color: var(--color-bg);
 }
 
+/* La grilla y los brillos mantienen el catálogo integrado con la estética de la
+   pre-landing, sin competir con las tarjetas ni con las imágenes de producto. */
+.public-layout-catalogo {
+  background-image:
+    radial-gradient(620px 500px at 3% 12%, rgba(200, 224, 72, 0.075), transparent 68%),
+    radial-gradient(760px 520px at 96% 88%, rgba(125, 148, 34, 0.10), transparent 70%),
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: auto, auto, 42px 42px, 42px 42px;
+  background-attachment: fixed;
+}
+
 .public-header {
   background-color: rgba(22, 24, 29, 0.88);
   backdrop-filter: saturate(180%) blur(20px);
