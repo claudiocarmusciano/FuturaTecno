@@ -34,6 +34,8 @@ import java.util.List;
 @Service
 public class PedidoService {
     private static final Logger logger = LoggerFactory.getLogger(PedidoService.class);
+    /** Monto mínimo del subtotal de artículos para poder confirmar un pedido. */
+    private static final BigDecimal MONTO_MINIMO_PEDIDO_USD = new BigDecimal("250");
 
     /** Los cortes horarios del negocio son en hora argentina, no en la del servidor. */
     public static final ZoneId ZONA_AR = ZoneId.of("America/Argentina/Buenos_Aires");
@@ -150,6 +152,10 @@ public class PedidoService {
 
         pedido.setTotalUsd(totalUsd);
         pedido.setTotalArs(totalArs);
+        if (totalUsd.compareTo(MONTO_MINIMO_PEDIDO_USD) < 0) {
+            throw new IllegalArgumentException("El pedido mínimo es de US$ 250. Agregá productos por US$ "
+                    + MONTO_MINIMO_PEDIDO_USD.stripTrailingZeros().toPlainString() + " o más para continuar.");
+        }
         pedido.setNumero(generarNumero());
 
         // Envío: si el cliente eligió una modalidad, el costo se recotiza ACÁ y se congela —

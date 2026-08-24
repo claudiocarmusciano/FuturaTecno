@@ -5,11 +5,15 @@ import { useCart } from '../../cart/CartContext'
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+const MONTO_MINIMO_PEDIDO_USD = 250
+
 function CartPage() {
   const { items, quitar, cambiarCantidad, vaciar, revalidar, totalUsd, totalArs, vacio } = useCart()
   const navigate = useNavigate()
   const [avisos, setAvisos] = useState({ cambios: [], removidos: [] })
   const [revisando, setRevisando] = useState(true)
+  const faltaParaMinimo = Math.max(0, MONTO_MINIMO_PEDIDO_USD - Number(totalUsd || 0))
+  const alcanzaMinimo = faltaParaMinimo === 0
 
   // Al abrir el carrito se re-piden los precios: el carrito puede tener días y el precio de venta
   // se recalcula con la cotización del día. Mejor que se entere acá y no al confirmar.
@@ -147,6 +151,15 @@ function CartPage() {
         </div>
       </div>
 
+      {!alcanzaMinimo && (
+        <div className="card" style={{ marginTop: '18px', borderLeft: '4px solid var(--color-lime)' }}>
+          <strong>Compra mínima: US$ {formatNumber(MONTO_MINIMO_PEDIDO_USD)}</strong>
+          <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '14px' }}>
+            Te faltan US$ {formatNumber(faltaParaMinimo)} en productos para poder confirmar el pedido.
+          </p>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '18px' }}>
         <Link to="/catalogo" style={{
           padding: '12px 22px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600,
@@ -157,8 +170,10 @@ function CartPage() {
         <button
           type="button"
           onClick={() => navigate('/checkout')}
+          disabled={!alcanzaMinimo}
           style={{
-            padding: '12px 26px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+            padding: '12px 26px', borderRadius: '8px', border: 'none',
+            cursor: alcanzaMinimo ? 'pointer' : 'not-allowed', opacity: alcanzaMinimo ? 1 : 0.55,
             background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, fontSize: '16px'
           }}
         >

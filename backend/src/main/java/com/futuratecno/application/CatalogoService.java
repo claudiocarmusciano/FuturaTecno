@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class CatalogoService {
-    private static final BigDecimal PRECIO_MINIMO_CATALOGO_USD = new BigDecimal("200");
-
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final ImagenRepository imagenRepository;
@@ -103,8 +101,6 @@ public class CatalogoService {
             }
             BigDecimal precioVentaUsd = precioService.precioVentaUsd(v, proveedor);
             BigDecimal precioVentaArs = precioService.aArs(precioVentaUsd, cotizacion);
-            // El catálogo público solo exhibe artículos cuyo precio final de venta supera US$ 200.
-            if (precioVentaUsd.compareTo(PRECIO_MINIMO_CATALOGO_USD) <= 0) continue;
 
             variantesDto.add(new VarianteCatalogoDTO(
                     v.getId(), v.getEspecificaciones(), precioVentaUsd, precioVentaArs));

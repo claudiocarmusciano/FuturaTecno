@@ -8,6 +8,8 @@ import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+const MONTO_MINIMO_PEDIDO_USD = 250
+
 // Andreani devuelve el código de la modalidad en su propia jerga ("estándar", "sucursal").
 // Se traduce para el cliente, pero lo que se guarda y se manda al backend es el código original:
 // las modalidades son de ellos y pueden aparecer nuevas, que caen al default.
@@ -43,6 +45,8 @@ function CheckoutPage() {
   const [cotizando, setCotizando] = useState(false)
   const [envio, setEnvio] = useState(null)      // respuesta de /api/envio/cotizar
   const [modoEnvio, setModoEnvio] = useState('') // código elegido ('' = a coordinar)
+  const faltaParaMinimo = Math.max(0, MONTO_MINIMO_PEDIDO_USD - Number(totalUsd || 0))
+  const alcanzaMinimo = faltaParaMinimo === 0
 
   useEffect(() => {
     if (user?.nombre) setNombre(user.nombre)
@@ -57,6 +61,23 @@ function CheckoutPage() {
         <div className="card">
           <p style={{ color: 'var(--color-text-muted)' }}>El carrito está vacío.</p>
           <Link to="/catalogo">← Volver al catálogo</Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (!alcanzaMinimo) {
+    return (
+      <div>
+        <h1>Confirmar pedido</h1>
+        <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
+          <h2 style={{ marginTop: 0, fontSize: '18px' }}>Compra mínima: US$ {formatNumber(MONTO_MINIMO_PEDIDO_USD)}</h2>
+          <p style={{ color: 'var(--color-text-muted)' }}>
+            Tu carrito suma US$ {formatNumber(totalUsd)}. Agregá US$ {formatNumber(faltaParaMinimo)} en productos para poder continuar al checkout.
+          </p>
+          <Link to="/carrito" className="btn-primario" style={{ display: 'inline-block', textDecoration: 'none', marginTop: '8px' }}>
+            ← Volver al carrito
+          </Link>
         </div>
       </div>
     )
@@ -120,6 +141,10 @@ function CheckoutPage() {
   const confirmar = async (e) => {
     e.preventDefault()
     setError('')
+    if (!alcanzaMinimo) {
+      setError(`El pedido mínimo es de US$ ${formatNumber(MONTO_MINIMO_PEDIDO_USD)}.`)
+      return
+    }
     setEnviando(true)
     try {
       const { data: pedido } = await axios.post('/api/pedidos', {
