@@ -18,6 +18,7 @@ function CategoriasPage() {
   const [medidasEdit, setMedidasEdit] = useState({ pesoGramosDefault: '', altoCmDefault: '', anchoCmDefault: '', largoCmDefault: '' })
   const [sinCotizar, setSinCotizar] = useState([])
   const [auditando, setAuditando] = useState(true)
+  const [eliminandoProductoId, setEliminandoProductoId] = useState(null)
 
   const [creandoEn, setCreandoEn] = useState(null)    // id del padre, o 'raiz'
   const [nombreNuevo, setNombreNuevo] = useState('')
@@ -77,6 +78,20 @@ function CategoriasPage() {
       await axios.delete(`/api/admin/categorias/${cat.id}`)
       cargar()
     } catch (err) { manejarError(err, 'No se pudo borrar la categoría.') }
+  }
+
+  const eliminarProductoSinCotizar = async (producto) => {
+    if (!window.confirm(`¿Eliminar el producto "${producto.producto}"? Se ocultará del catálogo y no se borrará físicamente.`)) return
+    setError('')
+    setEliminandoProductoId(producto.productoId)
+    try {
+      await axios.delete(`/api/admin/productos/${producto.productoId}`)
+      await Promise.all([cargar(), cargarAuditoria()])
+    } catch (err) {
+      manejarError(err, 'No se pudo eliminar el producto.')
+    } finally {
+      setEliminandoProductoId(null)
+    }
   }
 
   const empezarEdicion = (cat) => {
@@ -198,7 +213,7 @@ function CategoriasPage() {
         <p style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Productos que hoy no pueden cotizar por Andreani porque les falta peso o alguna medida. Completá los valores de su categoría o editá el producto puntualmente.</p>
         {auditando ? <p>Cargando auditoría...</p> : sinCotizar.length === 0 ? <p style={{ color: 'var(--color-success)' }}>✓ Todos los productos activos tienen peso y dimensiones resolubles.</p> : <>
           <p style={{ color: 'var(--color-danger)', fontWeight: 700 }}>{sinCotizar.length} producto(s) sin cotización automática.</p>
-          <div style={{ overflowX: 'auto', maxHeight: '300px' }}><table className="table"><thead><tr><th>Producto</th><th>Categoría</th><th>Falta</th></tr></thead><tbody>{sinCotizar.map(p => <tr key={p.productoId}><td><Link to={`/admin/productos?editar=${p.productoId}&origen=categorias`} title="Editar producto" style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-lime)', textUnderlineOffset: '4px' }}>{p.producto}</Link></td><td>{p.categoria}</td><td>{p.faltan}</td></tr>)}</tbody></table></div>
+          <div style={{ overflowX: 'auto', maxHeight: '300px' }}><table className="table"><thead><tr><th>Producto</th><th>Categoría</th><th>Falta</th><th aria-label="Acciones"></th></tr></thead><tbody>{sinCotizar.map(p => <tr key={p.productoId}><td><Link to={`/admin/productos?editar=${p.productoId}&origen=categorias`} title="Editar producto" style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-lime)', textUnderlineOffset: '4px' }}>{p.producto}</Link></td><td>{p.categoria}</td><td>{p.faltan}</td><td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><button type="button" className="btn-accion danger" onClick={() => eliminarProductoSinCotizar(p)} disabled={eliminandoProductoId === p.productoId}>{eliminandoProductoId === p.productoId ? 'Eliminando...' : 'Eliminar'}</button></td></tr>)}</tbody></table></div>
         </>}
         <button type="button" className="btn btn-secondary" onClick={cargarAuditoria} disabled={auditando} style={{ marginTop: '12px' }}>↻ Actualizar reporte</button>
       </div>
