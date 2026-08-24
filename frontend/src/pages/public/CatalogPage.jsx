@@ -411,7 +411,7 @@ function CatalogPage() {
                   {filtrados.length !== productos.length && <> (filtrados de {productos.length})</>}</>}
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
-            Las imágenes son meramente ilustrativas · Stock sujeto a disponibilidad
+            <strong>Las imágenes son meramente ilustrativas:</strong> confirmá características, color y disponibilidad antes de comprar · Stock sujeto a disponibilidad
             {cotizacion?.valor && <> · 💵 Precios calculados al {cotizacion.fuente} ${formatNumber(cotizacion.valor)}</>}
           </p>
 

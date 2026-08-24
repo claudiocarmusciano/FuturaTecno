@@ -162,7 +162,7 @@ function ProductDetailPage() {
               Última actualización: {formatFecha(producto.ultimaActualizacion)}
             </p>
           )}
-          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 16px' }}>Las imágenes son meramente ilustrativas.</p>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 16px' }}><strong>Imágenes meramente ilustrativas.</strong> Confirmá características, color y disponibilidad de la variante antes de comprar.</p>
 
           {/* Estimación de entrega (ETA) */}
           {eta?.fechaEntrega && (

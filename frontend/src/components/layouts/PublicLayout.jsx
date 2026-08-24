@@ -40,6 +40,10 @@ function PublicLayout() {
         </div>
       </header>
       <main className="public-main">
+        <div className="public-image-disclaimer" role="note">
+          <span aria-hidden="true">ⓘ</span>
+          <span><strong>Imágenes meramente ilustrativas.</strong> Confirmá con Futura Tecno las características, el color y la disponibilidad de la variante antes de finalizar tu compra.</span>
+        </div>
         <Outlet />
       </main>
     </div>
