@@ -156,7 +156,7 @@ function ProductDetailPage() {
             </div>
           ))}
 
-          <p style={{ fontSize: '13px', color: 'var(--color-price)', margin: '12px 0 2px' }}>Stock sujeto a disponibilidad</p>
+          <p style={{ fontSize: '13px', color: 'var(--color-price)', margin: '12px 0 2px' }}>Stock sujeto a disponibilidad. Por la alta rotación, se confirma al procesar el pedido.</p>
           {producto.ultimaActualizacion && (
             <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 2px' }}>
               Última actualización: {formatFecha(producto.ultimaActualizacion)}

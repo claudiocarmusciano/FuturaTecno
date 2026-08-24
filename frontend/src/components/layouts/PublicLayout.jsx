@@ -42,7 +42,7 @@ function PublicLayout() {
       <main className="public-main">
         <div className="public-image-disclaimer" role="note">
           <span aria-hidden="true">ⓘ</span>
-          <span><strong>Imágenes meramente ilustrativas.</strong> Confirmá con Futura Tecno las características, el color y la disponibilidad de la variante antes de finalizar tu compra.</span>
+          <span><strong>Imágenes meramente ilustrativas.</strong> Confirmá con Futura Tecno las características, el color y la disponibilidad antes de finalizar tu compra. Debido a la alta rotación de stock, la disponibilidad se confirma al procesar el pedido.</span>
         </div>
         <Outlet />
       </main>
