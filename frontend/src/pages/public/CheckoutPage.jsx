@@ -24,7 +24,7 @@ const etiquetaEnvio = (codigo) => ETIQUETA_ENVIO[codigo] || `Envío ${codigo}`
 /** Arma el mensaje de WhatsApp con el pedido completo (antes era de a un producto por vez). */
 const mensajeWhatsapp = (pedido) => {
   const lineas = pedido.items.map(i => `• ${i.cantidad}× ${i.productoNombre} — US$ ${formatNumber(i.subtotalUsd)}`)
-  return `Hola ${NOMBRE_NEGOCIO}, hice el pedido ${pedido.numero}:\n\n${lineas.join('\n')}\n\nTotal: US$ ${formatNumber(pedido.totalUsd)}`
+  return `Hola ${NOMBRE_NEGOCIO}, hice el pedido ${pedido.numero}:\n\n${lineas.join('\n')}\n\nTotal de productos: US$ ${formatNumber(pedido.totalUsd)}\n\nQuiero coordinar la transferencia bancaria y la entrega.`
 }
 
 function CheckoutPage() {
@@ -291,6 +291,15 @@ function CheckoutPage() {
         </p>
       </div>
 
+      <div className="card" style={{ borderLeft: '4px solid #25D366' }}>
+        <h2 style={{ fontSize: '17px', margin: '0 0 6px' }}>Forma de pago</h2>
+        <p style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>Transferencia bancaria coordinada por WhatsApp</p>
+        <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
+          Al confirmar, tu pedido queda reservado de forma provisoria y te abriremos WhatsApp con el resumen.
+          Te enviaremos los datos para transferir y confirmaremos la disponibilidad antes de cerrar la compra.
+        </p>
+      </div>
+
       <form onSubmit={confirmar} className="card">
         <h2 style={{ fontSize: '17px', marginTop: 0 }}>Tus datos</h2>
 
@@ -330,7 +339,7 @@ function CheckoutPage() {
           />
           <span>
             Entiendo que <strong>confirmar este pedido implica un compromiso de compra</strong>.{' '}
-            {NOMBRE_NEGOCIO} se va a contactar para coordinar el pago y la entrega.
+            {NOMBRE_NEGOCIO} se va a contactar por WhatsApp para coordinar la transferencia y la entrega.
           </span>
         </label>
 
@@ -349,11 +358,11 @@ function CheckoutPage() {
               background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, fontSize: '16px'
             }}
           >
-            {enviando ? 'Confirmando...' : 'Confirmar pedido'}
+            {enviando ? 'Confirmando...' : 'Confirmar y coordinar transferencia'}
           </button>
         </div>
         <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px', marginBottom: 0 }}>
-          Al confirmar te abrimos WhatsApp con el pedido cargado y te mandamos un email con el detalle.
+          Al confirmar te abrimos WhatsApp con el pedido cargado y te mandamos un email con el detalle. El pago queda pendiente hasta confirmar la transferencia.
         </p>
       </form>
     </div>

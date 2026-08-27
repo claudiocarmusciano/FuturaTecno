@@ -41,7 +41,7 @@ function PedidoDetailPage() {
   if (cargando) return (<div>{volver}<div className="card" style={{ marginTop: '16px' }}><p>Cargando...</p></div></div>)
   if (error || !pedido) return (<div>{volver}<div className="card" style={{ marginTop: '16px' }}>{error}</div></div>)
 
-  const mensaje = `Hola ${NOMBRE_NEGOCIO}, te consulto por el pedido ${pedido.numero}.`
+  const mensaje = `Hola ${NOMBRE_NEGOCIO}, quiero coordinar la transferencia bancaria del pedido ${pedido.numero}.`
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
 
   return (
@@ -64,7 +64,7 @@ function PedidoDetailPage() {
         <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
           <strong>Vale hasta el {formatCorte(pedido.venceEn)}.</strong>
           <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
-            Después de ese horario se actualizan los precios y el pedido vence.
+            Coordiná la transferencia por WhatsApp antes de ese horario. Después se actualizan los precios y el pedido vence.
           </p>
         </div>
       )}
@@ -149,7 +149,7 @@ function PedidoDetailPage() {
           padding: '12px 24px', borderRadius: '8px', fontSize: '16px', fontWeight: 600
         }}
       >
-        <span style={{ fontSize: '20px' }}>💬</span> Consultar por WhatsApp
+        <span style={{ fontSize: '20px' }}>💬</span> Coordinar transferencia por WhatsApp
       </a>
     </div>
   )
