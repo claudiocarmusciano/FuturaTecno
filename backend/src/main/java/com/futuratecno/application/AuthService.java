@@ -29,6 +29,8 @@ public class AuthService {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final long RESET_TOKEN_TTL_MINUTOS = 60;   // el enlace de reseteo vale 1 hora
     private static final long ACTIVACION_TOKEN_TTL_MINUTOS = 24 * 60;
+    /** Quienes completen el alta antes de este instante conservan la doble chance anunciada. */
+    private static final LocalDateTime LIMITE_DOBLE_CHANCE = LocalDateTime.of(2026, 9, 1, 0, 0);
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -87,6 +89,7 @@ public class AuthService {
         u.setFechaNacimiento(fechaNacimiento);
         u.setInstagramUsuario(instagramUsuario);
         u.setBasesAceptadasEn(LocalDateTime.now());
+        u.setChancesSorteo(LocalDateTime.now().isBefore(LIMITE_DOBLE_CHANCE) ? 2 : 1);
         u.setRol("USUARIO");
         u.setActivo(true);
         String tokenEmail = generarTokenPlano();
