@@ -67,6 +67,7 @@ public class UsuarioAdminController {
         dto.setInstagramCompletado(u.getPasoInstagramCompletado());
         dto.setInstagramVerificado(u.getInstagramVerificado());
         dto.setCodigoSorteo(u.getCodigoSorteo());
+        dto.setChancesSorteo(u.getChancesSorteo());
         dto.setBasesAceptadasEn(u.getBasesAceptadasEn());
         return dto;
     }

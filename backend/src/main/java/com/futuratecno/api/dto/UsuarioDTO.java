@@ -20,6 +20,7 @@ public class UsuarioDTO {
     private Boolean instagramCompletado;
     private Boolean instagramVerificado;
     private String codigoSorteo;
+    private Integer chancesSorteo;
     private LocalDateTime basesAceptadasEn;
 
     public UsuarioDTO() {}
@@ -76,6 +77,8 @@ public class UsuarioDTO {
     public void setInstagramVerificado(Boolean instagramVerificado) { this.instagramVerificado = instagramVerificado; }
     public String getCodigoSorteo() { return codigoSorteo; }
     public void setCodigoSorteo(String codigoSorteo) { this.codigoSorteo = codigoSorteo; }
+    public Integer getChancesSorteo() { return chancesSorteo; }
+    public void setChancesSorteo(Integer chancesSorteo) { this.chancesSorteo = chancesSorteo; }
     public LocalDateTime getBasesAceptadasEn() { return basesAceptadasEn; }
     public void setBasesAceptadasEn(LocalDateTime basesAceptadasEn) { this.basesAceptadasEn = basesAceptadasEn; }
 }

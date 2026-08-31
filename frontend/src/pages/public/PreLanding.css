@@ -44,6 +44,7 @@
 .prelanding-ticket { display: grid; justify-items: start; gap: 5px; margin-top: 15px; padding: 14px 16px; border: 1px solid rgba(200,224,72,.45); border-radius: 12px; background: linear-gradient(120deg, rgba(200,224,72,.13), rgba(30,34,25,.65)); }
 .prelanding-ticket span { color: #e2ed9b; font-size: 12px; font-weight: 750; }
 .prelanding-ticket code { color: #fff; font-size: 22px; font-weight: 850; letter-spacing: .08em; }
+.prelanding-ticket b { color: #ddeb80; font-size: 13px; }
 .prelanding-ticket small { color: #b8bfbd; font-size: 11px; }
 .prelanding-finish { display: inline-flex; margin-top: 15px; background: #c8e048; color: #17191d; border-radius: 9px; padding: 11px 16px; font-size: 13px; font-weight: 800; }
 .prelanding-modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 22px; background: rgba(8,10,13,.77); backdrop-filter: blur(7px); }

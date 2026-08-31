@@ -122,7 +122,8 @@ public class AuthService {
         Usuario u = usuarioPorEmail(email);
         return new OnboardingStatusDTO(Boolean.TRUE.equals(u.getWhatsappVerificado()), Boolean.TRUE.equals(u.getEmailVerificado()),
                 Boolean.TRUE.equals(u.getPasoWhatsappAgendado()), Boolean.TRUE.equals(u.getPasoInstagramCompletado()),
-                Boolean.TRUE.equals(u.getInstagramVerificado()), u.getWhatsappVerificacionCodigo(), u.getCodigoSorteo(), u.getInstagramUsuario());
+                Boolean.TRUE.equals(u.getInstagramVerificado()), u.getWhatsappVerificacionCodigo(), u.getCodigoSorteo(), u.getInstagramUsuario(),
+                u.getChancesSorteo() != null ? u.getChancesSorteo() : 1);
     }
 
     @Transactional
@@ -174,7 +175,7 @@ public class AuthService {
         do { codigo = generarCodigoSorteo(); } while (usuarioRepository.existsByCodigoSorteo(codigo));
         u.setCodigoSorteo(codigo);
         u.setCodigoSorteoAsignadoEn(LocalDateTime.now());
-        emailService.enviarHtmlAsync(u.getEmail(), "Tu código de sorteo — Futura Tecno", emailCodigoSorteo(codigo));
+        emailService.enviarHtmlAsync(u.getEmail(), "Tu código de sorteo — Futura Tecno", emailCodigoSorteo(codigo, u.getChancesSorteo()));
     }
 
     private String generarCodigoWhatsapp() {
@@ -373,16 +374,21 @@ public class AuthService {
             """.formatted(enlace);
     }
 
-    private String emailCodigoSorteo(String codigo) {
+    private String emailCodigoSorteo(String codigo, Integer chancesSorteo) {
+        boolean dobleChance = chancesSorteo != null && chancesSorteo > 1;
+        String beneficio = dobleChance
+                ? "<p style=\"color: #5D6B14; font-weight: bold;\">Como te registraste hasta el 31/08/2026, tenés doble chance: tu participación se incluirá dos veces en el sorteo.</p>"
+                : "";
         return """
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #16181d;">
               <h2 style="color: #16181d;">¡Tu inscripción fue validada!</h2>
               <p>Ya cumpliste los requisitos del Sorteo Bienvenida de Futura Tecno.</p>
               <p>Tu código único de sorteo es:</p>
               <p style="margin: 24px 0; padding: 16px; text-align: center; background: #16181d; border-radius: 10px; color: #C8E048; font-size: 24px; font-weight: bold; letter-spacing: 2px;">%s</p>
-              <p>Guardalo: será el código incluido en el padrón público anonimizado que se comunicará el 01/10/2026.</p>
-              <p style="font-size: 13px; color: #666;">El sorteo se realizará el 02/10/2026. Consultá las Bases y Condiciones en futuratecno.com.ar.</p>
+              %s
+              <p>Guardalo: será incluido en el padrón público anonimizado antes del sorteo.</p>
+              <p style="font-size: 13px; color: #666;">El sorteo se realizará al alcanzar 1.000 seguidores en Instagram o, como máximo, el 31/10/2026. Consultá las Bases y Condiciones actualizadas en futuratecno.com.ar.</p>
             </div>
-            """.formatted(codigo);
+            """.formatted(codigo, beneficio);
     }
 }

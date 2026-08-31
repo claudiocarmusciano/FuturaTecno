@@ -66,6 +66,10 @@ public class Usuario extends BaseEntity {
     private String codigoSorteo;
     @Column(name = "codigo_sorteo_asignado_en")
     private java.time.LocalDateTime codigoSorteoAsignadoEn;
+    @Column(name = "chances_sorteo", nullable = false)
+    private Integer chancesSorteo = 1;
+    @Column(name = "aviso_prorroga_enviado_en")
+    private java.time.LocalDateTime avisoProrrogaEnviadoEn;
     @Column(name = "email_activacion_token")
     private String emailActivacionToken;
     @Column(name = "email_activacion_expira")
@@ -130,6 +134,10 @@ public class Usuario extends BaseEntity {
     public void setCodigoSorteo(String codigoSorteo) { this.codigoSorteo = codigoSorteo; }
     public java.time.LocalDateTime getCodigoSorteoAsignadoEn() { return codigoSorteoAsignadoEn; }
     public void setCodigoSorteoAsignadoEn(java.time.LocalDateTime codigoSorteoAsignadoEn) { this.codigoSorteoAsignadoEn = codigoSorteoAsignadoEn; }
+    public Integer getChancesSorteo() { return chancesSorteo; }
+    public void setChancesSorteo(Integer chancesSorteo) { this.chancesSorteo = chancesSorteo; }
+    public java.time.LocalDateTime getAvisoProrrogaEnviadoEn() { return avisoProrrogaEnviadoEn; }
+    public void setAvisoProrrogaEnviadoEn(java.time.LocalDateTime avisoProrrogaEnviadoEn) { this.avisoProrrogaEnviadoEn = avisoProrrogaEnviadoEn; }
     public String getEmailActivacionToken() { return emailActivacionToken; }
     public void setEmailActivacionToken(String emailActivacionToken) { this.emailActivacionToken = emailActivacionToken; }
     public java.time.LocalDateTime getEmailActivacionExpira() { return emailActivacionExpira; }

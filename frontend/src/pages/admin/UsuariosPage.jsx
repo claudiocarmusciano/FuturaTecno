@@ -34,8 +34,8 @@ function UsuariosPage() {
   }
 
   const exportarCSV = () => {
-    const filas = [['Email', 'Nombre', 'Apellido', 'DNI', 'Nacimiento', 'Celular', 'Instagram', 'Email activado', 'WhatsApp', 'Instagram validado', 'Código de sorteo', 'Bases aceptadas', 'Fecha de registro']]
-    usuarios.forEach(u => filas.push([u.email, u.nombre || '', u.apellido || '', u.dni || '', formatFecha(u.fechaNacimiento), u.celular || '', u.instagramUsuario || '', u.emailVerificado ? 'Sí' : 'No', u.whatsappVerificado ? 'Validado' : (u.whatsappAgendado ? 'Pendiente' : 'Sin solicitar'), u.instagramVerificado ? 'Validado' : (u.instagramCompletado ? 'Pendiente' : 'Sin solicitar'), u.codigoSorteo || '', u.basesAceptadasEn ? new Date(u.basesAceptadasEn).toLocaleString('es-AR') : '', formatFecha(u.fechaRegistro)]))
+    const filas = [['Email', 'Nombre', 'Apellido', 'DNI', 'Nacimiento', 'Celular', 'Instagram', 'Email activado', 'WhatsApp', 'Instagram validado', 'Código de sorteo', 'Chances', 'Bases aceptadas', 'Fecha de registro']]
+    usuarios.forEach(u => filas.push([u.email, u.nombre || '', u.apellido || '', u.dni || '', formatFecha(u.fechaNacimiento), u.celular || '', u.instagramUsuario || '', u.emailVerificado ? 'Sí' : 'No', u.whatsappVerificado ? 'Validado' : (u.whatsappAgendado ? 'Pendiente' : 'Sin solicitar'), u.instagramVerificado ? 'Validado' : (u.instagramCompletado ? 'Pendiente' : 'Sin solicitar'), u.codigoSorteo || '', u.chancesSorteo || 1, u.basesAceptadasEn ? new Date(u.basesAceptadasEn).toLocaleString('es-AR') : '', formatFecha(u.fechaRegistro)]))
     const csv = filas.map(f => f.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -78,6 +78,7 @@ function UsuariosPage() {
                 <th>Instagram</th>
                 <th>Validación Instagram</th>
                 <th>Código de sorteo</th>
+                <th>Chances</th>
                 <th>Fecha de registro</th>
               </tr>
             </thead>
@@ -95,6 +96,7 @@ function UsuariosPage() {
                   <td>{u.instagramUsuario || '—'}</td>
                   <td>{u.instagramVerificado ? <span style={{ color: 'var(--color-success)' }}>✓ Validado</span> : u.instagramCompletado ? <button className="btn btn-primary" style={{ padding: '4px 9px', fontSize: '12px' }} onClick={() => validarInstagram(u.id)}>Validar</button> : <span style={{ color: 'var(--color-text-muted)' }}>Pendiente</span>}</td>
                   <td><code>{u.codigoSorteo || '—'}</code></td>
+                  <td>{u.chancesSorteo > 1 ? <strong style={{ color: 'var(--color-accent)' }}>2 · Doble</strong> : '1'}</td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{formatFecha(u.fechaRegistro)}</td>
                 </tr>
               ))}
