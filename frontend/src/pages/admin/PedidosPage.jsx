@@ -76,6 +76,7 @@ function PedidosPage() {
                   <th style={{ padding: '10px 8px', fontSize: '13px' }}>Cliente</th>
                   <th style={{ padding: '10px 8px', fontSize: '13px' }}>Fecha</th>
                   <th style={{ padding: '10px 8px', fontSize: '13px' }}>Estado</th>
+                  <th style={{ padding: '10px 8px', fontSize: '13px' }}>Pago</th>
                   <th style={{ padding: '10px 8px', fontSize: '13px', textAlign: 'right' }}>Total</th>
                   <th style={{ padding: '10px 8px', fontSize: '13px' }}>Cambiar a</th>
                 </tr>
@@ -102,6 +103,9 @@ function PedidosPage() {
                       </td>
                       <td style={{ padding: '12px 8px', fontSize: '13px' }}>{formatFechaHora(p.createdAt)}</td>
                       <td style={{ padding: '12px 8px' }}><EstadoChip estado={p.estado} /></td>
+                      <td style={{ padding: '12px 8px', fontSize: '13px', fontWeight: 700, color: p.estadoPago === 'APROBADO' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
+                        {p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : p.estadoPago === 'RECHAZADO' ? 'Rechazado' : 'Pendiente'}
+                      </td>
                       <td style={{ padding: '12px 8px', textAlign: 'right' }}>
                         <div style={{ fontWeight: 600 }}>US$ {formatNumber(p.totalUsd)}</div>
                         <div style={{ fontSize: '12px', color: 'var(--color-price)' }}>$ {formatNumber(p.totalArs)}</div>
@@ -125,7 +129,7 @@ function PedidosPage() {
                     </tr>
                     {expandido === p.numero && (
                       <tr>
-                        <td colSpan={6} style={{ padding: '0 8px 14px', background: 'var(--color-accent-light)' }}>
+                        <td colSpan={7} style={{ padding: '0 8px 14px', background: 'var(--color-accent-light)' }}>
                           {p.items.map(i => (
                             <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '14px' }}>
                               <span>
@@ -143,6 +147,7 @@ function PedidosPage() {
                           )}
                           <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
                             Email: {p.usuarioEmail} · Dólar usado: ${formatNumber(p.cotizacionUsada)}
+                            {p.mercadoPagoPaymentId && <> · ID de pago: {p.mercadoPagoPaymentId}</>}
                           </p>
                         </td>
                       </tr>

@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/pagos/mercadopago/webhook").permitAll()
                         // El carrito se arma sin cuenta, pero confirmar un pedido y ver el
                         // historial exigen sesión. Ojo: el default de acá abajo es permitAll,
                         // así que toda ruta privada nueva tiene que listarse explícitamente.

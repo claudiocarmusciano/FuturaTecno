@@ -49,6 +49,7 @@ function MisPedidosPage() {
                 <th style={{ padding: '10px 8px', fontSize: '13px', color: 'var(--color-text-muted)' }}>Pedido</th>
                 <th style={{ padding: '10px 8px', fontSize: '13px', color: 'var(--color-text-muted)' }}>Fecha</th>
                 <th style={{ padding: '10px 8px', fontSize: '13px', color: 'var(--color-text-muted)' }}>Estado</th>
+                <th style={{ padding: '10px 8px', fontSize: '13px', color: 'var(--color-text-muted)' }}>Pago</th>
                 <th style={{ padding: '10px 8px', fontSize: '13px', color: 'var(--color-text-muted)', textAlign: 'right' }}>Total</th>
               </tr>
             </thead>
@@ -65,6 +66,9 @@ function MisPedidosPage() {
                   </td>
                   <td style={{ padding: '13px 8px', fontSize: '14px' }}>{formatFecha(p.createdAt)}</td>
                   <td style={{ padding: '13px 8px' }}><EstadoChip estado={p.estado} /></td>
+                  <td style={{ padding: '13px 8px', fontSize: '13px', fontWeight: 600 }}>
+                    {p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : 'Pendiente'}
+                  </td>
                   <td style={{ padding: '13px 8px', textAlign: 'right' }}>
                     <div style={{ fontWeight: 600 }}>US$ {formatNumber(p.totalUsd)}</div>
                     <div style={{ fontSize: '13px', color: 'var(--color-price)' }}>$ {formatNumber(p.totalArs)}</div>

@@ -283,6 +283,13 @@ public class PedidoService {
         dto.setCpDestino(p.getCpDestino());
         dto.setModoEnvio(p.getModoEnvio());
         dto.setCostoEnvioArs(p.getCostoEnvioArs());
+        dto.setTotalCobroArs(p.getMontoPagoArs() != null
+                ? p.getMontoPagoArs()
+                : p.getTotalArs().add(p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO));
+        dto.setEstadoPago(p.getEstadoPago() != null ? p.getEstadoPago().name() : null);
+        dto.setMercadoPagoPaymentId(p.getMercadoPagoPaymentId());
+        dto.setMercadoPagoStatusDetail(p.getMercadoPagoStatusDetail());
+        dto.setPagadoEn(p.getPagadoEn());
         if (paraAdmin && p.getUsuario() != null) {
             dto.setUsuarioEmail(p.getUsuario().getEmail());
         }

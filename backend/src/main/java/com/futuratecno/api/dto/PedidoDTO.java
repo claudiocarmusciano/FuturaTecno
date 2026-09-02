@@ -24,6 +24,11 @@ public class PedidoDTO {
     private String cpDestino;
     private String modoEnvio;
     private BigDecimal costoEnvioArs;
+    private BigDecimal totalCobroArs;
+    private String estadoPago;
+    private Long mercadoPagoPaymentId;
+    private String mercadoPagoStatusDetail;
+    private LocalDateTime pagadoEn;
 
     /** Email del cliente. Solo se completa para el admin; en el historial propio sobra. */
     private String usuarioEmail;
@@ -77,4 +82,19 @@ public class PedidoDTO {
 
     public BigDecimal getCostoEnvioArs() { return costoEnvioArs; }
     public void setCostoEnvioArs(BigDecimal costoEnvioArs) { this.costoEnvioArs = costoEnvioArs; }
+
+    public BigDecimal getTotalCobroArs() { return totalCobroArs; }
+    public void setTotalCobroArs(BigDecimal totalCobroArs) { this.totalCobroArs = totalCobroArs; }
+
+    public String getEstadoPago() { return estadoPago; }
+    public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }
+
+    public Long getMercadoPagoPaymentId() { return mercadoPagoPaymentId; }
+    public void setMercadoPagoPaymentId(Long mercadoPagoPaymentId) { this.mercadoPagoPaymentId = mercadoPagoPaymentId; }
+
+    public String getMercadoPagoStatusDetail() { return mercadoPagoStatusDetail; }
+    public void setMercadoPagoStatusDetail(String mercadoPagoStatusDetail) { this.mercadoPagoStatusDetail = mercadoPagoStatusDetail; }
+
+    public LocalDateTime getPagadoEn() { return pagadoEn; }
+    public void setPagadoEn(LocalDateTime pagadoEn) { this.pagadoEn = pagadoEn; }
 }

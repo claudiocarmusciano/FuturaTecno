@@ -77,8 +77,8 @@ public class PedidoEmailService {
         sb.append("</div>");
 
         sb.append("<p style=\"color:#555;font-size:14px\">Confirmar este pedido implica un ")
-          .append("<strong>compromiso de compra</strong>. Nos vamos a contactar para coordinar el pago y ")
-          .append("la entrega.</p>");
+          .append("<strong>compromiso de compra</strong>. El pago total se realiza online con Mercado Pago. ")
+          .append("Si todavía no lo completaste, podés volver al detalle del pedido para reintentarlo.</p>");
         sb.append("<p style=\"color:#888;font-size:12px\">FuturaTecno · Tu tecnología. Tu futuro.</p>");
         sb.append("</div>");
         return sb.toString();

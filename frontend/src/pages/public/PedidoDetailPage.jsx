@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import axios from 'axios'
 import { EstadoChip } from '../../components/EstadoPedido'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
@@ -25,9 +25,12 @@ const formatCorte = (iso) =>
 
 function PedidoDetailPage() {
   const { numero } = useParams()
+  const location = useLocation()
   const [pedido, setPedido] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
+  const [abriendoPago, setAbriendoPago] = useState(false)
+  const [errorPago, setErrorPago] = useState(location.state?.pagoError || '')
 
   useEffect(() => {
     axios.get(`/api/pedidos/${numero}`)
@@ -41,8 +44,22 @@ function PedidoDetailPage() {
   if (cargando) return (<div>{volver}<div className="card" style={{ marginTop: '16px' }}><p>Cargando...</p></div></div>)
   if (error || !pedido) return (<div>{volver}<div className="card" style={{ marginTop: '16px' }}>{error}</div></div>)
 
-  const mensaje = `Hola ${NOMBRE_NEGOCIO}, quiero coordinar la transferencia bancaria del pedido ${pedido.numero}.`
+  const mensaje = `Hola ${NOMBRE_NEGOCIO}, necesito ayuda con el pago del pedido ${pedido.numero}.`
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
+  const pagado = pedido.estadoPago === 'APROBADO'
+  const puedePagar = !pagado && !['VENCIDO', 'CANCELADO', 'ENTREGADO'].includes(pedido.estado)
+
+  const pagar = async () => {
+    setErrorPago('')
+    setAbriendoPago(true)
+    try {
+      const { data } = await axios.post(`/api/pedidos/${pedido.numero}/pago/mercadopago`)
+      window.location.assign(data.checkoutUrl)
+    } catch (err) {
+      setErrorPago(err.response?.data?.error || 'No pudimos abrir Mercado Pago. Probá nuevamente.')
+      setAbriendoPago(false)
+    }
+  }
 
   return (
     <div>
@@ -60,11 +77,33 @@ function PedidoDetailPage() {
         </div>
       </div>
 
+      <div className="card" style={{ borderLeft: `4px solid ${pagado ? 'var(--color-lime)' : 'var(--color-border)'}` }}>
+        <h2 style={{ fontSize: '17px', margin: '0 0 8px' }}>Pago</h2>
+        <p style={{ margin: '0 0 10px', fontWeight: 700 }}>
+          {pagado ? 'Pago aprobado' : pedido.estadoPago === 'EN_PROCESO' ? 'Pago en revisión' : 'Pago pendiente'}
+        </p>
+        {pagado && pedido.pagadoEn && (
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-muted)' }}>Acreditado el {formatFechaHora(pedido.pagadoEn)}</p>
+        )}
+        {!pagado && (
+          <p style={{ margin: '0 0 14px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
+            Total a cobrar: <strong>$ {formatNumber(pedido.totalCobroArs)}</strong>
+          </p>
+        )}
+        {errorPago && <p style={{ color: 'var(--color-danger, #c0392b)', fontSize: '14px' }}>{errorPago}</p>}
+        {puedePagar && (
+          <button type="button" onClick={pagar} disabled={abriendoPago} className="btn-primario"
+            style={{ border: 0, cursor: abriendoPago ? 'default' : 'pointer', opacity: abriendoPago ? 0.6 : 1 }}>
+            {abriendoPago ? 'Abriendo Mercado Pago...' : 'Pagar con Mercado Pago'}
+          </button>
+        )}
+      </div>
+
       {pedido.estado === 'PENDIENTE' && pedido.venceEn && (
         <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
           <strong>Vale hasta el {formatCorte(pedido.venceEn)}.</strong>
           <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
-            Coordiná la transferencia por WhatsApp antes de ese horario. Después se actualizan los precios y el pedido vence.
+            Completá el pago antes de ese horario. Después se actualizan los precios y el pedido vence.
           </p>
         </div>
       )}
@@ -149,7 +188,7 @@ function PedidoDetailPage() {
           padding: '12px 24px', borderRadius: '8px', fontSize: '16px', fontWeight: 600
         }}
       >
-        <span style={{ fontSize: '20px' }}>💬</span> Coordinar transferencia por WhatsApp
+        <span style={{ fontSize: '20px' }}>💬</span> Consultar por WhatsApp
       </a>
     </div>
   )

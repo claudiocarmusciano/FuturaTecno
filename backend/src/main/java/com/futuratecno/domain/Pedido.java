@@ -64,6 +64,29 @@ public class Pedido extends BaseEntity {
     @Column(name = "costo_envio_ars")
     private BigDecimal costoEnvioArs;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_pago", nullable = false, length = 20)
+    private EstadoPago estadoPago = EstadoPago.SIN_INICIAR;
+
+    @Column(name = "mercado_pago_preference_id", length = 120)
+    private String mercadoPagoPreferenceId;
+
+    @Column(name = "mercado_pago_payment_id")
+    private Long mercadoPagoPaymentId;
+
+    @Column(name = "mercado_pago_status_detail", length = 150)
+    private String mercadoPagoStatusDetail;
+
+    @Column(name = "mercado_pago_checkout_url", length = 1000)
+    private String mercadoPagoCheckoutUrl;
+
+    /** Importe total enviado a Mercado Pago, incluidos los gastos de envío ya cotizados. */
+    @Column(name = "monto_pago_ars")
+    private BigDecimal montoPagoArs;
+
+    @Column(name = "pagado_en")
+    private LocalDateTime pagadoEn;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItem> items = new ArrayList<>();
 
@@ -170,6 +193,27 @@ public class Pedido extends BaseEntity {
     public void setCostoEnvioArs(BigDecimal costoEnvioArs) {
         this.costoEnvioArs = costoEnvioArs;
     }
+
+    public EstadoPago getEstadoPago() { return estadoPago; }
+    public void setEstadoPago(EstadoPago estadoPago) { this.estadoPago = estadoPago; }
+
+    public String getMercadoPagoPreferenceId() { return mercadoPagoPreferenceId; }
+    public void setMercadoPagoPreferenceId(String mercadoPagoPreferenceId) { this.mercadoPagoPreferenceId = mercadoPagoPreferenceId; }
+
+    public Long getMercadoPagoPaymentId() { return mercadoPagoPaymentId; }
+    public void setMercadoPagoPaymentId(Long mercadoPagoPaymentId) { this.mercadoPagoPaymentId = mercadoPagoPaymentId; }
+
+    public String getMercadoPagoStatusDetail() { return mercadoPagoStatusDetail; }
+    public void setMercadoPagoStatusDetail(String mercadoPagoStatusDetail) { this.mercadoPagoStatusDetail = mercadoPagoStatusDetail; }
+
+    public String getMercadoPagoCheckoutUrl() { return mercadoPagoCheckoutUrl; }
+    public void setMercadoPagoCheckoutUrl(String mercadoPagoCheckoutUrl) { this.mercadoPagoCheckoutUrl = mercadoPagoCheckoutUrl; }
+
+    public BigDecimal getMontoPagoArs() { return montoPagoArs; }
+    public void setMontoPagoArs(BigDecimal montoPagoArs) { this.montoPagoArs = montoPagoArs; }
+
+    public LocalDateTime getPagadoEn() { return pagadoEn; }
+    public void setPagadoEn(LocalDateTime pagadoEn) { this.pagadoEn = pagadoEn; }
 
     public List<PedidoItem> getItems() {
         return items;

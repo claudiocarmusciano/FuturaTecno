@@ -4,6 +4,9 @@ import com.futuratecno.domain.EstadoPedido;
 import com.futuratecno.domain.Pedido;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -20,6 +23,12 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findAllByOrderByCreatedAtDesc();
 
     Optional<Pedido> findByNumero(String numero);
+
+    Optional<Pedido> findByMercadoPagoPaymentId(Long mercadoPagoPaymentId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Pedido p where p.numero = :numero")
+    Optional<Pedido> findByNumeroForUpdate(@Param("numero") String numero);
 
     /** Pedidos que quedaron sin cerrar pasado su corte de las 06:30. Los marca VENCIDO el scheduler. */
     List<Pedido> findByEstadoAndVenceEnBefore(EstadoPedido estado, LocalDateTime momento);

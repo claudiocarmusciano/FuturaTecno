@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
 import { useCart } from '../../cart/CartContext'
-import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
+import { NOMBRE_NEGOCIO } from '../../config'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -20,12 +20,6 @@ const ETIQUETA_ENVIO = {
   'bigger': 'Envío de paquete grande'
 }
 const etiquetaEnvio = (codigo) => ETIQUETA_ENVIO[codigo] || `Envío ${codigo}`
-
-/** Arma el mensaje de WhatsApp con el pedido completo (antes era de a un producto por vez). */
-const mensajeWhatsapp = (pedido) => {
-  const lineas = pedido.items.map(i => `• ${i.cantidad}× ${i.productoNombre} — US$ ${formatNumber(i.subtotalUsd)}`)
-  return `Hola ${NOMBRE_NEGOCIO}, hice el pedido ${pedido.numero}:\n\n${lineas.join('\n')}\n\nTotal de productos: US$ ${formatNumber(pedido.totalUsd)}\n\nQuiero coordinar la transferencia bancaria y la entrega.`
-}
 
 function CheckoutPage() {
   const { user, isAuth, listo } = useAuth()
@@ -158,9 +152,15 @@ function CheckoutPage() {
         modoEnvio: modoEnvio || null
       })
       vaciar()
-      // Abre WhatsApp con el pedido completo y deja al usuario en el detalle.
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensajeWhatsapp(pedido))}`, '_blank')
-      navigate(`/pedido/${pedido.numero}`, { replace: true })
+      try {
+        const { data: checkout } = await axios.post(`/api/pedidos/${pedido.numero}/pago/mercadopago`)
+        window.location.assign(checkout.checkoutUrl)
+      } catch (pagoError) {
+        navigate(`/pedido/${pedido.numero}`, {
+          replace: true,
+          state: { pagoError: pagoError.response?.data?.error || 'El pedido se creó, pero no pudimos abrir Mercado Pago. Podés reintentar desde acá.' }
+        })
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo confirmar el pedido. Probá de nuevo.')
       setEnviando(false)
@@ -291,12 +291,12 @@ function CheckoutPage() {
         </p>
       </div>
 
-      <div className="card" style={{ borderLeft: '4px solid #25D366' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
         <h2 style={{ fontSize: '17px', margin: '0 0 6px' }}>Forma de pago</h2>
-        <p style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>Transferencia bancaria coordinada por WhatsApp</p>
+        <p style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>Pago online con Mercado Pago</p>
         <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
-          Al confirmar, tu pedido queda reservado de forma provisoria y te abriremos WhatsApp con el resumen.
-          Te enviaremos los datos para transferir y confirmaremos la disponibilidad antes de cerrar la compra.
+          Al confirmar creamos tu pedido y te llevamos al entorno seguro de Mercado Pago.
+          El total se abona por anticipado e incluye el envío cuando ya fue cotizado.
         </p>
       </div>
 
@@ -339,7 +339,7 @@ function CheckoutPage() {
           />
           <span>
             Entiendo que <strong>confirmar este pedido implica un compromiso de compra</strong>.{' '}
-            {NOMBRE_NEGOCIO} se va a contactar por WhatsApp para coordinar la transferencia y la entrega.
+            Voy a pagar el total por Mercado Pago para que {NOMBRE_NEGOCIO} pueda procesar la compra.
           </span>
         </label>
 
@@ -358,11 +358,11 @@ function CheckoutPage() {
               background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, fontSize: '16px'
             }}
           >
-            {enviando ? 'Confirmando...' : 'Confirmar y coordinar transferencia'}
+            {enviando ? 'Preparando el pago...' : 'Confirmar y pagar con Mercado Pago'}
           </button>
         </div>
         <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px', marginBottom: 0 }}>
-          Al confirmar te abrimos WhatsApp con el pedido cargado y te mandamos un email con el detalle. El pago queda pendiente hasta confirmar la transferencia.
+          El importe y los datos del pedido se verifican nuevamente en el servidor antes de abrir el pago.
         </p>
       </form>
     </div>
