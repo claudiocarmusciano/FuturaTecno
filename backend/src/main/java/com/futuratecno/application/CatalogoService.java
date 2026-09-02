@@ -103,7 +103,8 @@ public class CatalogoService {
             BigDecimal precioVentaArs = precioService.aArs(precioVentaUsd, cotizacion);
 
             variantesDto.add(new VarianteCatalogoDTO(
-                    v.getId(), v.getEspecificaciones(), precioVentaUsd, precioVentaArs));
+                    v.getId(), DescripcionProductoSanitizer.limpiar(v.getEspecificaciones()),
+                    precioVentaUsd, precioVentaArs));
         }
 
         var nombresCategoria = categoriaService.resolverNombres(producto.getCategoriaId());
