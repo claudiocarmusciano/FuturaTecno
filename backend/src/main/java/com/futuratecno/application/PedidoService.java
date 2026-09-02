@@ -105,6 +105,12 @@ public class PedidoService {
         pedido.setNombreContacto(limpiar(req.getNombreContacto(), 150));
         pedido.setTelefonoContacto(limpiar(req.getTelefonoContacto(), 50));
         pedido.setNotas(limpiar(req.getNotas(), 1000));
+        String medioPago = limpiar(req.getMedioPago(), 30);
+        if (medioPago == null) medioPago = "MERCADO_PAGO";
+        if (!medioPago.equals("MERCADO_PAGO") && !medioPago.equals("TRANSFERENCIA")) {
+            throw new IllegalArgumentException("La forma de pago elegida no es válida.");
+        }
+        pedido.setMedioPago(medioPago);
 
         BigDecimal totalUsd = BigDecimal.ZERO;
         BigDecimal totalArs = BigDecimal.ZERO;
@@ -283,9 +289,13 @@ public class PedidoService {
         dto.setCpDestino(p.getCpDestino());
         dto.setModoEnvio(p.getModoEnvio());
         dto.setCostoEnvioArs(p.getCostoEnvioArs());
-        dto.setTotalCobroArs(p.getMontoPagoArs() != null
-                ? p.getMontoPagoArs()
-                : p.getTotalArs().add(p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO));
+        dto.setMedioPago(p.getMedioPago());
+        BigDecimal baseConEnvio = p.getTotalArs().add(
+                p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO);
+        dto.setTotalCobroArs("TRANSFERENCIA".equals(p.getMedioPago())
+                ? baseConEnvio
+                : (p.getMontoPagoArs() != null ? p.getMontoPagoArs()
+                : precioService.precioMercadoPagoInmediato(baseConEnvio)));
         dto.setEstadoPago(p.getEstadoPago() != null ? p.getEstadoPago().name() : null);
         dto.setMercadoPagoPaymentId(p.getMercadoPagoPaymentId());
         dto.setMercadoPagoStatusDetail(p.getMercadoPagoStatusDetail());

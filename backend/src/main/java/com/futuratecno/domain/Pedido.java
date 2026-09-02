@@ -64,6 +64,10 @@ public class Pedido extends BaseEntity {
     @Column(name = "costo_envio_ars")
     private BigDecimal costoEnvioArs;
 
+    /** TRANSFERENCIA conserva el precio base; MERCADO_PAGO usa el bruto con comisión inmediata. */
+    @Column(name = "medio_pago", nullable = false, length = 30)
+    private String medioPago = "MERCADO_PAGO";
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_pago", nullable = false, length = 20)
     private EstadoPago estadoPago = EstadoPago.SIN_INICIAR;
@@ -133,6 +137,9 @@ public class Pedido extends BaseEntity {
     public BigDecimal getCotizacionUsada() {
         return cotizacionUsada;
     }
+
+    public String getMedioPago() { return medioPago; }
+    public void setMedioPago(String medioPago) { this.medioPago = medioPago; }
 
     public void setCotizacionUsada(BigDecimal cotizacionUsada) {
         this.cotizacionUsada = cotizacionUsada;

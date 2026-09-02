@@ -85,6 +85,10 @@ mercadopago:
   test-mode: ${MERCADOPAGO_TEST_MODE:false}
   # Se genera al configurar Webhooks en Tus integraciones. Nunca va en el frontend.
   webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET:}
+  # Checkout online con disponibilidad inmediata: 6,29% + IVA (21%). Se puede actualizar
+  # desde Railway sin tocar código si Mercado Pago cambia la tarifa.
+  comision-inmediata-porcentaje: ${MERCADOPAGO_COMISION_INMEDIATA_PORCENTAJE:6.29}
+  iva-comision-porcentaje: ${MERCADOPAGO_IVA_COMISION_PORCENTAJE:21}
 
 app:
   public-url: ${APP_PUBLIC_URL:https://www.futuratecno.com.ar}

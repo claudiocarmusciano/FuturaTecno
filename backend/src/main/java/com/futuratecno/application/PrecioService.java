@@ -3,6 +3,7 @@ package com.futuratecno.application;
 import com.futuratecno.domain.Proveedor;
 import com.futuratecno.domain.Variante;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,6 +21,15 @@ import java.math.RoundingMode;
 public class PrecioService {
 
     private static final BigDecimal CIEN = BigDecimal.valueOf(100);
+    private final BigDecimal comisionMercadoPagoPct;
+    private final BigDecimal ivaComisionPct;
+
+    public PrecioService(
+            @Value("${mercadopago.comision-inmediata-porcentaje:6.29}") BigDecimal comisionMercadoPagoPct,
+            @Value("${mercadopago.iva-comision-porcentaje:21}") BigDecimal ivaComisionPct) {
+        this.comisionMercadoPagoPct = comisionMercadoPagoPct;
+        this.ivaComisionPct = ivaComisionPct;
+    }
 
     /** Precio de venta en USD de una variante, redondeado a 2 decimales. */
     public BigDecimal precioVentaUsd(Variante variante, Proveedor proveedor) {
@@ -40,5 +50,18 @@ public class PrecioService {
     /** Convierte un importe en USD a ARS con la cotización dada, redondeado a 2 decimales. */
     public BigDecimal aArs(BigDecimal usd, BigDecimal cotizacion) {
         return usd.multiply(cotizacion).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Bruto a cobrar para que, descontada la comisión inmediata y su IVA, quede el importe base.
+     * Se divide por (1 - tasa efectiva); sumar 7,6109% no alcanzaría a recuperar el mismo neto.
+     */
+    public BigDecimal precioMercadoPagoInmediato(BigDecimal importeBase) {
+        if (importeBase == null) return BigDecimal.ZERO.setScale(2);
+        BigDecimal comision = comisionMercadoPagoPct.divide(CIEN, 8, RoundingMode.HALF_UP);
+        BigDecimal iva = BigDecimal.ONE.add(ivaComisionPct.divide(CIEN, 8, RoundingMode.HALF_UP));
+        BigDecimal divisor = BigDecimal.ONE.subtract(comision.multiply(iva));
+        if (divisor.signum() <= 0) throw new IllegalStateException("La comisión de Mercado Pago configurada no es válida.");
+        return importeBase.divide(divisor, 2, RoundingMode.HALF_UP);
     }
 }

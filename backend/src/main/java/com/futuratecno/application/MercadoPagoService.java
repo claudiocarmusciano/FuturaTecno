@@ -22,10 +22,13 @@ public class MercadoPagoService {
 
     private final PedidoRepository pedidoRepository;
     private final MercadoPagoGateway mercadoPagoGateway;
+    private final PrecioService precioService;
 
-    public MercadoPagoService(PedidoRepository pedidoRepository, MercadoPagoGateway mercadoPagoGateway) {
+    public MercadoPagoService(PedidoRepository pedidoRepository, MercadoPagoGateway mercadoPagoGateway,
+                              PrecioService precioService) {
         this.pedidoRepository = pedidoRepository;
         this.mercadoPagoGateway = mercadoPagoGateway;
+        this.precioService = precioService;
     }
 
     @Transactional
@@ -33,6 +36,10 @@ public class MercadoPagoService {
         Pedido pedido = pedidoRepository.findByNumeroForUpdate(numero)
                 .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado."));
         exigirPropietario(pedido, emailUsuario);
+
+        if ("TRANSFERENCIA".equals(pedido.getMedioPago())) {
+            throw new IllegalArgumentException("Este pedido fue confirmado para pagar por transferencia.");
+        }
 
         if (pedido.getEstadoPago() == EstadoPago.APROBADO) {
             throw new IllegalArgumentException("Este pedido ya está pagado.");
@@ -122,7 +129,8 @@ public class MercadoPagoService {
 
     private BigDecimal totalACobrar(Pedido pedido) {
         BigDecimal envio = pedido.getCostoEnvioArs() != null ? pedido.getCostoEnvioArs() : BigDecimal.ZERO;
-        return pedido.getTotalArs().add(envio).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal precioTransferencia = pedido.getTotalArs().add(envio).setScale(2, RoundingMode.HALF_UP);
+        return precioService.precioMercadoPagoInmediato(precioTransferencia);
     }
 
     private EstadoPago mapearEstado(String status) {

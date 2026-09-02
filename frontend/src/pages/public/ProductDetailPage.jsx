@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 import { useCart } from '../../cart/CartContext'
+import PaymentPrices from '../../components/PaymentPrices'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -133,8 +134,8 @@ function ProductDetailPage() {
               )}
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
                 <strong style={{ fontSize: '28px', color: 'var(--color-text)', letterSpacing: '-0.02em' }}>US$ {formatNumber(v.precioUsd)}</strong>
-                <span style={{ color: 'var(--color-price)', fontSize: '17px' }}>$ {formatNumber(v.precioArs)}</span>
               </div>
+              <PaymentPrices transferPrice={v.precioArs} />
               {/* El carrito es por variante: el precio vive en la variante, no en el producto. */}
               <button
                 type="button"

@@ -25,6 +25,7 @@ public class PedidoDTO {
     private String modoEnvio;
     private BigDecimal costoEnvioArs;
     private BigDecimal totalCobroArs;
+    private String medioPago;
     private String estadoPago;
     private Long mercadoPagoPaymentId;
     private String mercadoPagoStatusDetail;
@@ -85,6 +86,9 @@ public class PedidoDTO {
 
     public BigDecimal getTotalCobroArs() { return totalCobroArs; }
     public void setTotalCobroArs(BigDecimal totalCobroArs) { this.totalCobroArs = totalCobroArs; }
+
+    public String getMedioPago() { return medioPago; }
+    public void setMedioPago(String medioPago) { this.medioPago = medioPago; }
 
     public String getEstadoPago() { return estadoPago; }
     public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../../cart/CartContext'
+import PaymentPrices from '../../components/PaymentPrices'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -144,9 +145,9 @@ function CartPage() {
             Vaciar carrito
           </button>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>Total</div>
+            <div style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>Total de productos</div>
             <div style={{ fontSize: '30px', fontWeight: 700, letterSpacing: '-0.02em' }}>US$ {formatNumber(totalUsd)}</div>
-            <div style={{ fontSize: '16px', color: 'var(--color-price)' }}>$ {formatNumber(totalArs)}</div>
+            <PaymentPrices transferPrice={totalArs} />
           </div>
         </div>
       </div>

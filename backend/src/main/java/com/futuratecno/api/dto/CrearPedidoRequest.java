@@ -18,6 +18,7 @@ public class CrearPedidoRequest {
     // se recotiza server-side al confirmar y se congela en el pedido.
     private String cpDestino;
     private String modoEnvio;
+    private String medioPago;
 
     public CrearPedidoRequest() {}
 
@@ -41,4 +42,7 @@ public class CrearPedidoRequest {
 
     public String getModoEnvio() { return modoEnvio; }
     public void setModoEnvio(String modoEnvio) { this.modoEnvio = modoEnvio; }
+
+    public String getMedioPago() { return medioPago; }
+    public void setMedioPago(String medioPago) { this.medioPago = medioPago; }
 }

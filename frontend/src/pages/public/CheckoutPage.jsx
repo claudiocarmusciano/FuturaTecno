@@ -4,6 +4,8 @@ import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
 import { useCart } from '../../cart/CartContext'
 import { NOMBRE_NEGOCIO } from '../../config'
+import PaymentPrices from '../../components/PaymentPrices'
+import { mpImmediatePrice } from '../../utils/paymentPricing'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -30,6 +32,7 @@ function CheckoutPage() {
   const [telefono, setTelefono] = useState('')
   const [notas, setNotas] = useState('')
   const [aceptaCompromiso, setAceptaCompromiso] = useState(false)
+  const [medioPago, setMedioPago] = useState('MERCADO_PAGO')
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
 
@@ -131,6 +134,8 @@ function CheckoutPage() {
   }
 
   const opcionElegida = envio?.opciones?.find(o => o.codigo === modoEnvio) || null
+  const totalTransferenciaConEnvio = totalArs + Number(opcionElegida?.totalArs || 0)
+  const totalMercadoPago = mpImmediatePrice(totalTransferenciaConEnvio)
 
   const confirmar = async (e) => {
     e.preventDefault()
@@ -147,11 +152,16 @@ function CheckoutPage() {
         telefonoContacto: telefono,
         notas,
         aceptaCompromiso,
+        medioPago,
         // Solo el CP y la modalidad: el costo lo recotiza el backend al confirmar.
         cpDestino: modoEnvio ? cp : null,
         modoEnvio: modoEnvio || null
       })
       vaciar()
+      if (medioPago === 'TRANSFERENCIA') {
+        navigate(`/pedido/${pedido.numero}`, { replace: true })
+        return
+      }
       try {
         const { data: checkout } = await axios.post(`/api/pedidos/${pedido.numero}/pago/mercadopago`)
         window.location.assign(checkout.checkoutUrl)
@@ -186,15 +196,8 @@ function CheckoutPage() {
           <span>Total</span>
           <span>US$ {formatNumber(totalUsd)}</span>
         </div>
-        <div style={{ textAlign: 'right', color: 'var(--color-price)' }}>$ {formatNumber(totalArs)}</div>
-        {opcionElegida && (
-          <div style={{ textAlign: 'right', fontSize: '14px', color: 'var(--color-text-muted)', marginTop: '6px' }}>
-            + envío estimado $ {formatNumber(opcionElegida.totalArs)} ={' '}
-            <strong style={{ color: 'var(--color-price)' }}>
-              $ {formatNumber(totalArs + Number(opcionElegida.totalArs))}
-            </strong>
-          </div>
-        )}
+        {opcionElegida && <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '6px' }}>Incluye envío estimado: $ {formatNumber(opcionElegida.totalArs)}</div>}
+        <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} /></div>
       </div>
 
       <div className="card">
@@ -293,11 +296,14 @@ function CheckoutPage() {
 
       <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
         <h2 style={{ fontSize: '17px', margin: '0 0 6px' }}>Forma de pago</h2>
-        <p style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>Pago online con Mercado Pago</p>
-        <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
-          Al confirmar creamos tu pedido y te llevamos al entorno seguro de Mercado Pago.
-          El total se abona por anticipado e incluye el envío cuando ya fue cotizado.
-        </p>
+        <label style={{ display: 'flex', gap: '10px', padding: '10px 0', cursor: 'pointer' }}>
+          <input type="radio" name="medioPago" checked={medioPago === 'TRANSFERENCIA'} onChange={() => setMedioPago('TRANSFERENCIA')} />
+          <span><strong>Transferencia bancaria — $ {formatNumber(totalTransferenciaConEnvio)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>Al confirmar te mostramos el pedido para coordinar el pago.</small></span>
+        </label>
+        <label style={{ display: 'flex', gap: '10px', padding: '10px 0', borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
+          <input type="radio" name="medioPago" checked={medioPago === 'MERCADO_PAGO'} onChange={() => setMedioPago('MERCADO_PAGO')} />
+          <span><strong>Mercado Pago — 1 pago de $ {formatNumber(totalMercadoPago)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>También podés elegir 3, 6 o 12 cuotas con interés en Mercado Pago.</small></span>
+        </label>
       </div>
 
       <form onSubmit={confirmar} className="card">
@@ -339,7 +345,7 @@ function CheckoutPage() {
           />
           <span>
             Entiendo que <strong>confirmar este pedido implica un compromiso de compra</strong>.{' '}
-            Voy a pagar el total por Mercado Pago para que {NOMBRE_NEGOCIO} pueda procesar la compra.
+            Voy a pagar el total por {medioPago === 'TRANSFERENCIA' ? 'transferencia' : 'Mercado Pago'} para que {NOMBRE_NEGOCIO} pueda procesar la compra.
           </span>
         </label>
 
@@ -358,7 +364,7 @@ function CheckoutPage() {
               background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, fontSize: '16px'
             }}
           >
-            {enviando ? 'Preparando el pago...' : 'Confirmar y pagar con Mercado Pago'}
+            {enviando ? 'Confirmando...' : medioPago === 'TRANSFERENCIA' ? 'Confirmar pedido por transferencia' : 'Confirmar y pagar con Mercado Pago'}
           </button>
         </div>
         <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px', marginBottom: 0 }}>

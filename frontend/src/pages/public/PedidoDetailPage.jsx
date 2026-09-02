@@ -47,7 +47,8 @@ function PedidoDetailPage() {
   const mensaje = `Hola ${NOMBRE_NEGOCIO}, necesito ayuda con el pago del pedido ${pedido.numero}.`
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
   const pagado = pedido.estadoPago === 'APROBADO'
-  const puedePagar = !pagado && !['VENCIDO', 'CANCELADO', 'ENTREGADO'].includes(pedido.estado)
+  const esTransferencia = pedido.medioPago === 'TRANSFERENCIA'
+  const puedePagar = !esTransferencia && !pagado && !['VENCIDO', 'CANCELADO', 'ENTREGADO'].includes(pedido.estado)
 
   const pagar = async () => {
     setErrorPago('')
@@ -79,6 +80,9 @@ function PedidoDetailPage() {
 
       <div className="card" style={{ borderLeft: `4px solid ${pagado ? 'var(--color-lime)' : 'var(--color-border)'}` }}>
         <h2 style={{ fontSize: '17px', margin: '0 0 8px' }}>Pago</h2>
+        <p style={{ margin: '0 0 8px', color: 'var(--color-text-muted)', fontSize: '14px' }}>
+          {esTransferencia ? 'Transferencia bancaria' : 'Mercado Pago'}
+        </p>
         <p style={{ margin: '0 0 10px', fontWeight: 700 }}>
           {pagado ? 'Pago aprobado' : pedido.estadoPago === 'EN_PROCESO' ? 'Pago en revisión' : 'Pago pendiente'}
         </p>
@@ -88,6 +92,11 @@ function PedidoDetailPage() {
         {!pagado && (
           <p style={{ margin: '0 0 14px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
             Total a cobrar: <strong>$ {formatNumber(pedido.totalCobroArs)}</strong>
+          </p>
+        )}
+        {esTransferencia && !pagado && (
+          <p style={{ margin: '0 0 14px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
+            Contactanos para recibir los datos bancarios y enviar el comprobante. El pedido se procesa cuando confirmamos la acreditación.
           </p>
         )}
         {errorPago && <p style={{ color: 'var(--color-danger, #c0392b)', fontSize: '14px' }}>{errorPago}</p>}

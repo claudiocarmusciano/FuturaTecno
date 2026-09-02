@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { indexarArbol, idsHojaDe } from '../../utils/categorias'
 import { useCart } from '../../cart/CartContext'
+import PaymentPrices from '../../components/PaymentPrices'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -446,10 +447,8 @@ function CatalogPage() {
                       {v.especificaciones && (
                         <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '6px' }}>{v.especificaciones}</p>
                       )}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-                        <strong style={{ fontSize: '20px', color: 'var(--color-text)' }}>US$ {formatNumber(v.precioUsd)}</strong>
-                        <span style={{ color: 'var(--color-price)', fontSize: '14px', fontWeight: 600 }}>$ {formatNumber(v.precioArs)}</span>
-                      </div>
+                      <strong style={{ fontSize: '20px', color: 'var(--color-text)' }}>US$ {formatNumber(v.precioUsd)}</strong>
+                      <PaymentPrices transferPrice={v.precioArs} compact />
                     </div>
                   ))}
 
