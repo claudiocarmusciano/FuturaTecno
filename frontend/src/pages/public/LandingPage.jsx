@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 import './Landing.css'
+import PromotionsCarousel from '../../components/PromotionsCarousel'
 
 const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=` +
   encodeURIComponent(`Hola ${NOMBRE_NEGOCIO}, quería hacer una consulta sobre el catálogo.`)
@@ -171,6 +172,8 @@ function LandingPage() {
           </button>
         </div>
       </header>
+
+      <PromotionsCarousel />
 
       {/* HERO */}
       <section className="lp-hero" id="top">

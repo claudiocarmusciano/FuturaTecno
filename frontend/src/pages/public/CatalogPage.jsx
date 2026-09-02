@@ -426,17 +426,17 @@ function CatalogPage() {
                       blanco o en PNG transparente, y sobre el fondo oscuro un producto negro
                       desaparecería. */}
                   {p.imagenUrl ? (
-                    <img
-                      src={p.imagenUrl}
-                      alt={`${p.marca} ${p.modelo}`}
-                      style={{ width: '100%', height: '180px', objectFit: 'contain', marginBottom: '14px', background: '#fff', borderRadius: '8px' }}
-                      onError={(e) => { e.target.style.display = 'none' }}
-                    />
+                    <div className="catalog-product-image-frame">
+                      <img
+                        src={p.imagenUrl}
+                        alt={`${p.marca} ${p.modelo}`}
+                        className="catalog-product-image"
+                        loading="lazy"
+                        onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
+                      />
+                    </div>
                   ) : (
-                    <div style={{
-                      width: '100%', height: '180px', marginBottom: '14px', background: 'var(--color-surface-2)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '13px', borderRadius: '8px'
-                    }}>Sin imagen</div>
+                    <div className="catalog-product-image-frame" style={{ background: 'var(--color-surface-2)', color: 'var(--color-text-muted)', fontSize: '13px' }}>Sin imagen</div>
                   )}
                   {p.categoria && <span className="chip-categoria" style={{ marginBottom: '8px' }}>{p.categoria}</span>}
                   <h3 style={{ margin: '8px 0 4px', fontSize: '16px' }}>{p.marca} {p.modelo}</h3>

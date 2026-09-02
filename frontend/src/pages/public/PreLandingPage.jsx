@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
 import './PreLanding.css'
+import PromotionsCarousel from '../../components/PromotionsCarousel'
 
 const instagramUrl = 'https://www.instagram.com/futuratecnoargentina'
 
@@ -46,6 +47,7 @@ function PreLandingPage() {
   return <main className="prelanding">
     <div className="prelanding-glow prelanding-glow-one" /><div className="prelanding-glow prelanding-glow-two" />
     <header className="prelanding-header"><Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>{isAuth ? <div className="prelanding-session"><span>Sesión iniciada{user?.email ? `: ${user.email}` : ''}</span><button type="button" onClick={logout}>Salir</button></div> : <Link className="prelanding-skip" to="/login">Ya tengo cuenta →</Link>}</header>
+    <PromotionsCarousel />
     <section className="prelanding-content"><div className="prelanding-copy">
       <span className="prelanding-badge"><span /> Sorteo especial de bienvenida</span>
       <h1>Tu próximo upgrade puede ser una <strong>silla gamer ergonómica.</strong></h1>

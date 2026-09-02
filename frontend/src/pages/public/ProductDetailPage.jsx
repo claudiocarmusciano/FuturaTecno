@@ -80,12 +80,9 @@ function ProductDetailPage() {
             const actual = imagenes[imagenActiva] ?? imagenes[0]
             return actual ? (
               <>
-                <img
-                  src={actual}
-                  alt={nombre}
-                  style={{ width: '100%', height: '320px', objectFit: 'contain', background: '#fff', borderRadius: '10px' }}
-                  onError={(e) => { e.target.style.display = 'none' }}
-                />
+                <div className="product-detail-image-frame">
+                  <img src={actual} alt={nombre} className="catalog-product-image" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                </div>
                 {imagenes.length > 1 && (
                   <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                     {imagenes.map((url, i) => (
@@ -106,8 +103,8 @@ function ProductDetailPage() {
                 )}
               </>
             ) : (
-              <div style={{
-                width: '100%', height: '320px', background: 'var(--color-surface-2)', borderRadius: '10px',
+              <div className="product-detail-image-frame" style={{
+                background: 'var(--color-surface-2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)'
               }}>Sin imagen</div>
             )
