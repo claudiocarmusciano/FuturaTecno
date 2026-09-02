@@ -28,7 +28,7 @@ function PromocionesPage() {
 
   const cargar = async () => {
     try { setPromociones((await axios.get('/api/admin/promociones')).data) }
-    catch (e) { setMensaje(e.response?.data?.error || 'No se pudieron cargar las promociones.') }
+    catch (e) { setMensaje(e.response?.data?.error || 'No se pudo cargar el carrousel.') }
   }
   useEffect(() => { cargar() }, [])
   const activas = useMemo(() => promociones.filter(p => p.activo).length, [promociones])
@@ -57,29 +57,29 @@ function PromocionesPage() {
       if (form.movil) data.append('movil', form.movil)
       if (editando) await axios.put(`/api/admin/promociones/${editando}`, data)
       else await axios.post('/api/admin/promociones', data)
-      cancelar(); await cargar(); setMensaje('Promoción guardada correctamente.')
-    } catch (e2) { setMensaje(e2.response?.data?.error || e2.message || 'No se pudo guardar la promoción.') }
+      cancelar(); await cargar(); setMensaje('Imagen guardada correctamente.')
+    } catch (e2) { setMensaje(e2.response?.data?.error || e2.message || 'No se pudo guardar la imagen.') }
     finally { setGuardando(false) }
   }
 
   const eliminar = async p => {
-    if (!window.confirm(`¿Eliminar la promoción “${p.titulo || `#${p.id}`}”?`)) return
+    if (!window.confirm(`¿Eliminar la imagen “${p.titulo || `#${p.id}`}” del carrousel?`)) return
     try { await axios.delete(`/api/admin/promociones/${p.id}`); await cargar() }
     catch (e) { setMensaje(e.response?.data?.error || 'No se pudo eliminar.') }
   }
 
   return <div>
-    <h1>Promociones</h1>
+    <h1>Carrousel</h1>
     <div className="card">
-      <strong>{activas}/10 promociones activas</strong>
+      <strong>{activas}/10 imágenes activas</strong>
       <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginBottom: 0 }}>
-        El carrusel se publica al tener al menos 4 promociones activas y vigentes. Escritorio: 1600 × 600 px. Móvil: 1080 × 1350 px. JPG o WebP, máximo 500 KB cada una.
+        El carrousel se publica al tener al menos 4 imágenes activas y vigentes. Escritorio: 1600 × 600 px. Móvil: 1080 × 1350 px. JPG o WebP, máximo 500 KB cada una.
       </p>
-      {activas > 0 && activas < 4 && <p style={{ color: '#d7a928', fontWeight: 600 }}>Faltan {4 - activas} promociones activas para publicar el carrusel.</p>}
+      {activas > 0 && activas < 4 && <p style={{ color: '#d7a928', fontWeight: 600 }}>Faltan {4 - activas} imágenes activas para publicar el carrousel.</p>}
     </div>
 
     <form className="card" onSubmit={guardar}>
-      <h2>{editando ? 'Editar promoción' : 'Nueva promoción'}</h2>
+      <h2>{editando ? 'Editar imagen' : 'Nueva imagen'}</h2>
       <div className="promo-admin-grid">
         <label>Título opcional<input value={form.titulo} maxLength={160} onChange={e => campo('titulo', e.target.value)} /></label>
         <label>Orden<input type="number" min="0" value={form.orden} onChange={e => campo('orden', e.target.value)} /></label>
@@ -99,10 +99,10 @@ function PromocionesPage() {
     <div className="promo-admin-list">
       {promociones.map(p => <article className="card promo-admin-item" key={p.id}>
         <picture><source media="(max-width: 600px)" srcSet={p.imagenMovilUrl || p.imagenEscritorioUrl} /><img src={p.imagenEscritorioUrl} alt="" /></picture>
-        <div><strong>{p.titulo || `Promoción #${p.id}`}</strong><p>{p.texto || 'Sin texto'}</p><small>Orden {p.orden} · {p.activo ? 'Activa' : 'Inactiva'}{p.fechaInicio ? ` · desde ${new Date(p.fechaInicio).toLocaleString('es-AR')}` : ''}{p.fechaFin ? ` · hasta ${new Date(p.fechaFin).toLocaleString('es-AR')}` : ''}</small></div>
+        <div><strong>{p.titulo || `Imagen #${p.id}`}</strong><p>{p.texto || 'Sin texto'}</p><small>Orden {p.orden} · {p.activo ? 'Activa' : 'Inactiva'}{p.fechaInicio ? ` · desde ${new Date(p.fechaInicio).toLocaleString('es-AR')}` : ''}{p.fechaFin ? ` · hasta ${new Date(p.fechaFin).toLocaleString('es-AR')}` : ''}</small></div>
         <div style={{ display: 'flex', gap: 8 }}><button className="btn btn-secondary" onClick={() => editar(p)}>Editar</button><button className="btn btn-secondary" onClick={() => eliminar(p)}>Eliminar</button></div>
       </article>)}
-      {!promociones.length && <div className="card">Todavía no cargaste promociones.</div>}
+      {!promociones.length && <div className="card">Todavía no cargaste imágenes para el carrousel.</div>}
     </div>
   </div>
 }
