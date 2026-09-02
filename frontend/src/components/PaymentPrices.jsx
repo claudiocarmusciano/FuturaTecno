@@ -25,11 +25,9 @@ export default function PaymentPrices({ transferPrice, compact = false }) {
           </span>
         ))}
       </div>
-      {!compact && (
-        <p style={{ margin: '7px 0 0', fontSize: '11px', color: 'var(--color-text-muted)' }}>
-          Valores estimados. Mercado Pago informa el importe definitivo según la tarjeta antes de confirmar.
-        </p>
-      )}
+      <p style={{ margin: '7px 0 0', fontSize: '11px', lineHeight: 1.35, color: 'var(--color-text-muted)' }}>
+        Cuotas estimadas: el valor depende de la tarjeta de crédito. Mercado Pago informa el importe definitivo antes de confirmar.
+      </p>
     </div>
   )
 }
