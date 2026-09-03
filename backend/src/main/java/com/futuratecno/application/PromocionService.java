@@ -43,6 +43,7 @@ public class PromocionService {
                               LocalDateTime inicio, LocalDateTime fin, boolean activo,
                               MultipartFile escritorio, MultipartFile movil) {
         if (escritorio == null || escritorio.isEmpty()) throw new IllegalArgumentException("La imagen de escritorio es obligatoria.");
+        if (movil == null || movil.isEmpty()) throw new IllegalArgumentException("La imagen móvil es obligatoria.");
         validarActivacion(activo, null);
         Promocion p = new Promocion();
         aplicarDatos(p, titulo, texto, enlace, orden, inicio, fin, activo);
@@ -56,11 +57,14 @@ public class PromocionService {
                                    LocalDateTime inicio, LocalDateTime fin, boolean activo,
                                    MultipartFile escritorio, MultipartFile movil, boolean quitarMovil) {
         Promocion p = buscar(id);
+        if (quitarMovil) throw new IllegalArgumentException("Cada imagen del carrousel debe conservar su versión móvil.");
+        if (p.getImagenMovil() == null && (movil == null || movil.isEmpty())) {
+            throw new IllegalArgumentException("La imagen móvil es obligatoria.");
+        }
         validarActivacion(activo, p);
         aplicarDatos(p, titulo, texto, enlace, orden, inicio, fin, activo);
         if (escritorio != null && !escritorio.isEmpty()) aplicarImagenEscritorio(p, escritorio);
-        if (quitarMovil) { p.setImagenMovil(null); p.setMimeMovil(null); }
-        else if (movil != null && !movil.isEmpty()) aplicarImagenMovil(p, movil);
+        if (movil != null && !movil.isEmpty()) aplicarImagenMovil(p, movil);
         return dto(repository.save(p));
     }
 
@@ -89,11 +93,11 @@ public class PromocionService {
     }
 
     private void aplicarImagenEscritorio(Promocion p, MultipartFile file) {
-        byte[] bytes = leerYValidar(file, 1600, 600, "La imagen de escritorio"); p.setImagenEscritorio(bytes);
+        byte[] bytes = leerYValidar(file, 1600, 300, "La imagen de escritorio"); p.setImagenEscritorio(bytes);
         p.setMimeEscritorio(file.getContentType());
     }
     private void aplicarImagenMovil(Promocion p, MultipartFile file) {
-        byte[] bytes = leerYValidar(file, 1080, 1350, "La imagen móvil"); p.setImagenMovil(bytes);
+        byte[] bytes = leerYValidar(file, 1080, 608, "La imagen móvil"); p.setImagenMovil(bytes);
         p.setMimeMovil(file.getContentType());
     }
     private byte[] leerYValidar(MultipartFile file, int ancho, int alto, String nombre) {

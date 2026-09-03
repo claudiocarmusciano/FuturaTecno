@@ -232,10 +232,10 @@ a { color: var(--color-accent); text-decoration: none; }
 }
 
 /* Carrusel administrable de promociones */
-.promotions-carousel { position: relative; width: min(1600px, 100%); margin: 0 auto; overflow: hidden; background: #0d0f13; touch-action: pan-y; }
+.promotions-carousel { position: relative; width: min(1400px, calc(100% - 32px)); margin: 0 auto; overflow: hidden; background: #0d0f13; touch-action: pan-y; }
 .prelanding > .promotions-carousel { margin-top: 24px; border-radius: 16px; }
 .promotions-track { display: flex; transition: transform .55s ease; }
-.promotions-slide { position: relative; flex: 0 0 100%; aspect-ratio: 8 / 3; overflow: hidden; }
+.promotions-slide { position: relative; flex: 0 0 100%; aspect-ratio: 16 / 3; overflow: hidden; }
 .promotions-slide > a, .promotions-slide > picture { display: block; width: 100%; height: 100%; color: inherit; }
 .promotions-slide picture { display: block; width: 100%; height: 100%; }
 .promotions-slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -253,18 +253,19 @@ a { color: var(--color-accent); text-decoration: none; }
 .promo-admin-grid input, .promo-admin-grid textarea { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-surface-2); color: var(--color-text); font: inherit; }
 .promo-admin-wide { grid-column: 1 / -1; }
 .promo-admin-item { display: grid; grid-template-columns: 220px 1fr auto; align-items: center; gap: 18px; }
-.promo-admin-item picture, .promo-admin-item img { display: block; width: 220px; aspect-ratio: 8/3; object-fit: cover; border-radius: 7px; }
+.promo-admin-item picture, .promo-admin-item img { display: block; width: 220px; aspect-ratio: 16/3; object-fit: cover; border-radius: 7px; }
 .promo-admin-item p { margin: 5px 0; color: var(--color-text-muted); }
 
 @media (max-width: 700px) {
-  .promotions-slide { aspect-ratio: 4 / 5; }
-  .promotions-copy { padding: 26px 11% 48px; }
+  .promotions-carousel { width: min(100% - 24px, 680px); }
+  .promotions-slide { aspect-ratio: 16 / 9; }
+  .promotions-copy { padding: 18px 11% 38px; }
   .promotions-arrow { width: 36px; height: 36px; font-size: 27px; }
   .promotions-arrow.prev { left: 8px; }.promotions-arrow.next { right: 8px; }
   .promo-admin-grid { grid-template-columns: 1fr; }
   .promo-admin-wide { grid-column: auto; }
   .promo-admin-item { grid-template-columns: 1fr; }
-  .promo-admin-item picture, .promo-admin-item img { width: 100%; }
+  .promo-admin-item picture, .promo-admin-item img { width: 100%; aspect-ratio: 16/9; }
 }
 
 /* ===== Botones ===== */

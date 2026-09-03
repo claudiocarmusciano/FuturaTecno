@@ -47,8 +47,10 @@ function PromocionesPage() {
     e.preventDefault(); setMensaje(''); setGuardando(true)
     try {
       if (!editando && !form.escritorio) throw new Error('Seleccioná la imagen de escritorio.')
-      await validarImagen(form.escritorio, 1600, 600, 'Imagen de escritorio')
-      await validarImagen(form.movil, 1080, 1350, 'Imagen móvil')
+      const actual = editando ? promociones.find(p => p.id === editando) : null
+      if (!form.movil && (!editando || !actual?.imagenMovilUrl)) throw new Error('Seleccioná la imagen móvil.')
+      await validarImagen(form.escritorio, 1600, 300, 'Imagen de escritorio')
+      await validarImagen(form.movil, 1080, 608, 'Imagen móvil')
       const data = new FormData()
       ;['titulo', 'texto', 'enlace', 'orden', 'activo', 'quitarMovil'].forEach(k => data.append(k, form[k] ?? ''))
       if (form.fechaInicio) data.append('fechaInicio', form.fechaInicio)
@@ -73,7 +75,7 @@ function PromocionesPage() {
     <div className="card">
       <strong>{activas}/10 imágenes activas</strong>
       <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginBottom: 0 }}>
-        El carrousel se publica al tener al menos 4 imágenes activas y vigentes. Escritorio: 1600 × 600 px. Móvil: 1080 × 1350 px. JPG o WebP, máximo 500 KB cada una.
+        El carrousel se publica al tener al menos 4 imágenes activas y vigentes. Escritorio: 1600 × 300 px. Móvil: 1080 × 608 px. JPG o WebP, máximo 500 KB cada una.
       </p>
       {activas > 0 && activas < 4 && <p style={{ color: '#d7a928', fontWeight: 600 }}>Faltan {4 - activas} imágenes activas para publicar el carrousel.</p>}
     </div>
@@ -88,10 +90,9 @@ function PromocionesPage() {
         <label>Publicar desde<input type="datetime-local" value={form.fechaInicio} onChange={e => campo('fechaInicio', e.target.value)} /></label>
         <label>Publicar hasta<input type="datetime-local" value={form.fechaFin} onChange={e => campo('fechaFin', e.target.value)} /></label>
         <label>Imagen escritorio {editando ? '(solo para reemplazar)' : '*'}<input type="file" accept="image/jpeg,image/webp" onChange={e => campo('escritorio', e.target.files[0] || null)} /></label>
-        <label>Imagen móvil opcional<input type="file" accept="image/jpeg,image/webp" onChange={e => campo('movil', e.target.files[0] || null)} /></label>
+        <label>Imagen móvil {editando ? '(obligatoria si todavía no existe)' : '*'}<input type="file" accept="image/jpeg,image/webp" onChange={e => campo('movil', e.target.files[0] || null)} /></label>
       </div>
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14 }}><input type="checkbox" checked={form.activo} onChange={e => campo('activo', e.target.checked)} /> Activa</label>
-      {editando && promociones.find(p => p.id === editando)?.imagenMovilUrl && <label style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}><input type="checkbox" checked={form.quitarMovil} onChange={e => campo('quitarMovil', e.target.checked)} /> Quitar imagen móvil actual</label>}
       <div style={{ display: 'flex', gap: 10, marginTop: 18 }}><button className="btn btn-primary" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar'}</button>{editando && <button type="button" className="btn btn-secondary" onClick={cancelar}>Cancelar</button>}</div>
       {mensaje && <p style={{ marginBottom: 0 }}>{mensaje}</p>}
     </form>
