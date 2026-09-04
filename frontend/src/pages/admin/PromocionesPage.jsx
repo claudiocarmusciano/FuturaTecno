@@ -19,6 +19,36 @@ const validarImagen = (file, width, height, etiqueta) => new Promise((resolve, r
   image.src = url
 })
 
+function CampoImagen({ etiqueta, requerida, archivo, imagenActualUrl, dimensiones, onChange }) {
+  const [previewNueva, setPreviewNueva] = useState('')
+
+  useEffect(() => {
+    if (!archivo) { setPreviewNueva(''); return undefined }
+    const url = URL.createObjectURL(archivo)
+    setPreviewNueva(url)
+    return () => URL.revokeObjectURL(url)
+  }, [archivo])
+
+  const preview = previewNueva || imagenActualUrl
+  const estado = archivo
+    ? `Nueva imagen seleccionada: ${archivo.name}`
+    : imagenActualUrl
+      ? 'Imagen actualmente guardada'
+      : 'Todavía no hay una imagen guardada'
+
+  return <label className="promo-admin-image-field">
+    <span>{etiqueta} {requerida ? '*' : '(opcional para reemplazar)'}</span>
+    {preview && <img
+      className="promo-admin-image-preview"
+      src={preview}
+      alt={`Vista previa de ${etiqueta.toLowerCase()}`}
+    />}
+    <small className={preview ? 'promo-admin-image-status' : 'promo-admin-image-status is-missing'}>{estado}</small>
+    <input type="file" accept="image/jpeg,image/webp" onChange={e => onChange(e.target.files[0] || null)} />
+    <small>{dimensiones} · JPG o WebP · máximo 500 KB</small>
+  </label>
+}
+
 function PromocionesPage() {
   const [promociones, setPromociones] = useState([])
   const [form, setForm] = useState(VACIA)
@@ -32,6 +62,7 @@ function PromocionesPage() {
   }
   useEffect(() => { cargar() }, [])
   const activas = useMemo(() => promociones.filter(p => p.activo).length, [promociones])
+  const promocionActual = useMemo(() => editando ? promociones.find(p => p.id === editando) : null, [editando, promociones])
 
   const editar = p => {
     setEditando(p.id)
@@ -47,8 +78,7 @@ function PromocionesPage() {
     e.preventDefault(); setMensaje(''); setGuardando(true)
     try {
       if (!editando && !form.escritorio) throw new Error('Seleccioná la imagen de escritorio.')
-      const actual = editando ? promociones.find(p => p.id === editando) : null
-      if (!form.movil && (!editando || !actual?.imagenMovilUrl)) throw new Error('Seleccioná la imagen móvil.')
+      if (!form.movil && (!editando || !promocionActual?.imagenMovilUrl)) throw new Error('Seleccioná la imagen móvil.')
       await validarImagen(form.escritorio, 1600, 300, 'Imagen de escritorio')
       await validarImagen(form.movil, 1080, 608, 'Imagen móvil')
       const data = new FormData()
@@ -89,8 +119,22 @@ function PromocionesPage() {
         <label className="promo-admin-wide">Enlace opcional<input value={form.enlace} placeholder="/catalogo?cat=71 o https://..." onChange={e => campo('enlace', e.target.value)} /></label>
         <label>Publicar desde<input type="datetime-local" value={form.fechaInicio} onChange={e => campo('fechaInicio', e.target.value)} /></label>
         <label>Publicar hasta<input type="datetime-local" value={form.fechaFin} onChange={e => campo('fechaFin', e.target.value)} /></label>
-        <label>Imagen escritorio {editando ? '(solo para reemplazar)' : '*'}<input type="file" accept="image/jpeg,image/webp" onChange={e => campo('escritorio', e.target.files[0] || null)} /></label>
-        <label>Imagen móvil {editando ? '(obligatoria si todavía no existe)' : '*'}<input type="file" accept="image/jpeg,image/webp" onChange={e => campo('movil', e.target.files[0] || null)} /></label>
+        <CampoImagen
+          etiqueta="Imagen escritorio"
+          requerida={!editando}
+          archivo={form.escritorio}
+          imagenActualUrl={promocionActual?.imagenEscritorioUrl}
+          dimensiones="1600 × 300 px"
+          onChange={file => campo('escritorio', file)}
+        />
+        <CampoImagen
+          etiqueta="Imagen móvil"
+          requerida={!editando || !promocionActual?.imagenMovilUrl}
+          archivo={form.movil}
+          imagenActualUrl={promocionActual?.imagenMovilUrl}
+          dimensiones="1080 × 608 px"
+          onChange={file => campo('movil', file)}
+        />
       </div>
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14 }}><input type="checkbox" checked={form.activo} onChange={e => campo('activo', e.target.checked)} /> Activa</label>
       <div style={{ display: 'flex', gap: 10, marginTop: 18 }}><button className="btn btn-primary" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar'}</button>{editando && <button type="button" className="btn btn-secondary" onClick={cancelar}>Cancelar</button>}</div>
