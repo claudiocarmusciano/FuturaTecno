@@ -311,7 +311,11 @@ function CatalogPage() {
 
   return (
     <div className="catalog-page">
-      <h1 style={{ marginBottom: '6px' }}>Catálogo</h1>
+      <section className="catalog-hero">
+        <span className="catalog-kicker">FUTURATECNO · CATÁLOGO</span>
+        <h1>Elegí tu próximo <span>upgrade.</span></h1>
+        <p>Productos de primeras marcas, precios actualizados con dólar blue venta y atención personalizada para comprar con tranquilidad.</p>
+      </section>
 
       {eta?.fechaEntrega && (
         <div style={{

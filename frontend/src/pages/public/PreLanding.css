@@ -1,10 +1,14 @@
 .prelanding { min-height: 100vh; position: relative; overflow: hidden; color: #e9ebee; background: #16181d; padding: 28px clamp(20px, 5vw, 76px) 18px; isolation: isolate; }
 .prelanding::before { content: ''; position: absolute; inset: 0; z-index: -2; background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 42px 42px; mask-image: linear-gradient(to bottom, #000, transparent 78%); }
+.prelanding::after { content: ''; position: absolute; z-index: -1; width: 460px; height: 460px; right: -255px; top: 104px; border: 1px solid rgba(88,101,242,.5); transform: rotate(45deg); pointer-events: none; }
 .prelanding-glow { position: absolute; border-radius: 999px; filter: blur(4px); z-index: -1; pointer-events: none; }
 .prelanding-glow-one { width: 520px; height: 520px; background: rgba(200,224,72,.12); top: -300px; left: 20%; }
 .prelanding-glow-two { width: 560px; height: 560px; background: rgba(103,126,28,.17); right: -280px; bottom: -260px; }
-.prelanding-header { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+.prelanding-header { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 22px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
 .prelanding-header img { height: 62px; width: auto; display: block; }
+.prelanding-header-actions { display: flex; align-items: center; gap: 18px; }
+.prelanding-catalog-link { display: inline-flex; align-items: center; min-height: 36px; padding: 0 13px; border-radius: 999px; color: #17191d; background: #c8e048; font-weight: 800; font-size: 12px; text-decoration: none; }
+.prelanding-catalog-link:hover { filter: brightness(1.08); }
 .prelanding-skip { color: #b9bec8; font-size: 14px; transition: color .2s; }
 .prelanding-skip:hover { color: #c8e048; }
 .prelanding-session { display: flex; align-items: center; gap: 10px; color: #b9bec8; font-size: 12px; }
@@ -12,6 +16,8 @@
 .prelanding-session button { border: 1px solid rgba(200,224,72,.35); border-radius: 999px; padding: 5px 10px; color: #dfea90; background: transparent; cursor: pointer; font: inherit; font-weight: 700; }
 .prelanding-session button:hover { background: rgba(200,224,72,.1); }
 .prelanding-content { max-width: 1180px; margin: clamp(30px, 6vh, 72px) auto 36px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr); gap: clamp(40px, 8vw, 120px); align-items: center; }
+.prelanding-copy { position: relative; }
+.prelanding-copy::before { content: ''; display: block; width: 50px; height: 4px; margin-bottom: 20px; background: #5865f2; }
 .prelanding-badge { display: inline-flex; gap: 9px; align-items: center; text-transform: uppercase; letter-spacing: .105em; font-size: 11px; font-weight: 800; color: #d9ee6e; margin-bottom: 18px; }
 .prelanding-badge span { width: 8px; height: 8px; border-radius: 50%; background: #c8e048; box-shadow: 0 0 0 5px rgba(200,224,72,.12); }
 .prelanding h1 { max-width: 680px; font-size: clamp(38px, 4.15vw, 62px); line-height: 1.02; letter-spacing: -.055em; font-weight: 650; color: #f3f4f5; }
@@ -64,6 +70,7 @@
 .prelanding-reminder a { color: #ddea83; font-weight: 800; text-decoration: underline; text-underline-offset: 2px; }
 .prelanding-reminder svg { flex: 0 0 19px; width: 19px; height: 19px; fill: none; stroke: #c8e048; stroke-width: 1.8; }
 .prelanding-prize { min-height: 560px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; background: radial-gradient(ellipse at 50% 37%, #f2f6c9 0%, #d7e77c 28%, #a2b640 53%, #4d5a1c 100%); border: 1px solid rgba(220,239,117,.65); border-radius: 30px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 30px 75px rgba(0,0,0,.38); }
+.prelanding-prize::before { content: 'FUTURATECNO'; position: absolute; z-index: 0; right: -24px; bottom: 175px; color: rgba(22,24,29,.12); font-size: 56px; font-weight: 900; letter-spacing: -.08em; transform: rotate(-90deg); }
 .prelanding-prize::after { content: ''; position: absolute; width: 80%; height: 24px; bottom: 70px; border-radius: 50%; background: rgba(0,0,0,.5); filter: blur(15px); }
 .prelanding-prize > p { position: absolute; top: 24px; z-index: 2; text-transform: uppercase; letter-spacing: .15em; color: #f5f7d6; background: rgba(22,24,29,.86); border: 1px solid rgba(226,242,123,.85); box-shadow: 0 5px 18px rgba(0,0,0,.32); border-radius: 999px; padding: 8px 14px; font-size: 11px; font-weight: 850; }
 .prelanding-prize img { z-index: 1; width: min(95%, 465px); max-height: 480px; object-fit: contain; object-position: bottom; mix-blend-mode: multiply; filter: brightness(1.13) contrast(1.22) drop-shadow(0 23px 17px rgba(0,0,0,.34)); margin-bottom: 10px; }
@@ -77,4 +84,4 @@
 .prelanding-footer-chat a { color: #C8E048; text-decoration: none; font-weight: 600; }
 .prelanding-footer-chat a:hover { text-decoration: underline; }
 @media (max-width: 900px) { .prelanding-content { grid-template-columns: 1fr; max-width: 660px; gap: 32px; } .prelanding-copy { order: 2; } .prelanding-prize { min-height: 455px; order: 1; } .prelanding-prize img { max-height: 385px; } }
-@media (max-width: 580px) { .prelanding { padding: 20px 16px 12px; } .prelanding-header img { height: 49px; } .prelanding-skip { font-size: 12px; } .prelanding-session { gap: 6px; font-size: 10px; } .prelanding-session span { max-width: 105px; } .prelanding-session button { padding: 4px 8px; } .prelanding-content { margin-top: 36px; } .prelanding h1 { font-size: 39px; } .prelanding-steps li { grid-template-columns: 30px minmax(0, 1fr); gap: 10px; } .prelanding-steps > li > .prelanding-action, .prelanding-steps > li > .prelanding-actions, .prelanding-steps > li > .prelanding-done { grid-column: 2; min-width: 0; } .prelanding-steps > li > .prelanding-actions { justify-content: flex-start; } .prelanding-action { width: max-content; max-width: 100%; } .prelanding-prize { min-height: 370px; border-radius: 22px; } .prelanding-prize img { max-height: 320px; width: 94%; } .prelanding-prize-name { bottom: 55px; left: 18px; font-size: 35px; } .prelanding-prize-tag { bottom: 25px; left: 20px; font-size: 9px; } }
+@media (max-width: 580px) { .prelanding { padding: 20px 16px 12px; } .prelanding-header { padding-bottom: 12px; gap: 12px; } .prelanding-header img { height: 49px; } .prelanding-header-actions { gap: 9px; } .prelanding-catalog-link { min-height: 31px; padding: 0 9px; font-size: 10px; } .prelanding-skip { font-size: 11px; } .prelanding-session { gap: 6px; font-size: 10px; } .prelanding-session span { max-width: 105px; } .prelanding-session button { padding: 4px 8px; } .prelanding-content { margin-top: 36px; } .prelanding h1 { font-size: 39px; } .prelanding-steps li { grid-template-columns: 30px minmax(0, 1fr); gap: 10px; } .prelanding-steps > li > .prelanding-action, .prelanding-steps > li > .prelanding-actions, .prelanding-steps > li > .prelanding-done { grid-column: 2; min-width: 0; } .prelanding-steps > li > .prelanding-actions { justify-content: flex-start; } .prelanding-action { width: max-content; max-width: 100%; } .prelanding-prize { min-height: 370px; border-radius: 22px; } .prelanding-prize img { max-height: 320px; width: 94%; } .prelanding-prize-name { bottom: 55px; left: 18px; font-size: 35px; } .prelanding-prize-tag { bottom: 25px; left: 20px; font-size: 9px; } }
