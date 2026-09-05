@@ -21,6 +21,7 @@ const formatFechaLarga = (isoDate) => {
 // Orden por defecto del catálogo: del más barato al más caro. "relevancia" (el orden en que
 // los devuelve la API) queda como opción, pero ya no es lo primero que ve el visitante.
 const ORDEN_POR_DEFECTO = 'precio-asc'
+const PRECIO_MINIMO_PREDETERMINADO_USD = '50'
 
 // Cuántas tarjetas se pintan por página. 24 es divisible por 2, 3 y 4, así que la última fila
 // queda completa en cualquiera de los anchos de la grilla (auto-fill de 260px).
@@ -170,7 +171,9 @@ function CatalogPage() {
   const [busqueda, setBusqueda] = useState(() => searchParams.get('q') || '')
   const [marca, setMarca] = useState(() => searchParams.get('marca') || '')
   const [orden, setOrden] = useState(() => searchParams.get('orden') || ORDEN_POR_DEFECTO)   // 'relevancia', 'precio-asc', 'precio-desc'
-  const [precioMin, setPrecioMin] = useState(() => searchParams.get('min') || '')
+  // El catálogo prioriza productos de US$50 o más. El campo sigue siendo editable: bajar el
+  // mínimo permite ver accesorios económicos sin ocultarlos ni quitarlos del catálogo.
+  const [precioMin, setPrecioMin] = useState(() => searchParams.get('min') || PRECIO_MINIMO_PREDETERMINADO_USD)
   const [precioMax, setPrecioMax] = useState(() => searchParams.get('max') || '')
   const [eta, setEta] = useState(null)
   const [cotizacion, setCotizacion] = useState(null)
@@ -296,9 +299,9 @@ function CatalogPage() {
   }
 
   const limpiarTodo = () => {
-    setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(ORDEN_POR_DEFECTO); setPrecioMin(''); setPrecioMax('')
+    setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(ORDEN_POR_DEFECTO); setPrecioMin(PRECIO_MINIMO_PREDETERMINADO_USD); setPrecioMax('')
   }
-  const hayFiltros = categoriaId || marca || busqueda || orden !== ORDEN_POR_DEFECTO || precioMin || precioMax
+  const hayFiltros = categoriaId || marca || busqueda || orden !== ORDEN_POR_DEFECTO || precioMin !== PRECIO_MINIMO_PREDETERMINADO_USD || precioMax
 
   if (cargando) return (<div><h1>Catálogo</h1><div className="card"><p>Cargando productos...</p></div></div>)
   if (error) return (<div><h1>Catálogo</h1><div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div></div>)
@@ -396,6 +399,7 @@ function CatalogPage() {
                     <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}> (entre {rangoPrecios.min} y {rangoPrecios.max})</span>
                   )}
                 </div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '5px' }}>Desde US$ 50 de forma predeterminada.</div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <input type="number" value={precioMin} onChange={e => setPrecioMin(e.target.value)} placeholder={rangoPrecios ? `${rangoPrecios.min}` : 'Mín'} style={{ ...inputFiltro, width: '100px' }} />
                   <span style={{ color: 'var(--color-text-muted)' }}>—</span>
