@@ -7,8 +7,9 @@ import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-// Mismos códigos que devuelve Andreani (ver CheckoutPage).
+// Códigos de Andreani y de la entrega local propia (ver CheckoutPage).
 const ETIQUETA_ENVIO = {
+  'entrega-local-olavarria': 'Envío gratis dentro de Olavarría',
   'estándar': 'Envío a domicilio',
   'sucursal': 'Retiro en sucursal Andreani',
   'llega hoy': 'Llega hoy (a domicilio)',
@@ -167,10 +168,12 @@ function PedidoDetailPage() {
               {pedido.cpDestino && <span style={{ color: 'var(--color-text-muted)' }}> · CP {pedido.cpDestino}</span>}
             </span>
             <strong style={{ whiteSpace: 'nowrap' }}>
-              {pedido.costoEnvioArs != null ? `$ ${formatNumber(pedido.costoEnvioArs)}` : 'A cotizar'}
+              {pedido.costoEnvioArs != null
+                ? (Number(pedido.costoEnvioArs) === 0 ? 'Gratis' : `$ ${formatNumber(pedido.costoEnvioArs)}`)
+                : 'A cotizar'}
             </strong>
           </div>
-          {pedido.costoEnvioArs != null && (
+          {pedido.costoEnvioArs != null && pedido.modoEnvio !== 'entrega-local-olavarria' && (
             <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
               Costo estimado de Andreani al momento del pedido. Se confirma al cerrarlo.
             </p>

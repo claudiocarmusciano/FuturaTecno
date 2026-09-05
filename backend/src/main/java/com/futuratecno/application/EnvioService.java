@@ -34,6 +34,9 @@ import java.util.Map;
 @Service
 public class EnvioService {
     private static final Logger logger = LoggerFactory.getLogger(EnvioService.class);
+    /** Código postal de Olavarría: la entrega local no usa Andreani y es sin cargo. */
+    private static final String CP_OLAVARRIA = "7400";
+    public static final String MODALIDAD_ENTREGA_LOCAL = "entrega-local-olavarria";
 
     private final AndreaniClient andreaniClient;
     private final VarianteRepository varianteRepository;
@@ -58,15 +61,20 @@ public class EnvioService {
 
     @Transactional(readOnly = true)
     public EnvioCotizacionDTO cotizar(String cpDestino, List<ItemPedidoRequest> items) {
-        if (!andreaniClient.estaConfigurado()) {
-            return EnvioCotizacionDTO.noDisponible("La cotización de envío no está disponible.");
-        }
         String cp = normalizarCp(cpDestino);
         if (cp == null) {
             throw new IllegalArgumentException("Ingresá un código postal válido (4 dígitos).");
         }
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("No hay artículos para cotizar.");
+        }
+        // La entrega dentro de Olavarría es propia y gratuita. Debe resolverse antes de consultar
+        // a Andreani, incluso si su integración no está configurada o momentáneamente caída.
+        if (CP_OLAVARRIA.equals(cp)) {
+            return EnvioCotizacionDTO.entregaLocalGratis(MODALIDAD_ENTREGA_LOCAL);
+        }
+        if (!andreaniClient.estaConfigurado()) {
+            return EnvioCotizacionDTO.noDisponible("La cotización de envío no está disponible.");
         }
 
         BigDecimal cotizacionUsdArs = cotizacionService.obtenerCotizacionUsdArs();

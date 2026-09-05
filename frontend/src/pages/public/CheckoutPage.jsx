@@ -13,9 +13,10 @@ const formatNumber = (n) =>
 const MONTO_MINIMO_PEDIDO_USD = 250
 
 // Andreani devuelve el código de la modalidad en su propia jerga ("estándar", "sucursal").
-// Se traduce para el cliente, pero lo que se guarda y se manda al backend es el código original:
-// las modalidades son de ellos y pueden aparecer nuevas, que caen al default.
+// También existe una modalidad local propia. El código se traduce para el cliente, pero se manda
+// al backend tal como está para que este recotice o preserve el envío gratuito según corresponda.
 const ETIQUETA_ENVIO = {
+  'entrega-local-olavarria': 'Envío gratis dentro de Olavarría',
   'estándar': 'Envío a tu domicilio',
   'sucursal': 'Retiro en sucursal Andreani',
   'llega hoy': 'Llega hoy (a domicilio)',
@@ -196,15 +197,15 @@ function CheckoutPage() {
           <span>Total</span>
           <span>US$ {formatNumber(totalUsd)}</span>
         </div>
-        {opcionElegida && <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '6px' }}>Incluye envío estimado: $ {formatNumber(opcionElegida.totalArs)}</div>}
+        {opcionElegida && <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '6px' }}>{Number(opcionElegida.totalArs) === 0 ? 'Incluye envío gratis en Olavarría.' : `Incluye envío estimado: $ ${formatNumber(opcionElegida.totalArs)}`}</div>}
         <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} /></div>
       </div>
 
       <div className="card">
         <h2 style={{ fontSize: '17px', marginTop: 0 }}>Envío</h2>
         <p style={{ margin: '0 0 12px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
-          Poné tu código postal para ver cuánto sale el envío por Andreani. Es opcional: si preferís,
-          lo coordinamos cuando te contactemos.
+          Dentro de Olavarría (CP 7400) el envío es gratis. Para el resto del país, ingresá tu
+          código postal para cotizar por Andreani. También podés coordinarlo al contactarnos.
         </p>
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -256,7 +257,7 @@ function CheckoutPage() {
                   style={{ width: '16px', height: '16px', flexShrink: 0, cursor: 'pointer' }}
                 />
                 <span style={{ flex: 1 }}>{etiquetaEnvio(o.codigo)}</span>
-                <strong style={{ whiteSpace: 'nowrap' }}>$ {formatNumber(o.totalArs)}</strong>
+                <strong style={{ whiteSpace: 'nowrap' }}>{Number(o.totalArs) === 0 ? 'Gratis' : `$ ${formatNumber(o.totalArs)}`}</strong>
               </label>
             ))}
 
@@ -278,7 +279,9 @@ function CheckoutPage() {
             </label>
 
             <p style={{ margin: '10px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-              Los costos son estimados de Andreani y se confirman al cerrar el pedido.
+              {opcionElegida?.codigo === 'entrega-local-olavarria'
+                ? 'La entrega dentro de Olavarría (CP 7400) no tiene costo.'
+                : 'Los costos son estimados de Andreani y se confirman al cerrar el pedido.'}
             </p>
           </div>
         )}

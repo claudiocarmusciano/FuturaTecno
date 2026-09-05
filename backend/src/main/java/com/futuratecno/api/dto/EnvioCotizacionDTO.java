@@ -21,6 +21,15 @@ public class EnvioCotizacionDTO {
         return dto;
     }
 
+    /** Entrega propia sin cargo para la zona de cobertura local. */
+    public static EnvioCotizacionDTO entregaLocalGratis(String codigoModalidad) {
+        EnvioCotizacionDTO dto = new EnvioCotizacionDTO();
+        dto.disponible = true;
+        dto.mensaje = "Envío gratis dentro de Olavarría.";
+        dto.opciones.add(new OpcionEnvio(codigoModalidad, BigDecimal.ZERO));
+        return dto;
+    }
+
     public boolean isDisponible() { return disponible; }
     public void setDisponible(boolean disponible) { this.disponible = disponible; }
 
