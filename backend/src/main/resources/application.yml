@@ -94,6 +94,9 @@ mercadopago:
   comision-inmediata-porcentaje: ${MERCADOPAGO_COMISION_INMEDIATA_PORCENTAJE:6.29}
   iva-comision-porcentaje: ${MERCADOPAGO_IVA_COMISION_PORCENTAJE:21}
 
+contado-efectivo:
+  descuento-porcentaje: ${CONTADO_EFECTIVO_DESCUENTO_PORCENTAJE:7}
+
 app:
   public-url: ${APP_PUBLIC_URL:https://www.futuratecno.com.ar}
   cutoff-hour: ${CUTOFF_HOUR:14}

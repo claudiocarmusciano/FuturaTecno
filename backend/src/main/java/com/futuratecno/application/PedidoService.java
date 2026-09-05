@@ -107,7 +107,7 @@ public class PedidoService {
         pedido.setNotas(limpiar(req.getNotas(), 1000));
         String medioPago = limpiar(req.getMedioPago(), 30);
         if (medioPago == null) medioPago = "MERCADO_PAGO";
-        if (!medioPago.equals("MERCADO_PAGO") && !medioPago.equals("TRANSFERENCIA")) {
+        if (!medioPago.equals("MERCADO_PAGO") && !medioPago.equals("TRANSFERENCIA") && !medioPago.equals("EFECTIVO")) {
             throw new IllegalArgumentException("La forma de pago elegida no es válida.");
         }
         pedido.setMedioPago(medioPago);
@@ -294,6 +294,9 @@ public class PedidoService {
                 p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO);
         dto.setTotalCobroArs("TRANSFERENCIA".equals(p.getMedioPago())
                 ? baseConEnvio
+                : "EFECTIVO".equals(p.getMedioPago())
+                ? precioService.precioContadoEfectivo(p.getTotalArs()).add(
+                        p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO)
                 : (p.getMontoPagoArs() != null ? p.getMontoPagoArs()
                 : precioService.precioMercadoPagoInmediato(baseConEnvio)));
         dto.setEstadoPago(p.getEstadoPago() != null ? p.getEstadoPago().name() : null);

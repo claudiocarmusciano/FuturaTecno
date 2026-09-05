@@ -10,9 +10,16 @@ class PrecioServiceTest {
 
     @Test
     void recuperaElPrecioBaseLuegoDeComisionInmediataEIva() {
-        PrecioService service = new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"));
+        PrecioService service = new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("7"));
 
         assertEquals(new BigDecimal("899382.18"),
                 service.precioMercadoPagoInmediato(new BigDecimal("830931.10")));
+    }
+
+    @Test
+    void aplicaSietePorCientoDeDescuentoAlContado() {
+        PrecioService service = new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("7"));
+
+        assertEquals(new BigDecimal("930.00"), service.precioContadoEfectivo(new BigDecimal("1000.00")));
     }
 }

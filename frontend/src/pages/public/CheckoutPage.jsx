@@ -5,7 +5,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useCart } from '../../cart/CartContext'
 import { NOMBRE_NEGOCIO } from '../../config'
 import PaymentPrices from '../../components/PaymentPrices'
-import { mpImmediatePrice } from '../../utils/paymentPricing'
+import { CASH_DISCOUNT_PERCENTAGE, cashPrice, mpImmediatePrice } from '../../utils/paymentPricing'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -136,6 +136,7 @@ function CheckoutPage() {
 
   const opcionElegida = envio?.opciones?.find(o => o.codigo === modoEnvio) || null
   const totalTransferenciaConEnvio = totalArs + Number(opcionElegida?.totalArs || 0)
+  const totalEfectivoConEnvio = cashPrice(totalArs) + Number(opcionElegida?.totalArs || 0)
   const totalMercadoPago = mpImmediatePrice(totalTransferenciaConEnvio)
 
   const confirmar = async (e) => {
@@ -159,7 +160,7 @@ function CheckoutPage() {
         modoEnvio: modoEnvio || null
       })
       vaciar()
-      if (medioPago === 'TRANSFERENCIA') {
+      if (medioPago === 'TRANSFERENCIA' || medioPago === 'EFECTIVO') {
         navigate(`/pedido/${pedido.numero}`, { replace: true })
         return
       }
@@ -198,7 +199,7 @@ function CheckoutPage() {
           <span>US$ {formatNumber(totalUsd)}</span>
         </div>
         {opcionElegida && <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '6px' }}>{Number(opcionElegida.totalArs) === 0 ? 'Incluye envío gratis en Olavarría.' : `Incluye envío estimado: $ ${formatNumber(opcionElegida.totalArs)}`}</div>}
-        <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} /></div>
+        <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} cashPriceOverride={totalEfectivoConEnvio} /></div>
       </div>
 
       <div className="card">
@@ -304,8 +305,12 @@ function CheckoutPage() {
           <span><strong>Transferencia bancaria — $ {formatNumber(totalTransferenciaConEnvio)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>Al confirmar te mostramos el pedido para coordinar el pago.</small></span>
         </label>
         <label style={{ display: 'flex', gap: '10px', padding: '10px 0', borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
+          <input type="radio" name="medioPago" checked={medioPago === 'EFECTIVO'} onChange={() => setMedioPago('EFECTIVO')} />
+          <span><strong>Contado efectivo — $ {formatNumber(totalEfectivoConEnvio)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>{CASH_DISCOUNT_PERCENTAGE}% de descuento sobre los productos. Coordinamos el pago por WhatsApp.</small></span>
+        </label>
+        <label style={{ display: 'flex', gap: '10px', padding: '10px 0', borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
           <input type="radio" name="medioPago" checked={medioPago === 'MERCADO_PAGO'} onChange={() => setMedioPago('MERCADO_PAGO')} />
-          <span><strong>Mercado Pago — 1 pago de $ {formatNumber(totalMercadoPago)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>También podés elegir 3, 6 o 12 cuotas con interés en Mercado Pago.</small></span>
+          <span><strong>Mercado Pago — $ {formatNumber(totalMercadoPago)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>Podés pagar en 1, 3, 6 o 12 cuotas fijas.</small></span>
         </label>
       </div>
 
@@ -348,7 +353,7 @@ function CheckoutPage() {
           />
           <span>
             Entiendo que <strong>confirmar este pedido implica un compromiso de compra</strong>.{' '}
-            Voy a pagar el total por {medioPago === 'TRANSFERENCIA' ? 'transferencia' : 'Mercado Pago'} para que {NOMBRE_NEGOCIO} pueda procesar la compra.
+            Voy a pagar el total por {medioPago === 'TRANSFERENCIA' ? 'transferencia' : medioPago === 'EFECTIVO' ? 'contado efectivo' : 'Mercado Pago'} para que {NOMBRE_NEGOCIO} pueda procesar la compra.
           </span>
         </label>
 
@@ -367,7 +372,7 @@ function CheckoutPage() {
               background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, fontSize: '16px'
             }}
           >
-            {enviando ? 'Confirmando...' : medioPago === 'TRANSFERENCIA' ? 'Confirmar pedido por transferencia' : 'Confirmar y pagar con Mercado Pago'}
+            {enviando ? 'Confirmando...' : medioPago === 'TRANSFERENCIA' ? 'Confirmar pedido por transferencia' : medioPago === 'EFECTIVO' ? 'Confirmar pedido en efectivo' : 'Confirmar y pagar con Mercado Pago'}
           </button>
         </div>
         <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px', marginBottom: 0 }}>

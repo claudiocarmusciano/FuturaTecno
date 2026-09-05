@@ -37,8 +37,9 @@ public class MercadoPagoService {
                 .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado."));
         exigirPropietario(pedido, emailUsuario);
 
-        if ("TRANSFERENCIA".equals(pedido.getMedioPago())) {
-            throw new IllegalArgumentException("Este pedido fue confirmado para pagar por transferencia.");
+        if (!"MERCADO_PAGO".equals(pedido.getMedioPago())) {
+            throw new IllegalArgumentException("Este pedido fue confirmado para pagar por "
+                    + ("EFECTIVO".equals(pedido.getMedioPago()) ? "contado efectivo" : "transferencia") + ".");
         }
 
         if (pedido.getEstadoPago() == EstadoPago.APROBADO) {

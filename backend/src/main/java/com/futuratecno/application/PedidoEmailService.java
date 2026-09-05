@@ -76,9 +76,7 @@ public class PedidoEmailService {
           .append("que rehacerlo con los precios del día.</span>");
         sb.append("</div>");
 
-        sb.append("<p style=\"color:#555;font-size:14px\">Confirmar este pedido implica un ")
-          .append("<strong>compromiso de compra</strong>. El pago total se realiza online con Mercado Pago. ")
-          .append("Si todavía no lo completaste, podés volver al detalle del pedido para reintentarlo.</p>");
+        sb.append("<p style=\"color:#555;font-size:14px\">").append(instruccionPago(pedido)).append("</p>");
         sb.append("<p style=\"color:#888;font-size:12px\">FuturaTecno · Tu tecnología. Tu futuro.</p>");
         sb.append("</div>");
         return sb.toString();
@@ -136,17 +134,34 @@ public class PedidoEmailService {
     private String lineaEnvio(Pedido pedido) {
         if (pedido.getModoEnvio() == null) return "";
         StringBuilder sb = new StringBuilder();
-        sb.append("<p><strong>Envío:</strong> Andreani ").append(escapar(pedido.getModoEnvio()))
+        boolean entregaLocal = "entrega-local-olavarria".equals(pedido.getModoEnvio());
+        sb.append("<p><strong>Envío:</strong> ")
+          .append(entregaLocal ? "Entrega local en Olavarría" : "Andreani " + escapar(pedido.getModoEnvio()))
           .append(" a CP ").append(escapar(pedido.getCpDestino() != null ? pedido.getCpDestino() : "—"))
           .append(" — ");
         if (pedido.getCostoEnvioArs() != null) {
-            sb.append("$ ").append(fmt(pedido.getCostoEnvioArs()))
-              .append(" <span style=\"color:#888;font-size:13px\">(estimado)</span>");
+            if (entregaLocal && pedido.getCostoEnvioArs().signum() == 0) {
+                sb.append("sin cargo");
+            } else {
+                sb.append("$ ").append(fmt(pedido.getCostoEnvioArs()))
+                  .append(" <span style=\"color:#888;font-size:13px\">(estimado)</span>");
+            }
         } else {
             sb.append("costo a cotizar");
         }
         sb.append("</p>");
         return sb.toString();
+    }
+
+    private String instruccionPago(Pedido pedido) {
+        String compromiso = "Confirmar este pedido implica un <strong>compromiso de compra</strong>. ";
+        if ("TRANSFERENCIA".equals(pedido.getMedioPago())) {
+            return compromiso + "Coordinaremos los datos bancarios y el comprobante de transferencia por WhatsApp.";
+        }
+        if ("EFECTIVO".equals(pedido.getMedioPago())) {
+            return compromiso + "Coordinaremos el pago en contado efectivo por WhatsApp. El total aplica el 7% de descuento sobre los productos.";
+        }
+        return compromiso + "El pago total se realiza online con Mercado Pago. Si todavía no lo completaste, podés volver al detalle del pedido para reintentarlo.";
     }
 
     /** venceEn se guarda en el huso de la JVM; para mostrarlo hay que volver a hora argentina. */

@@ -23,12 +23,15 @@ public class PrecioService {
     private static final BigDecimal CIEN = BigDecimal.valueOf(100);
     private final BigDecimal comisionMercadoPagoPct;
     private final BigDecimal ivaComisionPct;
+    private final BigDecimal descuentoContadoEfectivoPct;
 
     public PrecioService(
             @Value("${mercadopago.comision-inmediata-porcentaje:6.29}") BigDecimal comisionMercadoPagoPct,
-            @Value("${mercadopago.iva-comision-porcentaje:21}") BigDecimal ivaComisionPct) {
+            @Value("${mercadopago.iva-comision-porcentaje:21}") BigDecimal ivaComisionPct,
+            @Value("${contado-efectivo.descuento-porcentaje:7}") BigDecimal descuentoContadoEfectivoPct) {
         this.comisionMercadoPagoPct = comisionMercadoPagoPct;
         this.ivaComisionPct = ivaComisionPct;
+        this.descuentoContadoEfectivoPct = descuentoContadoEfectivoPct;
     }
 
     /** Precio de venta en USD de una variante, redondeado a 2 decimales. */
@@ -63,5 +66,12 @@ public class PrecioService {
         BigDecimal divisor = BigDecimal.ONE.subtract(comision.multiply(iva));
         if (divisor.signum() <= 0) throw new IllegalStateException("La comisión de Mercado Pago configurada no es válida.");
         return importeBase.divide(divisor, 2, RoundingMode.HALF_UP);
+    }
+
+    /** Descuento comercial aplicable solamente a los productos abonados al contado. */
+    public BigDecimal precioContadoEfectivo(BigDecimal importeProductos) {
+        if (importeProductos == null) return BigDecimal.ZERO.setScale(2);
+        BigDecimal descuento = descuentoContadoEfectivoPct.divide(CIEN, 8, RoundingMode.HALF_UP);
+        return importeProductos.multiply(BigDecimal.ONE.subtract(descuento)).setScale(2, RoundingMode.HALF_UP);
     }
 }
