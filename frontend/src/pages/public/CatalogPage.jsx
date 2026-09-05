@@ -4,6 +4,7 @@ import axios from 'axios'
 import { indexarArbol, idsHojaDe } from '../../utils/categorias'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import './CatalogPage.css'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -309,7 +310,7 @@ function CatalogPage() {
   }
 
   return (
-    <div>
+    <div className="catalog-page">
       <h1 style={{ marginBottom: '6px' }}>Catálogo</h1>
 
       {eta?.fechaEntrega && (
@@ -358,7 +359,7 @@ function CatalogPage() {
 
         <div>
           {/* Barra de filtros */}
-          <div className="card" style={{ marginBottom: '18px' }}>
+          <div className="card catalog-filter-panel" style={{ marginBottom: '18px' }}>
             <input
               type="text"
               value={busqueda}
@@ -419,7 +420,7 @@ function CatalogPage() {
           {filtrados.length === 0 ? (
             <div className="card"><p>No hay productos que coincidan con los filtros.</p></div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '20px' }}>
+            <div className="catalog-product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '20px' }}>
               {visibles.map(p => (
                 <Link key={p.id} to={`/producto/${p.id}`} className="producto-card">
                   {/* Tile blanco a propósito: las fotos de los mayoristas vienen recortadas sobre

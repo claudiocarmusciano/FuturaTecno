@@ -36,6 +36,9 @@ function CheckoutPage() {
   const [medioPago, setMedioPago] = useState('MERCADO_PAGO')
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [misPuntos, setMisPuntos] = useState(null)
+  const [puntosUsar, setPuntosUsar] = useState(0)
+  const [cotizacionActual, setCotizacionActual] = useState(null)
 
   // Envío: la cotización es opcional. Si no se cotiza (o Andreani no responde), el pedido
   // sale igual y el costo se coordina al contactar al cliente.
@@ -49,6 +52,12 @@ function CheckoutPage() {
   useEffect(() => {
     if (user?.nombre) setNombre(user.nombre)
   }, [user])
+
+  useEffect(() => {
+    if (!isAuth) return
+    axios.get('/api/puntos/mis-puntos').then(r => setMisPuntos(r.data)).catch(() => setMisPuntos(null))
+    axios.get('/api/cotizacion').then(r => setCotizacionActual(Number(r.data.valor))).catch(() => setCotizacionActual(null))
+  }, [isAuth])
 
   if (!listo) return null
 
@@ -135,8 +144,13 @@ function CheckoutPage() {
   }
 
   const opcionElegida = envio?.opciones?.find(o => o.codigo === modoEnvio) || null
-  const totalTransferenciaConEnvio = totalArs + Number(opcionElegida?.totalArs || 0)
-  const totalEfectivoConEnvio = cashPrice(totalArs) + Number(opcionElegida?.totalArs || 0)
+  const saldoPuntos = Number(misPuntos?.puntosDisponibles || 0)
+  const baseProductosPago = medioPago === 'EFECTIVO' ? cashPrice(totalArs) : totalArs
+  const maximoPuntosUsables = Math.max(0, Math.min(saldoPuntos, Math.floor(baseProductosPago / Number(cotizacionActual || 1))))
+  const puntosAplicados = Math.min(Math.max(0, Number(puntosUsar) || 0), maximoPuntosUsables)
+  const descuentoPuntosArs = cotizacionActual ? puntosAplicados * cotizacionActual : 0
+  const totalTransferenciaConEnvio = Math.max(0, totalArs - descuentoPuntosArs) + Number(opcionElegida?.totalArs || 0)
+  const totalEfectivoConEnvio = Math.max(0, cashPrice(totalArs) - descuentoPuntosArs) + Number(opcionElegida?.totalArs || 0)
   const totalMercadoPago = mpImmediatePrice(totalTransferenciaConEnvio)
 
   const confirmar = async (e) => {
@@ -155,6 +169,7 @@ function CheckoutPage() {
         notas,
         aceptaCompromiso,
         medioPago,
+        puntosUsar: puntosAplicados,
         // Solo el CP y la modalidad: el costo lo recotiza el backend al confirmar.
         cpDestino: modoEnvio ? cp : null,
         modoEnvio: modoEnvio || null
@@ -200,6 +215,31 @@ function CheckoutPage() {
         </div>
         {opcionElegida && <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '6px' }}>{Number(opcionElegida.totalArs) === 0 ? 'Incluye envío gratis en Olavarría.' : `Incluye envío estimado: $ ${formatNumber(opcionElegida.totalArs)}`}</div>}
         <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} cashPriceOverride={totalEfectivoConEnvio} /></div>
+      </div>
+
+      <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
+        <h2 style={{ fontSize: '17px', marginTop: 0 }}>Tus puntos</h2>
+        {misPuntos === null ? (
+          <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '14px' }}>Cargando tu saldo…</p>
+        ) : saldoPuntos === 0 ? (
+          <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '14px' }}>Todavía no tenés puntos disponibles. Por cada US$ 100 en productos de una compra cobrada sumás 1 punto.</p>
+        ) : (
+          <>
+            <p style={{ margin: '0 0 12px', fontSize: '14px' }}><strong>{saldoPuntos} punto{saldoPuntos === 1 ? '' : 's'} disponibles</strong> = US$ {saldoPuntos} de descuento.</p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '14px' }}>
+              Usar
+              <input type="number" min="0" max={maximoPuntosUsables} value={puntosUsar}
+                onChange={e => setPuntosUsar(e.target.value)}
+                style={{ width: '90px', padding: '8px', border: '1px solid var(--color-border)', borderRadius: '7px', fontSize: '15px' }} />
+              puntos
+              <button type="button" onClick={() => setPuntosUsar(maximoPuntosUsables)}
+                style={{ padding: '7px 10px', borderRadius: '7px', border: '1px solid var(--color-lime)', background: 'transparent', color: 'var(--color-lime)', cursor: 'pointer', fontWeight: 700 }}>Usar máximo</button>
+            </label>
+            <p style={{ margin: '9px 0 0', color: 'var(--color-text-muted)', fontSize: '12px' }}>
+              {puntosAplicados > 0 ? `Descuento estimado: $ ${formatNumber(descuentoPuntosArs)}. ` : ''}Los puntos se aplican sólo a productos, no al envío. La compra mínima de US$ 250 se valida antes del descuento.
+            </p>
+          </>
+        )}
       </div>
 
       <div className="card">

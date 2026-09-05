@@ -150,6 +150,7 @@ function LandingPage() {
             {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>
+                <Link to="/mis-puntos">Mis puntos</Link>
                 <Link to="/mis-pedidos">Mis pedidos</Link>
                 {/* max-width + ellipsis: un nombre largo no debe poder romper el layout del nav. */}
                 <span style={{ color: 'var(--lp-muted)', fontSize: '14.5px', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={user.nombre || user.email}>
@@ -184,7 +185,7 @@ function LandingPage() {
             <h1 className="lp-hero-title">La tecnología que buscás, <span className="lp-accent">al mejor precio.</span></h1>
             <p className="lp-hero-sub">
               Catálogo de notebooks, PC, componentes, periféricos y más. Precios actualizados en{' '}
-              <strong>USD y pesos</strong>, envíos a todo el país y atención directa por WhatsApp.
+              <strong>USD y pesos</strong>, calculados con dólar blue venta, envíos a todo el país y atención directa por WhatsApp.
             </p>
             <div className="lp-cta-row">
               <Link className="lp-btn lp-btn-primary" to="/catalogo">Ver catálogo →</Link>

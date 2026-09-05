@@ -18,9 +18,11 @@ public class PedidoScheduler {
     private static final Logger logger = LoggerFactory.getLogger(PedidoScheduler.class);
 
     private final PedidoService pedidoService;
+    private final PuntosService puntosService;
 
-    public PedidoScheduler(PedidoService pedidoService) {
+    public PedidoScheduler(PedidoService pedidoService, PuntosService puntosService) {
         this.pedidoService = pedidoService;
+        this.puntosService = puntosService;
     }
 
     // Segundo Minuto Hora DíaMes Mes DíaSemana — default: 06:30 todos los días.
@@ -28,9 +30,11 @@ public class PedidoScheduler {
     public void vencerPedidos() {
         try {
             int vencidos = pedidoService.vencerPendientes();
+            int puntosVencidos = puntosService.vencerCreditos();
             if (vencidos > 0) {
                 logger.info("Corte diario: {} pedido(s) vencidos.", vencidos);
             }
+            if (puntosVencidos > 0) logger.info("Vencimiento de puntos: {} crédito(s) vencidos.", puntosVencidos);
         } catch (Exception e) {
             logger.error("Falló el vencimiento de pedidos: {}", e.toString());
         }

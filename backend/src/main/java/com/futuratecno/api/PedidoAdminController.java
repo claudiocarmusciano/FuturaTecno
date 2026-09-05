@@ -3,6 +3,7 @@ package com.futuratecno.api;
 import com.futuratecno.api.dto.PedidoDTO;
 import com.futuratecno.application.PedidoService;
 import com.futuratecno.domain.EstadoPedido;
+import com.futuratecno.domain.EstadoPago;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +54,17 @@ public class PedidoAdminController {
             return ResponseEntity.ok(pedidoService.cambiarEstado(id, nuevo));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/pago")
+    public ResponseEntity<?> cambiarEstadoPago(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String estado = body.get("estado");
+        if (estado == null || estado.isBlank()) return ResponseEntity.badRequest().body(Map.of("error", "Falta el estado de pago."));
+        try {
+            return ResponseEntity.ok(pedidoService.cambiarEstadoPagoManual(id, EstadoPago.valueOf(estado.trim().toUpperCase())));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

@@ -160,8 +160,13 @@ function PedidoDetailPage() {
           <span>US$ {formatNumber(pedido.totalUsd)}</span>
         </div>
         <div style={{ textAlign: 'right', color: 'var(--color-price)' }}>$ {formatNumber(pedido.totalArs)}</div>
+        {pedido.puntosCanjeados > 0 && (
+          <p style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-lime)', margin: '5px 0 0' }}>
+            − {pedido.puntosCanjeados} punto(s): $ {formatNumber(pedido.descuentoPuntosArs)}
+          </p>
+        )}
         <p style={{ textAlign: 'right', fontSize: '12px', color: 'var(--color-text-muted)', margin: '4px 0 0' }}>
-          Precios congelados al dólar ${formatNumber(pedido.cotizacionUsada)} del día del pedido.
+          Precios congelados al dólar blue venta ${formatNumber(pedido.cotizacionUsada)} del día del pedido.
         </p>
       </div>
 

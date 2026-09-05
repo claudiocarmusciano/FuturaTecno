@@ -20,6 +20,7 @@ import BasesSorteoPage from './pages/public/BasesSorteoPage'
 import CartPage from './pages/public/CartPage'
 import CheckoutPage from './pages/public/CheckoutPage'
 import MisPedidosPage from './pages/public/MisPedidosPage'
+import MisPuntosPage from './pages/public/MisPuntosPage'
 import PedidoDetailPage from './pages/public/PedidoDetailPage'
 import PagoResultadoPage from './pages/public/PagoResultadoPage'
 import RutaPrivada from './auth/RutaPrivada'
@@ -42,14 +43,14 @@ function App() {
         <Route path="/bases-y-condiciones" element={<BasesSorteoPage />} />
 
         <Route element={<PublicLayout />}>
-          {/* Catálogo cerrado mientras dura la pre-landing del sorteo: lo ve solo
-              el admin (enlace "Ver Catálogo" del panel); el visitante vuelve a "/". */}
-          <Route path="/catalogo" element={<SoloAdmin><CatalogPage /></SoloAdmin>} />
-          <Route path="/producto/:id" element={<SoloAdmin><ProductDetailPage /></SoloAdmin>} />
+          {/* El catálogo es público; se pide una cuenta recién al confirmar la compra. */}
+          <Route path="/catalogo" element={<CatalogPage />} />
+          <Route path="/producto/:id" element={<ProductDetailPage />} />
           {/* El carrito y el checkout son públicos: la sesión se pide recién al confirmar. */}
           <Route path="/carrito" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/mis-pedidos" element={<RutaPrivada><MisPedidosPage /></RutaPrivada>} />
+          <Route path="/mis-puntos" element={<RutaPrivada><MisPuntosPage /></RutaPrivada>} />
           <Route path="/pedido/:numero" element={<RutaPrivada><PedidoDetailPage /></RutaPrivada>} />
           <Route path="/pago/resultado" element={<RutaPrivada><PagoResultadoPage /></RutaPrivada>} />
         </Route>

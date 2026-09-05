@@ -37,6 +37,7 @@ public class SecurityConfig {
                         // historial exigen sesión. Ojo: el default de acá abajo es permitAll,
                         // así que toda ruta privada nueva tiene que listarse explícitamente.
                         .requestMatchers("/api/pedidos/**").authenticated()
+                        .requestMatchers("/api/puntos/**").authenticated()
                         .requestMatchers("/api/auth/onboarding/**").authenticated()
                         .anyRequest().permitAll()
                 )

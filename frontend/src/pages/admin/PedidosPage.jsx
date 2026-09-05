@@ -35,6 +35,15 @@ function PedidosPage() {
     }
   }
 
+  const marcarCobrado = async (id) => {
+    try {
+      await axios.put(`/api/admin/pedidos/${id}/pago`, { estado: 'APROBADO' })
+      cargar()
+    } catch (err) {
+      alert(err.response?.data?.error || 'No se pudo registrar el cobro.')
+    }
+  }
+
   const botonFiltro = (valor, texto) => (
     <button
       key={valor || 'todos'}
@@ -104,7 +113,10 @@ function PedidosPage() {
                       <td style={{ padding: '12px 8px', fontSize: '13px' }}>{formatFechaHora(p.createdAt)}</td>
                       <td style={{ padding: '12px 8px' }}><EstadoChip estado={p.estado} /></td>
                       <td style={{ padding: '12px 8px', fontSize: '13px', fontWeight: 700, color: p.estadoPago === 'APROBADO' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
-                        {p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : p.estadoPago === 'RECHAZADO' ? 'Rechazado' : 'Pendiente'}
+                        <div>{p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : p.estadoPago === 'RECHAZADO' ? 'Rechazado' : p.estadoPago === 'SIN_INICIAR' ? 'Sin iniciar' : 'Pendiente'}</div>
+                        {p.estadoPago !== 'APROBADO' && p.medioPago !== 'MERCADO_PAGO' && (
+                          <button type="button" onClick={() => marcarCobrado(p.id)} style={{ marginTop: '6px', padding: '5px 8px', border: '1px solid var(--color-lime)', borderRadius: '6px', background: 'transparent', color: 'var(--color-lime)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Marcar cobrado</button>
+                        )}
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'right' }}>
                         <div style={{ fontWeight: 600 }}>US$ {formatNumber(p.totalUsd)}</div>
@@ -148,6 +160,7 @@ function PedidosPage() {
                           <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
                             Email: {p.usuarioEmail} · Dólar usado: ${formatNumber(p.cotizacionUsada)}
                             {p.mercadoPagoPaymentId && <> · ID de pago: {p.mercadoPagoPaymentId}</>}
+                            {p.puntosCanjeados > 0 && <> · Canjeó {p.puntosCanjeados} punto(s)</>}
                           </p>
                         </td>
                       </tr>

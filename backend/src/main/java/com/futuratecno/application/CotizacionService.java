@@ -12,7 +12,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- * Obtiene la cotización del dólar oficial (USD -> ARS) desde dolarapi.com.
+ * Obtiene la cotización de venta del dólar blue (USD -> ARS) desde dolarapi.com.
  * Cachea el valor en memoria para no llamar a la API en cada parsing.
  */
 @Service
@@ -21,13 +21,13 @@ public class CotizacionService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${cotizacion.api-url:https://dolarapi.com/v1/dolares/oficial}")
+    @Value("${cotizacion.api-url:https://dolarapi.com/v1/dolares/blue}")
     private String apiUrl;
 
     @Value("${cotizacion.cache-minutos:30}")
     private long cacheMinutos;
 
-    @Value("${cotizacion.fallback:1050}")
+    @Value("${cotizacion.fallback:1540}")
     private BigDecimal fallback;
 
     private BigDecimal valorCacheado;
@@ -38,7 +38,7 @@ public class CotizacionService {
     }
 
     /**
-     * Devuelve la cotización de venta del dólar oficial en ARS por 1 USD.
+     * Devuelve la cotización de venta del dólar blue en ARS por 1 USD.
      * Usa caché de {@code cacheMinutos}; si la API falla, usa el último valor o el fallback.
      */
     public BigDecimal obtenerCotizacionUsdArs() {
@@ -52,7 +52,7 @@ public class CotizacionService {
             if (response != null && response.has("venta")) {
                 valorCacheado = response.get("venta").decimalValue();
                 ultimaActualizacion = Instant.now();
-                logger.info("Cotización dólar oficial actualizada: {} ARS/USD", valorCacheado);
+                logger.info("Cotización dólar blue venta actualizada: {} ARS/USD", valorCacheado);
                 return valorCacheado;
             }
             logger.warn("Respuesta de cotización sin campo 'venta', usando fallback");

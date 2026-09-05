@@ -20,7 +20,7 @@ import java.util.*;
  * Importa el catálogo de Invid a FuturaTecno usando {@link InvidApiClient}.
  * Cada artículo -> un Producto + una Variante (1:1), deduplicando por el ID de Invid (codigo_externo,
  * fuente "INVID"). Precios en ARS (FINAL_PRICE = precio + IVA + imp. internos) convertidos a USD con la
- * cotización del dólar oficial. El margen y flete los pone el proveedor "Invid" en FuturaTecno.
+ * cotización de venta del dólar blue. El margen y flete los pone el proveedor "Invid" en FuturaTecno.
  */
 @Service
 public class InvidImportService {

@@ -97,6 +97,9 @@ mercadopago:
 contado-efectivo:
   descuento-porcentaje: ${CONTADO_EFECTIVO_DESCUENTO_PORCENTAJE:7}
 
+cotizacion:
+  api-url: ${COTIZACION_API_URL:https://dolarapi.com/v1/dolares/blue}
+
 app:
   public-url: ${APP_PUBLIC_URL:https://www.futuratecno.com.ar}
   cutoff-hour: ${CUTOFF_HOUR:14}

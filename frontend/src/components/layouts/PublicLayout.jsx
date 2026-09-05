@@ -25,6 +25,7 @@ function PublicLayout() {
             {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>
+                <Link to="/mis-puntos">Mis puntos</Link>
                 <Link to="/mis-pedidos">Mis pedidos</Link>
                 <span style={{ color: '#9a9d92', fontSize: '14px' }}>Hola, {user.nombre || user.email}</span>
                 <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>

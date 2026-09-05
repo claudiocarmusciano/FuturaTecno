@@ -60,7 +60,7 @@ function Dashboard() {
             <StatCard label="Clientes registrados" valor={usuarios.length} sub="Base de emails" to="/admin/usuarios" />
             <StatCard label="Proveedores" valor={proveedores.length} to="/admin/proveedores" />
             <StatCard
-              label="Dólar oficial"
+              label="Dólar blue (venta)"
               valor={cotizacion?.valor ? `$${formatNumber(cotizacion.valor)}` : '—'}
               sub="Usado para los precios"
             />

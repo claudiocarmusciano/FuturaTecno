@@ -19,6 +19,7 @@ public class CrearPedidoRequest {
     private String cpDestino;
     private String modoEnvio;
     private String medioPago;
+    private Integer puntosUsar;
 
     public CrearPedidoRequest() {}
 
@@ -45,4 +46,7 @@ public class CrearPedidoRequest {
 
     public String getMedioPago() { return medioPago; }
     public void setMedioPago(String medioPago) { this.medioPago = medioPago; }
+
+    public Integer getPuntosUsar() { return puntosUsar; }
+    public void setPuntosUsar(Integer puntosUsar) { this.puntosUsar = puntosUsar; }
 }

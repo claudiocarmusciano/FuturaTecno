@@ -51,6 +51,7 @@ public class PedidoService {
     private final PrecioService precioService;
     private final PedidoEmailService pedidoEmailService;
     private final EnvioService envioService;
+    private final PuntosService puntosService;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          VarianteRepository varianteRepository,
@@ -58,7 +59,7 @@ public class PedidoService {
                          CotizacionService cotizacionService,
                          PrecioService precioService,
                          PedidoEmailService pedidoEmailService,
-                         EnvioService envioService) {
+                         EnvioService envioService, PuntosService puntosService) {
         this.pedidoRepository = pedidoRepository;
         this.varianteRepository = varianteRepository;
         this.usuarioRepository = usuarioRepository;
@@ -66,6 +67,7 @@ public class PedidoService {
         this.precioService = precioService;
         this.pedidoEmailService = pedidoEmailService;
         this.envioService = envioService;
+        this.puntosService = puntosService;
     }
 
     /**
@@ -176,6 +178,20 @@ public class PedidoService {
         }
 
         Pedido guardado = pedidoRepository.save(pedido);
+        int puntosSolicitados = req.getPuntosUsar() == null ? 0 : req.getPuntosUsar();
+        if (puntosSolicitados < 0) throw new IllegalArgumentException("La cantidad de puntos no es válida.");
+        if (puntosSolicitados > 0) {
+            BigDecimal baseProductos = "EFECTIVO".equals(medioPago)
+                    ? precioService.precioContadoEfectivo(totalArs) : totalArs;
+            int maximoCanjeable = baseProductos.divide(cotizacion, 0, java.math.RoundingMode.DOWN).intValue();
+            if (puntosSolicitados > maximoCanjeable) {
+                throw new IllegalArgumentException("No podés usar más puntos que el valor de los productos.");
+            }
+            puntosService.reservar(guardado, puntosSolicitados);
+            guardado.setPuntosCanjeados(puntosSolicitados);
+            guardado.setDescuentoPuntosArs(cotizacion.multiply(BigDecimal.valueOf(puntosSolicitados)));
+            pedidoRepository.save(guardado);
+        }
         logger.info("Pedido {} creado por {} ({} ítems, US$ {})",
                 guardado.getNumero(), usuario.getEmail(), guardado.getItems().size(), guardado.getTotalUsd());
 
@@ -226,6 +242,23 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado."));
         pedido.setEstado(nuevoEstado);
+        if (nuevoEstado == EstadoPedido.CANCELADO || nuevoEstado == EstadoPedido.VENCIDO) puntosService.revertirReserva(pedido);
+        return toDTO(pedidoRepository.save(pedido), true);
+    }
+
+    @Transactional
+    public PedidoDTO cambiarEstadoPagoManual(Long id, EstadoPago nuevoEstado) {
+        Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado."));
+        if ("MERCADO_PAGO".equals(pedido.getMedioPago())) {
+            throw new IllegalArgumentException("Los pagos de Mercado Pago se actualizan automáticamente.");
+        }
+        pedido.setEstadoPago(nuevoEstado);
+        if (nuevoEstado == EstadoPago.APROBADO) {
+            pedido.setPagadoEn(LocalDateTime.now());
+            if (pedido.getEstado() != EstadoPedido.ENTREGADO) pedido.setEstado(EstadoPedido.CONFIRMADO);
+            puntosService.procesarPagoAprobado(pedido);
+        }
+        if (nuevoEstado == EstadoPago.CANCELADO || nuevoEstado == EstadoPago.RECHAZADO) puntosService.revertirReserva(pedido);
         return toDTO(pedidoRepository.save(pedido), true);
     }
 
@@ -244,6 +277,7 @@ public class PedidoService {
                 EstadoPedido.PENDIENTE, LocalDateTime.now());
         for (Pedido p : vencidos) {
             p.setEstado(EstadoPedido.VENCIDO);
+            puntosService.revertirReserva(p);
         }
         if (!vencidos.isEmpty()) {
             pedidoRepository.saveAll(vencidos);
@@ -290,19 +324,21 @@ public class PedidoService {
         dto.setModoEnvio(p.getModoEnvio());
         dto.setCostoEnvioArs(p.getCostoEnvioArs());
         dto.setMedioPago(p.getMedioPago());
-        BigDecimal baseConEnvio = p.getTotalArs().add(
-                p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO);
-        dto.setTotalCobroArs("TRANSFERENCIA".equals(p.getMedioPago())
-                ? baseConEnvio
-                : "EFECTIVO".equals(p.getMedioPago())
-                ? precioService.precioContadoEfectivo(p.getTotalArs()).add(
-                        p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO)
-                : (p.getMontoPagoArs() != null ? p.getMontoPagoArs()
-                : precioService.precioMercadoPagoInmediato(baseConEnvio)));
+        BigDecimal envio = p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO;
+        BigDecimal descuentoPuntos = p.getDescuentoPuntosArs() != null ? p.getDescuentoPuntosArs() : BigDecimal.ZERO;
+        BigDecimal productos = "EFECTIVO".equals(p.getMedioPago())
+                ? precioService.precioContadoEfectivo(p.getTotalArs()) : p.getTotalArs();
+        BigDecimal baseConEnvio = productos.subtract(descuentoPuntos).max(BigDecimal.ZERO).add(envio);
+        dto.setTotalCobroArs("MERCADO_PAGO".equals(p.getMedioPago())
+                ? (p.getMontoPagoArs() != null ? p.getMontoPagoArs()
+                : precioService.precioMercadoPagoInmediato(baseConEnvio))
+                : baseConEnvio);
         dto.setEstadoPago(p.getEstadoPago() != null ? p.getEstadoPago().name() : null);
         dto.setMercadoPagoPaymentId(p.getMercadoPagoPaymentId());
         dto.setMercadoPagoStatusDetail(p.getMercadoPagoStatusDetail());
         dto.setPagadoEn(p.getPagadoEn());
+        dto.setPuntosCanjeados(p.getPuntosCanjeados());
+        dto.setDescuentoPuntosArs(p.getDescuentoPuntosArs());
         if (paraAdmin && p.getUsuario() != null) {
             dto.setUsuarioEmail(p.getUsuario().getEmail());
         }

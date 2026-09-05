@@ -91,6 +91,14 @@ public class Pedido extends BaseEntity {
     @Column(name = "pagado_en")
     private LocalDateTime pagadoEn;
 
+    /** Puntos reservados al confirmar el pedido. Cada punto equivale a US$ 1 de descuento. */
+    @Column(name = "puntos_canjeados", nullable = false)
+    private Integer puntosCanjeados = 0;
+
+    /** Descuento en ARS congelado con la cotización del pedido; nunca descuenta el envío. */
+    @Column(name = "descuento_puntos_ars", nullable = false)
+    private BigDecimal descuentoPuntosArs = BigDecimal.ZERO;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItem> items = new ArrayList<>();
 
@@ -221,6 +229,12 @@ public class Pedido extends BaseEntity {
 
     public LocalDateTime getPagadoEn() { return pagadoEn; }
     public void setPagadoEn(LocalDateTime pagadoEn) { this.pagadoEn = pagadoEn; }
+
+    public Integer getPuntosCanjeados() { return puntosCanjeados; }
+    public void setPuntosCanjeados(Integer puntosCanjeados) { this.puntosCanjeados = puntosCanjeados; }
+
+    public BigDecimal getDescuentoPuntosArs() { return descuentoPuntosArs; }
+    public void setDescuentoPuntosArs(BigDecimal descuentoPuntosArs) { this.descuentoPuntosArs = descuentoPuntosArs; }
 
     public List<PedidoItem> getItems() {
         return items;

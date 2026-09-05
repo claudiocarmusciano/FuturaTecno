@@ -23,12 +23,14 @@ public class MercadoPagoService {
     private final PedidoRepository pedidoRepository;
     private final MercadoPagoGateway mercadoPagoGateway;
     private final PrecioService precioService;
+    private final PuntosService puntosService;
 
     public MercadoPagoService(PedidoRepository pedidoRepository, MercadoPagoGateway mercadoPagoGateway,
-                              PrecioService precioService) {
+                              PrecioService precioService, PuntosService puntosService) {
         this.pedidoRepository = pedidoRepository;
         this.mercadoPagoGateway = mercadoPagoGateway;
         this.precioService = precioService;
+        this.puntosService = puntosService;
     }
 
     @Transactional
@@ -108,6 +110,7 @@ public class MercadoPagoService {
                     ? payment.getDateApproved().atZoneSameInstant(PedidoService.ZONA_AR).toLocalDateTime()
                     : LocalDateTime.now());
             if (pedido.getEstado() != EstadoPedido.ENTREGADO) pedido.setEstado(EstadoPedido.CONFIRMADO);
+            puntosService.procesarPagoAprobado(pedido);
             logger.info("Pago aprobado para pedido {} (payment id {}).", pedido.getNumero(), payment.getId());
         }
         pedidoRepository.save(pedido);
@@ -130,7 +133,9 @@ public class MercadoPagoService {
 
     private BigDecimal totalACobrar(Pedido pedido) {
         BigDecimal envio = pedido.getCostoEnvioArs() != null ? pedido.getCostoEnvioArs() : BigDecimal.ZERO;
-        BigDecimal precioTransferencia = pedido.getTotalArs().add(envio).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal descuentoPuntos = pedido.getDescuentoPuntosArs() != null ? pedido.getDescuentoPuntosArs() : BigDecimal.ZERO;
+        BigDecimal precioTransferencia = pedido.getTotalArs().subtract(descuentoPuntos).max(BigDecimal.ZERO)
+                .add(envio).setScale(2, RoundingMode.HALF_UP);
         return precioService.precioMercadoPagoInmediato(precioTransferencia);
     }
 

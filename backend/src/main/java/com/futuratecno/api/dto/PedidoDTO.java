@@ -30,6 +30,8 @@ public class PedidoDTO {
     private Long mercadoPagoPaymentId;
     private String mercadoPagoStatusDetail;
     private LocalDateTime pagadoEn;
+    private Integer puntosCanjeados;
+    private BigDecimal descuentoPuntosArs;
 
     /** Email del cliente. Solo se completa para el admin; en el historial propio sobra. */
     private String usuarioEmail;
@@ -101,4 +103,10 @@ public class PedidoDTO {
 
     public LocalDateTime getPagadoEn() { return pagadoEn; }
     public void setPagadoEn(LocalDateTime pagadoEn) { this.pagadoEn = pagadoEn; }
+
+    public Integer getPuntosCanjeados() { return puntosCanjeados; }
+    public void setPuntosCanjeados(Integer puntosCanjeados) { this.puntosCanjeados = puntosCanjeados; }
+
+    public BigDecimal getDescuentoPuntosArs() { return descuentoPuntosArs; }
+    public void setDescuentoPuntosArs(BigDecimal descuentoPuntosArs) { this.descuentoPuntosArs = descuentoPuntosArs; }
 }

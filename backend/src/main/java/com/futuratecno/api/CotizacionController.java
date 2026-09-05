@@ -24,7 +24,7 @@ public class CotizacionController {
     public ResponseEntity<Map<String, Object>> obtener() {
         return ResponseEntity.ok(Map.of(
                 "valor", cotizacionService.obtenerCotizacionUsdArs(),
-                "fuente", "dólar oficial"
+                "fuente", "dólar blue (venta)"
         ));
     }
 }
