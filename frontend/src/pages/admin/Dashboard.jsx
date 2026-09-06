@@ -42,7 +42,7 @@ function Dashboard() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '4px' }}>Hola, {user?.nombre || 'Administrador'} 👋</h1>
+      <h1 style={{ marginBottom: '4px' }}>Hola, {user?.nombre || 'Administrador'}</h1>
       <p style={{ color: 'var(--color-text-muted)', marginBottom: '28px' }}>Resumen de tu tienda</p>
 
       {cargando ? (

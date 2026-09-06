@@ -176,6 +176,17 @@ function LandingPage() {
 
       <PromotionsCarousel />
 
+      <section className="lp-opening" aria-label="Apertura del catálogo">
+        <div className="lp-wrap lp-opening-inner">
+          <div>
+            <span className="lp-opening-kicker">Este lunes 7/9</span>
+            <strong>Abrimos el catálogo de FuturaTecno</strong>
+          </div>
+          <p>Más de 1000 productos de tecnología e informática.</p>
+          <Link className="lp-opening-link" to="/catalogo">Conocé el catálogo →</Link>
+        </div>
+      </section>
+
       {/* HERO */}
       <section className="lp-hero" id="top">
         <div className="lp-glow lp-glow-1" />
