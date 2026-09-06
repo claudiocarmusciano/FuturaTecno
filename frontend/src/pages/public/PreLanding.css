@@ -9,6 +9,7 @@
 .prelanding-header-actions { display: flex; align-items: center; gap: 18px; }
 .prelanding-catalog-link { display: inline-flex; align-items: center; min-height: 36px; padding: 0 13px; border-radius: 999px; color: #17191d; background: #c8e048; font-weight: 800; font-size: 12px; text-decoration: none; }
 .prelanding-catalog-link:hover { filter: brightness(1.08); }
+.prelanding-catalog-pending { cursor: default; opacity: .9; }
 .prelanding-skip { color: #b9bec8; font-size: 14px; transition: color .2s; }
 .prelanding-skip:hover { color: #c8e048; }
 .prelanding-session { display: flex; align-items: center; gap: 10px; color: #b9bec8; font-size: 12px; }
@@ -20,6 +21,7 @@
 .prelanding-opening > strong { color: #fff; font-size: clamp(22px, 2.5vw, 34px); line-height: 1; white-space: nowrap; }
 .prelanding-opening > p { color: #eef0ff; font-size: 14px; line-height: 1.45; }
 .prelanding-opening > a { display: inline-flex; justify-content: center; padding: 11px 16px; border-radius: 999px; color: #16181d; background: #c8e048; font-size: 12px; font-weight: 850; white-space: nowrap; }
+.prelanding-opening-pending { display: inline-flex; justify-content: center; padding: 11px 16px; border: 1px solid rgba(200,224,72,.7); border-radius: 999px; color: #e9f69d; font-size: 12px; font-weight: 850; white-space: nowrap; }
 .prelanding-content { max-width: 1180px; margin: clamp(30px, 6vh, 72px) auto 36px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr); gap: clamp(40px, 8vw, 120px); align-items: center; }
 .prelanding-copy { position: relative; }
 .prelanding-copy::before { content: ''; display: block; width: 50px; height: 4px; margin-bottom: 20px; background: #5865f2; }
