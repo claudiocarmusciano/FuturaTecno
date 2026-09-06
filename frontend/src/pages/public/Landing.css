@@ -63,47 +63,6 @@
 .lp-nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(200, 224, 72, .4); }
 .lp-nav-toggle { display: none; background: none; border: none; color: var(--lp-text); cursor: pointer; padding: 4px; }
 
-/* ===== anuncio de apertura ===== */
-.lp-opening {
-  position: relative;
-  z-index: 2;
-  background: var(--lp-ultramar);
-  border-bottom: 4px solid var(--lp-lime);
-  color: #fff;
-}
-.lp-opening-inner {
-  min-height: 104px;
-  display: grid;
-  grid-template-columns: minmax(280px, 1.2fr) minmax(250px, 1fr) auto;
-  align-items: center;
-  gap: 28px;
-  padding-top: 18px;
-  padding-bottom: 18px;
-}
-.lp-opening-inner > div { display: flex; flex-direction: column; gap: 2px; }
-.lp-opening-kicker {
-  color: var(--lp-lime);
-  font: 800 13px/1.2 'Sora', sans-serif;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-.lp-opening-inner strong { font: 800 clamp(21px, 2.4vw, 30px)/1.15 'Sora', sans-serif; }
-.lp-opening-inner p { font-size: 16px; line-height: 1.4; }
-.lp-opening-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 46px;
-  padding: 11px 20px;
-  border-radius: 999px;
-  background: var(--lp-lime);
-  color: var(--lp-dark) !important;
-  font: 800 14px/1.2 'Sora', sans-serif;
-  white-space: nowrap;
-  transition: transform .15s, box-shadow .15s;
-}
-.lp-opening-link:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(22, 24, 29, .3); }
-
 /* ===== HERO ===== */
 .lp-hero { position: relative; padding: 90px 0 70px; overflow: hidden; }
 .lp-hero::after { content: ''; position: absolute; width: 130px; height: 130px; right: 8%; bottom: 18px; border: 1px solid rgba(88,101,242,.42); transform: rotate(45deg); pointer-events: none; }
@@ -255,9 +214,6 @@
      si hace falta; acá hay que pisar también el min, o el nav mobile queda alto de más. */
   .lp-nav { height: 80px; min-height: 80px; }
   .lp-nav-logo img { height: 48px; }
-  .lp-opening-inner { grid-template-columns: 1fr auto; gap: 12px 20px; }
-  .lp-opening-inner p { grid-column: 1; }
-  .lp-opening-link { grid-column: 2; grid-row: 1 / span 2; }
   .lp-hero-grid { grid-template-columns: 1fr; gap: 30px; }
   /* width:100% es necesario, no cosmético: .lp-mockup es un item de grid cuyos únicos hijos son
      position:absolute (no aportan tamaño). Con margin:0 auto pero sin width propio, CSS Grid deja
@@ -274,9 +230,6 @@
   .lp-prod-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 480px) {
-  .lp-opening-inner { grid-template-columns: 1fr; padding-top: 20px; padding-bottom: 20px; }
-  .lp-opening-inner p, .lp-opening-link { grid-column: 1; grid-row: auto; }
-  .lp-opening-link { justify-self: start; }
   .lp-brands { padding: 34px 0 38px; }
   .lp-brands-kicker { font-size: 10.5px; letter-spacing: 1.35px; margin-bottom: 18px !important; }
   .lp-brand { width: 126px; min-height: 53px; flex-basis: 126px; transform: scale(.88); }

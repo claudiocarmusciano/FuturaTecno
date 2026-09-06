@@ -48,6 +48,12 @@ function PreLandingPage() {
     <div className="prelanding-glow prelanding-glow-one" /><div className="prelanding-glow prelanding-glow-two" />
     <header className="prelanding-header"><Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link><div className="prelanding-header-actions"><Link className="prelanding-catalog-link" to="/catalogo">Ver catálogo</Link>{isAuth ? <div className="prelanding-session"><span>Sesión iniciada{user?.email ? `: ${user.email}` : ''}</span><button type="button" onClick={logout}>Salir</button></div> : <Link className="prelanding-skip" to="/login">Ya tengo cuenta →</Link>}</div></header>
     <PromotionsCarousel />
+    <section className="prelanding-opening" aria-label="Apertura del catálogo">
+      <span>Apertura del catálogo</span>
+      <strong>Este lunes 7/9</strong>
+      <p>Quedará abierto nuestro catálogo con más de 1000 productos de tecnología e informática.</p>
+      <Link to="/catalogo">Conocé el catálogo →</Link>
+    </section>
     <section className="prelanding-content"><div className="prelanding-copy">
       <span className="prelanding-badge"><span /> Sorteo especial de bienvenida</span>
       <h1>Tu próximo upgrade puede ser una <strong>silla gamer ergonómica.</strong></h1>
