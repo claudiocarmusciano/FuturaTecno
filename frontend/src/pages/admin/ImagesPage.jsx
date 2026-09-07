@@ -13,6 +13,7 @@ function ImagesPage() {
   const [mensaje, setMensaje] = useState('')
   const [edits, setEdits] = useState({}) // { [productoId]: urlEnEdicion }
   const [busqueda, setBusqueda] = useState('')
+  const [soloSinImagen, setSoloSinImagen] = useState(true)
 
   const cargar = async () => {
     setCargando(true)
@@ -67,16 +68,21 @@ function ImagesPage() {
     }
   }
 
-  const conImagen = productos.filter(p => p.imagenUrl).length
+  const tieneImagen = (p) => Boolean(p.imagenUrl && p.imagenUrl.trim())
+  const conImagen = productos.filter(tieneImagen).length
   const sinImagen = productos.length - conImagen
+  // La prioridad operativa es resolver los faltantes; al no haber ninguno se muestra el listado
+  // completo para que la pantalla no quede vacía.
+  const mostrarSoloSinImagen = soloSinImagen && sinImagen > 0
+  const productosBase = mostrarSoloSinImagen ? productos.filter(p => !tieneImagen(p)) : productos
   const terminoBusqueda = busqueda.trim().toLowerCase()
   const productosFiltrados = terminoBusqueda
-    ? productos.filter(p => [p.categoria, p.marca, p.modelo, p.proveedor, p.sku, p.especificaciones]
+    ? productosBase.filter(p => [p.categoria, p.marca, p.modelo, p.proveedor, p.sku, p.especificaciones]
       .filter(Boolean)
       .join(' ')
       .toLowerCase()
       .includes(terminoBusqueda))
-    : productos
+    : productosBase
 
   return (
     <div>
@@ -93,7 +99,20 @@ function ImagesPage() {
       </div>
 
       <div className="card">
-        <h2>Productos</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <h2 style={{ marginBottom: '4px' }}>Productos</h2>
+            {mostrarSoloSinImagen && <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '13px' }}>Mostrando primero los {sinImagen} artículo(s) sin imagen.</p>}
+          </div>
+          <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => setSoloSinImagen(true)} className="btn" style={{ padding: '7px 10px', fontSize: '12px', border: soloSinImagen ? '1px solid var(--color-lime)' : '1px solid var(--color-border)', background: soloSinImagen ? 'var(--color-lime)' : 'transparent', color: soloSinImagen ? '#16181d' : 'var(--color-text)' }}>
+              Sin imagen ({sinImagen})
+            </button>
+            <button type="button" onClick={() => setSoloSinImagen(false)} className="btn" style={{ padding: '7px 10px', fontSize: '12px', border: !soloSinImagen ? '1px solid var(--color-lime)' : '1px solid var(--color-border)', background: !soloSinImagen ? 'var(--color-lime)' : 'transparent', color: !soloSinImagen ? '#16181d' : 'var(--color-text)' }}>
+              Todos ({productos.length})
+            </button>
+          </div>
+        </div>
         <input
           type="search"
           value={busqueda}
@@ -107,7 +126,7 @@ function ImagesPage() {
         ) : productos.length === 0 ? (
           <p>No hay productos. Importá una lista primero en "Cargar por JSON".</p>
         ) : productosFiltrados.length === 0 ? (
-          <p>No hay productos que coincidan con “{busqueda}”.</p>
+          <p>{mostrarSoloSinImagen ? 'No quedan artículos sin imagen para mostrar.' : `No hay productos que coincidan con “${busqueda}”.`}</p>
         ) : (
           <table className="table">
             <thead>

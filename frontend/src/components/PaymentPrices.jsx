@@ -18,7 +18,7 @@ export default function PaymentPrices({ transferPrice, compact = false, cashPric
         $ {money(efectivo)} en contado efectivo <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>({CASH_DISCOUNT_PERCENTAGE}% OFF)</span>
       </div>
       <p style={{ margin: '7px 0 0', fontSize: '11px', lineHeight: 1.35, color: 'var(--color-text-muted)' }}>
-        También podés pagar con Mercado Pago en 1, 3, 6 o 12 cuotas fijas.
+        Pagá con Mercado Pago en cuotas fijas y en pesos
       </p>
     </div>
   )

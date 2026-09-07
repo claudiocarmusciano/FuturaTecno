@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diseño gráfico FuturaTecno"
+  short_description: "Crea piezas gráficas consistentes con la identidad FuturaTecno"
+  default_prompt: "Diseñá esta pieza respetando estrictamente la identidad visual de FuturaTecno."

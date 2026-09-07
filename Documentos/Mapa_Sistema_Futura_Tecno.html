@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Mapa visual y documentación técnica-funcional de Futura Tecno.">
+  <title>Futura Tecno · Mapa del sistema</title>
+  <style>
+    :root { --bg:#101217; --panel:#1a1d24; --panel2:#222632; --line:#343947; --text:#f2f3f5; --muted:#aab0bd; --lime:#c8e048; --lime2:#5d6b14; --blue:#70b7ff; --purple:#bd98ff; --orange:#ffba70; --green:#66d89a; --red:#ff827c; --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
+    * { box-sizing:border-box } html { scroll-behavior:smooth } body { margin:0; color:var(--text); background:radial-gradient(900px 600px at 90% -5%,rgba(200,224,72,.13),transparent 58%),var(--bg); font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif }
+    a { color:var(--lime); text-decoration:none } a:hover { text-decoration:underline } .wrap { width:min(1320px,calc(100% - 40px)); margin:auto }
+    header { min-height:440px; padding:54px 0 42px; border-bottom:1px solid var(--line); background:linear-gradient(135deg,#111319 32%,#182012); position:relative; overflow:hidden } header:after { content:""; position:absolute; width:540px; height:540px; right:-140px; top:-270px; border:1px solid rgba(200,224,72,.35); border-radius:50%; box-shadow:0 0 0 50px rgba(200,224,72,.035),0 0 0 100px rgba(200,224,72,.025) }
+    .brand { display:flex; align-items:center; gap:12px; font-size:19px; font-weight:750; letter-spacing:-.5px; position:relative; z-index:1 }.mark { width:37px;height:30px; display:grid;place-items:center;background:var(--lime);color:#12150d;clip-path:polygon(0 0,100% 0,75% 33%,28% 33%,12% 100%,0 100%);font-weight:900 }.brand b{color:var(--lime)} .eyebrow{margin-top:74px;color:var(--lime);font-size:13px;text-transform:uppercase;letter-spacing:2.6px;font-weight:800}.hero{display:grid;grid-template-columns:1fr 390px;gap:54px;align-items:end;position:relative;z-index:1}.hero h1{font-size:clamp(41px,6vw,78px);line-height:.98;letter-spacing:-3px;max-width:850px;margin:14px 0 19px}.hero h1 span{color:var(--lime)}.hero p{color:var(--muted);font-size:18px;max-width:700px;margin:0}.stamp{align-self:center;padding:24px;border:1px solid rgba(200,224,72,.45);background:rgba(12,14,17,.55);border-radius:14px}.stamp strong{display:block;color:var(--lime);font-size:34px;line-height:1}.stamp span{color:var(--muted);font-size:13px}.nav{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line);background:rgba(16,18,23,.92);backdrop-filter:blur(14px)}.nav .wrap{display:flex;overflow:auto;gap:20px}.nav a{white-space:nowrap;padding:13px 0;color:var(--muted);font-size:13px}.nav a:hover{color:var(--lime);text-decoration:none}
+    main{padding:36px 0 88px}.section{padding:35px 0;border-bottom:1px solid var(--line)}.section h2{font-size:29px;letter-spacing:-1px;margin:0 0 6px}.lead{color:var(--muted);max-width:900px;margin:0 0 24px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1px solid var(--line);padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.025);font:12px var(--mono);color:#ccd2dc}.chip.lime{border-color:rgba(200,224,72,.5);color:var(--lime)}.chip.warn{border-color:rgba(255,186,112,.5);color:var(--orange)}
+    .grid{display:grid;gap:15px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:linear-gradient(145deg,rgba(35,39,50,.96),rgba(24,27,34,.96));border:1px solid var(--line);border-radius:14px;padding:20px}.card h3{margin:0 0 7px;font-size:17px}.card p{color:var(--muted);margin:0}.tag{display:inline-block;padding:3px 8px;border-radius:99px;background:rgba(200,224,72,.13);color:var(--lime);font:11px var(--mono);margin-bottom:11px}.tag.blue{background:rgba(112,183,255,.13);color:var(--blue)}.tag.purple{background:rgba(189,152,255,.14);color:var(--purple)}.tag.orange{background:rgba(255,186,112,.13);color:var(--orange)}.tag.green{background:rgba(102,216,154,.13);color:var(--green)}
+    .architecture{display:grid;grid-template-columns:1fr 70px 1.2fr 70px 1fr;gap:0;align-items:stretch;margin-top:24px}.tower{min-height:280px;display:flex;flex-direction:column;gap:10px;justify-content:center}.node{border:1px solid var(--line);border-radius:12px;padding:15px;background:var(--panel);text-align:center}.node strong{display:block;font-size:16px}.node span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.node.front{border-color:rgba(112,183,255,.65)}.node.back{border-color:rgba(200,224,72,.65)}.node.db{border-color:rgba(189,152,255,.65)}.arrow{display:flex;align-items:center;justify-content:center;color:var(--lime);font-size:31px}.arrow small{font-size:10px;color:var(--muted);transform:rotate(-90deg);white-space:nowrap}.wide-node{grid-column:1/-1;margin-top:15px;border:1px dashed rgba(200,224,72,.45);border-radius:12px;padding:15px;text-align:center;color:var(--muted);background:rgba(200,224,72,.035)}
+    .flow{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px;align-items:stretch}.step{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}.step:not(:last-child):after{content:"→";position:absolute;right:-19px;top:50%;transform:translateY(-50%);color:var(--lime);font-size:24px;z-index:2}.step .num{font:700 12px var(--mono);color:var(--lime)}.step strong{display:block;margin:8px 0 4px}.step small{color:var(--muted)}
+    .model{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.entity{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}.entity header{min-height:unset;padding:12px 15px;background:#252a36;border:0;font:700 15px var(--mono)}.entity ul{list-style:none;margin:0;padding:12px 15px}.entity li{border-bottom:1px solid rgba(255,255,255,.06);padding:5px 0;color:var(--muted);font:12px var(--mono)}.entity li:last-child{border:0}.entity li b{color:var(--text);font-weight:600}.relation{color:var(--lime);font-weight:800;margin:5px 0 0;font-size:12px}
+    table{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--panel)}th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}th{background:#252a36;color:var(--lime);font-size:12px;text-transform:uppercase;letter-spacing:.8px}td{color:var(--muted)}td:first-child{color:var(--text);font-family:var(--mono);font-size:12px}tr:last-child td{border:0}.status{display:inline-block;padding:3px 8px;border-radius:7px;font-size:12px}.done{background:rgba(102,216,154,.12);color:var(--green)}.manual{background:rgba(255,186,112,.12);color:var(--orange)}.planned{background:rgba(189,152,255,.12);color:var(--purple)}
+    details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 16px;margin-top:10px}summary{cursor:pointer;font-weight:700;padding:15px 0;color:var(--text)}details p,details ul{color:var(--muted);padding-bottom:12px;margin:0}details li{margin:5px 0}.api{font:12px var(--mono);color:var(--blue)}.notice{border-left:4px solid var(--lime);padding:14px 16px;background:rgba(200,224,72,.07);border-radius:0 10px 10px 0;color:#dce5b2}.notice b{color:var(--lime)}.risk{border-left-color:var(--orange);background:rgba(255,186,112,.08)}.risk b{color:var(--orange)}.footer{color:var(--muted);font-size:12px;padding:30px 0;text-align:center}.legend{display:flex;flex-wrap:wrap;gap:13px;color:var(--muted);font-size:12px}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;background:var(--lime)}
+    @media(max-width:900px){.hero,.g3,.g4,.model{grid-template-columns:1fr 1fr}.architecture{grid-template-columns:1fr;gap:12px}.arrow{height:30px;transform:rotate(90deg)}.arrow small{display:none}.flow{grid-template-columns:1fr 1fr}.step:not(:last-child):after{display:none}.hero{gap:28px}.stamp{max-width:390px}.g2{grid-template-columns:1fr 1fr}}@media(max-width:580px){.wrap{width:min(100% - 26px,1320px)}header{min-height:unset;padding-top:28px}.hero,.g2,.g3,.g4,.model,.flow{grid-template-columns:1fr}.eyebrow{margin-top:48px}.hero h1{letter-spacing:-2px}.section h2{font-size:25px}table{display:block;overflow-x:auto;white-space:nowrap}.card{padding:16px}}
+    @media print{body{background:#fff;color:#111}.nav{display:none}header{min-height:0;background:#fff;border-bottom:1px solid #bbb}.hero h1,.section h2,.brand{color:#111}.hero h1 span,.eyebrow{color:#5d6b14}.card,.entity,.step,details,table{background:#fff;border-color:#bbb}.card p,td,details p,details ul,.lead,.hero p{color:#444}.section{break-inside:avoid}.tag{border:1px solid #5d6b14;color:#5d6b14;background:#f4f8dc}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand"><span class="mark">F</span><span>Futura<b>Tecno</b></span></div>
+      <div class="hero">
+        <div>
+          <div class="eyebrow">Mapa funcional y técnico</div>
+          <h1>Todo Futura Tecno,<br><span>en un solo mapa.</span></h1>
+          <p>Documento visual de referencia para entender qué hace la plataforma, cómo viajan los datos, cuáles son sus módulos y qué componentes intervienen en cada proceso.</p>
+        </div>
+        <aside class="stamp"><strong>v1 · Producción</strong><span>Estado relevado del código · 22/08/2026<br>React 18 · Spring Boot 3.3 · PostgreSQL 16</span></aside>
+      </div>
+    </div>
+  </header>
+  <nav class="nav"><div class="wrap"><a href="#vision">Visión</a><a href="#arquitectura">Arquitectura</a><a href="#flujos">Flujos</a><a href="#datos">Datos</a><a href="#modulos">Módulos</a><a href="#api">API</a><a href="#operacion">Operación</a><a href="#estado">Estado y próximos pasos</a></div></nav>
+  <main class="wrap">
+    <section id="vision" class="section">
+      <h2>1. Qué es la plataforma</h2>
+      <p class="lead">Futura Tecno combina una tienda de tecnología, una operación mayorista y un panel de administración. Hoy el catálogo está temporalmente restringido por una preinscripción para el Sorteo Bienvenida; el resto de la infraestructura de catálogo, carrito y pedidos ya existe.</p>
+      <div class="grid g4">
+        <article class="card"><div class="tag">Público</div><h3>Pre-landing y sorteo</h3><p>Registro, activación por email, declaración de pasos de WhatsApp e Instagram y validación administrativa antes de asignar el código de sorteo.</p></article>
+        <article class="card"><div class="tag blue">Catálogo</div><h3>Productos y precios</h3><p>Productos, variantes, categorías, imágenes y precios calculados desde costo, flete porcentual y margen del proveedor.</p></article>
+        <article class="card"><div class="tag purple">Administración</div><h3>Backoffice</h3><p>Importación Elit, Invid o JSON; clasificación, edición, imágenes, proveedores, usuarios, pedidos y auditoría de envíos.</p></article>
+        <article class="card"><div class="tag orange">Logística</div><h3>Envíos y ETA</h3><p>Cotización por Andreani cuando las medidas son completas y cálculo de fecha estimada considerando corte horario y feriados argentinos.</p></article>
+      </div>
+    </section>
+
+    <section id="arquitectura" class="section">
+      <h2>2. Arquitectura de alto nivel</h2>
+      <p class="lead">El frontend no se publica como una aplicación separada: Vite lo compila y Spring Boot lo sirve dentro del mismo archivo ejecutable. Esto deja interfaz y API en el mismo dominio y evita CORS en producción.</p>
+      <div class="architecture">
+        <div class="tower"><div class="node front"><strong>Visitantes y clientes</strong><span>Pre-landing · registro · carrito · pedidos</span></div><div class="node front"><strong>Administradores</strong><span>Panel · importaciones · control operativo</span></div></div>
+        <div class="arrow">→</div>
+        <div class="tower"><div class="node back"><strong>React 18 + Vite</strong><span>React Router · Axios · Context JWT</span></div><div class="node back"><strong>Spring Boot 3.3 / Java 21</strong><span>REST · seguridad · reglas de negocio · jobs</span></div></div>
+        <div class="arrow">→</div>
+        <div class="tower"><div class="node db"><strong>PostgreSQL 16</strong><span>Datos persistentes · Flyway · JPA/Hibernate</span></div><div class="node db"><strong>Servicios externos</strong><span>Mayoristas · logística · email · cotización · IA</span></div></div>
+        <div class="wide-node">Deploy: <b>GitHub → Railway</b> · Docker multi-stage construye React, lo copia en <code>resources/static</code>, empaqueta el JAR y Railway expone una sola aplicación en el puerto asignado.</div>
+      </div>
+      <div class="chips" style="margin-top:16px"><span class="chip lime">Frontend embebido</span><span class="chip">Misma URL para UI y /api</span><span class="chip">JWT stateless</span><span class="chip">Flyway + ddl-auto=validate</span><span class="chip">Soft delete</span><span class="chip">GZIP para respuestas</span></div>
+    </section>
+
+    <section id="flujos" class="section">
+      <h2>3. Flujos principales de datos</h2>
+      <p class="lead">Los procesos más importantes se concentran en cuatro circuitos. El backend vuelve a calcular los datos sensibles: no confía en precio ni envío recibidos desde el navegador.</p>
+      <h3>Preinscripción y código de sorteo</h3>
+      <div class="flow">
+        <div class="step"><span class="num">01</span><strong>Formulario</strong><small>Nombre, apellido, DNI único, nacimiento, celular, email, Instagram, contraseña y aceptación de bases.</small></div>
+        <div class="step"><span class="num">02</span><strong>Cuenta + email</strong><small>Se guarda el usuario, la contraseña se cifra con BCrypt y Resend envía un enlace de activación.</small></div>
+        <div class="step"><span class="num">03</span><strong>Pasos declarados</strong><small>El usuario marca que escribió por WhatsApp y completó Instagram. El estado del onboarding bloquea el orden.</small></div>
+        <div class="step"><span class="num">04</span><strong>Validación humana</strong><small>Admin confirma WhatsApp e Instagram; no se otorga el código sólo por pulsar “Ya lo hice”.</small></div>
+        <div class="step"><span class="num">05</span><strong>Código único</strong><small>Si email, WhatsApp e Instagram están validados, se crea FT26-XXXXXXXX y se envía por email.</small></div>
+      </div>
+      <h3 style="margin-top:30px">Importación y actualización de catálogo</h3>
+      <div class="flow">
+        <div class="step"><span class="num">01</span><strong>Origen</strong><small>Elit, Invid o JSON generado desde un listado de proveedor.</small></div>
+        <div class="step"><span class="num">02</span><strong>Previsualizar</strong><small>Filtros por marca/categoría/stock/precio antes de incorporar datos.</small></div>
+        <div class="step"><span class="num">03</span><strong>Normalizar</strong><small>Marca, modelo, variante, costo, stock, categoría, código externo e imagen.</small></div>
+        <div class="step"><span class="num">04</span><strong>Persistir</strong><small>Deduplicación por proveedor + marca + modelo; el reingreso reactiva productos previamente dados de baja.</small></div>
+        <div class="step"><span class="num">05</span><strong>Sincronizar</strong><small>Job diario 06:30 AR actualiza sólo productos existentes de mayoristas configurados.</small></div>
+      </div>
+      <h3 style="margin-top:30px">Carrito, envío y pedido</h3>
+      <div class="flow">
+        <div class="step"><span class="num">01</span><strong>Carrito local</strong><small>El visitante elige variante y cantidad. El carrito no es la fuente de precio.</small></div>
+        <div class="step"><span class="num">02</span><strong>Cotización</strong><small>CP + medidas resueltas por producto/categoría se envían a Andreani.</small></div>
+        <div class="step"><span class="num">03</span><strong>Confirmar</strong><small>Se exige sesión y compromiso de compra.</small></div>
+        <div class="step"><span class="num">04</span><strong>Recalcular</strong><small>Servidor vuelve a consultar costo, margen, flete, dólar y modalidad de envío.</small></div>
+        <div class="step"><span class="num">05</span><strong>Congelar pedido</strong><small>Guarda precios, cotización, envío y vencimiento; avisa al administrador por email.</small></div>
+      </div>
+    </section>
+
+    <section id="datos" class="section">
+      <h2>4. Modelo de datos y relaciones</h2>
+      <p class="lead">La base usa entidades JPA con una clase base común para ID y fechas de creación/actualización. Las bajas de productos, variantes y proveedores son lógicas: se preserva el historial.</p>
+      <div class="model">
+        <article class="entity"><header>Proveedor</header><ul><li><b>nombre, código</b></li><li>margenPorcentaje</li><li>fletePorcentaje</li><li>activo</li></ul><p class="relation">1 Proveedor → N Productos</p></article>
+        <article class="entity"><header>Producto</header><ul><li><b>marca, modelo</b></li><li>proveedor + categoría</li><li>imagenUrl, fuente, código externo</li><li>peso / alto / ancho / largo</li><li>activo</li></ul><p class="relation">1 Producto → N Variantes · N Imágenes</p></article>
+        <article class="entity"><header>Variante</header><ul><li><b>especificaciones</b></li><li>almacenamientoGb, ramGb, color</li><li>costoUsd, monedaOrigen</li><li>stock, activo</li></ul><p class="relation">Precio público = costo + reglas del proveedor</p></article>
+        <article class="entity"><header>Categoría</header><ul><li><b>nombre</b></li><li>padre (árbol de 2 niveles)</li><li>peso y medidas por defecto</li></ul><p class="relation">Se heredan medidas para Andreani</p></article>
+        <article class="entity"><header>Usuario</header><ul><li><b>email, password / googleSub</b></li><li>nombre, apellido, celular, DNI</li><li>rol y activo</li><li>estado onboarding y sorteo</li></ul><p class="relation">1 Usuario → N Pedidos</p></article>
+        <article class="entity"><header>Pedido + PedidoItem</header><ul><li><b>número, estado, vencimiento</b></li><li>totales USD/ARS y cotización usada</li><li>contacto, CP y modalidad</li><li>ítems con precio congelado</li></ul><p class="relation">Snapshot del pedido al confirmar</p></article>
+      </div>
+      <div class="notice" style="margin-top:18px"><b>Regla de seguridad comercial:</b> el precio de venta se calcula en backend con <code>(costo USD × (1 + flete%) × (1 + margen%))</code>; no se toma ningún importe enviado por el cliente.</div>
+    </section>
+
+    <section id="modulos" class="section">
+      <h2>5. Módulos y responsabilidades</h2>
+      <div class="grid g3">
+        <article class="card"><div class="tag blue">Interfaz pública</div><h3>Páginas React</h3><p>PreLanding, BasesSorteo, Landing, Catálogo, detalle, carrito, checkout, pedidos propios, login, registro, activación y recuperación de contraseña.</p></article>
+        <article class="card"><div class="tag purple">Interfaz admin</div><h3>Operación diaria</h3><p>Dashboard, Proveedores, Productos, Categorías, Imágenes, Usuarios, Pedidos, Importar Elit, Importar Invid y Cargar por JSON.</p></article>
+        <article class="card"><div class="tag">AuthService</div><h3>Identidad y sorteo</h3><p>Registro, login, Google, JWT, activación de email, reset, avance de pasos y códigos de sorteo tras validación manual.</p></article>
+        <article class="card"><div class="tag">CargaJsonService</div><h3>Importación manual</h3><p>Convierte <code>ArticuloJsonDTO</code> en productos y variantes, clasifica y actualiza/reactiva coincidencias existentes.</p></article>
+        <article class="card"><div class="tag">ProductoAdminService</div><h3>Calidad de catálogo</h3><p>Edición individual, bajas, asignación masiva de categoría y búsqueda de imágenes mediante Icecat y Anthropic.</p></article>
+        <article class="card"><div class="tag">Elit / Invid</div><h3>Mayoristas</h3><p>Cada proveedor API tiene cliente y servicio de importación propios. Conviven sin mezclar sus códigos ni sus reglas de lectura.</p></article>
+        <article class="card"><div class="tag orange">EnvioService</div><h3>Cotización logística</h3><p>Resuelve medidas: producto → subcategoría → categoría padre. Si falta un dato, devuelve “a coordinar” sin quebrar checkout.</p></article>
+        <article class="card"><div class="tag green">PedidoService</div><h3>Pedido seguro</h3><p>Revalida variantes activas, precios y envío; guarda snapshot y programa vencimiento al próximo corte operativo.</p></article>
+        <article class="card"><div class="tag">Servicios de apoyo</div><h3>Precio, dólar y ETA</h3><p>Cotización oficial USD/ARS cacheada, ETA por horario de corte y feriados; notificaciones por email asíncronas.</p></article>
+      </div>
+    </section>
+
+    <section id="api" class="section">
+      <h2>6. Superficie de API</h2>
+      <p class="lead">Los controladores exponen REST. Los endpoints bajo <code>/api/admin/**</code> requieren rol ADMIN y los pedidos/onboarding requieren usuario autenticado.</p>
+      <table><thead><tr><th>Área</th><th>Rutas principales</th><th>Para qué sirve</th></tr></thead><tbody>
+        <tr><td>Autenticación</td><td><span class="api">/api/auth/register · login · google · activar-cuenta · onboarding · forgot-password · reset-password</span></td><td>Alta de usuarios, JWT, activación, recuperación y avance del sorteo.</td></tr>
+        <tr><td>Catálogo público</td><td><span class="api">/api/productos · /api/categorias · /api/cotizacion · /api/eta</span></td><td>Productos activos, árbol de categorías, dólar y fecha estimada.</td></tr>
+        <tr><td>Carrito y pedido</td><td><span class="api">/api/envio/cotizar · /api/pedidos · /api/pedidos/mis</span></td><td>Cotización de envío, creación de pedido e historial propio.</td></tr>
+        <tr><td>Administración</td><td><span class="api">/api/admin/proveedores · productos · categorías · usuarios · pedidos</span></td><td>Gestión de operación, datos y validación manual de requisitos.</td></tr>
+        <tr><td>Importaciones</td><td><span class="api">/api/admin/elit · invid · carga-json</span></td><td>Filtros, previsualización, incorporación y sincronización de artículos.</td></tr>
+        <tr><td>Soporte</td><td><span class="api">/api/admin/envios/sin-cotizar · /api/health · /api/config</span></td><td>Auditoría logística, salud de deploy y configuración pública de Google Login.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section id="operacion" class="section">
+      <h2>7. Integraciones, seguridad y operación</h2>
+      <div class="grid g2">
+        <article class="card"><div class="tag orange">Servicios externos</div><h3>Conexiones actuales</h3><div class="chips"><span class="chip">Elit API</span><span class="chip">Invid API</span><span class="chip">Andreani</span><span class="chip">dolarapi.com</span><span class="chip">nager.date</span><span class="chip">Resend</span><span class="chip">Google OAuth</span><span class="chip">Meta WhatsApp Cloud API</span><span class="chip">Icecat</span><span class="chip">Anthropic</span></div><p style="margin-top:14px">Cada integración puede estar desactivada mediante variables de entorno sin impedir que toda la aplicación arranque.</p></article>
+        <article class="card"><div class="tag green">Seguridad</div><h3>Capas implementadas</h3><ul style="color:var(--muted);padding-left:18px;margin:0"><li>JWT stateless y filtro de autenticación.</li><li>Contraseñas con BCrypt.</li><li>Roles ADMIN / USUARIO y endpoints administrativos protegidos.</li><li>Validación de DNI, email y celular únicos para preinscripción.</li><li>Token de activación de email con expiración.</li><li>Precios y envío recalculados en servidor.</li><li>Soft delete para conservar histórico.</li></ul></article>
+      </div>
+      <div class="grid g2" style="margin-top:15px">
+        <article class="card"><div class="tag">Jobs automáticos</div><h3>06:30, hora argentina</h3><p><b>Sincronización:</b> actualiza precio/stock/imagen sólo de artículos ya incorporados desde Elit e Invid.<br><br><b>Vencimiento:</b> marca pedidos pendientes vencidos, porque después de la sincronización sus precios o disponibilidad pueden haber cambiado.</p></article>
+        <article class="card"><div class="tag">Persistencia y deploy</div><h3>Reglas operativas</h3><p>PostgreSQL persiste datos en Railway. Flyway versiona el esquema mediante migraciones; Hibernate sólo valida, no modifica tablas automáticamente. Railway verifica <code>/api/health</code> y reinicia ante falla según la política configurada.</p></article>
+      </div>
+      <div class="notice risk" style="margin-top:18px"><b>Importante:</b> los secretos no van al repositorio público. Credenciales de proveedores, JWT, Meta/WhatsApp, Resend, Andreani y APIs se almacenan únicamente como variables locales ignoradas o variables de Railway.</div>
+    </section>
+
+    <section id="estado" class="section">
+      <h2>8. Estado actual y próximos bloques</h2>
+      <p class="lead">Esta tabla diferencia lo que ya está implementado de lo que fue conversado pero todavía no integra una cobranza o beneficio real.</p>
+      <table><thead><tr><th>Capacidad</th><th>Estado</th><th>Nota</th></tr></thead><tbody>
+        <tr><td>Registro + activación email + sorteo</td><td><span class="status done">Implementado</span></td><td>WhatsApp e Instagram quedan a validación manual en admin antes de asignar código.</td></tr>
+        <tr><td>Catálogo, carrito y pedido</td><td><span class="status done">Implementado</span></td><td>El catálogo está bloqueado temporalmente para visitantes por la campaña de preinscripción.</td></tr>
+        <tr><td>Importación de mayoristas / JSON</td><td><span class="status done">Implementado</span></td><td>Elit, Invid y Cargar por JSON; el JSON debe llevar imágenes directas funcionales.</td></tr>
+        <tr><td>Envío Andreani</td><td><span class="status done">Implementado con fallback</span></td><td>Cotiza si existen medidas; de lo contrario o ante falla se coordina manualmente.</td></tr>
+        <tr><td>Pago online con tarjeta / QR</td><td><span class="status planned">Pendiente</span></td><td>En evaluación Getnet Checkout. No hay cobro online ni webhook de pago integrado todavía.</td></tr>
+        <tr><td>Puntos y canje de beneficios</td><td><span class="status planned">Pendiente</span></td><td>Depende de pagos aprobados y de definir equivalencia, reglas, balance y términos.</td></tr>
+        <tr><td>Validación automática de requisitos sociales</td><td><span class="status manual">Manual</span></td><td>El sistema registra la declaración; el administrador verifica mensaje de WhatsApp e Instagram.</td></tr>
+      </tbody></table>
+      <details><summary>Metodología de desarrollo y reglas que conviene mantener</summary><ul><li>Separación por capas: API (controladores), aplicación (reglas), infraestructura (repositorios/configuración) y dominio (entidades).</li><li>Todo cambio de esquema exige una nueva migración Flyway; no usar <code>ddl-auto=update</code>.</li><li>No eliminar físicamente proveedores, productos o variantes: usar <code>activo=false</code>.</li><li>Para cambios de frontend, verificar build Vite; para backend, ejecutar pruebas Maven; luego commit/push a <code>main</code> dispara deploy Railway.</li><li>Imágenes: la principal vive en <code>Producto.imagenUrl</code>; galería adicional en entidad Imagen.</li></ul></details>
+      <details><summary>Cómo leer este documento</summary><p>Es una instantánea de la aplicación actual. Se puede abrir localmente en cualquier navegador, imprimir como PDF desde el navegador y actualizar cuando se agreguen cobros, puntos, cambios de proveedores o una nueva etapa de acceso al catálogo.</p></details>
+    </section>
+    <div class="footer">Futura Tecno · Mapa del sistema · Documento interno de referencia · Actualizado el 22/08/2026</div>
+  </main>
+</body>
+</html>
