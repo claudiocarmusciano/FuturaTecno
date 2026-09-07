@@ -321,11 +321,9 @@ function CatalogPage() {
       </section>
 
       {eta?.fechaEntrega && (
-        <div style={{
-          background: 'var(--color-accent-light)', border: '1px solid var(--color-border)', borderRadius: '12px',
-          padding: '12px 16px', margin: '18px 0 20px', fontSize: '14px', color: 'var(--color-text-muted)'
-        }}>
-          🚚 Comprando hoy, tu pedido llega aprox. el <strong style={{ color: 'var(--color-text)' }}>{formatFechaLarga(eta.fechaEntrega)}</strong> ({eta.diasHabiles} días hábiles).
+        <div className="catalog-eta">
+          <span className="catalog-eta-marker" aria-hidden="true">↗</span>
+          <span>Comprando hoy, tu pedido llega aprox. el <strong>{formatFechaLarga(eta.fechaEntrega)}</strong> ({eta.diasHabiles} días hábiles).</span>
         </div>
       )}
 

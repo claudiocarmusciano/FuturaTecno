@@ -1,5 +1,5 @@
-/* Superficies geométricas y acentos sobrios: continúan el lenguaje visual de FuturaTecno
-   sin competir con las fotos blancas de los productos. */
+/* Sistema editorial mate: negro dominante, lima para la acción y ultramar
+   reservado para información. Las fotos conservan su propio lienzo blanco. */
 .catalog-page > h1 {
   letter-spacing: -.035em;
   font-size: clamp(34px, 4vw, 48px);
@@ -9,52 +9,80 @@
   overflow: hidden;
   margin: 0 0 25px;
   padding: clamp(26px, 4vw, 44px);
-  border: 1px solid rgba(200,224,72,.32);
-  border-radius: 18px;
-  background: linear-gradient(105deg, rgba(200,224,72,.15), rgba(22,24,29,.6) 48%), #1a1d22;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(-26deg, rgba(255,255,255,.022) 0 1px, transparent 1px 9px),
+    #1b1e24;
+}
+.catalog-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 7px;
+  background: var(--color-lime);
 }
 .catalog-hero::after {
   content: '';
   position: absolute;
-  right: -72px;
-  top: -85px;
-  width: 245px;
-  height: 245px;
-  border: 1px solid rgba(88,101,242,.58);
-  transform: rotate(45deg);
+  right: clamp(18px, 5vw, 64px);
+  bottom: 0;
+  width: clamp(120px, 20vw, 240px);
+  height: 8px;
+  background: #5865f2;
 }
 .catalog-kicker { display: block; position: relative; z-index: 1; color: var(--color-lime); font-size: 11px; letter-spacing: .14em; font-weight: 800; }
 .catalog-hero h1 { position: relative; z-index: 1; margin: 9px 0 8px; font-size: clamp(34px, 5vw, 56px); line-height: 1; letter-spacing: -.055em; }
 .catalog-hero h1 span { color: var(--color-lime); }
 .catalog-hero p { position: relative; z-index: 1; max-width: 660px; margin: 0; color: var(--color-text-muted); font-size: 15px; line-height: 1.6; }
+.catalog-eta {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 18px 0 20px;
+  padding: 12px 16px;
+  border: 1px solid rgba(88,101,242,.65);
+  border-radius: 10px;
+  background: rgba(88,101,242,.13);
+  color: #dce0ff;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.catalog-eta strong { color: #fff; }
+.catalog-eta-marker { display: grid; place-items: center; flex: 0 0 25px; height: 25px; border-radius: 50%; background: #5865f2; color: #fff; font-weight: 800; }
+.catalogo-sidebar { border-top: 3px solid var(--color-lime); border-radius: 12px; background: rgba(27,30,36,.95); }
+.catalogo-sidebar-header { letter-spacing: .02em; }
 .catalog-page .catalog-filter-panel {
   position: relative;
   overflow: hidden;
-  border-color: rgba(200, 224, 72, .22);
-  background: linear-gradient(112deg, rgba(200, 224, 72, .075), transparent 34%), var(--color-surface);
+  border-color: rgba(255,255,255,.12);
+  border-radius: 12px;
+  background: #1b1e24;
 }
 .catalog-page .catalog-filter-panel::after {
   content: '';
   position: absolute;
-  right: -46px;
-  top: -68px;
-  width: 170px;
-  height: 170px;
-  border: 1px solid rgba(88, 101, 242, .36);
-  transform: rotate(45deg);
+  right: 0;
+  bottom: 0;
+  width: 80px;
+  height: 4px;
+  background: #5865f2;
   pointer-events: none;
 }
 .catalog-product-grid .producto-card {
-  border-color: rgba(255,255,255,.09);
+  border-color: rgba(255,255,255,.10);
+  border-radius: 12px;
+  background: #1b1e24;
   transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 .catalog-product-grid .producto-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(200,224,72,.55);
-  box-shadow: 0 14px 30px rgba(0,0,0,.22);
+  border-color: var(--color-lime);
+  box-shadow: 0 10px 20px rgba(0,0,0,.22);
 }
+.catalog-product-grid .catalog-product-image-frame { border: 1px solid rgba(22,24,29,.12); border-radius: 7px; }
 @media (max-width: 600px) {
   .catalog-hero { padding: 25px 20px; border-radius: 14px; }
-  .catalog-hero::after { width: 150px; height: 150px; right: -68px; top: -55px; }
-  .catalog-page .catalog-filter-panel::after { width: 110px; height: 110px; right: -52px; top: -46px; }
+  .catalog-hero::after { right: 20px; width: 110px; }
+  .catalog-eta { align-items: flex-start; font-size: 13px; }
 }

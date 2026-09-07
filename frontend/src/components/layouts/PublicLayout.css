@@ -5,15 +5,14 @@
   background-color: var(--color-bg);
 }
 
-/* La grilla y los brillos mantienen el catálogo integrado con la estética de la
-   pre-landing, sin competir con las tarjetas ni con las imágenes de producto. */
+/* Textura mate y grilla tenue: identidad sin brillos ni fondos que compitan
+   con el contenido del catálogo. */
 .public-layout-catalogo {
   background-image:
-    radial-gradient(620px 500px at 3% 12%, rgba(200, 224, 72, 0.075), transparent 68%),
-    radial-gradient(760px 520px at 96% 88%, rgba(125, 148, 34, 0.10), transparent 70%),
-    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
-  background-size: auto, auto, 42px 42px, 42px 42px;
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    repeating-linear-gradient(-22deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 8px);
+  background-size: 42px 42px, 42px 42px, auto;
   background-attachment: fixed;
 }
 
