@@ -327,6 +327,11 @@ function CatalogPage() {
         </div>
       )}
 
+      <div className="catalog-minimum" role="note">
+        <span className="catalog-minimum-marker" aria-hidden="true">US$</span>
+        <span><strong>Compra mínima: US$ 250.</strong> El mínimo se calcula sobre el total de productos, antes de aplicar puntos o descuentos.</span>
+      </div>
+
       {/* Botón hamburguesa: solo visible en mobile (ver CSS) */}
       <button className="catalogo-menu-toggle" onClick={() => setMenuAbierto(true)} aria-label="Abrir categorías">
         ☰ Categorías
