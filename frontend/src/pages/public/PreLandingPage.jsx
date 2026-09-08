@@ -9,11 +9,13 @@ const instagramUrl = 'https://www.instagram.com/futuratecnoargentina'
 
 function PreLandingPage() {
   const { isAuth, user, logout } = useAuth()
+  const [introLista, setIntroLista] = useState(false)
   const [estado, setEstado] = useState(null)
   const [estadoCargado, setEstadoCargado] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [modalCerrado, setModalCerrado] = useState(false)
+  const [pasoVisible, setPasoVisible] = useState(1)
   const actualizar = () => {
     if (!isAuth) {
       setEstado(null)
@@ -30,6 +32,10 @@ function PreLandingPage() {
       .finally(() => setEstadoCargado(true))
   }
   useEffect(() => { actualizar() }, [isAuth])
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIntroLista(true))
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
   const completar = async paso => {
     setMensaje(''); setGuardando(true)
     try { const r = await axios.post(`/api/auth/onboarding/paso/${paso}`); setEstado(r.data); if (paso === 3 && r.data.instagramVerificado) setModalCerrado(false) }
@@ -39,34 +45,37 @@ function PreLandingPage() {
   const pasoUno = Boolean(estado?.emailVerificado)
   const pasoDos = estado?.whatsappAgendado
   const pasoTres = estado?.instagramVerificado
+  const proximoPaso = !pasoUno ? 1 : !pasoDos ? 2 : 3
+  useEffect(() => { setPasoVisible(proximoPaso) }, [proximoPaso])
   const instagramPendiente = estado?.instagramCompletado && !pasoTres
   const necesitaRegistro = estadoCargado && (!isAuth || !estado)
   const whatsappUrl = estado?.whatsappVerificacionCodigo
     ? 'https://wa.me/5492284381111?text=' + encodeURIComponent(`Hola FuturaTecno, verifico mi registro para el sorteo: ${estado.whatsappVerificacionCodigo}`)
     : undefined
-  return <main className="prelanding">
+  return <main className={`prelanding${introLista ? ' prelanding-ready' : ''}`}>
     <div className="prelanding-glow prelanding-glow-one" /><div className="prelanding-glow prelanding-glow-two" />
     <header className="prelanding-header"><Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link><div className="prelanding-header-actions"><Link className="prelanding-catalog-link" to="/catalogo">Ver catálogo</Link>{isAuth ? <div className="prelanding-session"><span>Sesión iniciada{user?.email ? `: ${user.email}` : ''}</span><button type="button" onClick={logout}>Salir</button></div> : <Link className="prelanding-skip" to="/login">Ya tengo cuenta →</Link>}</div></header>
     <PromotionsCarousel />
-    <section className="prelanding-opening" aria-label="Catálogo disponible">
+    <section className="prelanding-opening prelanding-reveal prelanding-reveal-one" aria-label="Catálogo disponible">
       <span>Catálogo FuturaTecno</span>
-      <strong>Ya disponible</strong>
-      <p>Explorá nuestro catálogo con más de 1.000 productos de tecnología e informática.</p>
+      <strong>Ya está disponible</strong>
+      <p>Más de 1.000 productos para elegir tu próximo upgrade.</p>
       <Link to="/catalogo">Conocé el catálogo →</Link>
     </section>
-    <section className="prelanding-content"><div className="prelanding-copy">
-      <span className="prelanding-badge"><span /> Sorteo especial de bienvenida</span>
-      <h1>Tu próximo upgrade puede ser una <strong>silla gamer ergonómica.</strong></h1>
-      <p className="prelanding-lead">Si es tu primera vez en Futura Tecno, registrate y completá estos pasos para participar del sorteo.</p>
-      <div className="prelanding-schedule"><b>Fecha del sorteo actualizada</b><span>Inscripción hasta el 30/09/2026 a las 23:59 h.</span><span>El sorteo se realizará al alcanzar 1.000 seguidores en Instagram o, como máximo, el 31/10/2026.</span><span><strong>Beneficio especial:</strong> si te registraste hasta el 31/08/2026, tenés doble chance.</span></div>
+    <section className="prelanding-content"><div className="prelanding-copy prelanding-reveal prelanding-reveal-two">
+      <span className="prelanding-badge"><span /> Sorteo de bienvenida</span>
+      <h1>Tu próximo upgrade <strong>puede empezar hoy.</strong></h1>
+      <p className="prelanding-lead">Registrate una sola vez, completá los pasos y participá por una silla gamer ergonómica.</p>
+      <details className="prelanding-schedule"><summary>Fechas y condiciones del sorteo</summary><div><span>Inscripción hasta el 30/09/2026 a las 23:59 h.</span><span>El sorteo se realizará al alcanzar 1.000 seguidores en Instagram o, como máximo, el 31/10/2026.</span><span><strong>Beneficio especial:</strong> si te registraste hasta el 31/08/2026, tenés doble chance.</span></div></details>
+      <div className="prelanding-stepper" aria-label="Pasos para participar"><span>Participá en 3 pasos</span><div>{[1, 2, 3].map(paso => <button type="button" key={paso} className={pasoVisible === paso ? 'activo' : ''} onClick={() => setPasoVisible(paso)} aria-label={`Ver paso ${paso}`}>{paso}</button>)}</div></div>
       <ol className="prelanding-steps">
-        <li className={pasoUno ? 'completo' : ''}><span className="prelanding-step-number">1</span><div><b>{pasoUno ? 'Email activado.' : 'Registrate con tu número de WhatsApp.'}</b><small>{pasoUno ? 'Tu cuenta ya está confirmada.' : 'Te enviaremos un botón de activación por email.'}</small>
+        {pasoVisible === 1 && <li className={pasoUno ? 'completo' : ''}><span className="prelanding-step-number">1</span><div><b>{pasoUno ? 'Email activado.' : 'Registrate con tu número de WhatsApp.'}</b><small>{pasoUno ? 'Tu cuenta ya está confirmada.' : 'Te enviaremos un botón de activación por email.'}</small>
           {isAuth && estado && !pasoUno && <small className="prelanding-email-note">Revisá tu email y hacé clic en <b>Activar cuenta</b>. Después volvé acá.</small>}</div>
-          {necesitaRegistro ? <Link className="prelanding-action primary" to="/registro">Comenzar registro →</Link> : pasoUno ? <span className="prelanding-done">✓ Listo</span> : null}</li>
-        <li className={estado?.whatsappVerificado ? 'completo' : (!pasoUno ? 'bloqueado' : '')}><span className="prelanding-step-number">2</span><div><b>{estado?.whatsappVerificado ? 'WhatsApp validado.' : pasoDos ? 'Estamos validando tu WhatsApp.' : 'Agendanos y mandanos un mensaje.'}</b><small>{estado?.whatsappVerificado ? 'Confirmamos que el número ingresado es tuyo.' : pasoDos ? 'Ya registramos que enviaste el mensaje. No hace falta que hagas nada más en este paso.' : 'Guardá nuestro número y enviá el mensaje precompletado para validar tu celular.'}</small></div>
-          {estado?.whatsappVerificado ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className={`prelanding-action whatsapp${pasoDos ? ' disabled' : ''}`} href={pasoUno && !pasoDos ? whatsappUrl : undefined} target="_blank" rel="noreferrer" onClick={e => (!pasoUno || pasoDos) && e.preventDefault()}>Abrir WhatsApp</a><button className="prelanding-action outline" disabled={!pasoUno || pasoDos || guardando} onClick={() => completar(2)}>Ya lo hice</button></div>}</li>
-        <li className={pasoTres ? 'completo' : (!pasoDos ? 'bloqueado' : (instagramPendiente ? 'pendiente' : ''))}><span className="prelanding-step-number">3</span><div><b>{pasoTres ? 'Instagram validado.' : instagramPendiente ? 'Estamos validando tu Instagram.' : 'Seguinos y etiquetá a 3 amigos en Instagram.'}</b><small>{pasoTres ? 'Tu participación ya quedó validada.' : instagramPendiente ? `Ya registramos tu aviso. Verificaremos ${estado?.instagramUsuario || 'tu usuario'} y la consigna del sorteo.` : 'Hacelo en el posteo del sorteo para dejar registrada tu participación.'}</small></div>
-          {pasoTres ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className={`prelanding-action instagram${instagramPendiente ? ' disabled' : ''}`} href={pasoDos && !instagramPendiente ? instagramUrl : undefined} target="_blank" rel="noreferrer" onClick={e => (!pasoDos || instagramPendiente) && e.preventDefault()}>Ir a Instagram</a><button className="prelanding-action outline" disabled={!pasoDos || instagramPendiente || guardando} onClick={() => completar(3)}>Ya lo hice</button></div>}</li>
+          {necesitaRegistro ? <Link className="prelanding-action primary" to="/registro">Comenzar registro →</Link> : pasoUno ? <span className="prelanding-done">✓ Listo</span> : null}</li>}
+        {pasoVisible === 2 && <li className={estado?.whatsappVerificado ? 'completo' : (!pasoUno ? 'bloqueado' : '')}><span className="prelanding-step-number">2</span><div><b>{estado?.whatsappVerificado ? 'WhatsApp validado.' : pasoDos ? 'Estamos validando tu WhatsApp.' : 'Agendanos y mandanos un mensaje.'}</b><small>{estado?.whatsappVerificado ? 'Confirmamos que el número ingresado es tuyo.' : pasoDos ? 'Ya registramos que enviaste el mensaje. No hace falta que hagas nada más en este paso.' : 'Guardá nuestro número y enviá el mensaje precompletado para validar tu celular.'}</small></div>
+          {estado?.whatsappVerificado ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className={`prelanding-action whatsapp${pasoDos ? ' disabled' : ''}`} href={pasoUno && !pasoDos ? whatsappUrl : undefined} target="_blank" rel="noreferrer" onClick={e => (!pasoUno || pasoDos) && e.preventDefault()}>Abrir WhatsApp</a><button className="prelanding-action outline" disabled={!pasoUno || pasoDos || guardando} onClick={() => completar(2)}>Ya lo hice</button></div>}</li>}
+        {pasoVisible === 3 && <li className={pasoTres ? 'completo' : (!pasoDos ? 'bloqueado' : (instagramPendiente ? 'pendiente' : ''))}><span className="prelanding-step-number">3</span><div><b>{pasoTres ? 'Instagram validado.' : instagramPendiente ? 'Estamos validando tu Instagram.' : 'Seguinos y etiquetá a 3 amigos en Instagram.'}</b><small>{pasoTres ? 'Tu participación ya quedó validada.' : instagramPendiente ? `Ya registramos tu aviso. Verificaremos ${estado?.instagramUsuario || 'tu usuario'} y la consigna del sorteo.` : 'Hacelo en el posteo del sorteo para dejar registrada tu participación.'}</small></div>
+          {pasoTres ? <span className="prelanding-done">✓ Listo</span> : <div className="prelanding-actions"><a className={`prelanding-action instagram${instagramPendiente ? ' disabled' : ''}`} href={pasoDos && !instagramPendiente ? instagramUrl : undefined} target="_blank" rel="noreferrer" onClick={e => (!pasoDos || instagramPendiente) && e.preventDefault()}>Ir a Instagram</a><button className="prelanding-action outline" disabled={!pasoDos || instagramPendiente || guardando} onClick={() => completar(3)}>Ya lo hice</button></div>}</li>}
       </ol>
       {mensaje && <p className="prelanding-message">{mensaje}</p>}
       {pasoTres && !modalCerrado && <div className="prelanding-modal-backdrop" role="presentation"><section className="prelanding-modal" role="dialog" aria-modal="true" aria-labelledby="prelanding-modal-title"><span className="prelanding-modal-check">✓</span><span className="prelanding-modal-label">PREINSCRIPCIÓN CONFIRMADA</span><h2 id="prelanding-modal-title">¡Ya estás participando!</h2><p>Próximamente tendrás acceso al gran catálogo tecnológico y con precios increíbles.</p><p><strong>Ah!</strong> Y también tendrás regalos para cada cumpleaños tuyo.</p><button className="prelanding-modal-close" onClick={() => setModalCerrado(true)}>Entendido</button><span className="prelanding-modal-note">Gracias por sumarte a FuturaTecno.</span></section></div>}
