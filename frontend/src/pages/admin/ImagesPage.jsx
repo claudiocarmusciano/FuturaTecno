@@ -32,7 +32,7 @@ function ImagesPage() {
 
   const buscarImagenes = async () => {
     setBuscando(true)
-    setMensaje('')
+    setMensaje('Procesando hasta 5 artículos. Puede demorar unos segundos; el resto quedará para el próximo lote.')
     try {
       const res = await axios.post('/api/admin/productos/buscar-imagenes')
       setMensaje(res.data.mensaje)
@@ -93,7 +93,7 @@ function ImagesPage() {
           <strong>{conImagen}</strong> con imagen · <strong>{sinImagen}</strong> sin imagen · {productos.length} en total
         </p>
         <button onClick={buscarImagenes} className="btn btn-primary" disabled={buscando}>
-          {buscando ? 'Buscando imágenes...' : 'Buscar imágenes faltantes (automático)'}
+          {buscando ? 'Buscando hasta 5 imágenes...' : 'Buscar imágenes faltantes (automático)'}
         </button>
         {mensaje && <p style={{ marginTop: '12px', color: 'var(--color-text)' }}>{mensaje}</p>}
       </div>

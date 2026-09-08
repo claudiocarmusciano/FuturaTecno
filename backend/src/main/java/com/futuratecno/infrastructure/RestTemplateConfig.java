@@ -28,8 +28,21 @@ public class RestTemplateConfig {
     @Bean(name = "imageRestTemplate")
     public RestTemplate imageRestTemplate(RestTemplateBuilder builder) {
         return builder
+                .setConnectTimeout(Duration.ofSeconds(3))
+                .setReadTimeout(Duration.ofSeconds(5))
+                .build();
+    }
+
+    /**
+     * La búsqueda web de Anthropic puede tardar más que una descarga de imagen, pero tampoco
+     * debe retener la pantalla de administración sin límite. Se usa exclusivamente para el
+     * fallback de imágenes cuando DuckDuckGo no encuentra una URL directa válida.
+     */
+    @Bean(name = "anthropicImageRestTemplate")
+    public RestTemplate anthropicImageRestTemplate(RestTemplateBuilder builder) {
+        return builder
                 .setConnectTimeout(Duration.ofSeconds(5))
-                .setReadTimeout(Duration.ofSeconds(8))
+                .setReadTimeout(Duration.ofSeconds(15))
                 .build();
     }
 

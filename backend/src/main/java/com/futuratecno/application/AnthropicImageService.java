@@ -48,10 +48,10 @@ public class AnthropicImageService {
     @Value("${anthropic.model:claude-haiku-4-5-20251001}")
     private String model;
 
-    public AnthropicImageService(RestTemplate restTemplate,
+    public AnthropicImageService(@Qualifier("anthropicImageRestTemplate") RestTemplate restTemplate,
                                  @Qualifier("imageRestTemplate") RestTemplate imageRestTemplate,
                                  ObjectMapper objectMapper) {
-        this.anthropicRestTemplate = restTemplate;       // sin timeout corto: la búsqueda web tarda
+        this.anthropicRestTemplate = restTemplate;
         this.pageRestTemplate = imageRestTemplate;        // timeout corto para descargar páginas
         this.objectMapper = objectMapper;
     }

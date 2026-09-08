@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 @Service
 public class ProductoAdminService {
     private static final Logger logger = LoggerFactory.getLogger(ProductoAdminService.class);
+    // La búsqueda incluye servicios externos. Un lote chico evita que una única acción de la
+    // interfaz quede esperando varios minutos si alguno de ellos está lento o bloquea requests.
+    private static final int MAXIMO_IMAGENES_POR_EJECUCION = 5;
 
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
@@ -272,8 +275,11 @@ public class ProductoAdminService {
         boolean icecatOk = icecatService.estaConfigurado();
         boolean anthropicOk = anthropicImageService.estaConfigurado();
 
-        List<Producto> sinImagen = productoRepository.findByActivo(true).stream()
+        List<Producto> faltantes = productoRepository.findByActivo(true).stream()
                 .filter(p -> p.getImagenUrl() == null || p.getImagenUrl().isBlank())
+                .collect(Collectors.toList());
+        List<Producto> sinImagen = faltantes.stream()
+                .limit(MAXIMO_IMAGENES_POR_EJECUCION)
                 .collect(Collectors.toList());
 
         int desdeIcecat = 0, desdeAnthropic = 0, desdeDuckDuckGo = 0;
@@ -307,21 +313,8 @@ public class ProductoAdminService {
                 }
             }
 
-            // 2) Anthropic (búsqueda web + og:image) — la fuente principal
-            if (url == null && anthropicOk) {
-                try {
-                    Optional<String> r = anthropicImageService.buscarImagen(consulta);
-                    if (r.isPresent() && imageUrlValidatorService.esImagenDirecta(r.get())) {
-                        url = r.get();
-                        desdeAnthropic++;
-                    }
-                } catch (Exception e) {
-                    logger.warn("Anthropic falló para producto {}: {}", p.getId(), e.getMessage());
-                }
-            }
-
-            // DuckDuckGo devuelve URLs directas de sus resultados de imágenes. Solo se acepta
-            // después de verificar Content-Type, para no guardar páginas HTML como imagen.
+            // 2) DuckDuckGo Images es la vía rápida: devuelve una URL directa y se valida antes
+            // de guardarla. Si no sirve, recién ahí se usa el fallback más lento de Anthropic.
             if (url == null) {
                 try {
                     Optional<String> r = duckDuckGoImageService.buscarImagen(consulta);
@@ -334,6 +327,19 @@ public class ProductoAdminService {
                 }
             }
 
+            // 3) Anthropic (búsqueda web + og:image) como fallback preciso, con timeout.
+            if (url == null && anthropicOk) {
+                try {
+                    Optional<String> r = anthropicImageService.buscarImagen(consulta);
+                    if (r.isPresent() && imageUrlValidatorService.esImagenDirecta(r.get())) {
+                        url = r.get();
+                        desdeAnthropic++;
+                    }
+                } catch (Exception e) {
+                    logger.warn("Anthropic falló para producto {}: {}", p.getId(), e.getMessage());
+                }
+            }
+
             if (url != null) {
                 p.setImagenUrl(url);
                 productoRepository.save(p);
@@ -342,9 +348,11 @@ public class ProductoAdminService {
 
         int encontradas = desdeIcecat + desdeAnthropic + desdeDuckDuckGo;
         int noEncontradas = sinImagen.size() - encontradas;
+        int pendientes = faltantes.size() - sinImagen.size();
         String mensaje = String.format(
-                "Búsqueda completada: %d con imagen (%d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d productos).",
-                encontradas, desdeIcecat, desdeAnthropic, desdeDuckDuckGo, noEncontradas, sinImagen.size());
+                "Búsqueda completada: %d con imagen (%d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d procesados).%s",
+                encontradas, desdeIcecat, desdeAnthropic, desdeDuckDuckGo, noEncontradas, sinImagen.size(),
+                pendientes > 0 ? " Quedan " + pendientes + " artículo(s) sin imagen para el próximo lote." : "");
         logger.info(mensaje);
 
         BuscarImagenesResponse resp = new BuscarImagenesResponse(sinImagen.size(), encontradas, noEncontradas, mensaje);
