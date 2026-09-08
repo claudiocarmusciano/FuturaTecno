@@ -33,6 +33,8 @@ public class ProductoAdminService {
     private final VarianteRepository varianteRepository;
     private final IcecatService icecatService;
     private final AnthropicImageService anthropicImageService;
+    private final DuckDuckGoImageService duckDuckGoImageService;
+    private final ImageUrlValidatorService imageUrlValidatorService;
     private final CotizacionService cotizacionService;
     private final CategoriaClasificadorService categoriaClasificadorService;
     private final CategoriaService categoriaService;
@@ -42,6 +44,8 @@ public class ProductoAdminService {
                                 VarianteRepository varianteRepository,
                                 IcecatService icecatService,
                                 AnthropicImageService anthropicImageService,
+                                DuckDuckGoImageService duckDuckGoImageService,
+                                ImageUrlValidatorService imageUrlValidatorService,
                                 CotizacionService cotizacionService,
                                 CategoriaClasificadorService categoriaClasificadorService,
                                 CategoriaService categoriaService,
@@ -50,6 +54,8 @@ public class ProductoAdminService {
         this.varianteRepository = varianteRepository;
         this.icecatService = icecatService;
         this.anthropicImageService = anthropicImageService;
+        this.duckDuckGoImageService = duckDuckGoImageService;
+        this.imageUrlValidatorService = imageUrlValidatorService;
         this.cotizacionService = cotizacionService;
         this.categoriaClasificadorService = categoriaClasificadorService;
         this.categoriaService = categoriaService;
@@ -257,7 +263,8 @@ public class ProductoAdminService {
     /**
      * Cascada de búsqueda de imagen para cada producto sin imagen:
      *   1) Icecat (por marca + código, si está configurado) — gratis, matchea pocos.
-     *   2) Anthropic web search → og:image (busca la página del producto y extrae su imagen).
+     *   2) Anthropic web search → og:image, usando marca + modelo + variante exactos.
+     *   3) DuckDuckGo Images como último recurso, con la misma consulta precisa.
      * Lo que no se encuentre queda para carga manual.
      */
     @Transactional
@@ -269,7 +276,7 @@ public class ProductoAdminService {
                 .filter(p -> p.getImagenUrl() == null || p.getImagenUrl().isBlank())
                 .collect(Collectors.toList());
 
-        int desdeIcecat = 0, desdeAnthropic = 0;
+        int desdeIcecat = 0, desdeAnthropic = 0, desdeDuckDuckGo = 0;
         for (Producto p : sinImagen) {
             String url = null;
 
@@ -283,17 +290,18 @@ public class ProductoAdminService {
                 }
             }
 
-            String consulta = String.join(" ",
-                    p.getCategoria() != null ? p.getCategoria() : "",
-                    p.getMarca() != null ? p.getMarca() : "",
-                    p.getModelo() != null ? p.getModelo() : "",
-                    especificaciones).replaceAll("\\s+", " ").trim();
+            // La categoría no entra en la consulta: "Tablets Samsung ..." u otros nombres de
+            // hoja ensucian el resultado. Marca y modelo son la identidad del artículo.
+            String consulta = construirConsultaImagen(p.getMarca(), p.getModelo(), especificaciones);
 
             // 1) Icecat (rápido y gratis; rara vez matchea esta clase de productos)
             if (icecatOk) {
                 try {
                     Optional<String> r = icecatService.buscarImagen(p.getMarca(), p.getModelo());
-                    if (r.isPresent()) { url = r.get(); desdeIcecat++; }
+                    if (r.isPresent() && imageUrlValidatorService.esImagenDirecta(r.get())) {
+                        url = r.get();
+                        desdeIcecat++;
+                    }
                 } catch (Exception e) {
                     logger.warn("Icecat falló para producto {}: {}", p.getId(), e.getMessage());
                 }
@@ -303,9 +311,26 @@ public class ProductoAdminService {
             if (url == null && anthropicOk) {
                 try {
                     Optional<String> r = anthropicImageService.buscarImagen(consulta);
-                    if (r.isPresent()) { url = r.get(); desdeAnthropic++; }
+                    if (r.isPresent() && imageUrlValidatorService.esImagenDirecta(r.get())) {
+                        url = r.get();
+                        desdeAnthropic++;
+                    }
                 } catch (Exception e) {
                     logger.warn("Anthropic falló para producto {}: {}", p.getId(), e.getMessage());
+                }
+            }
+
+            // DuckDuckGo devuelve URLs directas de sus resultados de imágenes. Solo se acepta
+            // después de verificar Content-Type, para no guardar páginas HTML como imagen.
+            if (url == null) {
+                try {
+                    Optional<String> r = duckDuckGoImageService.buscarImagen(consulta);
+                    if (r.isPresent() && imageUrlValidatorService.esImagenDirecta(r.get())) {
+                        url = r.get();
+                        desdeDuckDuckGo++;
+                    }
+                } catch (Exception e) {
+                    logger.warn("DuckDuckGo falló para producto {}: {}", p.getId(), e.getMessage());
                 }
             }
 
@@ -315,17 +340,31 @@ public class ProductoAdminService {
             }
         }
 
-        int encontradas = desdeIcecat + desdeAnthropic;
+        int encontradas = desdeIcecat + desdeAnthropic + desdeDuckDuckGo;
         int noEncontradas = sinImagen.size() - encontradas;
         String mensaje = String.format(
-                "Búsqueda completada: %d con imagen (%d Icecat, %d Anthropic), %d sin resultado (de %d productos).",
-                encontradas, desdeIcecat, desdeAnthropic, noEncontradas, sinImagen.size());
+                "Búsqueda completada: %d con imagen (%d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d productos).",
+                encontradas, desdeIcecat, desdeAnthropic, desdeDuckDuckGo, noEncontradas, sinImagen.size());
         logger.info(mensaje);
 
         BuscarImagenesResponse resp = new BuscarImagenesResponse(sinImagen.size(), encontradas, noEncontradas, mensaje);
         resp.setDesdeIcecat(desdeIcecat);
         resp.setDesdeAnthropic(desdeAnthropic);
+        resp.setDesdeDuckDuckGo(desdeDuckDuckGo);
         return resp;
+    }
+
+    private String construirConsultaImagen(String marca, String modelo, String especificaciones) {
+        String base = String.join(" ",
+                marca != null ? marca.trim() : "",
+                modelo != null ? modelo.trim() : "").replaceAll("\\s+", " ").trim();
+        if (especificaciones == null || especificaciones.isBlank()) return base;
+
+        // Conserva datos que distinguen una variante (capacidad, color, conectividad), pero
+        // limita la consulta para que una ficha extensa no tape el número de modelo.
+        String variante = especificaciones.replaceAll("\\s+", " ").trim();
+        if (variante.length() > 180) variante = variante.substring(0, 180).trim();
+        return (base + " " + variante).trim();
     }
 
     /** Clasifica dentro del árbol de categorías todos los productos que todavía no lo tienen asignado. */

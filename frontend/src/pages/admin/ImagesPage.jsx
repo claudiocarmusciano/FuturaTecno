@@ -39,7 +39,7 @@ function ImagesPage() {
       await cargar()
     } catch (e) {
       console.error(e)
-      setMensaje('Error al buscar imágenes en Icecat.')
+      setMensaje('Error al buscar imágenes automáticamente.')
     } finally {
       setBuscando(false)
     }
