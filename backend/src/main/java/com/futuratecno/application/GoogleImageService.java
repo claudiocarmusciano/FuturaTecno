@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -40,8 +42,16 @@ public class GoogleImageService {
      * Busca la primera imagen relevante para el texto dado (ej: "Notebook gamer HP VICTUS 15-FB2063").
      */
     public Optional<String> buscarImagen(String consulta) {
+        return buscarImagenes(consulta).stream().findFirst();
+    }
+
+    /**
+     * Devuelve varios candidatos para poder descartar URLs caídas, HTML o miniaturas sin
+     * abandonar la búsqueda al primer resultado inválido.
+     */
+    public List<String> buscarImagenes(String consulta) {
         if (!estaConfigurado() || consulta == null || consulta.isBlank()) {
-            return Optional.empty();
+            return List.of();
         }
         try {
             String url = UriComponentsBuilder.fromHttpUrl(BASE_URL)
@@ -49,26 +59,29 @@ public class GoogleImageService {
                     .queryParam("cx", cx)
                     .queryParam("q", consulta)
                     .queryParam("searchType", "image")
-                    .queryParam("num", 1)
+                    .queryParam("num", 10)
                     .queryParam("safe", "active")
                     .encode()
                     .toUriString();
 
             JsonNode resp = restTemplate.getForObject(url, JsonNode.class);
-            if (resp == null) return Optional.empty();
+            if (resp == null) return List.of();
 
             JsonNode items = resp.path("items");
-            if (items.isArray() && items.size() > 0) {
-                String link = items.get(0).path("link").asText("");
-                if (link.startsWith("http")) {
-                    logger.info("Imagen de Google encontrada para '{}'", consulta);
-                    return Optional.of(link);
+            List<String> candidatos = new ArrayList<>();
+            if (items.isArray()) {
+                for (JsonNode item : items) {
+                    String link = item.path("link").asText("");
+                    if (link.startsWith("http")) {
+                        candidatos.add(link);
+                    }
                 }
             }
-            return Optional.empty();
+            logger.info("Google devolvió {} candidato(s) para '{}'", candidatos.size(), consulta);
+            return candidatos;
         } catch (Exception e) {
             logger.warn("Error buscando imagen en Google para '{}': {}", consulta, e.getMessage());
-            return Optional.empty();
+            return List.of();
         }
     }
 }

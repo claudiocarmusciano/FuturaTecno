@@ -16,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -47,14 +48,19 @@ public class DuckDuckGoImageService {
     }
 
     public Optional<String> buscarImagen(String consulta) {
+        return buscarImagenes(consulta).stream().findFirst();
+    }
+
+    /** Devuelve varios resultados para que el llamador valide cada URL. */
+    public List<String> buscarImagenes(String consulta) {
         if (consulta == null || consulta.isBlank()) {
-            return Optional.empty();
+            return List.of();
         }
         try {
             String vqd = obtenerVqd(consulta);
             if (vqd == null) {
                 logger.warn("DuckDuckGo: no se obtuvo token vqd para '{}'", consulta);
-                return Optional.empty();
+                return List.of();
             }
             logger.debug("DuckDuckGo: vqd='{}' para '{}'", vqd, consulta);
 
@@ -74,23 +80,25 @@ public class DuckDuckGoImageService {
             String cuerpo = resp.getBody();
             if (cuerpo == null || cuerpo.isBlank()) {
                 logger.warn("DuckDuckGo: respuesta i.js vacía para '{}'", consulta);
-                return Optional.empty();
+                return List.of();
             }
 
             JsonNode body = objectMapper.readTree(cuerpo);
             JsonNode results = body.path("results");
-            if (results.isArray() && results.size() > 0) {
-                String img = results.get(0).path("image").asText("");
-                if (img.startsWith("http")) {
-                    logger.info("DuckDuckGo: imagen encontrada para '{}'", consulta);
-                    return Optional.of(img);
+            List<String> candidatos = new ArrayList<>();
+            if (results.isArray()) {
+                for (JsonNode result : results) {
+                    String img = result.path("image").asText("");
+                    if (img.startsWith("http")) {
+                        candidatos.add(img);
+                    }
                 }
             }
-            logger.warn("DuckDuckGo: sin resultados en i.js para '{}'", consulta);
-            return Optional.empty();
+            logger.info("DuckDuckGo devolvió {} candidato(s) para '{}'", candidatos.size(), consulta);
+            return candidatos;
         } catch (Exception e) {
             logger.warn("DuckDuckGo: error para '{}': {}", consulta, e.toString());
-            return Optional.empty();
+            return List.of();
         }
     }
 

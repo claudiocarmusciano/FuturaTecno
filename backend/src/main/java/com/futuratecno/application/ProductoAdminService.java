@@ -35,6 +35,7 @@ public class ProductoAdminService {
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final IcecatService icecatService;
+    private final GoogleImageService googleImageService;
     private final AnthropicImageService anthropicImageService;
     private final DuckDuckGoImageService duckDuckGoImageService;
     private final ImageUrlValidatorService imageUrlValidatorService;
@@ -46,6 +47,7 @@ public class ProductoAdminService {
     public ProductoAdminService(ProductoRepository productoRepository,
                                 VarianteRepository varianteRepository,
                                 IcecatService icecatService,
+                                GoogleImageService googleImageService,
                                 AnthropicImageService anthropicImageService,
                                 DuckDuckGoImageService duckDuckGoImageService,
                                 ImageUrlValidatorService imageUrlValidatorService,
@@ -56,6 +58,7 @@ public class ProductoAdminService {
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.icecatService = icecatService;
+        this.googleImageService = googleImageService;
         this.anthropicImageService = anthropicImageService;
         this.duckDuckGoImageService = duckDuckGoImageService;
         this.imageUrlValidatorService = imageUrlValidatorService;
@@ -266,13 +269,15 @@ public class ProductoAdminService {
     /**
      * Cascada de búsqueda de imagen para cada producto sin imagen:
      *   1) Icecat (por marca + código, si está configurado) — gratis, matchea pocos.
-     *   2) Anthropic web search → og:image, usando marca + modelo + variante exactos.
-     *   3) DuckDuckGo Images como último recurso, con la misma consulta precisa.
+     *   2) Google Custom Search Images, si está configurado.
+     *   3) DuckDuckGo Images, probando varios candidatos.
+     *   4) Anthropic web search → og:image como último recurso.
      * Lo que no se encuentre queda para carga manual.
      */
     @Transactional
     public BuscarImagenesResponse buscarImagenesFaltantes() {
         boolean icecatOk = icecatService.estaConfigurado();
+        boolean googleOk = googleImageService.estaConfigurado();
         boolean anthropicOk = anthropicImageService.estaConfigurado();
 
         List<Producto> faltantes = productoRepository.findByActivo(true).stream()
@@ -282,7 +287,7 @@ public class ProductoAdminService {
                 .limit(MAXIMO_IMAGENES_POR_EJECUCION)
                 .collect(Collectors.toList());
 
-        int desdeIcecat = 0, desdeAnthropic = 0, desdeDuckDuckGo = 0;
+        int desdeIcecat = 0, desdeGoogle = 0, desdeAnthropic = 0, desdeDuckDuckGo = 0;
         for (Producto p : sinImagen) {
             String url = null;
 
@@ -313,21 +318,28 @@ public class ProductoAdminService {
                 }
             }
 
-            // 2) DuckDuckGo Images es la vía rápida: devuelve una URL directa y se valida antes
-            // de guardarla. Si no sirve, recién ahí se usa el fallback más lento de Anthropic.
+            // 2) Google Images formal. Se recorren candidatos porque el primero puede estar
+            // caído, responder HTML o bloquear descargas desde el servidor.
+            if (url == null && googleOk) {
+                try {
+                    url = primeraImagenValida(googleImageService.buscarImagenes(consulta));
+                    if (url != null) desdeGoogle++;
+                } catch (Exception e) {
+                    logger.warn("Google falló para producto {}: {}", p.getId(), e.getMessage());
+                }
+            }
+
+            // 3) DuckDuckGo Images como respaldo rápido, recorriendo más de un candidato.
             if (url == null) {
                 try {
-                    Optional<String> r = duckDuckGoImageService.buscarImagen(consulta);
-                    if (r.isPresent() && imageUrlValidatorService.esImagenDirecta(r.get())) {
-                        url = r.get();
-                        desdeDuckDuckGo++;
-                    }
+                    url = primeraImagenValida(duckDuckGoImageService.buscarImagenes(consulta));
+                    if (url != null) desdeDuckDuckGo++;
                 } catch (Exception e) {
                     logger.warn("DuckDuckGo falló para producto {}: {}", p.getId(), e.getMessage());
                 }
             }
 
-            // 3) Anthropic (búsqueda web + og:image) como fallback preciso, con timeout.
+            // 4) Anthropic (búsqueda web + og:image) como fallback preciso, con timeout.
             if (url == null && anthropicOk) {
                 try {
                     Optional<String> r = anthropicImageService.buscarImagen(consulta);
@@ -346,20 +358,30 @@ public class ProductoAdminService {
             }
         }
 
-        int encontradas = desdeIcecat + desdeAnthropic + desdeDuckDuckGo;
+        int encontradas = desdeIcecat + desdeGoogle + desdeAnthropic + desdeDuckDuckGo;
         int noEncontradas = sinImagen.size() - encontradas;
-        int pendientes = faltantes.size() - sinImagen.size();
+        int sinProcesar = faltantes.size() - sinImagen.size();
+        int pendientesTotales = faltantes.size() - encontradas;
         String mensaje = String.format(
-                "Búsqueda completada: %d con imagen (%d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d procesados).%s",
-                encontradas, desdeIcecat, desdeAnthropic, desdeDuckDuckGo, noEncontradas, sinImagen.size(),
-                pendientes > 0 ? " Quedan " + pendientes + " artículo(s) sin imagen para el próximo lote." : "");
+                "Búsqueda completada: %d con imagen (%d Google, %d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d procesados). Quedan %d artículo(s) sin imagen en total.%s",
+                encontradas, desdeGoogle, desdeIcecat, desdeAnthropic, desdeDuckDuckGo,
+                noEncontradas, sinImagen.size(), pendientesTotales,
+                sinProcesar > 0 ? " " + sinProcesar + " todavía no fueron procesados." : "");
         logger.info(mensaje);
 
         BuscarImagenesResponse resp = new BuscarImagenesResponse(sinImagen.size(), encontradas, noEncontradas, mensaje);
         resp.setDesdeIcecat(desdeIcecat);
+        resp.setDesdeGoogle(desdeGoogle);
         resp.setDesdeAnthropic(desdeAnthropic);
         resp.setDesdeDuckDuckGo(desdeDuckDuckGo);
         return resp;
+    }
+
+    private String primeraImagenValida(List<String> candidatos) {
+        for (String candidato : candidatos) {
+            if (imageUrlValidatorService.esImagenDirecta(candidato)) return candidato;
+        }
+        return null;
     }
 
     private String construirConsultaImagen(String marca, String modelo, String especificaciones) {
