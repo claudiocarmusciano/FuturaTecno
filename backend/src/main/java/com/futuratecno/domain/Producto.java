@@ -1,6 +1,7 @@
 package com.futuratecno.domain;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -28,6 +29,11 @@ public class Producto extends BaseEntity {
 
     @Column(name = "imagen_url", length = 1000)
     private String imagenUrl;
+
+    // Momento del último intento automático sin resultado. Permite que cada clic siga con los
+    // faltantes aún no tratados, sin alterar la fecha comercial de actualización del producto.
+    @Column(name = "imagen_busqueda_at")
+    private LocalDateTime imagenBusquedaAt;
 
     // Origen externo (integraciones con distribuidores): código en el sistema del proveedor y la fuente.
     @Column(name = "codigo_externo", length = 100)
@@ -102,6 +108,14 @@ public class Producto extends BaseEntity {
 
     public void setImagenUrl(String imagenUrl) {
         this.imagenUrl = imagenUrl;
+    }
+
+    public LocalDateTime getImagenBusquedaAt() {
+        return imagenBusquedaAt;
+    }
+
+    public void setImagenBusquedaAt(LocalDateTime imagenBusquedaAt) {
+        this.imagenBusquedaAt = imagenBusquedaAt;
     }
 
     public String getCodigoExterno() {

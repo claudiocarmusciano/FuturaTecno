@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -282,6 +283,10 @@ public class ProductoAdminService {
 
         List<Producto> faltantes = productoRepository.findByActivo(true).stream()
                 .filter(p -> p.getImagenUrl() == null || p.getImagenUrl().isBlank())
+                // Primero los que nunca se intentaron. Cuando se agoten, los intentos fallidos
+                // vuelven a la cola por antigüedad para permitir que nuevas fuentes los resuelvan.
+                .sorted(Comparator.comparing(Producto::getImagenBusquedaAt,
+                        Comparator.nullsFirst(Comparator.naturalOrder())))
                 .collect(Collectors.toList());
         List<Producto> sinImagen = faltantes.stream()
                 .limit(MAXIMO_IMAGENES_POR_EJECUCION)
@@ -354,6 +359,10 @@ public class ProductoAdminService {
 
             if (url != null) {
                 p.setImagenUrl(url);
+                productoRepository.save(p);
+            } else {
+                // Un error de una fuente no debe bloquear toda la cola en los próximos clics.
+                p.setImagenBusquedaAt(LocalDateTime.now());
                 productoRepository.save(p);
             }
         }
