@@ -37,6 +37,7 @@ public class CargaJsonService {
             "procesador", "ram", "almacenamiento", "pantalla", "gpu", "sistema_operativo", "otros"
     };
 
+    private final ImagenManualService imagenManualService;
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final ProveedorRepository proveedorRepository;
@@ -44,12 +45,13 @@ public class CargaJsonService {
     private final CategoriaClasificadorService categoriaClasificadorService;
     private final CategoriaService categoriaService;
 
-    public CargaJsonService(ProductoRepository productoRepository,
+    public CargaJsonService(ImagenManualService imagenManualService, ProductoRepository productoRepository,
                             VarianteRepository varianteRepository,
                             ProveedorRepository proveedorRepository,
                             ImagenRepository imagenRepository,
                             CategoriaClasificadorService categoriaClasificadorService,
                             CategoriaService categoriaService) {
+        this.imagenManualService = imagenManualService;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.proveedorRepository = proveedorRepository;
@@ -93,7 +95,8 @@ public class CargaJsonService {
             producto.setActivo(true);
             producto.setCategoria(limpiar(art.getCategoria()));
 
-            List<String> imagenes = imagenesLimpias(art.getImagenes());
+            List<String> imagenes = imagenManualService.buscar(marca, modelo)
+                    .map(List::of).orElseGet(() -> imagenesLimpias(art.getImagenes()));
             if (!imagenes.isEmpty()) producto.setImagenUrl(imagenes.get(0));
 
             // Clasificación automática: solo si todavía no tiene categoría. Si no se puede resolver

@@ -33,6 +33,7 @@ public class ProductoAdminService {
     // interfaz quede esperando varios minutos si alguno de ellos está lento o bloquea requests.
     private static final int MAXIMO_IMAGENES_POR_EJECUCION = 5;
 
+    private final ImagenManualService imagenManualService;
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final IcecatService icecatService;
@@ -45,7 +46,7 @@ public class ProductoAdminService {
     private final CategoriaService categoriaService;
     private final CategoriaRepository categoriaRepository;
 
-    public ProductoAdminService(ProductoRepository productoRepository,
+    public ProductoAdminService(ImagenManualService imagenManualService, ProductoRepository productoRepository,
                                 VarianteRepository varianteRepository,
                                 IcecatService icecatService,
                                 GoogleImageService googleImageService,
@@ -56,6 +57,7 @@ public class ProductoAdminService {
                                 CategoriaClasificadorService categoriaClasificadorService,
                                 CategoriaService categoriaService,
                                 CategoriaRepository categoriaRepository) {
+        this.imagenManualService = imagenManualService;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.icecatService = icecatService;
@@ -202,6 +204,7 @@ public class ProductoAdminService {
         // La imagen se puede corregir desde el editor. Un campo vacío elimina la URL inválida.
         producto.setImagenUrl(dto.getImagenUrl() != null && !dto.getImagenUrl().isBlank()
                 ? dto.getImagenUrl().trim() : null);
+        imagenManualService.guardar(producto.getMarca(), producto.getModelo(), producto.getImagenUrl());
         // A diferencia de marca/modelo, acá null es un valor válido y querido: "sin override,
         // usar el default de la categoría". Por eso se pisa siempre, no solo cuando viene cargado.
         producto.setPesoGramos(dto.getPesoGramos());
@@ -255,6 +258,7 @@ public class ProductoAdminService {
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
         producto.setImagenUrl(url != null && !url.isBlank() ? url.trim() : null);
+        imagenManualService.guardar(producto.getMarca(), producto.getModelo(), producto.getImagenUrl());
         productoRepository.save(producto);
         var nombres = categoriaService.resolverNombres(producto.getCategoriaId());
         ProductoAdminDTO dto = new ProductoAdminDTO(

@@ -51,7 +51,12 @@ function ProductosPage() {
   const [catMasiva, setCatMasiva] = useState({ topId: '', subId: '' })
   const [asignando, setAsignando] = useState(false)
   const [eliminandoMasiva, setEliminandoMasiva] = useState(false)
-  const volverACategorias = searchParams.get('origen') === 'categorias'
+  const origen = searchParams.get('origen')
+  const destinoOrigen = origen === 'categorias' ? '/admin/categorias'
+    : origen === 'imagenes' ? `/admin/imagenes?${new URLSearchParams({
+      busqueda: searchParams.get('busqueda') || '',
+      filtro: searchParams.get('filtro') || 'sin-imagen'
+    })}` : null
 
   const { padreDe, nodoDe } = indexarArbol(arbol)
 
@@ -225,8 +230,8 @@ function ProductosPage() {
     try {
       // Se manda el categoriaId computado del selector (evita guardar null por desincronización).
       await axios.put(`/api/admin/productos/${editData.id}`, { ...editData, categoriaId: cat.id })
-      if (volverACategorias) {
-        navigate('/admin/categorias')
+      if (destinoOrigen) {
+        navigate(destinoOrigen)
         return
       }
       setEditData(null)
@@ -250,8 +255,8 @@ function ProductosPage() {
     setMensaje('')
     try {
       await axios.delete(`/api/admin/productos/${editData.id}`)
-      if (volverACategorias) {
-        navigate('/admin/categorias')
+      if (destinoOrigen) {
+        navigate(destinoOrigen)
         return
       }
       setEditData(null)
@@ -429,7 +434,7 @@ function ProductosPage() {
               <button onClick={guardar} className="btn btn-primary" disabled={guardando || eliminando} style={{ marginRight: '10px' }}>
                 {guardando ? 'Guardando...' : 'Guardar cambios'}
               </button>
-              <button onClick={() => setEditData(null)} className="btn btn-secondary" disabled={guardando || eliminando}>Cancelar</button>
+              <button onClick={() => destinoOrigen ? navigate(destinoOrigen) : setEditData(null)} className="btn btn-secondary" disabled={guardando || eliminando}>Cancelar</button>
             </div>
             <button
               onClick={eliminarProducto}

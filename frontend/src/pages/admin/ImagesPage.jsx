@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { IconTrash } from '../../components/icons'
 
 const formatFecha = (iso) =>
@@ -12,8 +12,19 @@ function ImagesPage() {
   const [buscando, setBuscando] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [edits, setEdits] = useState({}) // { [productoId]: urlEnEdicion }
-  const [busqueda, setBusqueda] = useState('')
-  const [soloSinImagen, setSoloSinImagen] = useState(true)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const busqueda = searchParams.get('busqueda') || ''
+  const soloSinImagen = searchParams.get('filtro') !== 'todos'
+  const actualizarFiltro = (clave, valor) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      if (valor) next.set(clave, valor)
+      else next.delete(clave)
+      return next
+    }, { replace: true })
+  }
+  const setBusqueda = valor => actualizarFiltro('busqueda', valor)
+  const setSoloSinImagen = valor => actualizarFiltro('filtro', valor ? '' : 'todos')
 
   const cargar = async () => {
     setCargando(true)
@@ -154,7 +165,7 @@ function ImagesPage() {
                   </td>
                   <td>
                     <Link
-                      to={`/admin/productos?editar=${p.id}`}
+                      to={`/admin/productos?${new URLSearchParams({ editar: String(p.id), origen: 'imagenes', busqueda, filtro: soloSinImagen ? 'sin-imagen' : 'todos' })}`}
                       title="Editar producto completo"
                       style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-lime)', textUnderlineOffset: '4px' }}
                     >
