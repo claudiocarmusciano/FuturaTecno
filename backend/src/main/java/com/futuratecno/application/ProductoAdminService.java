@@ -296,9 +296,11 @@ public class ProductoAdminService {
                 .limit(MAXIMO_IMAGENES_POR_EJECUCION)
                 .collect(Collectors.toList());
 
+        int desdeMemoria = 0;
         int desdeIcecat = 0, desdeGoogle = 0, desdeAnthropic = 0, desdeDuckDuckGo = 0;
         for (Producto p : sinImagen) {
-            String url = null;
+            String url = imagenManualService.buscar(p.getMarca(), p.getModelo()).orElse(null);
+            if (url != null) desdeMemoria++;
 
             // Especificaciones de la primera variante (CPU/RAM/SSD, color, capacidad, etc.):
             // ayudan a encontrar la publicación EXACTA en MercadoLibre. Se limpian los separadores.
@@ -315,7 +317,7 @@ public class ProductoAdminService {
             String consulta = construirConsultaImagen(p.getMarca(), p.getModelo(), especificaciones);
 
             // 1) Icecat (rápido y gratis; rara vez matchea esta clase de productos)
-            if (icecatOk) {
+            if (url == null && icecatOk) {
                 try {
                     Optional<String> r = icecatService.buscarImagen(p.getMarca(), p.getModelo());
                     if (r.isPresent() && imageUrlValidatorService.esImagenDirecta(r.get())) {
@@ -371,13 +373,13 @@ public class ProductoAdminService {
             }
         }
 
-        int encontradas = desdeIcecat + desdeGoogle + desdeAnthropic + desdeDuckDuckGo;
+        int encontradas = desdeMemoria + desdeIcecat + desdeGoogle + desdeAnthropic + desdeDuckDuckGo;
         int noEncontradas = sinImagen.size() - encontradas;
         int sinProcesar = faltantes.size() - sinImagen.size();
         int pendientesTotales = faltantes.size() - encontradas;
         String mensaje = String.format(
-                "Búsqueda completada: %d con imagen (%d Google, %d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d procesados). Quedan %d artículo(s) sin imagen en total.%s",
-                encontradas, desdeGoogle, desdeIcecat, desdeAnthropic, desdeDuckDuckGo,
+                "Búsqueda completada: %d con imagen (%d guardadas, %d Google, %d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d procesados). Quedan %d artículo(s) sin imagen en total.%s",
+                encontradas, desdeMemoria, desdeGoogle, desdeIcecat, desdeAnthropic, desdeDuckDuckGo,
                 noEncontradas, sinImagen.size(), pendientesTotales,
                 sinProcesar > 0 ? " " + sinProcesar + " todavía no fueron procesados." : "");
         logger.info(mensaje);

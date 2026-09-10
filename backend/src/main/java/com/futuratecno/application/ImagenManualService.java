@@ -17,15 +17,30 @@ public class ImagenManualService {
     }
 
     public Optional<String> buscar(String marca, String modelo) {
-        return jdbc.query("SELECT url FROM imagenes_manuales WHERE marca = ? AND modelo = ?",
-                (rs, row) -> rs.getString("url"), normalizar(marca), normalizar(modelo))
+        return jdbc.query("""
+                SELECT url FROM (
+                    SELECT url, 0 prioridad FROM imagenes_manuales WHERE marca = ? AND modelo = ?
+                    UNION ALL
+                    SELECT url, 1 prioridad FROM imagenes_automaticas WHERE marca = ? AND modelo = ?
+                ) memoria ORDER BY prioridad LIMIT 1
+                """,
+                (rs, row) -> rs.getString("url"), normalizar(marca), normalizar(modelo), normalizar(marca), normalizar(modelo))
                 .stream().findFirst();
+    }
+
+    public void guardarAutomatica(String marca, String modelo, String url) {
+        if (normalizar(marca).isEmpty() || normalizar(modelo).isEmpty() || url == null || url.isBlank()) return;
+        jdbc.update("""
+                INSERT INTO imagenes_automaticas (marca, modelo, url) VALUES (?, ?, ?)
+                ON CONFLICT (marca, modelo) DO NOTHING
+                """, normalizar(marca), normalizar(modelo), url.trim());
     }
 
     public void guardar(String marca, String modelo, String url) {
         String m = normalizar(marca), mod = normalizar(modelo);
         if (m.isEmpty() || mod.isEmpty()) return;
         if (url == null || url.isBlank()) {
+            jdbc.update("DELETE FROM imagenes_automaticas WHERE marca = ? AND modelo = ?", m, mod);
             jdbc.update("DELETE FROM imagenes_manuales WHERE marca = ? AND modelo = ?", m, mod);
         } else {
             jdbc.update("""

@@ -1,66 +1,47 @@
 package com.futuratecno.application;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
-/**
- * Evita guardar como imagen enlaces a fichas, HTML, logos o URLs caídas.
- * La comprobación intenta primero HEAD para no descargar archivos completos. Algunos CDNs
- * (por ejemplo, el de Frávega) contestan HEAD sin Content-Type aunque la imagen exista; en
- * ese caso se hace un GET con Range, se lee sólo la cabecera y se valida el MIME real.
- */
+/** Verifica tipo y firma de imagen; valida cada destino antes de seguir redirecciones. */
 @Service
 public class ImageUrlValidatorService {
     private final RestTemplate restTemplate;
-
-    public ImageUrlValidatorService(@Qualifier("imageRestTemplate") RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+    public ImageUrlValidatorService(@Qualifier("imageRestTemplate") RestTemplate restTemplate) { this.restTemplate = restTemplate; }
+    private record Resultado(boolean imagen, String siguiente) {}
 
     public boolean esImagenDirecta(String url) {
-        if (url == null || url.isBlank() || !url.trim().matches("https?://.+")) {
-            return false;
+        String destino = url == null ? "" : url.trim();
+        for (int i = 0; i < 3; i++) {
+            if (!UrlPublica.permitida(destino)) return false;
+            try {
+                Resultado r = restTemplate.execute(destino, HttpMethod.GET, request -> {
+                    request.getHeaders().set(HttpHeaders.USER_AGENT, "Mozilla/5.0");
+                    request.getHeaders().set(HttpHeaders.RANGE, "bytes=0-1023");
+                    request.getHeaders().set(HttpHeaders.ACCEPT, "image/*");
+                }, response -> {
+                    if (response.getStatusCode().is3xxRedirection()) return new Resultado(false, response.getHeaders().getFirst(HttpHeaders.LOCATION));
+                    MediaType type = response.getHeaders().getContentType();
+                    if (!response.getStatusCode().is2xxSuccessful() || type == null || !"image".equalsIgnoreCase(type.getType())) return new Resultado(false, null);
+                    return new Resultado(esFirmaImagen(response.getBody().readNBytes(32)), null);
+                });
+                if (r == null || r.siguiente() == null) return r != null && r.imagen();
+                destino = URI.create(destino).resolve(r.siguiente()).toString();
+            } catch (Exception e) { return false; }
         }
-        HttpHeaders headers = encabezadosImagen();
-        try {
-            ResponseEntity<Void> response = restTemplate.exchange(
-                    url.trim(), HttpMethod.HEAD, new HttpEntity<>(headers), Void.class);
-            if (esRespuestaImagen(response.getStatusCode().is2xxSuccessful(), response.getHeaders())) {
-                return true;
-            }
-        } catch (Exception ignored) {
-            // Hay servidores que directamente rechazan HEAD. El GET parcial de abajo es el
-            // fallback seguro y evita marcar como rota una URL de imagen válida.
-        }
-
-        try {
-            headers.set(HttpHeaders.RANGE, "bytes=0-1023");
-            Boolean esImagen = restTemplate.execute(url.trim(), HttpMethod.GET,
-                    request -> request.getHeaders().putAll(headers),
-                    response -> esRespuestaImagen(response.getStatusCode().is2xxSuccessful(), response.getHeaders()));
-            return Boolean.TRUE.equals(esImagen);
-        } catch (Exception ignored) {
-            return false;
-        }
+        return false;
     }
 
-    private HttpHeaders encabezadosImagen() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.USER_AGENT,
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36");
-        headers.set(HttpHeaders.ACCEPT, "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
-        return headers;
-    }
-
-    private boolean esRespuestaImagen(boolean estadoExitoso, HttpHeaders headers) {
-        String contentType = headers.getContentType() != null
-                ? headers.getContentType().toString().toLowerCase()
-                : "";
-        return estadoExitoso && contentType.startsWith("image/");
+    static boolean esFirmaImagen(byte[] b) {
+        if (b.length < 12) return false;
+        String head = new String(b, StandardCharsets.ISO_8859_1);
+        return ((b[0] & 255) == 255 && (b[1] & 255) == 216 && (b[2] & 255) == 255)
+                || head.startsWith("\u0089PNG\r\n\u001a\n") || head.startsWith("GIF87a") || head.startsWith("GIF89a")
+                || (head.startsWith("RIFF") && head.substring(8, 12).equals("WEBP"))
+                || (head.substring(4, 8).equals("ftyp") && (head.contains("avif") || head.contains("avis")));
     }
 }

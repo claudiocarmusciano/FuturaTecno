@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
+import java.net.HttpURLConnection;
+import java.io.IOException;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 @Configuration
 public class RestTemplateConfig {
@@ -27,10 +30,15 @@ public class RestTemplateConfig {
      */
     @Bean(name = "imageRestTemplate")
     public RestTemplate imageRestTemplate(RestTemplateBuilder builder) {
-        return builder
-                .setConnectTimeout(Duration.ofSeconds(3))
-                .setReadTimeout(Duration.ofSeconds(5))
-                .build();
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory() {
+            @Override protected void prepareConnection(HttpURLConnection connection, String method) throws IOException {
+                super.prepareConnection(connection, method);
+                connection.setInstanceFollowRedirects(false);
+            }
+        };
+        factory.setConnectTimeout(3000);
+        factory.setReadTimeout(5000);
+        return new RestTemplate(factory);
     }
 
     /**
@@ -44,6 +52,11 @@ public class RestTemplateConfig {
                 .setConnectTimeout(Duration.ofSeconds(5))
                 .setReadTimeout(Duration.ofSeconds(15))
                 .build();
+    }
+
+    @Bean(name = "listadoRestTemplate")
+    public RestTemplate listadoRestTemplate(RestTemplateBuilder builder) {
+        return builder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(90)).build();
     }
 
     /**

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
+import GenerarListadoPanel from '../../components/admin/GenerarListadoPanel'
 
 const inputStyle = {
   padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)',
@@ -21,8 +22,16 @@ function CargarJsonPage() {
   const [crearNuevo, setCrearNuevo] = useState(false)
   const [nuevoProv, setNuevoProv] = useState({ nombre: '', codigo: '', margenPorcentaje: '15', fletePorcentaje: '5' })
 
+  const [modo, setModo] = useState('listado')
   const [json, setJson] = useState('')
   const [resultado, setResultado] = useState(null)
+  const resultadoRef = useRef(null)
+  useEffect(() => {
+    if (resultado) {
+      resultadoRef.current?.focus({ preventScroll: true })
+      resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [resultado])
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
 
@@ -52,12 +61,12 @@ function CargarJsonPage() {
     }
   }
 
-  const cargar = async () => {
+  const cargar = async (contenido = json) => {
     setError(''); setResultado(null)
     if (!proveedorId) { setError('Elegí un proveedor.'); return }
     let articulos
     try {
-      const parsed = JSON.parse(json)
+      const parsed = JSON.parse(contenido)
       articulos = Array.isArray(parsed) ? parsed : [parsed]   // acepta 1 objeto o un array
     } catch {
       setError('El JSON no es válido. Revisá que esté bien formado.')
@@ -77,10 +86,9 @@ function CargarJsonPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '6px' }}>Cargar artículos por JSON</h1>
+      <h1 style={{ marginBottom: '6px' }}>Cargar artículos</h1>
       <p style={{ color: 'var(--color-text-muted)', marginBottom: '20px' }}>
-        Pegá un JSON (un objeto o un array) con los productos. Se crean bajo el proveedor elegido,
-        con imágenes, y se intenta asignar la categoría automáticamente (si no se puede, queda para asignar a mano).
+        Generá artículos desde el texto del proveedor o pegá un JSON. La importación se realiza únicamente cuando la confirmás.
       </p>
 
       {error && (
@@ -118,8 +126,19 @@ function CargarJsonPage() {
         )}
       </div>
 
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
+        <button className={`btn ${modo === 'listado' ? 'btn-primary' : 'btn-secondary'}`} disabled={cargando} onClick={() => setModo('listado')}>Texto del proveedor</button>
+        <button className={`btn ${modo === 'json' ? 'btn-primary' : 'btn-secondary'}`} disabled={cargando} onClick={() => setModo('json')}>JSON existente</button>
+      </div>
+      <div hidden={modo !== 'listado'}>
+        <GenerarListadoPanel proveedorId={proveedorId} importando={cargando} onImportar={articulos => {
+          const contenido = JSON.stringify(articulos, null, 2)
+          setJson(contenido)
+          return cargar(contenido)
+        }} />
+      </div>
       {/* JSON */}
-      <div className="card" style={{ marginBottom: '18px' }}>
+      <div hidden={modo !== 'json'} className="card" style={{ marginBottom: '18px' }}>
         <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>2. JSON de artículos</div>
         <textarea
           value={json}
@@ -129,7 +148,7 @@ function CargarJsonPage() {
           style={{ ...inputStyle, minHeight: '260px', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'pre' }}
         />
         <div style={{ marginTop: '12px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button className="btn btn-primary" onClick={cargar} disabled={cargando}>
+          <button className="btn btn-primary" onClick={() => cargar()} disabled={cargando}>
             {cargando ? 'Cargando...' : 'Cargar artículos'}
           </button>
           <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
@@ -140,7 +159,9 @@ function CargarJsonPage() {
 
       {/* Resultado */}
       {resultado && (
-        <div className="card">
+        <div className="card" ref={resultadoRef} tabIndex={-1} role="status" aria-live="polite" style={{ border: '2px solid var(--color-border)' }}>
+          <h2 style={{ marginTop: 0 }}>{resultado.omitidos > 0 ? 'Importación finalizada con artículos omitidos' : 'Importación realizada'}</h2>
+          <p>{resultado.creados + resultado.actualizados > 0 ? 'Los artículos creados o actualizados ya se guardaron en el catálogo.' : 'No se crearon ni actualizaron artículos. Revisá el detalle de esta carga.'}</p>
           <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '10px' }}>{resultado.mensaje}</div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '14px', fontSize: '13px' }}>
             <span>✅ Creados: <strong>{resultado.creados}</strong></span>
