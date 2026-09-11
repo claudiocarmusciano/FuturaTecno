@@ -131,7 +131,7 @@ function CargarJsonPage() {
         <button className={`btn ${modo === 'json' ? 'btn-primary' : 'btn-secondary'}`} disabled={cargando} onClick={() => setModo('json')}>JSON existente</button>
       </div>
       <div hidden={modo !== 'listado'}>
-        <GenerarListadoPanel proveedorId={proveedorId} importando={cargando} onImportar={articulos => {
+        <GenerarListadoPanel errorImportacion={error} proveedorId={proveedorId} importando={cargando} onImportar={articulos => {
           const contenido = JSON.stringify(articulos, null, 2)
           setJson(contenido)
           return cargar(contenido)

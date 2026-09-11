@@ -5,7 +5,7 @@ const campo = { width: '100%', minWidth: 0, padding: '8px', border: '1px solid v
 const clavesSpecs = ['procesador', 'ram', 'almacenamiento', 'pantalla', 'gpu', 'sistema_operativo', 'otros']
 const clave = a => `${a.marca.trim().toLowerCase()}|${a.modelo.trim().toLowerCase().replace(/\s+/g, ' ')}`
 
-export default function GenerarListadoPanel({ onImportar, importando, proveedorId }) {
+export default function GenerarListadoPanel({ onImportar, importando, proveedorId, errorImportacion }) {
   const [texto, setTexto] = useState('')
   const [articulos, setArticulos] = useState([])
   const [avisos, setAvisos] = useState([])
@@ -59,7 +59,8 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
   const vistos = new Set()
   const duplicados = new Set()
   for (const a of articulos) { const k = clave(a); if (vistos.has(k)) duplicados.add(k); vistos.add(k) }
-  const invalidos = articulos.some(a => !a.marca.trim() || !a.modelo.trim() || a.modelo.length > 255 || a.marca.length > 255 || !Number.isFinite(Number(a.precio_usd)) || Number(a.precio_usd) <= 0 || Object.values(a.especificaciones || {}).join(' · ').length >= 500 || a.imagenes.some(u => !/^https?:\/\/\S+$/i.test(u) || u.length > 1000))
+  const filasInvalidas = articulos.flatMap((a, i) => ( !a.marca.trim() || !a.modelo.trim() || a.modelo.length > 255 || a.marca.length > 255 || !Number.isFinite(Number(a.precio_usd)) || Number(a.precio_usd) <= 0 || Object.values(a.especificaciones || {}).join(' · ').length >= 500 || a.imagenes.some(u => !/^https?:\/\/\S+$/i.test(u) || u.length > 1000)) ? [i + 1] : [])
+  const invalidos = filasInvalidas.length > 0
   const ocupado = Boolean(etapa) || importando
   const descargar = () => {
     const contenido = articulos.map(a => ({ ...a, precio_usd: Number(a.precio_usd) }))
@@ -112,6 +113,14 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
         <span>Página {pagina + 1} de {Math.ceil(articulos.length / 15)}</span>
         <button className="btn btn-secondary" onClick={() => setPagina(p => p + 1)} disabled={(pagina + 1) * 15 >= articulos.length}>Siguiente</button>
       </div>
+      <div role="status" aria-live="polite" style={{ marginTop: 16 }}>
+        {etapa === 'imagenes' && <p>Buscando imágenes: {procesados} de {articulos.length}. Podés esperar o <button className="btn btn-secondary" onClick={() => controller.current?.abort()}>Detener búsqueda y revisar</button>.</p>}
+        {etapa && etapa !== 'imagenes' && <p>{etapa === 'notion' ? 'Leyendo Notion…' : 'Generando artículos…'}</p>}
+        {importando && <p>Importando artículos. Esperá la confirmación del servidor.</p>}
+        {duplicados.size > 0 && <p>Hay marcas y modelos repetidos. Revisá las filas resaltadas antes de importar.</p>}
+        {invalidos && <p>Hay datos inválidos en las filas {filasInvalidas.join(', ')}. Revisá marca, modelo, precio, URL y especificaciones. <button className="btn btn-secondary" onClick={() => setPagina(Math.floor((filasInvalidas[0] - 1) / 15))}>Ver primera fila con error</button></p>}
+      </div>
+      {errorImportacion && <p role="alert" style={{ color: 'var(--color-danger)' }}>No se pudo importar: {typeof errorImportacion === 'string' ? errorImportacion : 'Revisá los datos e intentá nuevamente.'}</p>}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 16 }}>
         <button className="btn btn-primary" disabled={ocupado || invalidos || duplicados.size > 0 || !proveedorId} onClick={() => onImportar(articulos.map(a => ({ ...a, precio_usd: Number(a.precio_usd) })))}>{importando ? 'Importando…' : 'Confirmar e importar'}</button>
         <button className="btn btn-secondary" disabled={ocupado || invalidos || duplicados.size > 0} onClick={descargar}>Descargar JSON</button>
