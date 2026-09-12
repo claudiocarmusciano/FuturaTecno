@@ -58,6 +58,44 @@ class GenerarListadoServiceTest {
         assertTrue(assertThrows(IllegalStateException.class,()->service.generar("ASUS X USD 500")).getMessage().contains("saldo"));
         server.verify();
     }
+
+    private void usarDeepseek() {
+        ReflectionTestUtils.setField(service,"proveedorIa","deepseek");
+        ReflectionTestUtils.setField(service,"deepseekKey","test-only");
+    }
+    @Test void generaConDeepseekSinLlamarAnthropic() throws Exception {
+        usarDeepseek();
+        var server = MockRestServiceServer.bindTo(http).build();
+        String json = "{\"articulos\":[{\"marca\":\"ASUS\",\"modelo\":\"X\",\"precio_usd\":500}],\"avisos\":[]}";
+        String response = mapper.writeValueAsString(java.util.Map.of("choices",List.of(java.util.Map.of(
+                "finish_reason","stop","message",java.util.Map.of("role","assistant","content",json)))));
+        server.expect(requestTo("https://api.deepseek.com/chat/completions"))
+                .andExpect(header("Authorization","Bearer test-only"))
+                .andExpect(jsonPath("$.response_format.type").value("json_object"))
+                .andRespond(withSuccess(response,MediaType.APPLICATION_JSON));
+        assertEquals(1, service.generar("ASUS X USD 500").articulos().size());
+        server.verify(); verifyNoInteractions(buscador);
+    }
+    @Test void deepseekSinClaveNoUsaAnthropic() {
+        ReflectionTestUtils.setField(service,"proveedorIa","deepseek");
+        assertTrue(assertThrows(IllegalStateException.class,()->service.generar("ASUS X USD 500")).getMessage().contains("DEEPSEEK_API_KEY"));
+        verifyNoInteractions(buscador);
+    }
+    @Test void deepseekExplicaLimiteDeSolicitudes() {
+        usarDeepseek();
+        var server=MockRestServiceServer.bindTo(http).build();
+        server.expect(requestTo("https://api.deepseek.com/chat/completions"))
+                .andRespond(withStatus(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS).contentType(MediaType.APPLICATION_JSON).body("{}"));
+        assertTrue(assertThrows(IllegalStateException.class,()->service.generar("ASUS X USD 500")).getMessage().contains("límite de solicitudes"));
+        server.verify();
+    }
+    @Test void deepseekUsaAnthropicParaBuscarImagenes() {
+        usarDeepseek();
+        when(memoria.buscar("ASUS","X")).thenReturn(Optional.empty());
+        when(buscador.buscarImagen("ASUS X")).thenReturn(Optional.of("https://cdn.test/a.jpg"));
+        when(validator.esImagenDirecta("https://cdn.test/a.jpg")).thenReturn(true);
+        assertEquals(List.of("https://cdn.test/a.jpg"), service.imagen("ASUS","X").get("imagenes"));
+    }
     @Test void validaFilasYEliminaCamposNoPermitidosSinAceptarImagenesInventadas() throws Exception {
         var result = service.normalizar(mapper.readTree("""
           {"articulos":[
