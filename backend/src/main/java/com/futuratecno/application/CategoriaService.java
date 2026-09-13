@@ -10,10 +10,12 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -103,6 +105,21 @@ public class CategoriaService {
         return pathDe(nodo.getPadre()) + " > " + nodo.getNombre();
     }
 
+    /**
+     * Comparador alfabético en español. {@code String.CASE_INSENSITIVE_ORDER} compara por código
+     * de carácter y manda "Cámaras" después de "Coolers" (y "Ñandú" después de "Zapatillas"), que
+     * es justo lo que alguien describiría como "no está ordenado". Collator con strength PRIMARY
+     * ordena los acentos junto a su vocal y la "Ñ" después de la "N".
+     *
+     * <p>Se crea uno por llamada a propósito: Collator no garantiza ser thread-safe, y estos
+     * árboles son de decenas de nodos, no de miles.
+     */
+    private static Comparator<String> ordenEspanol() {
+        Collator collator = Collator.getInstance(Locale.forLanguageTag("es"));
+        collator.setStrength(Collator.PRIMARY);
+        return collator::compare;
+    }
+
     public List<CategoriaTreeDTO> obtenerArbol() {
         return construirNivel(null);
     }
@@ -115,7 +132,7 @@ public class CategoriaService {
         }
         // Alfabético en cada nivel, como el árbol del admin: sin esto sale en orden de inserción
         // y los desplegables que lo consumen quedan sin un orden que el usuario pueda anticipar.
-        out.sort(Comparator.comparing(CategoriaTreeDTO::getNombre, String.CASE_INSENSITIVE_ORDER));
+        out.sort(Comparator.comparing(CategoriaTreeDTO::getNombre, ordenEspanol()));
         return out;
     }
 
@@ -164,7 +181,7 @@ public class CategoriaService {
         for (Categoria raiz : hijosDe.getOrDefault(null, List.of())) {
             out.add(aAdminDTO(raiz));
         }
-        out.sort(Comparator.comparing(CategoriaAdminDTO::getNombre, String.CASE_INSENSITIVE_ORDER));
+        out.sort(Comparator.comparing(CategoriaAdminDTO::getNombre, ordenEspanol()));
         return out;
     }
 
@@ -173,7 +190,7 @@ public class CategoriaService {
         for (Categoria h : hijosDe.getOrDefault(c.getId(), List.of())) {
             hijos.add(aAdminDTO(h));
         }
-        hijos.sort(Comparator.comparing(CategoriaAdminDTO::getNombre, String.CASE_INSENSITIVE_ORDER));
+        hijos.sort(Comparator.comparing(CategoriaAdminDTO::getNombre, ordenEspanol()));
 
         CategoriaAdminDTO dto = new CategoriaAdminDTO();
         dto.setId(c.getId());
