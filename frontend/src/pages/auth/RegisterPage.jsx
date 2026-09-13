@@ -151,7 +151,7 @@ function RegisterPage() {
           ¿Ya tenés cuenta? <Link to="/login" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Iniciá sesión</Link>
         </p>
         <p style={{ fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
-          <Link to="/" style={{ color: 'var(--color-text-muted)' }}>← Volver al sorteo</Link>
+          <Link to="/sorteo" style={{ color: 'var(--color-text-muted)' }}>← Volver al sorteo</Link>
         </p>
       </div>
     </div>

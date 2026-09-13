@@ -20,7 +20,7 @@ function SoloAdmin({ children }) {
 
   if (!listo) return null // esperando a recuperar la sesión
 
-  return isAdmin || catalogoAbierto ? children : <Navigate to="/" replace />
+  return isAdmin || catalogoAbierto ? children : <Navigate to="/sorteo" replace />
 }
 
 export default SoloAdmin

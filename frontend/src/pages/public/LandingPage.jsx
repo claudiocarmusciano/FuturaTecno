@@ -86,6 +86,9 @@ function LandingPage() {
     navigate('/')
   }
 
+  // Según las bases publicadas, la inscripción al sorteo cierra el 30/09/2026.
+  const inscripcionSorteoAbierta = Date.now() < new Date('2026-10-01T00:00:00-03:00').getTime()
+
   useEffect(() => {
     axios.get('/api/productos').then(r => setProductos(r.data)).catch(() => {})
     axios.get('/api/categorias').then(r => setArbol(r.data)).catch(() => {})
@@ -173,6 +176,19 @@ function LandingPage() {
           </button>
         </div>
       </header>
+
+      {/* El sorteo dejó de ser la home, pero su inscripción sigue abierta y completar los tres
+          pasos es condición para participar: quien entra por la portada tiene que poder llegar.
+          Se apaga solo al cerrar la inscripción, para no dejar una promo vencida en la tapa. */}
+      {inscripcionSorteoAbierta && (
+        <Link to="/sorteo" className="lp-sorteo-banner">
+          <span className="lp-sorteo-tag">Sorteo</span>
+          <span className="lp-sorteo-texto">
+            Participá por una <strong>silla gamer ergonómica</strong>. Registrate y completá los 3 pasos, sin obligación de compra.
+          </span>
+          <span className="lp-sorteo-cta">Participar →</span>
+        </Link>
+      )}
 
       <PromotionsCarousel />
 

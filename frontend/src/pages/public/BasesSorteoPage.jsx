@@ -6,7 +6,7 @@ function BasesSorteoPage() {
     <main className="bases-page">
       <header className="bases-header">
         <Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>
-        <Link to="/" className="bases-back">← Volver al sorteo</Link>
+        <Link to="/sorteo" className="bases-back">← Volver al sorteo</Link>
       </header>
       <article className="bases-card">
         <span className="bases-eyebrow">SORTEO BIENVENIDA</span>

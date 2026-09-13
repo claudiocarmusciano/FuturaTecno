@@ -37,9 +37,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* La home presenta el sorteo y guía a quienes llegan por primera vez. */}
-        <Route path="/" element={<PreLandingPage />} />
-        <Route path="/inicio" element={<Navigate to="/" replace />} />
+        {/* La home es la tienda. El sorteo tiene su propia ruta: sigue con inscripción abierta
+            hasta el 30/09/2026 y completar sus pasos es condición para participar, así que se
+            entra por el banner de la landing o por link directo. */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/sorteo" element={<PreLandingPage />} />
+        {/* /inicio apuntaba al sorteo cuando era la home: se respeta ese destino. */}
+        <Route path="/inicio" element={<Navigate to="/sorteo" replace />} />
         <Route path="/bases-y-condiciones" element={<BasesSorteoPage />} />
 
         <Route element={<PublicLayout />}>

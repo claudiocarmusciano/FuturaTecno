@@ -239,3 +239,29 @@
 @media (prefers-reduced-motion: reduce) {
   .lp-brand-track { animation: none; }
 }
+
+/* ===== FRANJA DEL SORTEO =====
+   Va entre el nav y el carrusel: es una promo con fecha de vencimiento, no parte de la tienda.
+   El JSX la deja de renderizar al cerrar la inscripción. */
+.lp-sorteo-banner {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; flex-wrap: wrap; text-align: center;
+  padding: 11px 22px;
+  background: var(--lp-lime-soft);
+  border-bottom: 1px solid var(--lp-border);
+  font-size: 14px;
+  transition: background .18s ease;
+}
+.lp-sorteo-banner:hover { background: rgba(200, 224, 72, .2); }
+.lp-sorteo-tag {
+  background: var(--lp-lime); color: #16181d !important;
+  font-family: 'Sora', sans-serif; font-weight: 700;
+  font-size: 11px; letter-spacing: .8px; text-transform: uppercase;
+  border-radius: 999px; padding: 4px 11px; white-space: nowrap;
+}
+/* Lima como texto solo funciona sobre el fondo oscuro de la landing. */
+.lp-sorteo-cta { color: var(--lp-lime); font-weight: 600; white-space: nowrap; }
+
+@media (max-width: 620px) {
+  .lp-sorteo-banner { font-size: 13px; gap: 9px; padding: 10px 16px; }
+}
