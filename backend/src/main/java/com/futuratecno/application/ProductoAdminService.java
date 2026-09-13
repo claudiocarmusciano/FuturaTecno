@@ -34,6 +34,8 @@ public class ProductoAdminService {
     private static final int MAXIMO_IMAGENES_POR_EJECUCION = 5;
 
     private final ImagenManualService imagenManualService;
+    private final DescripcionManualService descripcionManualService;
+    private final AtributosManualService atributosManualService;
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final IcecatService icecatService;
@@ -46,7 +48,10 @@ public class ProductoAdminService {
     private final CategoriaService categoriaService;
     private final CategoriaRepository categoriaRepository;
 
-    public ProductoAdminService(ImagenManualService imagenManualService, ProductoRepository productoRepository,
+    public ProductoAdminService(ImagenManualService imagenManualService,
+                                DescripcionManualService descripcionManualService,
+                                AtributosManualService atributosManualService,
+                                ProductoRepository productoRepository,
                                 VarianteRepository varianteRepository,
                                 IcecatService icecatService,
                                 GoogleImageService googleImageService,
@@ -58,6 +63,8 @@ public class ProductoAdminService {
                                 CategoriaService categoriaService,
                                 CategoriaRepository categoriaRepository) {
         this.imagenManualService = imagenManualService;
+        this.descripcionManualService = descripcionManualService;
+        this.atributosManualService = atributosManualService;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.icecatService = icecatService;
@@ -212,9 +219,15 @@ public class ProductoAdminService {
         producto.setAnchoCm(dto.getAnchoCm());
         producto.setLargoCm(dto.getLargoCm());
         productoRepository.save(producto);
+        // Categoría y medidas quedan recordadas por marca+modelo, para que el mismo artículo
+        // cargado con otro proveedor no vuelva a nacer sin categoría ni medidas.
+        atributosManualService.recordar(producto);
 
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
 
+        // Null = no vino ninguna variante en el request, así que no hay nada que recordar (y no
+        // hay que borrar lo que ya estaba). "" sí es un valor: el admin vació la descripción.
+        String descripcionEditada = null;
         if (dto.getVariantes() != null) {
             for (VarianteEditDTO ve : dto.getVariantes()) {
                 if (ve.getId() == null) continue;
@@ -222,6 +235,8 @@ public class ProductoAdminService {
                 if (v == null || v.getProducto() == null || !v.getProducto().getId().equals(productoId)) continue;
 
                 v.setEspecificaciones(ve.getEspecificaciones() != null ? ve.getEspecificaciones().trim() : "");
+                // La descripción del producto es la de su primera variante, igual que en el listado.
+                if (descripcionEditada == null) descripcionEditada = v.getEspecificaciones();
                 if (ve.getPrecio() != null) {
                     String moneda = "USD".equalsIgnoreCase(ve.getMoneda()) ? "USD" : "ARS";
                     v.setMonedaOrigen(moneda);
@@ -233,6 +248,12 @@ public class ProductoAdminService {
                 if (ve.getStock() != null) v.setStock(ve.getStock());
                 varianteRepository.save(v);
             }
+        }
+
+        // Se recuerda solo lo propio: Elit e Invid reescriben su ficha en cada sincronización, así
+        // que guardar la suya no aportaría y taparía descripciones escritas a mano.
+        if (descripcionEditada != null && !DescripcionManualService.esDeMayorista(producto.getFuente())) {
+            descripcionManualService.guardar(producto.getMarca(), producto.getModelo(), descripcionEditada);
         }
 
         return obtenerParaEditar(productoId);
@@ -248,6 +269,7 @@ public class ProductoAdminService {
             if (p == null) continue;
             p.setCategoriaId(categoriaId);
             productoRepository.save(p);
+            atributosManualService.recordar(p);
             n++;
         }
         return n;

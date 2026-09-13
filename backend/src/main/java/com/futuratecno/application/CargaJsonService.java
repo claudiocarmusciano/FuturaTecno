@@ -38,6 +38,8 @@ public class CargaJsonService {
     };
 
     private final ImagenManualService imagenManualService;
+    private final DescripcionManualService descripcionManualService;
+    private final AtributosManualService atributosManualService;
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final ProveedorRepository proveedorRepository;
@@ -45,13 +47,18 @@ public class CargaJsonService {
     private final CategoriaClasificadorService categoriaClasificadorService;
     private final CategoriaService categoriaService;
 
-    public CargaJsonService(ImagenManualService imagenManualService, ProductoRepository productoRepository,
+    public CargaJsonService(ImagenManualService imagenManualService,
+                            DescripcionManualService descripcionManualService,
+                            AtributosManualService atributosManualService,
+                            ProductoRepository productoRepository,
                             VarianteRepository varianteRepository,
                             ProveedorRepository proveedorRepository,
                             ImagenRepository imagenRepository,
                             CategoriaClasificadorService categoriaClasificadorService,
                             CategoriaService categoriaService) {
         this.imagenManualService = imagenManualService;
+        this.descripcionManualService = descripcionManualService;
+        this.atributosManualService = atributosManualService;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.proveedorRepository = proveedorRepository;
@@ -99,8 +106,13 @@ public class CargaJsonService {
                     .map(List::of).orElseGet(() -> imagenesLimpias(art.getImagenes()));
             if (!imagenes.isEmpty()) producto.setImagenUrl(imagenes.get(0));
 
-            // Clasificación automática: solo si todavía no tiene categoría. Si no se puede resolver
-            // (categoría ambigua o IA sin crédito), queda null → el admin la asigna a mano.
+            // Categoría y medidas ya resueltas para este marca+modelo, aunque haya sido con otro
+            // proveedor. Solo rellena huecos: lo que la fila ya tenga cargado manda.
+            atributosManualService.aplicar(producto);
+
+            // Clasificación automática: solo si todavía no tiene categoría (ni propia ni recordada).
+            // Si no se puede resolver (categoría ambigua o IA sin crédito), queda null → el admin
+            // la asigna a mano.
             if (producto.getCategoriaId() == null) {
                 try {
                     producto.setCategoriaId(categoriaClasificadorService.clasificar(producto, limpiar(art.getCategoria())));
@@ -111,7 +123,10 @@ public class CargaJsonService {
             final Producto prod = productoRepository.save(producto);
 
             // Variante con el precio (siempre USD) y las specs.
-            String especificaciones = construirEspecificaciones(art);
+            // La descripción curada a mano gana sobre la del JSON, igual que la imagen: si alguien
+            // ya la corrigió, un reimport no debe pisarla con el texto crudo del proveedor.
+            String especificaciones = descripcionManualService.buscar(marca, modelo)
+                    .orElseGet(() -> construirEspecificaciones(art));
             Variante variante = varianteRepository
                     .findByProductoIdAndEspecificaciones(prod.getId(), especificaciones)
                     .orElseGet(() -> {
