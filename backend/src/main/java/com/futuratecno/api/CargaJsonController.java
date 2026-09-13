@@ -4,6 +4,8 @@ import com.futuratecno.api.dto.CargaJsonRequest;
 import com.futuratecno.api.dto.CargaJsonResponse;
 import com.futuratecno.application.CargaJsonService;
 import com.futuratecno.application.GenerarListadoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,8 @@ import java.util.Map;
 @RequestMapping("/api/admin/carga-json")
 @CrossOrigin(origins = "*")
 public class CargaJsonController {
+
+    private static final Logger logger = LoggerFactory.getLogger(CargaJsonController.class);
 
     private final CargaJsonService cargaJsonService;
 
@@ -27,20 +31,34 @@ public class CargaJsonController {
     public record ListadoRequest(String texto) {}
     public record ImagenRequest(String marca, String modelo) {}
 
+    // Todo fallo se loguea antes de responder: el mensaje que ve el admin es deliberadamente corto,
+    // así que sin log la causa real (cuota agotada, clave mal, modelo inexistente) se perdía entera.
     @PostMapping("/generar")
     public ResponseEntity<?> generar(@RequestBody ListadoRequest req) {
         try { return ResponseEntity.ok(generador.generar(req.texto())); }
         catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
-        catch (IllegalStateException e) { return ResponseEntity.status(503).body(Map.of("error", e.getMessage())); }
-        catch (Exception e) { return ResponseEntity.status(502).body(Map.of("error", "No se pudo generar el listado. Revisá la conexión o la configuración de IA y reintentá.")); }
+        catch (IllegalStateException e) {
+            logger.warn("Generar listado: la IA no pudo responder — {}", e.getMessage());
+            return ResponseEntity.status(503).body(Map.of("error", e.getMessage()));
+        }
+        catch (Exception e) {
+            logger.error("Generar listado: fallo inesperado", e);
+            return ResponseEntity.status(502).body(Map.of("error", "No se pudo generar el listado. Revisá la conexión o la configuración de IA y reintentá."));
+        }
     }
 
     @PostMapping("/generar-imagen")
     public ResponseEntity<?> imagen(@RequestBody ImagenRequest req) {
         try { return ResponseEntity.ok(generador.imagen(req.marca(), req.modelo())); }
         catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
-        catch (IllegalStateException e) { return ResponseEntity.status(503).body(Map.of("error", e.getMessage())); }
-        catch (Exception e) { return ResponseEntity.status(502).body(Map.of("error", "No se pudo buscar la imagen. Podés ingresarla manualmente.")); }
+        catch (IllegalStateException e) {
+            logger.warn("Buscar imagen de {} {}: la IA no pudo responder — {}", req.marca(), req.modelo(), e.getMessage());
+            return ResponseEntity.status(503).body(Map.of("error", e.getMessage()));
+        }
+        catch (Exception e) {
+            logger.error("Buscar imagen de {} {}: fallo inesperado", req.marca(), req.modelo(), e);
+            return ResponseEntity.status(502).body(Map.of("error", "No se pudo buscar la imagen. Podés ingresarla manualmente."));
+        }
     }
 
     @PostMapping

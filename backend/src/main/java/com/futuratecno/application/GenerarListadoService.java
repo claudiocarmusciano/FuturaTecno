@@ -78,9 +78,14 @@ public class GenerarListadoService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("x-api-key", apiKey); headers.set("anthropic-version", "2023-06-01");
-        JsonNode response = http.postForObject("https://api.anthropic.com/v1/messages", new HttpEntity<>(Map.of(
-                "model", modelo, "max_tokens", 16000, "system", INSTRUCCIONES,
-                "messages", List.of(Map.of("role", "user", "content", texto))), headers), JsonNode.class);
+        JsonNode response;
+        try {
+            response = http.postForObject("https://api.anthropic.com/v1/messages", new HttpEntity<>(Map.of(
+                    "model", modelo, "max_tokens", 16000, "system", INSTRUCCIONES,
+                    "messages", List.of(Map.of("role", "user", "content", texto))), headers), JsonNode.class);
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            throw new IllegalStateException(mensajeErrorAnthropic(e));
+        }
         if (response == null || !"end_turn".equals(response.path("stop_reason").asText()))
             throw new IllegalStateException("La generación no terminó completa. Probá con un listado más corto.");
         StringBuilder content = new StringBuilder();
@@ -88,6 +93,25 @@ public class GenerarListadoService {
         try { return normalizar(mapper.readTree(content.toString())); }
         catch (IllegalArgumentException e) { throw e; }
         catch (Exception e) { throw new IllegalStateException("No se recibió un borrador válido. Volvé a generar el listado."); }
+    }
+
+    /**
+     * Traduce el error HTTP de Anthropic a algo accionable, igual que las ramas de OpenAI y DeepSeek.
+     * Sin esto, un tope de gasto alcanzado llegaba al admin como "revisá la conexión" y sin logs.
+     * Los casos sin mapear repiten el mensaje de Anthropic: dice más que cualquier texto propio.
+     */
+    private String mensajeErrorAnthropic(org.springframework.web.client.HttpStatusCodeException e) {
+        int estado = e.getStatusCode().value();
+        String detalle = "";
+        try { detalle = mapper.readTree(e.getResponseBodyAsString()).path("error").path("message").asText(""); }
+        catch (Exception ignored) {}
+        if (estado == 401 || estado == 403) return "Anthropic rechazó la clave de API. Revisá ANTHROPIC_API_KEY.";
+        if (estado == 429) return "Anthropic alcanzó un límite de solicitudes. Esperá un momento antes de reintentar.";
+        // El saldo agotado y el tope de gasto de la organización llegan como 400, no como 402.
+        if (estado == 400 && detalle.toLowerCase(Locale.ROOT).matches("(?s).*(credit|balance|limit|quota).*"))
+            return "Anthropic no tiene cuota disponible: " + detalle + " Revisá Billing y Limits en console.anthropic.com.";
+        return "Anthropic rechazó la solicitud (HTTP " + estado + ")."
+                + (detalle.isBlank() ? " Revisá el modelo y los permisos de la clave." : " " + detalle);
     }
 
     private String solicitarOpenai(String instrucciones, String entrada, boolean buscar) {

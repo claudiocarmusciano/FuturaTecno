@@ -163,6 +163,27 @@ class GenerarListadoServiceTest {
         server.expect(requestTo("https://api.anthropic.com/v1/messages")).andRespond(withSuccess("{\"stop_reason\":\"max_tokens\"}",MediaType.APPLICATION_JSON));
         assertThrows(IllegalStateException.class,()->service.generar("ASUS X USD 500"));
     }
+    // El caso real del 2026-09-11: Anthropic devolvió 400 por tope de uso y el admin vio
+    // "revisá la conexión" con los logs vacíos. El mensaje tiene que llegar entero.
+    @Test void anthropicExplicaCuotaAgotadaConElMensajeDelProveedor() {
+        ReflectionTestUtils.setField(service,"apiKey","test-key"); ReflectionTestUtils.setField(service,"modelo","test-model");
+        var server=MockRestServiceServer.bindTo(http).build();
+        server.expect(requestTo("https://api.anthropic.com/v1/messages"))
+                .andRespond(withStatus(org.springframework.http.HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"error\":{\"type\":\"invalid_request_error\",\"message\":\"This request would exceed your specified usage limits.\"}}"));
+        String mensaje = assertThrows(IllegalStateException.class,()->service.generar("ASUS X USD 500")).getMessage();
+        assertTrue(mensaje.contains("cuota"), mensaje);
+        assertTrue(mensaje.contains("specified usage limits"), mensaje);
+        server.verify();
+    }
+    @Test void anthropicExplicaClaveRechazada() {
+        ReflectionTestUtils.setField(service,"apiKey","test-key"); ReflectionTestUtils.setField(service,"modelo","test-model");
+        var server=MockRestServiceServer.bindTo(http).build();
+        server.expect(requestTo("https://api.anthropic.com/v1/messages"))
+                .andRespond(withStatus(org.springframework.http.HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON).body("{}"));
+        assertTrue(assertThrows(IllegalStateException.class,()->service.generar("ASUS X USD 500")).getMessage().contains("ANTHROPIC_API_KEY"));
+        server.verify();
+    }
     @Test void reutilizaMemoriaSinConsumirIaNiVerificarPorRed() {
         when(memoria.buscar("ASUS","X")).thenReturn(Optional.of("https://cdn.test/a.jpg"));
         assertEquals(List.of("https://cdn.test/a.jpg"),service.imagen("ASUS","X").get("imagenes"));
