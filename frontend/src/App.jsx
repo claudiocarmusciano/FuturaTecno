@@ -30,7 +30,6 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import ActivateAccountPage from './pages/auth/ActivateAccountPage'
 import ProtectedRoute from './auth/ProtectedRoute'
-import SoloAdmin from './auth/SoloAdmin'
 import './App.css'
 
 function App() {
@@ -47,9 +46,8 @@ function App() {
         <Route path="/bases-y-condiciones" element={<BasesSorteoPage />} />
 
         <Route element={<PublicLayout />}>
-          {/* Hasta la apertura del 7/9, el catálogo y sus fichas solo son visibles para ADMIN. */}
-          <Route path="/catalogo" element={<SoloAdmin><CatalogPage /></SoloAdmin>} />
-          <Route path="/producto/:id" element={<SoloAdmin><ProductDetailPage /></SoloAdmin>} />
+          <Route path="/catalogo" element={<CatalogPage />} />
+          <Route path="/producto/:id" element={<ProductDetailPage />} />
           {/* El carrito y el checkout son públicos: la sesión se pide recién al confirmar. */}
           <Route path="/carrito" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
