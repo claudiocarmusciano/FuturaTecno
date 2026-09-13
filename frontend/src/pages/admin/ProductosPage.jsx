@@ -51,6 +51,9 @@ function ProductosPage() {
   const [catMasiva, setCatMasiva] = useState({ topId: '', subId: '' })
   const [asignando, setAsignando] = useState(false)
   const [eliminandoMasiva, setEliminandoMasiva] = useState(false)
+  const [creandoCat, setCreandoCat] = useState(false)
+  const [nombreCatNueva, setNombreCatNueva] = useState('')
+  const [guardandoCat, setGuardandoCat] = useState(false)
   const origen = searchParams.get('origen')
   const destinoOrigen = origen === 'categorias' ? '/admin/categorias'
     : origen === 'imagenes' ? `/admin/imagenes?${new URLSearchParams({
@@ -199,6 +202,33 @@ function ProductosPage() {
       setAsignando(false)
     }
   }
+
+  // Alta de categoría sin salir de Productos: el caso real es descubrir que la categoría no
+  // existe justo cuando se va a asignar. Cuelga de la categoría elegida arriba (queda como
+  // subcategoría) o nace de primer nivel si no hay ninguna elegida, y se autoselecciona.
+  const crearCategoria = async () => {
+    const nombre = nombreCatNueva.trim()
+    if (!nombre) return
+    const padreId = catMasiva.topId ? Number(catMasiva.topId) : null
+    setGuardandoCat(true)
+    setMensaje('')
+    try {
+      const { data } = await axios.post('/api/admin/categorias', { nombre, padreId })
+      const res = await axios.get('/api/categorias')
+      setArbol(res.data)
+      setCatMasiva(padreId ? { topId: String(padreId), subId: String(data.id) } : { topId: String(data.id), subId: '' })
+      setNombreCatNueva('')
+      setCreandoCat(false)
+      setMensaje(`Categoría "${nombre}" creada ✓`)
+    } catch (e) {
+      console.error(e)
+      setMensaje('No se pudo crear la categoría: ' + (e.response?.data?.error || e.message))
+    } finally {
+      setGuardandoCat(false)
+    }
+  }
+
+  const cancelarAltaCategoria = () => { setCreandoCat(false); setNombreCatNueva('') }
 
   const eliminarMasivamente = async () => {
     const cantidad = seleccionados.size
@@ -487,7 +517,7 @@ function ProductosPage() {
             )}
           </div>
           <label style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '14px', cursor: 'pointer' }}>
-            <input type="checkbox" checked={soloSinCategoria}
+            <input type="checkbox" className="check-seleccion" checked={soloSinCategoria}
                    onChange={e => { setSoloSinCategoria(e.target.checked); setSeleccionados(new Set()) }} />
             Solo sin categoría
           </label>
@@ -526,7 +556,35 @@ function ProductosPage() {
                 </select>
               </div>
             )}
-            <button onClick={asignarMasiva} className="btn btn-primary" disabled={asignando || eliminandoMasiva}>
+            {creandoCat ? (
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block' }}>
+                  {catMasiva.topId ? `Nueva subcategoría de ${nodoDe[catMasiva.topId]?.nombre}` : 'Nueva categoría'}
+                </label>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <input
+                    autoFocus
+                    style={inputStyle}
+                    value={nombreCatNueva}
+                    placeholder="Ej. eReaders"
+                    onChange={e => setNombreCatNueva(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') crearCategoria()
+                      if (e.key === 'Escape') cancelarAltaCategoria()
+                    }}
+                  />
+                  <button onClick={crearCategoria} className="btn btn-primary" disabled={guardandoCat || !nombreCatNueva.trim()}>
+                    {guardandoCat ? 'Creando...' : 'Crear'}
+                  </button>
+                  <button onClick={cancelarAltaCategoria} className="btn btn-secondary" disabled={guardandoCat}>Cancelar</button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setCreandoCat(true)} className="btn btn-secondary" disabled={asignando || eliminandoMasiva}>
+                + Nueva categoría
+              </button>
+            )}
+            <button onClick={asignarMasiva} className="btn btn-primary" disabled={asignando || eliminandoMasiva || creandoCat}>
               {asignando ? 'Asignando...' : `Asignar categoría a ${seleccionados.size}`}
             </button>
             <button onClick={eliminarMasivamente} className="btn-accion danger" disabled={asignando || eliminandoMasiva}>
@@ -548,8 +606,8 @@ function ProductosPage() {
           <table className="table">
             <thead>
               <tr>
-                <th style={{ width: '34px' }}>
-                  <input type="checkbox" checked={todosVisiblesSeleccionados} onChange={toggleTodos} title="Seleccionar todos" />
+                <th style={{ width: '44px' }}>
+                  <input type="checkbox" className="check-seleccion" checked={todosVisiblesSeleccionados} onChange={toggleTodos} title="Seleccionar todos" />
                 </th>
                 <th style={{ width: '50px' }}></th>
                 <th>Producto</th>
@@ -564,7 +622,7 @@ function ProductosPage() {
               {productosVisibles.map(p => (
                 <tr key={p.id} style={seleccionados.has(p.id) ? { background: 'var(--color-accent-light)' } : {}}>
                   <td>
-                    <input type="checkbox" checked={seleccionados.has(p.id)} onChange={() => toggleSeleccion(p.id)} />
+                    <input type="checkbox" className="check-seleccion" checked={seleccionados.has(p.id)} onChange={() => toggleSeleccion(p.id)} />
                   </td>
                   <td>
                     {p.imagenUrl

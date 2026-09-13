@@ -342,6 +342,17 @@ a { color: var(--color-accent); text-decoration: none; }
 }
 .table tbody tr:hover { background-color: var(--color-surface-2); }
 
+/* Checkbox de selección masiva: caja grande para acertarle sin apuntar, con el lima de marca.
+   Se usa en las tablas donde se eligen varias filas a la vez (ej. Productos). */
+.check-seleccion {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-lime);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
 /* Botones de acción sutiles (editar / eliminar) — con un tinte suave de color */
 .btn-accion {
   display: inline-flex;
