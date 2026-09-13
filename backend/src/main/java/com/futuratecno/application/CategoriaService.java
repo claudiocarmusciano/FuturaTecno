@@ -113,6 +113,9 @@ public class CategoriaService {
         for (Categoria c : hijos) {
             out.add(new CategoriaTreeDTO(c.getId(), c.getNombre(), construirNivel(c.getId())));
         }
+        // Alfabético en cada nivel, como el árbol del admin: sin esto sale en orden de inserción
+        // y los desplegables que lo consumen quedan sin un orden que el usuario pueda anticipar.
+        out.sort(Comparator.comparing(CategoriaTreeDTO::getNombre, String.CASE_INSENSITIVE_ORDER));
         return out;
     }
 

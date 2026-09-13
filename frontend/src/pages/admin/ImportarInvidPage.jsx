@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { ordenarPor } from '../../utils/orden'
 
 function ImportarInvidPage() {
   const [configurado, setConfigurado] = useState(null)
@@ -109,14 +110,14 @@ INVID_PASSWORD=tu_contraseña`}
             <label>Categoría (opcional)</label>
             <input list="invid-categorias" value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="Todas — ej: Notebooks" />
             <datalist id="invid-categorias">
-              {(filtros?.categorias || []).map(c => <option key={c} value={c} />)}
+              {ordenarPor(filtros?.categorias).map(c => <option key={c} value={c} />)}
             </datalist>
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Marca (opcional)</label>
             <input list="invid-marcas" value={marca} onChange={e => setMarca(e.target.value)} placeholder="Todas — ej: ASUS" />
             <datalist id="invid-marcas">
-              {(filtros?.marcas || []).map(m => <option key={m} value={m} />)}
+              {ordenarPor(filtros?.marcas).map(m => <option key={m} value={m} />)}
             </datalist>
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>

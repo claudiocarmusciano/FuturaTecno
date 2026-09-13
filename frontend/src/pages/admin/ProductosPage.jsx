@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { IconEdit, IconSearch, IconTrash } from '../../components/icons'
 import { indexarArbol } from '../../utils/categorias'
+import { ordenarPor } from '../../utils/orden'
 
 const formatFecha = (iso) =>
   iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
@@ -166,8 +167,7 @@ function ProductosPage() {
     .filter(p => !soloSinCategoria || p.categoriaId == null)
     .filter(p => !proveedorFiltro || p.proveedor === proveedorFiltro)
     .filter(coincide)
-  const proveedores = [...new Set(productos.map(p => p.proveedor).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'es'))
+  const proveedores = ordenarPor([...new Set(productos.map(p => p.proveedor).filter(Boolean))])
 
   const toggleSeleccion = (id) => setSeleccionados(prev => {
     const n = new Set(prev)

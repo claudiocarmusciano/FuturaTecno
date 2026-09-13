@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import GenerarListadoPanel from '../../components/admin/GenerarListadoPanel'
+import { ordenarPor } from '../../utils/orden'
 
 const inputStyle = {
   padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)',
@@ -104,7 +105,7 @@ function CargarJsonPage() {
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
             <select value={proveedorId} onChange={e => setProveedorId(e.target.value)} style={{ ...inputStyle, maxWidth: '320px' }}>
               <option value="">— Elegí un proveedor —</option>
-              {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.codigo ? ` (${p.codigo})` : ''} — ID {p.id}</option>)}
+              {ordenarPor(proveedores, p => p.nombre).map(p => <option key={p.id} value={p.id}>{p.nombre}{p.codigo ? ` (${p.codigo})` : ''} — ID {p.id}</option>)}
             </select>
             <button className="btn btn-secondary" onClick={() => setCrearNuevo(true)}>+ Nuevo proveedor</button>
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { ordenarPor } from '../../utils/orden'
 
 function ImportarElitPage() {
   const [configurado, setConfigurado] = useState(null)   // null = cargando
@@ -108,14 +109,14 @@ ELIT_TOKEN=tu_token_de_api`}
             <label>Categoría (opcional)</label>
             <input list="elit-categorias" value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="Todas — ej: Notebooks" />
             <datalist id="elit-categorias">
-              {(filtros?.categorias || []).map(c => <option key={c} value={c} />)}
+              {ordenarPor(filtros?.categorias).map(c => <option key={c} value={c} />)}
             </datalist>
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Marca (opcional)</label>
             <input list="elit-marcas" value={marca} onChange={e => setMarca(e.target.value)} placeholder="Todas — ej: ASUS" />
             <datalist id="elit-marcas">
-              {(filtros?.marcas || []).map(m => <option key={m} value={m} />)}
+              {ordenarPor(filtros?.marcas).map(m => <option key={m} value={m} />)}
             </datalist>
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
