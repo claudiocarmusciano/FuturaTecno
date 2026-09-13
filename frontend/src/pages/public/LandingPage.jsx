@@ -185,7 +185,7 @@ function LandingPage() {
             <h1 className="lp-hero-title">La tecnología que buscás, <span className="lp-accent">al mejor precio.</span></h1>
             <p className="lp-hero-sub">
               Catálogo de notebooks, PC, componentes, periféricos y más. Precios actualizados en{' '}
-              <strong>USD y pesos</strong>, calculados con dólar blue venta, envíos a todo el país y atención directa por WhatsApp.
+              <strong>USD y pesos</strong>, envíos a todo el país y atención directa por WhatsApp.
             </p>
             <div className="lp-cta-row">
               <Link className="lp-btn lp-btn-primary" to="/catalogo">Ver catálogo →</Link>

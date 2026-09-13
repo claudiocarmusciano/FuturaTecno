@@ -166,7 +166,7 @@ function PedidoDetailPage() {
           </p>
         )}
         <p style={{ textAlign: 'right', fontSize: '12px', color: 'var(--color-text-muted)', margin: '4px 0 0' }}>
-          Precios congelados al dólar blue venta ${formatNumber(pedido.cotizacionUsada)} del día del pedido.
+          Precios congelados a la cotización de ${formatNumber(pedido.cotizacionUsada)} por dólar del día del pedido.
         </p>
       </div>
 

@@ -317,7 +317,7 @@ function CatalogPage() {
       <section className="catalog-hero">
         <span className="catalog-kicker">FUTURATECNO · CATÁLOGO</span>
         <h1>Elegí tu próximo <span>upgrade.</span></h1>
-        <p>Productos de primeras marcas, precios actualizados con dólar blue venta y atención personalizada para comprar con tranquilidad.</p>
+        <p>Productos de primeras marcas, precios actualizados y atención personalizada para comprar con tranquilidad.</p>
       </section>
 
       {eta?.fechaEntrega && (
@@ -425,7 +425,7 @@ function CatalogPage() {
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
             <strong>Las imágenes son meramente ilustrativas:</strong> confirmá características, color y disponibilidad antes de comprar · Por la alta rotación de stock, la disponibilidad se confirma al procesar el pedido
-            {cotizacion?.valor && <> · 💵 Precios calculados al {cotizacion.fuente} ${formatNumber(cotizacion.valor)}</>}
+            {cotizacion?.valor && <> · 💵 Precios actualizados en USD y pesos, a ${formatNumber(cotizacion.valor)} por dólar</>}
           </p>
 
           {filtrados.length === 0 ? (
