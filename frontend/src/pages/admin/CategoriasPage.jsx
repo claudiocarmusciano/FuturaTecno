@@ -22,6 +22,7 @@ function CategoriasPage() {
 
   const [creandoEn, setCreandoEn] = useState(null)    // id del padre, o 'raiz'
   const [nombreNuevo, setNombreNuevo] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
   const cargar = useCallback(() => {
     setCargando(true)
@@ -42,6 +43,25 @@ function CategoriasPage() {
   useEffect(() => { cargarAuditoria() }, [cargarAuditoria])
 
   const raices = arbol.map(c => ({ id: c.id, nombre: c.nombre }))
+
+  // Sin acentos: los nombres del árbol están llenos de ellos ("Cámaras", "Refrigeración",
+  // "Impresión") y nadie los tipea al buscar.
+  const normalizar = (texto) => texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const termino = busqueda.trim()
+  const palabras = normalizar(termino).split(/\s+/).filter(Boolean)
+  const coincide = (nombre) => palabras.every(p => normalizar(nombre).includes(p))
+
+  // Filtra conservando el contexto del árbol: si la coincidencia es una subcategoría, se
+  // muestra igual su categoría principal, porque una hoja suelta no dice de dónde cuelga.
+  const arbolVisible = !palabras.length ? arbol : arbol.flatMap(raiz => {
+    if (coincide(raiz.nombre)) return [raiz]
+    const hijos = (raiz.hijos || []).filter(h => coincide(h.nombre))
+    return hijos.length ? [{ ...raiz, hijos }] : []
+  })
+
+  const contar = (nodos) => nodos.reduce((n, r) => n + 1 + (r.hijos || []).length, 0)
+  const totalCategorias = contar(arbol)
+  const totalVisibles = contar(arbolVisible)
 
   const manejarError = (err, fallback) => {
     setError(err.response?.data?.error || fallback)
@@ -223,7 +243,42 @@ function CategoriasPage() {
         <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
           Cada categoría puede aportar peso y dimensiones para que Andreani cotice los productos que no tienen medidas propias.
         </p>
-        {arbol.map(raiz => (
+
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px' }}>
+          <div style={{ position: 'relative', flex: '1 1 260px', minWidth: 0 }}>
+            <input
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') setBusqueda('') }}
+              placeholder="Buscar categoría o subcategoría"
+              aria-label="Buscar categoría"
+              style={{ ...inputEstilo, width: '100%', paddingRight: '30px' }}
+            />
+            {busqueda && (
+              <button
+                type="button"
+                onClick={() => setBusqueda('')}
+                aria-label="Limpiar búsqueda"
+                style={{
+                  position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px',
+                  lineHeight: 1, color: 'var(--color-text-muted)', padding: '2px 6px'
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+            {termino ? `Mostrando ${totalVisibles} de ${totalCategorias}` : `${totalCategorias} categorías`}
+          </span>
+        </div>
+
+        {termino && arbolVisible.length === 0 && (
+          <p style={{ color: 'var(--color-text-muted)' }}>No hay categorías que coincidan con "{termino}".</p>
+        )}
+
+        {arbolVisible.map(raiz => (
           <Fragment key={raiz.id}>
             {fila(raiz, false)}
             {(raiz.hijos || []).map(h => fila(h, true))}
