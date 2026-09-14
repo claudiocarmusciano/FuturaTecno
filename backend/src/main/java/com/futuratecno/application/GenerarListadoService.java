@@ -10,11 +10,25 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /** Genera un borrador revisable. No persiste productos, proveedores ni imágenes. */
 @Service
 public class GenerarListadoService {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GenerarListadoService.class);
+    /** Menos que los 240 s que espera el navegador: el servidor tiene que rendirse primero. */
+    private static final long PRESUPUESTO_SEGUNDOS = 150;
+    /** Hilos daemon: uno colgado en DNS no puede impedir que la aplicación cierre. */
+    private static final ExecutorService ejecutor = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "generar-listado");
+        t.setDaemon(true);
+        return t;
+    });
     private final RestTemplate http;
     private final ObjectMapper mapper;
     private final ImagenManualService memoria;
@@ -72,16 +86,44 @@ public class GenerarListadoService {
         // logs no queda rastro de que alguien lo intentó y el problema parece no existir.
         long inicio = System.currentTimeMillis();
         logger.info("Generar listado: {} caracteres con {}", texto.length(), proveedorIa);
+        // Tope duro, en un hilo aparte. Los timeouts del cliente HTTP no alcanzan: cubren la
+        // conexión y la lectura, pero NO la resolución DNS, que en Java no tiene límite. El
+        // 2026-09-14 una llamada a DeepSeek se quedó colgada más de siete minutos sin que saltara
+        // el read timeout de 180 s ni se escribiera un solo error. Esto garantiza que la request
+        // siempre termine y el admin siempre reciba un motivo, pase lo que pase del otro lado.
+        Future<Borrador> tarea = ejecutor.submit(() -> generarCon(texto));
         try {
-            Borrador borrador = generarCon(texto);
+            Borrador borrador = tarea.get(PRESUPUESTO_SEGUNDOS, TimeUnit.SECONDS);
             logger.info("Generar listado: {} artículo(s) en {} s", borrador.articulos().size(),
                     (System.currentTimeMillis() - inicio) / 1000);
             return borrador;
-        } catch (RuntimeException e) {
-            logger.warn("Generar listado: falló después de {} s — {}",
-                    (System.currentTimeMillis() - inicio) / 1000, e.getMessage());
-            throw e;
+        } catch (TimeoutException e) {
+            // cancel(true) interrumpe, pero un hilo trabado en DNS o en un socket no atiende la
+            // interrupción: puede quedar colgado hasta que el sistema operativo lo suelte. Se
+            // abandona a propósito — mejor perder un hilo del pool que la pantalla del admin.
+            tarea.cancel(true);
+            logger.warn("Generar listado: {} no respondió en {} s. Se abandona la llamada.",
+                    proveedorIa, PRESUPUESTO_SEGUNDOS);
+            throw new IllegalStateException(mensajeDemora(nombreProveedor()));
+        } catch (ExecutionException e) {
+            Throwable causa = e.getCause() == null ? e : e.getCause();
+            // El tipo de excepción es lo que dice DÓNDE se rompió. Sin esto vuelve a pasar lo de
+            // ayer: un fallo real llegando como un mensaje genérico imposible de diagnosticar.
+            logger.warn("Generar listado: falló después de {} s — {}: {}",
+                    (System.currentTimeMillis() - inicio) / 1000,
+                    causa.getClass().getSimpleName(), causa.getMessage());
+            if (causa instanceof RuntimeException re) throw re;
+            throw new IllegalStateException(mensajeDemora(nombreProveedor()));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("La generación se interrumpió. Volvé a intentar.");
         }
+    }
+
+    private String nombreProveedor() {
+        if ("openai".equalsIgnoreCase(proveedorIa)) return "OpenAI";
+        if ("deepseek".equalsIgnoreCase(proveedorIa)) return "DeepSeek";
+        return "Anthropic";
     }
 
     private Borrador generarCon(String texto) {
