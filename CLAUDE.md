@@ -75,7 +75,7 @@ cd frontend && npm run dev          # → http://localhost:5173
 ```bash
 mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test
 ```
-(al 2026-09-14: 65 tests, 1 skipped, 0 fallas)
+(al 2026-09-14: 66 tests, 1 skipped, 0 fallas)
 
 ## Prod (Railway)
 | Env var | Descripción |

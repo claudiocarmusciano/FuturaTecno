@@ -176,6 +176,16 @@ class GenerarListadoServiceTest {
         assertTrue(mensaje.contains("specified usage limits"), mensaje);
         server.verify();
     }
+    /** Un timeout tiene que decir "partí el listado", no "revisá la conexión": el proveedor está vivo. */
+    @Test void explicaLaDemoraSinMandarARevisarLaConexion() {
+        usarDeepseek();
+        var server = MockRestServiceServer.bindTo(http).build();
+        server.expect(requestTo("https://api.deepseek.com/chat/completions"))
+                .andRespond(req -> { throw new java.net.SocketTimeoutException("Read timed out"); });
+        String mensaje = assertThrows(IllegalStateException.class, () -> service.generar("ASUS X USD 500")).getMessage();
+        assertTrue(mensaje.contains("DeepSeek"), mensaje);
+        assertTrue(mensaje.contains("partes más chicas"), mensaje);
+    }
     @Test void anthropicExplicaClaveRechazada() {
         ReflectionTestUtils.setField(service,"apiKey","test-key"); ReflectionTestUtils.setField(service,"modelo","test-model");
         var server=MockRestServiceServer.bindTo(http).build();

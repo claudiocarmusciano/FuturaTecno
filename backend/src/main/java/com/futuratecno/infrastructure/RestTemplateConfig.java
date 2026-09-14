@@ -54,9 +54,20 @@ public class RestTemplateConfig {
                 .build();
     }
 
+    /**
+     * Generación de listados. Los 90 s que tenía no alcanzaban: DeepSeek tarda más de minuto y
+     * medio en redactar el JSON de un listado de ~40 artículos, y como el navegador se rendía a
+     * los 100 s el admin recibía una pantalla sin explicación (no llegaba respuesta, así que ni
+     * siquiera se veía el mensaje del servidor).
+     *
+     * <p>El backend tiene que rendirse SIEMPRE antes que el navegador — que espera 240 s — para
+     * que del otro lado llegue un motivo y no un silencio. Ojo: este es un timeout de lectura del
+     * socket, no un presupuesto total, así que el corte del navegador sigue siendo la única
+     * garantía dura si el proveedor manda datos de a poco.
+     */
     @Bean(name = "listadoRestTemplate")
     public RestTemplate listadoRestTemplate(RestTemplateBuilder builder) {
-        return builder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(90)).build();
+        return builder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(180)).build();
     }
 
     /**

@@ -28,7 +28,9 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
         setTexto(entrada)
       }
       setAvisos([]); setArticulos([]); setPagina(0); setProcesados(0); setEtapa('generando')
-      const { data } = await axios.post('/api/admin/carga-json/generar', { texto: entrada }, { signal: abort.signal, timeout: 100000 })
+      // 240 s: más que los 180 s que el backend le da al proveedor de IA, para que cuando algo
+      // falle gane el mensaje del servidor y no este corte, que no puede explicar nada.
+      const { data } = await axios.post('/api/admin/carga-json/generar', { texto: entrada }, { signal: abort.signal, timeout: 240000 })
       const lista = data.articulos
       setArticulos(lista); setAvisos(data.avisos || [])
       setEtapa('imagenes')
@@ -48,7 +50,11 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
         }))
       }
     } catch (e) {
-      if (!abort.signal.aborted) setError(e.response?.data?.error || 'No se pudo generar el listado. Intentá nuevamente.')
+      // Sin respuesta no hay mensaje del servidor que mostrar. Si fue por timeout, repetir el
+      // mismo listado vuelve a fallar: lo accionable es partirlo, no reintentar.
+      if (!abort.signal.aborted) setError(e.response?.data?.error || (e.code === 'ECONNABORTED'
+        ? 'La generación tardó demasiado y se cortó. Dividí el listado en partes más chicas y volvé a generar.'
+        : 'No se pudo generar el listado. Intentá nuevamente.'))
     } finally {
       if (controller.current === abort) { setEtapa(''); controller.current = null }
     }

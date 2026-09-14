@@ -14,6 +14,7 @@ import java.util.*;
 /** Genera un borrador revisable. No persiste productos, proveedores ni imágenes. */
 @Service
 public class GenerarListadoService {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GenerarListadoService.class);
     private final RestTemplate http;
     private final ObjectMapper mapper;
     private final ImagenManualService memoria;
@@ -66,6 +67,24 @@ public class GenerarListadoService {
     public Borrador generar(String texto) {
         if (texto == null || texto.isBlank()) throw new IllegalArgumentException("Pegá el listado de artículos.");
         if (texto.length() > 20000) throw new IllegalArgumentException("El listado supera 20.000 caracteres. Dividilo en partes para revisarlo completo.");
+        // Se loguea el intento, no solo el fallo: cuando el proveedor tarda tanto que el navegador
+        // se rinde primero, el servidor sigue trabajando y no escribe nada. Sin esta línea, en los
+        // logs no queda rastro de que alguien lo intentó y el problema parece no existir.
+        long inicio = System.currentTimeMillis();
+        logger.info("Generar listado: {} caracteres con {}", texto.length(), proveedorIa);
+        try {
+            Borrador borrador = generarCon(texto);
+            logger.info("Generar listado: {} artículo(s) en {} s", borrador.articulos().size(),
+                    (System.currentTimeMillis() - inicio) / 1000);
+            return borrador;
+        } catch (RuntimeException e) {
+            logger.warn("Generar listado: falló después de {} s — {}",
+                    (System.currentTimeMillis() - inicio) / 1000, e.getMessage());
+            throw e;
+        }
+    }
+
+    private Borrador generarCon(String texto) {
         if ("openai".equalsIgnoreCase(proveedorIa)) {
             try { return normalizar(mapper.readTree(solicitarOpenai(INSTRUCCIONES, texto, false))); }
             catch (java.io.IOException e) { throw new IllegalStateException("OpenAI no devolvió un JSON válido. Probá con menos artículos."); }
@@ -85,6 +104,8 @@ public class GenerarListadoService {
                     "messages", List.of(Map.of("role", "user", "content", texto))), headers), JsonNode.class);
         } catch (org.springframework.web.client.HttpStatusCodeException e) {
             throw new IllegalStateException(mensajeErrorAnthropic(e));
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            throw new IllegalStateException(mensajeDemora("Anthropic"));
         }
         if (response == null || !"end_turn".equals(response.path("stop_reason").asText()))
             throw new IllegalStateException("La generación no terminó completa. Probá con un listado más corto.");
@@ -93,6 +114,14 @@ public class GenerarListadoService {
         try { return normalizar(mapper.readTree(content.toString())); }
         catch (IllegalArgumentException e) { throw e; }
         catch (Exception e) { throw new IllegalStateException("No se recibió un borrador válido. Volvé a generar el listado."); }
+    }
+
+    /**
+     * Un timeout no es "revisá la conexión": el proveedor está vivo y contestando, solo que tarda
+     * más que la paciencia configurada. Lo accionable es acortar el listado, no reintentar igual.
+     */
+    private static String mensajeDemora(String proveedor) {
+        return proveedor + " tardó demasiado en responder. Dividí el listado en partes más chicas y volvé a generar.";
     }
 
     /**
@@ -139,6 +168,8 @@ public class GenerarListadoService {
             if ("insufficient_quota".equals(codigo)) throw new IllegalStateException("OpenAI no tiene saldo o cuota de API disponible. Revisá Billing y Limits en platform.openai.com.");
             if (e.getStatusCode().value() == 429) throw new IllegalStateException("OpenAI alcanzó un límite de solicitudes. Esperá un momento antes de reintentar.");
             throw new IllegalStateException("OpenAI rechazó la solicitud (HTTP " + e.getStatusCode().value() + "). Revisá el modelo y los permisos de la clave.");
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            throw new IllegalStateException(mensajeDemora("OpenAI"));
         }
         if (response == null || !"completed".equals(response.path("status").asText()))
             throw new IllegalStateException("OpenAI no terminó la respuesta. Probá con menos artículos.");
@@ -180,6 +211,8 @@ public class GenerarListadoService {
             if (e.getStatusCode().value() == 402) throw new IllegalStateException("DeepSeek no tiene saldo disponible. Revisá tu cuenta en platform.deepseek.com.");
             if (e.getStatusCode().value() == 429) throw new IllegalStateException("DeepSeek alcanzó un límite de solicitudes. Esperá un momento antes de reintentar.");
             throw new IllegalStateException("DeepSeek rechazó la solicitud (HTTP " + e.getStatusCode().value() + "). Revisá el modelo y los permisos de la clave.");
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            throw new IllegalStateException(mensajeDemora("DeepSeek"));
         }
         JsonNode choice = response == null ? null : response.path("choices").path(0);
         if (choice == null || choice.isMissingNode()) throw new IllegalStateException("DeepSeek no devolvió contenido utilizable.");
