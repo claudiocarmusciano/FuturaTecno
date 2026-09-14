@@ -128,11 +128,11 @@ public class GenerarListadoService {
 
     private Borrador generarCon(String texto) {
         if ("openai".equalsIgnoreCase(proveedorIa)) {
-            try { return normalizar(mapper.readTree(solicitarOpenai(INSTRUCCIONES, texto, false))); }
+            try { return normalizar(leerBorrador(solicitarOpenai(INSTRUCCIONES, texto, false))); }
             catch (java.io.IOException e) { throw new IllegalStateException("OpenAI no devolvió un JSON válido. Probá con menos artículos."); }
         }
         if ("deepseek".equalsIgnoreCase(proveedorIa)) {
-            try { return normalizar(mapper.readTree(solicitarDeepseek(INSTRUCCIONES, texto))); }
+            try { return normalizar(leerBorrador(solicitarDeepseek(INSTRUCCIONES, texto))); }
             catch (java.io.IOException e) { throw new IllegalStateException("DeepSeek no devolvió un JSON válido. Probá con menos artículos."); }
         }
         if (apiKey == null || apiKey.isBlank()) throw new IllegalStateException("La generación no está configurada. Falta la clave de IA del servidor.");
@@ -153,9 +153,34 @@ public class GenerarListadoService {
             throw new IllegalStateException("La generación no terminó completa. Probá con un listado más corto.");
         StringBuilder content = new StringBuilder();
         for (JsonNode block : response.path("content")) if ("text".equals(block.path("type").asText())) content.append(block.path("text").asText());
-        try { return normalizar(mapper.readTree(content.toString())); }
+        try { return normalizar(leerBorrador(content.toString())); }
         catch (IllegalArgumentException e) { throw e; }
-        catch (Exception e) { throw new IllegalStateException("No se recibió un borrador válido. Volvé a generar el listado."); }
+        catch (Exception e) {
+            logger.warn("Anthropic devolvió algo que no es JSON. Empieza con: {}",
+                    content.length() > 120 ? content.substring(0, 120) : content);
+            throw new IllegalStateException("No se recibió un borrador válido. Volvé a generar el listado.");
+        }
+    }
+
+    /**
+     * Anthropic envuelve el JSON en un cerco de Markdown (```json … ```) aunque el prompt le pida
+     * lo contrario, porque no tiene un equivalente al `response_format: json_object` que sí se les
+     * manda a OpenAI y DeepSeek. Con los backticks adentro, `readTree` falla y el admin recibía
+     * "No se recibió un borrador válido" sin ninguna pista de por qué.
+     *
+     * <p>Se saca el cerco antes de parsear. Va para los tres proveedores: no cuesta nada y ninguno
+     * garantiza por contrato que no vaya a envolver la respuesta.
+     */
+    JsonNode leerBorrador(String respuesta) throws java.io.IOException {
+        String limpio = respuesta == null ? "" : respuesta.strip();
+        if (limpio.startsWith("```")) {
+            int finApertura = limpio.indexOf('\n');
+            limpio = finApertura < 0 ? "" : limpio.substring(finApertura + 1);
+            int cierre = limpio.lastIndexOf("```");
+            if (cierre >= 0) limpio = limpio.substring(0, cierre);
+            limpio = limpio.strip();
+        }
+        return mapper.readTree(limpio);
     }
 
     /**

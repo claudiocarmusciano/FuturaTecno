@@ -186,6 +186,25 @@ class GenerarListadoServiceTest {
         assertTrue(mensaje.contains("DeepSeek"), mensaje);
         assertTrue(mensaje.contains("partes más chicas"), mensaje);
     }
+    /** Anthropic envuelve el JSON en ```json aunque el prompt le pida que no. Pasó en prod el 14/09. */
+    @Test void aceptaElJsonEnvueltoEnMarkdown() throws Exception {
+        ReflectionTestUtils.setField(service,"apiKey","test-key"); ReflectionTestUtils.setField(service,"modelo","test-model");
+        var server=MockRestServiceServer.bindTo(http).build();
+        String conCerco = "```json\n{\"articulos\":[{\"marca\":\"Canon\",\"modelo\":\"HFG70\",\"precio_usd\":1330}]}\n```";
+        String answer = mapper.writeValueAsString(java.util.Map.of("stop_reason","end_turn",
+                "content",List.of(java.util.Map.of("type","text","text",conCerco))));
+        server.expect(requestTo("https://api.anthropic.com/v1/messages")).andRespond(withSuccess(answer,MediaType.APPLICATION_JSON));
+        var borrador = service.generar("CANON HFG70 VIXIA UHD 4K USD 1.330");
+        assertEquals(1, borrador.articulos().size());
+        assertEquals("Canon", borrador.articulos().getFirst().get("marca"));
+        server.verify();
+    }
+    @Test void elCercoDeMarkdownEsOpcional() throws Exception {
+        assertEquals(1, service.leerBorrador("{\"articulos\":[1]}").path("articulos").size());
+        assertEquals(1, service.leerBorrador("```json\n{\"articulos\":[1]}\n```").path("articulos").size());
+        assertEquals(1, service.leerBorrador("```\n{\"articulos\":[1]}\n```").path("articulos").size());
+        assertEquals(1, service.leerBorrador("  ```json\n{\"articulos\":[1]}\n```  ").path("articulos").size());
+    }
     @Test void anthropicExplicaClaveRechazada() {
         ReflectionTestUtils.setField(service,"apiKey","test-key"); ReflectionTestUtils.setField(service,"modelo","test-model");
         var server=MockRestServiceServer.bindTo(http).build();
