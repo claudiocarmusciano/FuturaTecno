@@ -84,7 +84,7 @@ class CargaJsonAtributosManualTest {
                 .thenReturn(inicial.getCategoriaId() == null && inicial.getPesoGramos() == null
                         ? Optional.empty() : Optional.of(inicial));
         when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
-        when(variantes.findByProductoIdAndEspecificaciones(anyLong(), anyString())).thenReturn(Optional.empty());
+        when(variantes.findByProductoIdAndActivo(anyLong(), anyBoolean())).thenReturn(List.of());
 
         var service = new CargaJsonService(mock(ImagenManualService.class),
                 mock(DescripcionManualService.class), atributos,

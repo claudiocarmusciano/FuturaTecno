@@ -49,7 +49,7 @@ class CargaJsonDescripcionManualTest {
         when(productos.findByProveedorIdAndMarcaAndModelo(2L, "DJI", "Nano 64GB")).thenReturn(Optional.empty());
         when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
         when(descripciones.buscar("DJI", "Nano 64GB")).thenReturn(recordada);
-        when(variantes.findByProductoIdAndEspecificaciones(anyLong(), anyString())).thenReturn(Optional.empty());
+        when(variantes.findByProductoIdAndActivo(anyLong(), anyBoolean())).thenReturn(List.of());
 
         var service = new CargaJsonService(mock(ImagenManualService.class), descripciones,
                 mock(AtributosManualService.class), productos, variantes, proveedores, mock(ImagenRepository.class),

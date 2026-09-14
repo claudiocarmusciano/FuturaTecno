@@ -10,12 +10,13 @@
 ## Arquitectura no obvia
 - **Frontend embebido en el jar:** Vite buildea a `backend/src/main/resources/static/` → mismo origen que el backend → sin CORS. El `Dockerfile` hace el build del frontend primero.
 - **Sin Lombok:** se rompió bajo Java 25 durante el desarrollo → getters/setters explícitos en todas las entidades. No agregar Lombok.
-- **Flyway activo (`ddl-auto=validate`):** las migraciones van en `backend/src/main/resources/db/migration/` (ya hay **V1–V34**; la próxima libre es **V35**). Cualquier cambio de schema necesita un archivo nuevo. **No cambiar a `ddl-auto=update`.**
+- **Flyway activo (`ddl-auto=validate`):** las migraciones van en `backend/src/main/resources/db/migration/` (ya hay **V1–V35**; la próxima libre es **V36**). Cualquier cambio de schema necesita un archivo nuevo. **No cambiar a `ddl-auto=update`.**
 - **Fórmula de precios:** `(costo USD) × (1 + flete%) × (1 + margen%)` — el flete es **porcentaje por proveedor**, no monto fijo. Defaults: flete 5%, margen 15%.
 - **Soft delete:** `activo=false` en `Producto` y `Variante`. Nunca borrar físicamente.
 - **Imagen por PRODUCTO** (no por variante): `Producto.imagenUrl`. Una sola imagen por producto independientemente de cuántas variantes tenga.
 - **MercadoLibre bloquea scraping server-side** → cualquier request no-browser devuelve 302 a "suspicious-traffic". Las imágenes ML no se pueden auto-obtener. Flujo manual: Admin → Imágenes → "🔍 Buscar" abre Google Images → el usuario copia la URL de la imagen → la pega → preview → Guardar.
 - **Búsqueda de imágenes: hay DOS caminos distintos y no hacen lo mismo.** Admin → Imágenes (`ProductoAdminService#buscarImagenesFaltantes`) recorre una cascada de cuatro fuentes: **Icecat → Google CSE → DuckDuckGo → Anthropic**. El panel Cargar JSON (`GenerarListadoService#imagen`) consulta **una sola**: Anthropic, u OpenAI si `CATALOGO_IA_PROVIDER=openai`. **DeepSeek no tiene búsqueda web alojada**, así que con el proveedor actual el generador cae igual en Anthropic. Estado al 2026-09-13: **el generador no encuentra ninguna imagen** — Anthropic sin cuota (400), OpenAI sin créditos (429), Icecat y Google sin variables en Railway, DuckDuckGo sin credenciales pero rechazó la prueba desde la Mac (no probado desde Railway). Unificar el generador con la cascada de cuatro es la forma de arreglarlo **sin depender de cuotas**.
+- **Un producto cargado por JSON tiene UNA sola variante (V35).** La capacidad, el color y la versión SIM/eSIM viajan **dentro del modelo** (`iPhone 17 Pro 256GB eSIM`), porque así se lo pedimos a la IA en el prompt de `GenerarListadoService`. O sea que `Variante.especificaciones` en esta vía es una **descripción**, no algo que distinga: nunca usarla como clave de búsqueda. Se hizo, y el resultado fue que cada vez que la IA redactaba distinto (`256GB · Versión eSIM` vs `256GB · eSIM`) nacía una variante nueva en lugar de actualizarse el precio — 23 productos con el mismo teléfono ofrecido dos veces a precios distintos. Como el precio del pedido **se congela al confirmar**, el cliente elegía la barata (la vieja) y se vendía por debajo del costo del día: hasta US$ 111 en un iPhone 17 Pro 512GB. Elit e Invid importan por otro camino y ahí las variantes múltiples **sí** son reales.
 - **Memoria por marca+modelo (V31–V34):** cuatro tablas con la misma clave (`marca`, `modelo` normalizados a minúsculas y espacios colapsados) para que el trabajo manual sobreviva a un reimport y se comparta entre proveedores: `imagenes_manuales` (V31), `imagenes_automaticas` (V32), `descripciones_manuales` (V33) y `atributos_manuales` (V34: categoría + peso/dimensiones). Dos detalles que no se deducen del código:
   - **La "descripción" es `Variante.especificaciones`** — no existe columna `descripcion` en `Producto`.
   - **V33 EXCLUYE Elit/Invid** a propósito (reescriben su ficha en cada sync, recordarla taparía la descripción propia); **V34 los INCLUYE**, porque ningún mayorista trae peso ni dimensiones y una medida real es cierta venga de donde venga. V34 además **solo rellena huecos**, nunca pisa un dato cargado.
@@ -72,7 +73,7 @@ cd frontend && npm run dev          # → http://localhost:5173
 ```bash
 mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test
 ```
-(al 2026-09-13: 56 tests, 1 skipped, 0 fallas)
+(al 2026-09-13: 59 tests, 1 skipped, 0 fallas)
 
 ## Prod (Railway)
 | Env var | Descripción |

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -127,15 +128,23 @@ public class CargaJsonService {
             // ya la corrigió, un reimport no debe pisarla con el texto crudo del proveedor.
             String especificaciones = descripcionManualService.buscar(marca, modelo)
                     .orElseGet(() -> construirEspecificaciones(art));
-            Variante variante = varianteRepository
-                    .findByProductoIdAndEspecificaciones(prod.getId(), especificaciones)
+            // Un producto cargado por JSON tiene UNA sola variante: la capacidad, el color y la
+            // versión SIM/eSIM viajan dentro del modelo ("iPhone 17 Pro 256GB eSIM"), así que las
+            // especificaciones son una descripción y no algo que distinga. Buscar la variante por
+            // ese texto creaba una fila nueva cada vez que la IA lo redactaba distinto ("256GB ·
+            // Versión eSIM" vs "256GB · eSIM") en lugar de actualizar el precio, y el catálogo
+            // terminaba ofreciendo el mismo teléfono dos veces a precios distintos (ver V35).
+            // Ante varias activas gana la tocada más recientemente, mismo criterio que la V35.
+            Variante variante = varianteRepository.findByProductoIdAndActivo(prod.getId(), true).stream()
+                    .max(Comparator.comparing(Variante::getUpdatedAt, Comparator.nullsFirst(Comparator.naturalOrder()))
+                            .thenComparing(Variante::getId, Comparator.nullsFirst(Comparator.naturalOrder())))
                     .orElseGet(() -> {
                         Variante v = new Variante();
                         v.setProducto(prod);
-                        v.setEspecificaciones(especificaciones);
                         v.setStock(0);
                         return v;
                     });
+            variante.setEspecificaciones(especificaciones);
             variante.setCostoUsd(precio.setScale(2, RoundingMode.HALF_UP));
             variante.setMonedaOrigen("USD");
             variante.setPrecioOrigen(precio);
