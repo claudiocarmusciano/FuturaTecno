@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Carga manual de productos a partir de un JSON (sección admin "Cargar artículos por JSON").
@@ -103,9 +104,16 @@ public class CargaJsonService {
             producto.setActivo(true);
             producto.setCategoria(limpiar(art.getCategoria()));
 
-            List<String> imagenes = imagenManualService.buscar(marca, modelo)
-                    .map(List::of).orElseGet(() -> imagenesLimpias(art.getImagenes()));
-            if (!imagenes.isEmpty()) producto.setImagenUrl(imagenes.get(0));
+            Optional<String> recordada = imagenManualService.buscar(marca, modelo);
+            List<String> imagenes = recordada.map(List::of).orElseGet(() -> imagenesLimpias(art.getImagenes()));
+            if (!imagenes.isEmpty()) {
+                producto.setImagenUrl(imagenes.get(0));
+                // Una imagen nueva se recuerda para que el próximo listado con este marca+modelo no
+                // vuelva a pagar una búsqueda. Entra como automática: con ON CONFLICT DO NOTHING
+                // jamás pisa una que el admin haya elegido a mano. Si ya venía de la memoria no se
+                // reescribe, sería un INSERT por artículo que no cambia nada.
+                if (recordada.isEmpty()) imagenManualService.guardarAutomatica(marca, modelo, imagenes.get(0));
+            }
 
             // Categoría y medidas ya resueltas para este marca+modelo, aunque haya sido con otro
             // proveedor. Solo rellena huecos: lo que la fila ya tenga cargado manda.
