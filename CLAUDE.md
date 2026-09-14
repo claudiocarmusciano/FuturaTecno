@@ -20,6 +20,8 @@
 - **Memoria por marca+modelo (V31–V34):** cuatro tablas con la misma clave (`marca`, `modelo` normalizados a minúsculas y espacios colapsados) para que el trabajo manual sobreviva a un reimport y se comparta entre proveedores: `imagenes_manuales` (V31), `imagenes_automaticas` (V32), `descripciones_manuales` (V33) y `atributos_manuales` (V34: categoría + peso/dimensiones). Dos detalles que no se deducen del código:
   - **La "descripción" es `Variante.especificaciones`** — no existe columna `descripcion` en `Producto`.
   - **V33 EXCLUYE Elit/Invid** a propósito (reescriben su ficha en cada sync, recordarla taparía la descripción propia); **V34 los INCLUYE**, porque ningún mayorista trae peso ni dimensiones y una medida real es cierta venga de donde venga. V34 además **solo rellena huecos**, nunca pisa un dato cargado.
+- **Depurar catálogo (Admin → Depurar catálogo).** Saca de la tienda lo que no se actualiza hace N días (default 3). El criterio es la **última actualización** (la más reciente entre el producto y sus variantes, la misma que el catálogo muestra como "Actualizado"), no la fecha de alta: como la sync corre en modo "solo existentes", que un producto se quede viejo significa que **el mayorista dejó de ofrecerlo**. Ojo con eso: si la sync se corta tres días, el catálogo entero aparece vencido — por eso la pantalla avisa cuando hay Elit/Invid en la lista. `GET /vencidos` es solo lectura y la baja va por `dar-de-baja` **con los ids que confirmó el admin**, nunca con el criterio, para que no se dé de baja algo que no estaba en la vista previa.
+- **Dar de baja NO pierde el trabajo manual.** Toda baja (individual, masiva o por depuración) pasa antes por `recordarParaFuturasAltas`: imagen → `imagenes_automaticas` (así no pisa una elegida a mano), categoría y medidas → `atributos_manuales`, descripción → `descripciones_manuales` salvo Elit/Invid. Como la memoria es por marca+modelo, un alta futura recupera todo aunque venga de otro proveedor y cree una fila nueva.
 - **Sincronización automática diaria:** `SincronizacionScheduler` a las 06:30 AR (configurable con `SYNC_CRON`). Modo "solo existentes": actualiza precio/stock de productos ya importados, no crea nuevos.
 - **Mayoristas modulares:** cada distribuidor tiene su propio `ApiClient` + `ImportService` + `Controller`. Elit y Invid conviven sin pisarse. Dedup por `codigo_externo` + `fuente`.
 - **Railway bloquea la salida SMTP** (puertos 25/465/587, política antispam) → los mails **no** pueden ir por SMTP. Un intento contra `smtp.gmail.com` no falla con error de credenciales: cuelga y muere en `ConnectException: Connection timed out`, porque nunca llega a autenticar. Por eso `EmailService` manda por la **API HTTP de Resend** (443). Cualquier integración saliente nueva: verificar que no dependa de un puerto no-HTTP.
@@ -73,7 +75,7 @@ cd frontend && npm run dev          # → http://localhost:5173
 ```bash
 mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test
 ```
-(al 2026-09-13: 59 tests, 1 skipped, 0 fallas)
+(al 2026-09-14: 65 tests, 1 skipped, 0 fallas)
 
 ## Prod (Railway)
 | Env var | Descripción |

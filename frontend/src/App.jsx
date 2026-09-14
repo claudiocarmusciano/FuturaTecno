@@ -11,6 +11,7 @@ import CargarJsonPage from './pages/admin/CargarJsonPage'
 import UsuariosPage from './pages/admin/UsuariosPage'
 import PedidosPage from './pages/admin/PedidosPage'
 import CategoriasPage from './pages/admin/CategoriasPage'
+import DepurarPage from './pages/admin/DepurarPage'
 import PromocionesPage from './pages/admin/PromocionesPage'
 import CatalogPage from './pages/public/CatalogPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
@@ -72,6 +73,7 @@ function App() {
           <Route path="pedidos" element={<PedidosPage />} />
           <Route path="productos" element={<ProductosPage />} />
           <Route path="categorias" element={<CategoriasPage />} />
+          <Route path="depurar" element={<DepurarPage />} />
           <Route path="imagenes" element={<ImagesPage />} />
           <Route path="promociones" element={<PromocionesPage />} />
           <Route path="usuarios" element={<UsuariosPage />} />

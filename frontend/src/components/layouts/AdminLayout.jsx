@@ -40,6 +40,7 @@ function AdminLayout() {
           <Link to="/admin/cargar-json" className={`nav-link ${isActive('/admin/cargar-json')}`}>Cargar por JSON</Link>
           <Link to="/admin/productos" className={`nav-link ${isActive('/admin/productos')}`}>Productos</Link>
           <Link to="/admin/categorias" className={`nav-link ${isActive('/admin/categorias')}`}>Categorías</Link>
+          <Link to="/admin/depurar" className={`nav-link ${isActive('/admin/depurar')}`}>Depurar catálogo</Link>
           <Link to="/admin/imagenes" className={`nav-link ${isActive('/admin/imagenes')}`}>Imágenes</Link>
           <Link to="/admin/promociones" className={`nav-link ${isActive('/admin/promociones')}`}>Carrousel</Link>
           <Link to="/admin/usuarios" className={`nav-link ${isActive('/admin/usuarios')}`}>Usuarios</Link>

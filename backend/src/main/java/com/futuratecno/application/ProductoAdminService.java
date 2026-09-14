@@ -138,18 +138,61 @@ public class ProductoAdminService {
         return ultima;
     }
 
+    /**
+     * Productos publicados que la sincronización no toca hace más de {@code dias}. En la práctica
+     * son artículos que el mayorista dejó de ofrecer: la sync corre en modo "solo existentes", así
+     * que lo que desapareció del feed se queda con el precio y el stock del último día que apareció.
+     * Ordenados del más viejo al más nuevo, que es el orden en que conviene revisarlos.
+     */
+    @Transactional(readOnly = true)
+    public List<ProductoAdminDTO> listarVencidos(int dias) {
+        LocalDateTime corte = LocalDateTime.now().minusDays(Math.max(dias, 1));
+        return listar().stream()
+                .filter(d -> d.getUltimaActualizacion() != null && d.getUltimaActualizacion().isBefore(corte))
+                .sorted(Comparator.comparing(ProductoAdminDTO::getUltimaActualizacion))
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void eliminar(Long productoId) {
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
+        recordarParaFuturasAltas(producto);
         producto.setActivo(false);
         productoRepository.save(producto);
+    }
+
+    /**
+     * Antes de sacar un producto del catálogo se guarda por marca+modelo lo que costó trabajo
+     * conseguir: la imagen, la categoría y las medidas. La fila queda igual (baja lógica), pero la
+     * memoria es lo que hace que una futura alta —incluso desde OTRO proveedor, que crearía una
+     * fila nueva— recupere todo sin volver a cargarlo a mano.
+     *
+     * <p>Cada dato va a la tabla que le corresponde y con la regla de esa tabla: la imagen entra
+     * como automática, así que nunca pisa una que el admin haya elegido a mano (V32); la categoría
+     * y las medidas incluyen a los mayoristas, porque ninguno trae peso ni dimensiones (V34); y la
+     * descripción se saltea para Elit e Invid, que reescriben su ficha en cada sync (V33).
+     */
+    private void recordarParaFuturasAltas(Producto p) {
+        if (p == null) return;
+        atributosManualService.recordar(p);
+        if (p.getImagenUrl() != null && !p.getImagenUrl().isBlank()) {
+            imagenManualService.guardarAutomatica(p.getMarca(), p.getModelo(), p.getImagenUrl());
+        }
+        if (!DescripcionManualService.esDeMayorista(p.getFuente())) {
+            varianteRepository.findByProductoIdAndActivo(p.getId(), true).stream()
+                    .map(Variante::getEspecificaciones)
+                    .filter(e -> e != null && !e.isBlank())
+                    .findFirst()
+                    .ifPresent(e -> descripcionManualService.guardar(p.getMarca(), p.getModelo(), e));
+        }
     }
 
     /** Da de baja varios productos sin borrarlos físicamente. */
     @Transactional
     public int eliminarMasivamente(List<Long> ids) {
         if (ids == null || ids.isEmpty()) return 0;
+        productoRepository.findAllById(ids).forEach(this::recordarParaFuturasAltas);
         return productoRepository.desactivarPorIds(ids);
     }
 

@@ -68,6 +68,18 @@ public class ProductoAdminController {
         return ResponseEntity.ok(Map.of("actualizados", n, "mensaje", "Categoría asignada a " + n + " producto(s)."));
     }
 
+    /**
+     * Vista previa de la depuración: qué se sacaría del catálogo por no actualizarse hace `dias`.
+     * Es solo lectura a propósito — el borrado va por /dar-de-baja con los ids que el admin confirme,
+     * nunca por el criterio, para que nada dependa de que el listado no haya cambiado entremedio.
+     */
+    @GetMapping("/vencidos")
+    public ResponseEntity<?> vencidos(@RequestParam(defaultValue = "3") int dias) {
+        if (dias < 1) return ResponseEntity.badRequest().body(Map.of("error", "El mínimo es 1 día."));
+        var productos = productoAdminService.listarVencidos(dias);
+        return ResponseEntity.ok(Map.of("dias", dias, "total", productos.size(), "productos", productos));
+    }
+
     @PostMapping("/dar-de-baja")
     public ResponseEntity<?> darDeBaja(@RequestBody IdsRequest req) {
         int n = productoAdminService.eliminarMasivamente(req.getIds());
