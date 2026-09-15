@@ -40,6 +40,31 @@ class CargaJsonImagenManualTest {
         cargarCon(memoria, Optional.of("https://manual/image.jpg"), List.of());
         verify(memoria, never()).guardarAutomatica(anyString(), anyString(), anyString());
     }
+    /**
+     * La clave suelta absorbe cómo redactó la IA el modelo esta vez, sin perder lo que distingue.
+     * Tiene que dar exactamente lo mismo que la columna generada productos.clave_suelta (V37).
+     */
+    @Test void laClaveSueltaIgnoraLaRedaccionPeroNoLaCapacidad() {
+        String esperada = "appleiphone17pro256gbesim";
+        assertEquals(esperada, ImagenManualService.clave("Apple", "iPhone 17 Pro 256GB eSIM"));
+        assertEquals(esperada, ImagenManualService.clave("Apple", "iPhone 17 Pro 256 GB (eSIM)"));
+        assertEquals(esperada, ImagenManualService.clave("apple", "iphone 17 pro 256gb e-SIM"));
+        assertEquals(esperada, ImagenManualService.clave("Apple", "  iPhone 17 Pro 256GB eSIM  "));
+
+        assertNotEquals(esperada, ImagenManualService.clave("Apple", "iPhone 17 Pro 512GB eSIM"));
+        assertNotEquals(esperada, ImagenManualService.clave("Apple", "iPhone 17 Pro 256GB SIM"));
+        assertNotEquals(ImagenManualService.clave("DJI", "Mic Mini White"),
+                        ImagenManualService.clave("DJI", "Mic Mini Black"));
+        assertNotEquals(ImagenManualService.clave("DJI", "Mini 5 Pro"),
+                        ImagenManualService.clave("DJI", "Mini 5 Pro Plus"));
+    }
+
+    /** La IA repite la marca en el modelo unas veces sí y otras no: las dos formas son la misma. */
+    @Test void laMarcaRepetidaEnElModeloNoCambiaLaClave() {
+        assertEquals(ImagenManualService.clave("Apple", "Apple Pencil Pro"),
+                     ImagenManualService.clave("Apple", "Pencil Pro"));
+    }
+
     @Test void normalizacionConservaVariantes() {
         assertEquals("mic mini white", ImagenManualService.normalizar(" MIC  MINI White "));
         assertNotEquals(ImagenManualService.normalizar("Mic Mini White"), ImagenManualService.normalizar("Mic Mini Black"));
