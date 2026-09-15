@@ -38,7 +38,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* La home es la tienda. El sorteo tiene su propia ruta: sigue con inscripción abierta
-            hasta el 30/09/2026 y completar sus pasos es condición para participar, así que se
+            hasta el 30/10/2026 y completar sus pasos es condición para participar, así que se
             entra por el banner de la landing o por link directo. */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/sorteo" element={<PreLandingPage />} />

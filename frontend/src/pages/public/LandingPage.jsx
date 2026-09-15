@@ -86,8 +86,10 @@ function LandingPage() {
     navigate('/')
   }
 
-  // Según las bases publicadas, la inscripción al sorteo cierra el 30/09/2026.
-  const inscripcionSorteoAbierta = Date.now() < new Date('2026-10-01T00:00:00-03:00').getTime()
+  // Según las bases publicadas, la inscripción al sorteo cierra el 30/10/2026 a las 23:59.
+  // El límite es el instante siguiente, no el día del cierre: si fuera 2026-10-30T00:00 el
+  // banner se apagaría el mismo día que la inscripción todavía está abierta.
+  const inscripcionSorteoAbierta = Date.now() < new Date('2026-10-31T00:00:00-03:00').getTime()
 
   useEffect(() => {
     axios.get('/api/productos').then(r => setProductos(r.data)).catch(() => {})

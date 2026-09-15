@@ -66,7 +66,7 @@ function PreLandingPage() {
       <span className="prelanding-badge"><span /> Sorteo de bienvenida</span>
       <h1>Tu próximo upgrade <strong>puede empezar hoy.</strong></h1>
       <p className="prelanding-lead">Registrate una sola vez, completá los pasos y participá por una silla gamer ergonómica.</p>
-      <details className="prelanding-schedule"><summary>Fechas y condiciones del sorteo</summary><div><span>Inscripción hasta el 30/09/2026 a las 23:59 h.</span><span>El sorteo se realizará al alcanzar 1.000 seguidores en Instagram o, como máximo, el 31/10/2026.</span><span><strong>Beneficio especial:</strong> si te registraste hasta el 31/08/2026, tenés doble chance.</span></div></details>
+      <details className="prelanding-schedule"><summary>Fechas y condiciones del sorteo</summary><div><span>Inscripción hasta el 30/10/2026 a las 23:59 h.</span><span>El sorteo se realizará al alcanzar 1.000 seguidores en Instagram o, como máximo, el 31/10/2026.</span><span><strong>Beneficio especial:</strong> si te registraste hasta el 31/08/2026, tenés doble chance.</span></div></details>
       <div className="prelanding-stepper" aria-label="Pasos para participar"><span>Participá en 3 pasos</span><div>{[1, 2, 3].map(paso => <button type="button" key={paso} className={pasoVisible === paso ? 'activo' : ''} onClick={() => setPasoVisible(paso)} aria-label={`Ver paso ${paso}`}>{paso}</button>)}</div></div>
       <ol className="prelanding-steps">
         {pasoVisible === 1 && <li className={pasoUno ? 'completo' : ''}><span className="prelanding-step-number">1</span><div><b>{pasoUno ? 'Email activado.' : 'Registrate con tu número de WhatsApp.'}</b><small>{pasoUno ? 'Tu cuenta ya está confirmada.' : 'Te enviaremos un botón de activación por email.'}</small>
