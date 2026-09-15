@@ -89,7 +89,7 @@ class CargaJsonAtributosManualTest {
         var service = new CargaJsonService(mock(ImagenManualService.class),
                 mock(DescripcionManualService.class), atributos,
                 productos, variantes, proveedores, mock(ImagenRepository.class),
-                clasificador, mock(CategoriaService.class));
+                clasificador, mock(CategoriaService.class), mock(ImageUrlValidatorService.class));
 
         var art = new ArticuloJsonDTO();
         art.setMarca("DJI");

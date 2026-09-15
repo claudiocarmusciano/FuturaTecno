@@ -31,7 +31,7 @@ class CargaJsonProductoUnicoTest {
     private final CargaJsonService service = new CargaJsonService(mock(ImagenManualService.class),
             mock(DescripcionManualService.class), mock(AtributosManualService.class),
             productos, variantes, proveedores, mock(ImagenRepository.class),
-            mock(CategoriaClasificadorService.class), mock(CategoriaService.class));
+            mock(CategoriaClasificadorService.class), mock(CategoriaService.class), mock(ImageUrlValidatorService.class));
 
     private Producto existente(String modelo) {
         Producto p = new Producto();

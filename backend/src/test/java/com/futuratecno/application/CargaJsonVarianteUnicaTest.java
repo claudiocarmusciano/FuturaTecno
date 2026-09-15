@@ -82,7 +82,7 @@ class CargaJsonVarianteUnicaTest {
         var service = new CargaJsonService(mock(ImagenManualService.class),
                 mock(DescripcionManualService.class), mock(AtributosManualService.class),
                 productos, variantes, proveedores, mock(ImagenRepository.class),
-                mock(CategoriaClasificadorService.class), mock(CategoriaService.class));
+                mock(CategoriaClasificadorService.class), mock(CategoriaService.class), mock(ImageUrlValidatorService.class));
 
         var art = new ArticuloJsonDTO();
         art.setMarca("Apple");

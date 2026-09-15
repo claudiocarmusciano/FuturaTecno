@@ -177,7 +177,9 @@ function CargarJsonPage() {
                 {resultado.items.map((it, i) => (
                   <tr key={i}>
                     <td>{it.producto}</td>
-                    <td>{it.estado === 'omitido' ? `omitido — ${it.motivo}` : it.estado}</td>
+                    {/* El motivo ya no es solo de los omitidos: un artículo que se creó bien puede
+                        traer un aviso, como que su imagen no respondía y quedó sin foto. */}
+                    <td>{it.motivo ? `${it.estado} — ${it.motivo}` : it.estado}</td>
                     <td>{it.categoria || (it.estado === 'omitido' ? '—' : <span style={{ color: '#f0b429' }}>sin categoría (asignar a mano)</span>)}</td>
                   </tr>
                 ))}

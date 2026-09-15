@@ -48,6 +48,7 @@ public class CargaJsonService {
     private final ImagenRepository imagenRepository;
     private final CategoriaClasificadorService categoriaClasificadorService;
     private final CategoriaService categoriaService;
+    private final ImageUrlValidatorService imageUrlValidatorService;
 
     public CargaJsonService(ImagenManualService imagenManualService,
                             DescripcionManualService descripcionManualService,
@@ -57,7 +58,8 @@ public class CargaJsonService {
                             ProveedorRepository proveedorRepository,
                             ImagenRepository imagenRepository,
                             CategoriaClasificadorService categoriaClasificadorService,
-                            CategoriaService categoriaService) {
+                            CategoriaService categoriaService,
+                            ImageUrlValidatorService imageUrlValidatorService) {
         this.imagenManualService = imagenManualService;
         this.descripcionManualService = descripcionManualService;
         this.atributosManualService = atributosManualService;
@@ -67,6 +69,7 @@ public class CargaJsonService {
         this.imagenRepository = imagenRepository;
         this.categoriaClasificadorService = categoriaClasificadorService;
         this.categoriaService = categoriaService;
+        this.imageUrlValidatorService = imageUrlValidatorService;
     }
 
     @Transactional
@@ -115,7 +118,16 @@ public class CargaJsonService {
             producto.setCategoria(limpiar(art.getCategoria()));
 
             Optional<String> recordada = imagenManualService.buscar(marca, modelo);
-            List<String> imagenes = recordada.map(List::of).orElseGet(() -> imagenesLimpias(art.getImagenes()));
+            // Las URLs del JSON solo entran si la base no tenía nada, y recién ahí se verifica que
+            // estén vivas: hasta ahora alcanzaba con que empezaran por "http". Una URL muerta no
+            // solo publicaba el producto con la foto rota — además se guardaba como imagen
+            // automática y se reusaba en cada carga futura de ese marca+modelo, así que el error
+            // de un día se volvía permanente. Si no valida, el producto queda SIN imagen y aparece
+            // en Admin → Imágenes para resolverlo ahí.
+            List<String> delJson = recordada.isEmpty() ? imagenesLimpias(art.getImagenes()) : List.of();
+            List<String> vivas = soloVivas(delJson);
+            boolean fotoRota = vivas.isEmpty() && !delJson.isEmpty();
+            List<String> imagenes = recordada.map(List::of).orElse(vivas);
             if (!imagenes.isEmpty()) {
                 producto.setImagenUrl(imagenes.get(0));
                 // Una imagen nueva se recuerda para que el próximo listado con este marca+modelo no
@@ -187,7 +199,8 @@ public class CargaJsonService {
             if (categoriaPath == null) sinCategoria++;
             if (nuevo) creados++; else actualizados++;
             res.getItems().add(new CargaJsonResponse.Item(
-                    marca + " " + modelo, nuevo ? "creado" : "actualizado", categoriaPath, null));
+                    marca + " " + modelo, nuevo ? "creado" : "actualizado", categoriaPath,
+                    fotoRota ? "La imagen del JSON no responde. Quedó sin foto: cargala desde Admin → Imágenes." : null));
         }
 
         res.setCreados(creados);
@@ -237,6 +250,22 @@ public class CargaJsonService {
         }
         String texto = String.join(" · ", partes);
         return texto.length() > 500 ? texto.substring(0, 500) : texto;
+    }
+
+    /**
+     * Descarta las URLs que no devuelven una imagen de verdad: 404, HTML disfrazado, host caído.
+     * Solo se llama cuando la imagen va a usarse (la base no tenía nada), así que en una recarga
+     * de un listado ya cargado no dispara ni una sola petición. El validador pide únicamente los
+     * primeros 1.024 bytes y corta a los 3 s de conexión y 5 s de lectura.
+     */
+    private List<String> soloVivas(List<String> urls) {
+        if (urls.isEmpty()) return List.of();
+        List<String> vivas = new ArrayList<>();
+        for (String url : urls) {
+            if (imageUrlValidatorService.esImagenDirecta(url)) vivas.add(url);
+            else logger.info("Imagen descartada, no responde como imagen: {}", url);
+        }
+        return vivas;
     }
 
     private List<String> imagenesLimpias(List<String> imagenes) {
