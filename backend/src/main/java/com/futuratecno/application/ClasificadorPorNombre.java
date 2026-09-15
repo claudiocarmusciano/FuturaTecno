@@ -117,6 +117,9 @@ public class ClasificadorPorNombre {
                 + " " + (producto.getModelo() == null ? "" : producto.getModelo()));
         if (encabezado.isBlank()) return null;
 
+        String porApple = resolverApple(producto.getMarca(), encabezado, completo);
+        if (porApple != null) return porApple;
+
         String porSubtipo = resolverSubtipo(encabezado, completo);
         if (porSubtipo != null) return porSubtipo;
 
@@ -124,6 +127,42 @@ public class ClasificadorPorNombre {
             if (regla.patron().matcher(encabezado).find()) return regla.path();
         }
         return null;
+    }
+
+    /**
+     * Apple tiene árbol propio y va ANTES que todo lo demás: si no, un MacBook cae en
+     * "Notebooks > Consumo", un iMac también (y ni siquiera es una notebook), un iPhone en
+     * "Celulares" y un Magic Mouse en "Periféricos > Mouse". Al 2026-09-15 eran 107 de 263
+     * productos Apple desparramados fuera de su árbol.
+     *
+     * <p>Solo aplica a la MARCA Apple. Una funda de otra marca para iPhone no es un producto Apple
+     * y no debe entrar acá.
+     *
+     * <p>El orden importa y es al revés de lo intuitivo: los accesorios van primero porque casi
+     * todos nombran al aparato al que acompañan — "Magic Keyboard for iPad" es un accesorio, no
+     * un iPad, y "Funda iPhone" tampoco es un teléfono.
+     *
+     * <p>Lo que no matchea con nada cae en "Apple > Accesorios" en lugar de quedar sin categoría.
+     * Es a propósito y es la excepción a la regla general de este clasificador: un producto sin
+     * categoría no resuelve el peso, y `EnvioService` corta la cotización del carrito ENTERO si un
+     * solo ítem no tiene medidas. Un Apple que no es teléfono, tablet, notebook, reloj ni auricular
+     * es casi siempre un accesorio chico, así que el default acierta mucho más de lo que erra —
+     * y cuando erra se corrige en Admin → Productos.
+     */
+    private String resolverApple(String marca, String cab, String full) {
+        if (!"apple".equals(normalizar(marca))) return null;
+        if (contiene(cab, "keyboard|teclado|mouse|trackpad|folio|smart cover"
+                + "|apple pencil|\\bpencil\\b|air ?tag"
+                + "|funda|\\bcase\\b|carcasa|correa|\\bstrap\\b|\\bcable\\b|adaptador|cargador"
+                + "|\\bfuente\\b|soporte|\\bdock\\b")) return "Apple > Accesorios";
+        if (contiene(cab, "air ?pods?|ear ?pods?")) return "Apple > AirPods";
+        if (contiene(cab, "\\bwatch\\b")) return "Apple > Watch";
+        if (contiene(cab, "mac ?book")) return "Apple > MacBook";
+        if (contiene(cab, "\\bimac\\b|mac ?mini|mac ?studio|mac ?pro|\\bmac\\b")) return "Apple > Mac";
+        if (contiene(cab, "\\biphone\\b")) return "Apple > iPhone";
+        if (contiene(cab, "\\bipad\\b")) return "Apple > iPad";
+        if (contiene(cab, "display|monitor")) return "Apple > Monitores";
+        return "Apple > Accesorios";
     }
 
     /**

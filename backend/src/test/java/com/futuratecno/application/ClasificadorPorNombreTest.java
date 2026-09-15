@@ -108,4 +108,42 @@ class ClasificadorPorNombreTest {
         assertNull(clasificar(null, null));
         assertNull(clasificar("ACME", ""));
     }
+
+    /** Casos reales del catálogo que estaban repartidos por el árbol genérico. */
+    @org.junit.jupiter.api.Test
+    void todoApplecaeEnSuPropioArbol() {
+        assertEquals("Apple > iPhone", clasificar("Apple", "iPhone 17 Pro Max 256 GB Blue"));
+        assertEquals("Apple > iPad", clasificar("Apple", "iPad Air 11 M3 128GB"));
+        assertEquals("Apple > MacBook", clasificar("Apple", "MacBook Air 13 M4 16GB 256GB"));
+        assertEquals("Apple > Watch", clasificar("Apple", "Watch Series 10 45mm"));
+        assertEquals("Apple > AirPods", clasificar("Apple", "AirPods 4 USB-C"));
+        assertEquals("Apple > Monitores", clasificar("Apple", "Studio Display 27"));
+        // Estos dos caían en "Notebooks > Consumo" y ni siquiera son notebooks.
+        assertEquals("Apple > Mac", clasificar("Apple", "iMac M4 24\" 16GB 256GB"));
+        assertEquals("Apple > Mac", clasificar("Apple", "Mac mini M4 16GB 512GB"));
+    }
+
+    /** Un accesorio nombra al aparato que acompaña: no por eso ES ese aparato. */
+    @org.junit.jupiter.api.Test
+    void losAccesoriosDeAppleNoSeConfundenConElAparato() {
+        assertEquals("Apple > Accesorios", clasificar("Apple", "Magic Keyboard for iPad Air"));
+        assertEquals("Apple > Accesorios", clasificar("Apple", "Magic Mouse"));
+        assertEquals("Apple > Accesorios", clasificar("Apple", "Apple Pencil Pro"));
+        assertEquals("Apple > Accesorios", clasificar("Apple", "Funda iPhone 17 Silicone Case"));
+        assertEquals("Apple > Accesorios", clasificar("Apple", "AirTag Pack x4"));
+    }
+
+    /** Solo la MARCA Apple: una funda de otra marca para iPhone no es un producto Apple. */
+    @org.junit.jupiter.api.Test
+    void noSeLlevaPuestoLoQueSoloMencionaApple() {
+        assertEquals("Periféricos > Teclados", clasificar("Logitech", "Teclado para iPad"));
+        assertEquals("Accesorios", clasificar("Spigen", "Funda soporte para iPhone 17"));
+    }
+
+    /** Un Apple que no matchea con nada cae en Accesorios, nunca en null: sin categoría no cotiza envío. */
+    @org.junit.jupiter.api.Test
+    void unAppleDesconocidoNoQuedaSinCategoria() {
+        assertEquals("Apple > Accesorios", clasificar("Apple", "HomePod mini"));
+        assertEquals("Apple > Accesorios", clasificar("Apple", "Dispositivo nuevo sin nombre conocido"));
+    }
 }
