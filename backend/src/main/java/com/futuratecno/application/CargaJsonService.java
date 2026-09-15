@@ -90,7 +90,17 @@ public class CargaJsonService {
                 continue;
             }
 
-            var existente = productoRepository.findByProveedorIdAndMarcaAndModelo(proveedorId, marca, modelo);
+            // Exacto primero; si no, la clave suelta. El modelo lo redacta la IA en cada carga, así
+            // que "iPhone 17 Pro 256GB eSIM" y "iPhone 17 Pro 256 GB (eSIM)" son el mismo teléfono
+            // y sin esto nacía un producto nuevo por cada redacción: el catálogo mostraba el mismo
+            // artículo dos veces a precios distintos y había que recargarle la foto a mano.
+            // La clave conserva capacidad, color y versión, así que un 512GB nunca cae sobre un
+            // 256GB. Solo aplica a esta vía: Elit e Invid deduplican por codigo_externo, que es
+            // estable, y no tienen este problema.
+            var existente = productoRepository.findByProveedorIdAndMarcaAndModelo(proveedorId, marca, modelo)
+                    .or(() -> productoRepository
+                            .idPorClaveSuelta(proveedorId, ImagenManualService.clave(marca, modelo))
+                            .flatMap(productoRepository::findById));
             boolean nuevo = existente.isEmpty();
             Producto producto = existente.orElseGet(Producto::new);
             if (nuevo) {

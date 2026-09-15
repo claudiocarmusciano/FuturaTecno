@@ -19,6 +19,22 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Optional<Producto> findByProveedorIdAndCodigoExterno(Long proveedorId, String codigoExterno);
 
+    /**
+     * Mismo producto del mismo proveedor, aunque la IA haya redactado el modelo distinto en esta
+     * carga. Compara la columna generada `clave_suelta` (V37), que ignora espacios, puntuación y
+     * mayúsculas pero conserva capacidad, color y versión. Devuelve el id y no la entidad porque
+     * `clave_suelta` no está mapeada en `Producto` y no tiene por qué estarlo: la calcula la base.
+     *
+     * <p>Se prefiere el activo, y a igualdad el más viejo: es el que viene acumulando la categoría,
+     * las medidas y la imagen que se cargaron a mano.
+     */
+    @Query(value = """
+            SELECT id FROM productos
+            WHERE proveedor_id = :proveedorId AND clave_suelta = :clave
+            ORDER BY activo DESC, id ASC LIMIT 1
+            """, nativeQuery = true)
+    Optional<Long> idPorClaveSuelta(@Param("proveedorId") Long proveedorId, @Param("clave") String clave);
+
     /** Cuántos productos quedarían sin categoría si se borrara esa categoría. */
     long countByCategoriaId(Long categoriaId);
 
