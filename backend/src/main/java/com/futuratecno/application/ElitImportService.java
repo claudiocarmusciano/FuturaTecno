@@ -37,6 +37,7 @@ public class ElitImportService {
 
     private final ElitApiClient elitApiClient;
     private final ProductoRepository productoRepository;
+    private final MargenManualService margenManualService;
     private final VarianteRepository varianteRepository;
     private final ProveedorRepository proveedorRepository;
     private final ImagenRepository imagenRepository;
@@ -48,12 +49,14 @@ public class ElitImportService {
 
     public ElitImportService(ElitApiClient elitApiClient,
                              ProductoRepository productoRepository,
+                             MargenManualService margenManualService,
                              VarianteRepository varianteRepository,
                              ProveedorRepository proveedorRepository,
                              ImagenRepository imagenRepository,
                              CategoriaClasificadorService categoriaClasificadorService) {
         this.elitApiClient = elitApiClient;
         this.productoRepository = productoRepository;
+        this.margenManualService = margenManualService;
         this.varianteRepository = varianteRepository;
         this.categoriaClasificadorService = categoriaClasificadorService;
         this.proveedorRepository = proveedorRepository;
@@ -222,6 +225,9 @@ public class ElitImportService {
         }
         if (!imagenes.isEmpty()) producto.setImagenUrl(imagenes.get(0));
         producto.setActivo(true);
+        // Si el mayorista le cambió el código interno, el producto nace de nuevo: el margen que
+        // se le había puesto a mano vuelve desde la memoria en vez de perderse (V41).
+        margenManualService.aplicar(producto);
         producto = productoRepository.save(producto);
         // Visto en el feed, haya cambiado de precio o no: esta es la señal que usa Depurar catálogo
         // para saber si el mayorista lo sigue teniendo. No se escribe acá para no pisar updatedAt;

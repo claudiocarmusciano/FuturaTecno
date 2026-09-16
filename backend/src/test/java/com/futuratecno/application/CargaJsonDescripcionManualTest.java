@@ -52,7 +52,7 @@ class CargaJsonDescripcionManualTest {
         when(variantes.findByProductoIdAndActivo(anyLong(), anyBoolean())).thenReturn(List.of());
 
         var service = new CargaJsonService(mock(ImagenManualService.class), descripciones,
-                mock(AtributosManualService.class), productos, variantes, proveedores, mock(ImagenRepository.class),
+                mock(AtributosManualService.class), mock(MargenManualService.class), productos, variantes, proveedores, mock(ImagenRepository.class),
                 mock(CategoriaClasificadorService.class), mock(CategoriaService.class), mock(ImageUrlValidatorService.class));
 
         var art = new ArticuloJsonDTO();

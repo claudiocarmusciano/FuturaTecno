@@ -1,5 +1,6 @@
 package com.futuratecno.application;
 
+import com.futuratecno.domain.Producto;
 import com.futuratecno.domain.Proveedor;
 import com.futuratecno.domain.Variante;
 import org.springframework.stereotype.Service;
@@ -34,12 +35,20 @@ public class PrecioService {
         this.descuentoContadoEfectivoPct = descuentoContadoEfectivoPct;
     }
 
-    /** Precio de venta en USD de una variante, redondeado a 2 decimales. */
-    public BigDecimal precioVentaUsd(Variante variante, Proveedor proveedor) {
-        BigDecimal fletePct = proveedor != null && proveedor.getFletePorcentaje() != null
-                ? proveedor.getFletePorcentaje() : BigDecimal.ZERO;
-        BigDecimal margenPct = proveedor != null && proveedor.getMargenPorcentaje() != null
-                ? proveedor.getMargenPorcentaje() : BigDecimal.ZERO;
+    /**
+     * Precio de venta en USD de una variante, redondeado a 2 decimales.
+     *
+     * <p>El margen y el flete salen del PRODUCTO si los tiene cargados (V41) y del proveedor si no.
+     * Null en el producto significa "usá el del proveedor", nunca 0%: 0 sería vender al costo.
+     * Por eso se compara contra null y no se usa un coalesce a cero.
+     */
+    public BigDecimal precioVentaUsd(Variante variante, Producto producto, Proveedor proveedor) {
+        BigDecimal fletePct = primero(
+                producto != null ? producto.getFletePorcentaje() : null,
+                proveedor != null ? proveedor.getFletePorcentaje() : null);
+        BigDecimal margenPct = primero(
+                producto != null ? producto.getMargenPorcentaje() : null,
+                proveedor != null ? proveedor.getMargenPorcentaje() : null);
 
         BigDecimal factorFlete = BigDecimal.ONE.add(fletePct.divide(CIEN, 6, RoundingMode.HALF_UP));
         BigDecimal factorMargen = BigDecimal.ONE.add(margenPct.divide(CIEN, 6, RoundingMode.HALF_UP));
@@ -48,6 +57,12 @@ public class PrecioService {
                 .multiply(factorFlete)
                 .multiply(factorMargen)
                 .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /** Primer valor no nulo, o cero si no hay ninguno (proveedor sin configurar). */
+    private static BigDecimal primero(BigDecimal... valores) {
+        for (BigDecimal v : valores) if (v != null) return v;
+        return BigDecimal.ZERO;
     }
 
     /** Convierte un importe en USD a ARS con la cotización dada, redondeado a 2 decimales. */

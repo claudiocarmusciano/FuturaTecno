@@ -10,8 +10,9 @@
 ## Arquitectura no obvia
 - **Frontend embebido en el jar:** Vite buildea a `backend/src/main/resources/static/` → mismo origen que el backend → sin CORS. El `Dockerfile` hace el build del frontend primero.
 - **Sin Lombok:** se rompió bajo Java 25 durante el desarrollo → getters/setters explícitos en todas las entidades. No agregar Lombok.
-- **Flyway activo (`ddl-auto=validate`):** las migraciones van en `backend/src/main/resources/db/migration/` (ya hay **V1–V40**; la próxima libre es **V41**). Cualquier cambio de schema necesita un archivo nuevo. **No cambiar a `ddl-auto=update`.**
-- **Fórmula de precios:** `(costo USD) × (1 + flete%) × (1 + margen%)` — el flete es **porcentaje por proveedor**, no monto fijo. Defaults: flete 5%, margen 15%.
+- **Flyway activo (`ddl-auto=validate`):** las migraciones van en `backend/src/main/resources/db/migration/` (ya hay **V1–V41**; la próxima libre es **V42**). Cualquier cambio de schema necesita un archivo nuevo. **No cambiar a `ddl-auto=update`.**
+- **Fórmula de precios:** `(costo USD) × (1 + flete%) × (1 + margen%)`, y vive **solo** en `PrecioService` — la usan el catálogo, los pedidos y el envío; si se duplicara, un cliente podría ver un precio y que se le registre otro. El flete es **porcentaje**, no monto fijo. Defaults del proveedor: flete 5%, margen 15%.
+- **Margen y flete se pueden pisar por producto (V41).** `productos.margen_porcentaje` / `flete_porcentaje`, opcionales: **null = usar el del proveedor**, que NO es lo mismo que 0% (eso sería vender al costo) — por eso se compara contra null y no se hace coalesce a cero. Se editan en Admin → Productos, con el valor del proveedor como placeholder. El override se recuerda en `margenes_manuales`, y esa memoria **lleva el proveedor en la clave**, a diferencia de las otras (imágenes, descripciones, atributos): la foto de un iPhone 15 es la misma venga de donde venga, pero el margen está atado a lo que ESE mayorista te cobra, y cruzarlo daría un precio equivocado en silencio. Vaciar los dos campos borra la memoria. Cambiar el margen mueve el precio público al instante, pero **no toca pedidos ya confirmados**: esos guardan importes congelados.
 - **Soft delete:** `activo=false` en `Producto` y `Variante`. Nunca borrar físicamente.
 - **Imagen por PRODUCTO** (no por variante): `Producto.imagenUrl`. Una sola imagen por producto independientemente de cuántas variantes tenga.
 - **MercadoLibre bloquea scraping server-side** → cualquier request no-browser devuelve 302 a "suspicious-traffic". Las imágenes ML no se pueden auto-obtener. Flujo manual: Admin → Imágenes → "🔍 Buscar" abre Google Images → el usuario copia la URL de la imagen → la pega → preview → Guardar.
@@ -85,7 +86,7 @@ cd frontend && npm run dev          # → http://localhost:5173
 ```bash
 mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test
 ```
-(al 2026-09-16: 87 tests, 1 skipped, 0 fallas)
+(al 2026-09-16: 91 tests, 1 skipped, 0 fallas)
 
 ## Prod (Railway)
 | Env var | Descripción |

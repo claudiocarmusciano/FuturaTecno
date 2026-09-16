@@ -30,6 +30,7 @@ public class InvidImportService {
 
     private final InvidApiClient invidApiClient;
     private final ProductoRepository productoRepository;
+    private final MargenManualService margenManualService;
     private final VarianteRepository varianteRepository;
     private final ProveedorRepository proveedorRepository;
     private final CotizacionService cotizacionService;
@@ -37,12 +38,14 @@ public class InvidImportService {
 
     public InvidImportService(InvidApiClient invidApiClient,
                               ProductoRepository productoRepository,
+                              MargenManualService margenManualService,
                               VarianteRepository varianteRepository,
                               ProveedorRepository proveedorRepository,
                               CotizacionService cotizacionService,
                               CategoriaClasificadorService categoriaClasificadorService) {
         this.invidApiClient = invidApiClient;
         this.productoRepository = productoRepository;
+        this.margenManualService = margenManualService;
         this.varianteRepository = varianteRepository;
         this.proveedorRepository = proveedorRepository;
         this.cotizacionService = cotizacionService;
@@ -199,6 +202,9 @@ public class InvidImportService {
         }
         if (imagen != null) producto.setImagenUrl(imagen);
         producto.setActivo(true);
+        // Si el mayorista le cambió el código interno, el producto nace de nuevo: el margen que
+        // se le había puesto a mano vuelve desde la memoria en vez de perderse (V41).
+        margenManualService.aplicar(producto);
         producto = productoRepository.save(producto);
         // Visto en el feed, haya cambiado de precio o no: es la señal que usa Depurar catálogo para
         // saber si el mayorista lo sigue teniendo. Se marca en masa al final para no pisar updatedAt.

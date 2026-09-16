@@ -87,7 +87,7 @@ class CargaJsonAtributosManualTest {
         when(variantes.findByProductoIdAndActivo(anyLong(), anyBoolean())).thenReturn(List.of());
 
         var service = new CargaJsonService(mock(ImagenManualService.class),
-                mock(DescripcionManualService.class), atributos,
+                mock(DescripcionManualService.class), atributos, mock(MargenManualService.class),
                 productos, variantes, proveedores, mock(ImagenRepository.class),
                 clasificador, mock(CategoriaService.class), mock(ImageUrlValidatorService.class));
 

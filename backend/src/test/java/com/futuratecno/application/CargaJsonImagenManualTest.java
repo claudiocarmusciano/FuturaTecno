@@ -60,7 +60,7 @@ class CargaJsonImagenManualTest {
         when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
         when(memoria.buscar("DJI", "Nano 64GB")).thenReturn(Optional.empty());
         var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
-                mock(AtributosManualService.class), productos, mock(VarianteRepository.class), proveedores,
+                mock(AtributosManualService.class), mock(MargenManualService.class), productos, mock(VarianteRepository.class), proveedores,
                 mock(ImagenRepository.class), mock(CategoriaClasificadorService.class), mock(CategoriaService.class),
                 validador(false));
         var art = new ArticuloJsonDTO();
@@ -92,7 +92,7 @@ class CargaJsonImagenManualTest {
         when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
         when(memoria.buscar("DJI", "Nano 64GB")).thenReturn(Optional.of("https://manual/image.jpg"));
         var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
-                mock(AtributosManualService.class), productos, mock(VarianteRepository.class), proveedores,
+                mock(AtributosManualService.class), mock(MargenManualService.class), productos, mock(VarianteRepository.class), proveedores,
                 mock(ImagenRepository.class), mock(CategoriaClasificadorService.class), mock(CategoriaService.class),
                 validador);
         var art = new ArticuloJsonDTO();
@@ -148,7 +148,7 @@ class CargaJsonImagenManualTest {
         when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
         when(memoria.buscar("DJI", "Nano 64GB")).thenReturn(manual);
         var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
-                mock(AtributosManualService.class), productos, mock(VarianteRepository.class), proveedores,
+                mock(AtributosManualService.class), mock(MargenManualService.class), productos, mock(VarianteRepository.class), proveedores,
                 mock(ImagenRepository.class), mock(CategoriaClasificadorService.class), mock(CategoriaService.class),
                 validador(urlViva));
         var art = new ArticuloJsonDTO();
@@ -171,7 +171,7 @@ class CargaJsonImagenManualTest {
         when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
         when(memoria.buscar("DJI", "Nano 64GB")).thenReturn(manual);
         var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
-                mock(AtributosManualService.class), productos, variantes, proveedores, imagenes,
+                mock(AtributosManualService.class), mock(MargenManualService.class), productos, variantes, proveedores, imagenes,
                 mock(CategoriaClasificadorService.class), mock(CategoriaService.class), validador(true));
         var art = new ArticuloJsonDTO();
         art.setMarca("DJI"); art.setModelo("Nano 64GB"); art.setPrecioUsd(BigDecimal.TEN); art.setImagenes(urls);

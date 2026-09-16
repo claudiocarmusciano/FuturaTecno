@@ -11,14 +11,21 @@ const formatFecha = (iso) =>
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+// El margen y el flete que se aplican de verdad: el del producto si tiene override, si no el del
+// proveedor. null/'' significa "sin override", no 0%.
+const margenEfectivo = (ed) => ed?.margenPorcentaje ?? ed?.margenPorcentajeProveedor
+const fleteEfectivo = (ed) => ed?.fletePorcentaje ?? ed?.fletePorcentajeProveedor
+
 // Calcula el precio de venta (USD y ARS) a partir del costo, su moneda, y los datos del proveedor.
 const calcularVenta = (precio, moneda, ed) => {
   const p = Number(precio)
   const cot = Number(ed?.cotizacion)
   if (!p || !cot) return { usd: null, ars: null }
   const costoUsd = moneda === 'USD' ? p : p / cot
-  const factorFlete = 1 + (Number(ed?.fletePorcentaje) || 0) / 100
-  const factorMargen = 1 + (Number(ed?.margenPorcentaje) || 0) / 100
+  // Override del producto si lo tiene, si no el del proveedor. Vacío no es 0%: es "usá el del
+  // proveedor". Tiene que dar lo mismo que PrecioService, o el preview mentiría sobre el precio.
+  const factorFlete = 1 + (Number(fleteEfectivo(ed)) || 0) / 100
+  const factorMargen = 1 + (Number(margenEfectivo(ed)) || 0) / 100
   const ventaUsd = costoUsd * factorFlete * factorMargen
   return { usd: ventaUsd, ars: ventaUsd * cot }
 }
@@ -389,6 +396,24 @@ function ProductosPage() {
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginBottom: '18px' }}>
             <div>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Margen % · proveedor: {editData.margenPorcentajeProveedor ?? '—'}</label>
+              <input
+                style={inputStyle} type="number" min="0" step="0.01"
+                placeholder={editData.margenPorcentajeProveedor != null ? `${editData.margenPorcentajeProveedor}%` : 'sin definir'}
+                value={editData.margenPorcentaje ?? ''}
+                onChange={e => setCampo('margenPorcentaje', e.target.value === '' ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Flete % · proveedor: {editData.fletePorcentajeProveedor ?? '—'}</label>
+              <input
+                style={inputStyle} type="number" min="0" step="0.01"
+                placeholder={editData.fletePorcentajeProveedor != null ? `${editData.fletePorcentajeProveedor}%` : 'sin definir'}
+                value={editData.fletePorcentaje ?? ''}
+                onChange={e => setCampo('fletePorcentaje', e.target.value === '' ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
               <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Peso (g) · default: {editData.pesoGramosDefault ?? '—'}</label>
               <input
                 style={inputStyle} type="number" min="1" placeholder={editData.pesoGramosDefault != null ? `${editData.pesoGramosDefault} g` : 'sin default'}
@@ -424,7 +449,8 @@ function ProductosPage() {
 
           <h3 style={{ fontSize: '15px', marginBottom: '4px' }}>Variantes / Precios</h3>
           <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
-            El precio que cargás es el <strong>costo</strong>. La venta se calcula con flete {Number(editData.fletePorcentaje) || 0}% + margen {Number(editData.margenPorcentaje) || 0}% · dólar ${formatNumber(editData.cotizacion)}.
+            El precio que cargás es el <strong>costo</strong>. La venta se calcula con flete {Number(fleteEfectivo(editData)) || 0}% + margen {Number(margenEfectivo(editData)) || 0}%
+            {(editData.fletePorcentaje != null || editData.margenPorcentaje != null) && <strong> (ajustado para este producto)</strong>} · dólar ${formatNumber(editData.cotizacion)}.
           </p>
           <table className="table">
             <thead>

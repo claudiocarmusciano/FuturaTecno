@@ -42,6 +42,7 @@ public class CargaJsonService {
     private final ImagenManualService imagenManualService;
     private final DescripcionManualService descripcionManualService;
     private final AtributosManualService atributosManualService;
+    private final MargenManualService margenManualService;
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final ProveedorRepository proveedorRepository;
@@ -53,6 +54,7 @@ public class CargaJsonService {
     public CargaJsonService(ImagenManualService imagenManualService,
                             DescripcionManualService descripcionManualService,
                             AtributosManualService atributosManualService,
+                            MargenManualService margenManualService,
                             ProductoRepository productoRepository,
                             VarianteRepository varianteRepository,
                             ProveedorRepository proveedorRepository,
@@ -63,6 +65,7 @@ public class CargaJsonService {
         this.imagenManualService = imagenManualService;
         this.descripcionManualService = descripcionManualService;
         this.atributosManualService = atributosManualService;
+        this.margenManualService = margenManualService;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.proveedorRepository = proveedorRepository;
@@ -140,6 +143,8 @@ public class CargaJsonService {
             // Categoría y medidas ya resueltas para este marca+modelo, aunque haya sido con otro
             // proveedor. Solo rellena huecos: lo que la fila ya tenga cargado manda.
             atributosManualService.aplicar(producto);
+            // Margen y flete recordados para este marca+modelo EN ESTE PROVEEDOR (V41).
+            margenManualService.aplicar(producto);
 
             // Clasificación automática: solo si todavía no tiene categoría (ni propia ni recordada).
             // Si no se puede resolver (categoría ambigua o IA sin crédito), queda null → el admin

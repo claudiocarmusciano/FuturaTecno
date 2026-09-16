@@ -27,8 +27,12 @@ public class ProductoEditDTO {
     private Integer largoCmDefault;
 
     // Datos para que el editor calcule el precio de venta en vivo (solo lectura).
+    // Override de ESTE producto (V41). Null = se usa el del proveedor, que va aparte abajo.
     private BigDecimal margenPorcentaje;
     private BigDecimal fletePorcentaje;
+    // Solo lectura: qué se aplica si los de arriba quedan vacíos.
+    private BigDecimal margenPorcentajeProveedor;
+    private BigDecimal fletePorcentajeProveedor;
     private BigDecimal cotizacion;
 
     public ProductoEditDTO() {}
@@ -38,6 +42,12 @@ public class ProductoEditDTO {
 
     public BigDecimal getFletePorcentaje() { return fletePorcentaje; }
     public void setFletePorcentaje(BigDecimal fletePorcentaje) { this.fletePorcentaje = fletePorcentaje; }
+
+    public BigDecimal getMargenPorcentajeProveedor() { return margenPorcentajeProveedor; }
+    public void setMargenPorcentajeProveedor(BigDecimal v) { this.margenPorcentajeProveedor = v; }
+
+    public BigDecimal getFletePorcentajeProveedor() { return fletePorcentajeProveedor; }
+    public void setFletePorcentajeProveedor(BigDecimal v) { this.fletePorcentajeProveedor = v; }
 
     public BigDecimal getCotizacion() { return cotizacion; }
     public void setCotizacion(BigDecimal cotizacion) { this.cotizacion = cotizacion; }

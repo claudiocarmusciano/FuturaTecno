@@ -36,6 +36,7 @@ public class ProductoAdminService {
     private final ImagenManualService imagenManualService;
     private final DescripcionManualService descripcionManualService;
     private final AtributosManualService atributosManualService;
+    private final MargenManualService margenManualService;
     private final ProductoRepository productoRepository;
     private final VarianteRepository varianteRepository;
     private final IcecatService icecatService;
@@ -51,6 +52,7 @@ public class ProductoAdminService {
     public ProductoAdminService(ImagenManualService imagenManualService,
                                 DescripcionManualService descripcionManualService,
                                 AtributosManualService atributosManualService,
+                                MargenManualService margenManualService,
                                 ProductoRepository productoRepository,
                                 VarianteRepository varianteRepository,
                                 IcecatService icecatService,
@@ -65,6 +67,7 @@ public class ProductoAdminService {
         this.imagenManualService = imagenManualService;
         this.descripcionManualService = descripcionManualService;
         this.atributosManualService = atributosManualService;
+        this.margenManualService = margenManualService;
         this.productoRepository = productoRepository;
         this.varianteRepository = varianteRepository;
         this.icecatService = icecatService;
@@ -238,9 +241,13 @@ public class ProductoAdminService {
         dto.setAltoCmDefault(primero(hoja != null ? hoja.getAltoCmDefault() : null, padre != null ? padre.getAltoCmDefault() : null));
         dto.setAnchoCmDefault(primero(hoja != null ? hoja.getAnchoCmDefault() : null, padre != null ? padre.getAnchoCmDefault() : null));
         dto.setLargoCmDefault(primero(hoja != null ? hoja.getLargoCmDefault() : null, padre != null ? padre.getLargoCmDefault() : null));
+        // El override del producto y, aparte, el valor del proveedor: el editor muestra el segundo
+        // como referencia de qué se aplica cuando el campo queda vacío (mismo patrón que el peso).
+        dto.setMargenPorcentaje(p.getMargenPorcentaje());
+        dto.setFletePorcentaje(p.getFletePorcentaje());
         if (p.getProveedor() != null) {
-            dto.setMargenPorcentaje(p.getProveedor().getMargenPorcentaje());
-            dto.setFletePorcentaje(p.getProveedor().getFletePorcentaje());
+            dto.setMargenPorcentajeProveedor(p.getProveedor().getMargenPorcentaje());
+            dto.setFletePorcentajeProveedor(p.getProveedor().getFletePorcentaje());
         }
         dto.setCotizacion(cotizacionService.obtenerCotizacionUsdArs());
 
@@ -278,10 +285,23 @@ public class ProductoAdminService {
         producto.setAltoCm(dto.getAltoCm());
         producto.setAnchoCm(dto.getAnchoCm());
         producto.setLargoCm(dto.getLargoCm());
+        // Mismo criterio para el margen y el flete (V41): vaciarlos vuelve al valor del proveedor,
+        // que no es lo mismo que poner 0% — eso sería vender al costo.
+        producto.setMargenPorcentaje(dto.getMargenPorcentaje());
+        producto.setFletePorcentaje(dto.getFletePorcentaje());
         productoRepository.save(producto);
         // Categoría y medidas quedan recordadas por marca+modelo, para que el mismo artículo
         // cargado con otro proveedor no vuelva a nacer sin categoría ni medidas.
         atributosManualService.recordar(producto);
+        // El margen se recuerda por marca+modelo PERO dentro del proveedor: es una decisión
+        // comercial atada a lo que ese mayorista cobra. Vaciar los dos campos borra la memoria,
+        // que es cómo el admin dice "volvé al margen del proveedor y olvidate".
+        if (producto.getMargenPorcentaje() == null && producto.getFletePorcentaje() == null) {
+            margenManualService.olvidar(producto.getProveedor() != null ? producto.getProveedor().getId() : null,
+                    producto.getMarca(), producto.getModelo());
+        } else {
+            margenManualService.recordar(producto);
+        }
 
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
 

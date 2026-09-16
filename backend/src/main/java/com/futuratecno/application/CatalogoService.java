@@ -99,7 +99,7 @@ public class CatalogoService {
             if (v.getUpdatedAt() != null && (ultimaAct == null || v.getUpdatedAt().isAfter(ultimaAct))) {
                 ultimaAct = v.getUpdatedAt();
             }
-            BigDecimal precioVentaUsd = precioService.precioVentaUsd(v, proveedor);
+            BigDecimal precioVentaUsd = precioService.precioVentaUsd(v, producto, proveedor);
             BigDecimal precioVentaArs = precioService.aArs(precioVentaUsd, cotizacion);
 
             variantesDto.add(new VarianteCatalogoDTO(

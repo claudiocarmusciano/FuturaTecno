@@ -1,6 +1,7 @@
 package com.futuratecno.domain;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -49,6 +50,14 @@ public class Producto extends BaseEntity {
     // fuera de @PreUpdate, para no pisar updatedAt.
     @Column(name = "visto_en_sync_at")
     private LocalDateTime vistoEnSyncAt;
+
+    // Override del margen y el flete de ESTE producto (V41). En null = usar el del proveedor,
+    // que NO es lo mismo que 0% (eso sería vender al costo). La fórmula vive en PrecioService.
+    @Column(name = "margen_porcentaje")
+    private BigDecimal margenPorcentaje;
+
+    @Column(name = "flete_porcentaje")
+    private BigDecimal fletePorcentaje;
 
     // Peso/dimensiones reales del producto (V14), para cotizar envío. Opcionales: si están en
     // null se usa el default de la categoría (ver CategoriaService / servicio de envíos).
@@ -148,6 +157,22 @@ public class Producto extends BaseEntity {
 
     public void setVistoEnSyncAt(LocalDateTime vistoEnSyncAt) {
         this.vistoEnSyncAt = vistoEnSyncAt;
+    }
+
+    public BigDecimal getMargenPorcentaje() {
+        return margenPorcentaje;
+    }
+
+    public void setMargenPorcentaje(BigDecimal margenPorcentaje) {
+        this.margenPorcentaje = margenPorcentaje;
+    }
+
+    public BigDecimal getFletePorcentaje() {
+        return fletePorcentaje;
+    }
+
+    public void setFletePorcentaje(BigDecimal fletePorcentaje) {
+        this.fletePorcentaje = fletePorcentaje;
     }
 
     public Integer getPesoGramos() {

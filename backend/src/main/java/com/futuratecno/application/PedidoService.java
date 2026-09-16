@@ -138,7 +138,7 @@ public class PedidoService {
             }
 
             // Precio recalculado acá, ignorando cualquier importe que venga del cliente.
-            BigDecimal precioUsd = precioService.precioVentaUsd(variante, producto.getProveedor());
+            BigDecimal precioUsd = precioService.precioVentaUsd(variante, producto, producto.getProveedor());
             BigDecimal precioArs = precioService.aArs(precioUsd, cotizacion);
 
             PedidoItem item = new PedidoItem();

@@ -103,7 +103,7 @@ public class EnvioService {
             }
 
             // El precio (en ARS, entero) lo usa Andreani para el seguro del envío.
-            BigDecimal precioUsd = precioService.precioVentaUsd(variante, producto.getProveedor());
+            BigDecimal precioUsd = precioService.precioVentaUsd(variante, producto, producto.getProveedor());
             long precioArs = precioService.aArs(precioUsd, cotizacionUsdArs)
                     .setScale(0, RoundingMode.HALF_UP).longValue();
 

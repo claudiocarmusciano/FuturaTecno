@@ -30,7 +30,7 @@ class ProductoAdminDepurarTest {
     private final CategoriaService categorias = stub(CategoriaService.class);
 
     private final ProductoAdminService service = new ProductoAdminService(
-            imagenes, descripciones, atributos, productos, variantes,
+            imagenes, descripciones, atributos, stub(MargenManualService.class), productos, variantes,
             stub(IcecatService.class), stub(GoogleImageService.class), stub(AnthropicImageService.class),
             stub(DuckDuckGoImageService.class), stub(ImageUrlValidatorService.class),
             stub(CotizacionService.class), stub(CategoriaClasificadorService.class),
