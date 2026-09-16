@@ -14,6 +14,9 @@ public class ProductoAdminDTO {
     private String especificaciones;   // de la primera variante (para búsqueda de imagen)
     private LocalDateTime ultimaActualizacion;
 
+    // Última vez que el mayorista lo devolvió en su feed (V40). Null en lo cargado por JSON.
+    private LocalDateTime vistoEnSync;
+
     public ProductoAdminDTO() {}
 
     public ProductoAdminDTO(Long id, String categoria, String marca, String modelo, String proveedor, String imagenUrl) {
@@ -54,4 +57,6 @@ public class ProductoAdminDTO {
 
     public LocalDateTime getUltimaActualizacion() { return ultimaActualizacion; }
     public void setUltimaActualizacion(LocalDateTime ultimaActualizacion) { this.ultimaActualizacion = ultimaActualizacion; }
+    public LocalDateTime getVistoEnSync() { return vistoEnSync; }
+    public void setVistoEnSync(LocalDateTime vistoEnSync) { this.vistoEnSync = vistoEnSync; }
 }

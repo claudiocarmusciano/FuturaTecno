@@ -8,6 +8,12 @@ const formatFecha = (iso) =>
 const diasDesde = (iso) =>
   iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 86400000) : null
 
+// La prueba de que el producto sigue vigente. Para un mayorista es la última vez que apareció en
+// su feed (vistoEnSync); para lo cargado por JSON no hay feed, así que vale la última actualización.
+// No son lo mismo: un producto con precio y stock estables no mueve ultimaActualizacion aunque la
+// sync lo vea todos los días, y filtrar por eso proponía dar de baja catálogo vigente.
+const senal = (p) => p.vistoEnSync || p.ultimaActualizacion
+
 // Elit e Invid se sincronizan solos todos los días: si aparecen acá es porque el mayorista dejó
 // de ofrecerlos... o porque la sync se cortó. Conviene que el admin sepa distinguir los dos casos.
 const MAYORISTAS = ['elit', 'invid']
@@ -143,9 +149,11 @@ function DepurarPage() {
 
             {hayMayoristas && (
               <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                ⚠️ Hay productos de Elit o Invid en la lista. Esos se sincronizan solos todos los días,
-                así que aparecer acá significa que el mayorista dejó de ofrecerlos — o que la
-                sincronización se cortó. Si son muchos y de golpe, revisá la sync antes de darlos de baja.
+                ⚠️ Hay productos de Elit o Invid en la lista. Para ellos la fecha es la última vez que
+                aparecieron <strong>en el feed del mayorista</strong>, no la última vez que cambiaron de
+                precio, así que estar acá significa que el proveedor dejó de listarlos. La excepción es
+                que la sincronización esté fallando: si son muchos y de golpe, revisá los logs antes de
+                darlos de baja.
               </p>
             )}
 
@@ -167,7 +175,7 @@ function DepurarPage() {
                   <th>Producto</th>
                   <th>Categoría</th>
                   <th>Proveedor</th>
-                  <th>Actualizado</th>
+                  <th>Visto por última vez</th>
                 </tr>
               </thead>
               <tbody>
@@ -186,9 +194,10 @@ function DepurarPage() {
                     <td>{p.categoria || <span style={{ color: 'var(--color-text-muted)' }}>sin categoría</span>}</td>
                     <td>{p.proveedor || '—'}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      {formatFecha(p.ultimaActualizacion)}
+                      {formatFecha(senal(p))}
                       <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                        hace {diasDesde(p.ultimaActualizacion)} días
+                        hace {diasDesde(senal(p))} días
+                        {p.vistoEnSync ? ' en el feed' : ''}
                       </div>
                     </td>
                   </tr>

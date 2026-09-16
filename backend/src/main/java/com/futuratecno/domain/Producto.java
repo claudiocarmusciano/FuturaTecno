@@ -42,6 +42,14 @@ public class Producto extends BaseEntity {
     @Column(length = 50)
     private String fuente;
 
+    // Última vez que el producto apareció en el feed del mayorista (V40). Responde "¿lo sigue
+    // teniendo?", que NO es lo mismo que updatedAt ("¿cambió algo?"): un producto con precio y
+    // stock estables no mueve updatedAt aunque la sync lo vea todos los días. Null en lo cargado
+    // por JSON, donde no hay feed. La escriben los imports con un UPDATE masivo, a propósito
+    // fuera de @PreUpdate, para no pisar updatedAt.
+    @Column(name = "visto_en_sync_at")
+    private LocalDateTime vistoEnSyncAt;
+
     // Peso/dimensiones reales del producto (V14), para cotizar envío. Opcionales: si están en
     // null se usa el default de la categoría (ver CategoriaService / servicio de envíos).
     @Column(name = "peso_gramos")
@@ -132,6 +140,14 @@ public class Producto extends BaseEntity {
 
     public void setFuente(String fuente) {
         this.fuente = fuente;
+    }
+
+    public LocalDateTime getVistoEnSyncAt() {
+        return vistoEnSyncAt;
+    }
+
+    public void setVistoEnSyncAt(LocalDateTime vistoEnSyncAt) {
+        this.vistoEnSyncAt = vistoEnSyncAt;
     }
 
     public Integer getPesoGramos() {

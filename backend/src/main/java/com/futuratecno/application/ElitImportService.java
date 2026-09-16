@@ -131,6 +131,7 @@ public class ElitImportService {
         // Elit pagina con offset 1-based (offset >= 1): registro inicial de cada página.
         int offset = 1, total = Integer.MAX_VALUE, paginas = 0;
         int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosPorPrecio = 0;
+        List<Long> vistos = new ArrayList<>();
 
         while (offset <= total && paginas < TOPE_PAGINAS) {
             JsonNode resp = elitApiClient.consultarProductos(PAGINA, offset, categoria, marca, null, store);
@@ -149,13 +150,15 @@ public class ElitImportService {
                     salteadosPorPrecio++;
                     continue;
                 }
-                String estado = upsertProducto(proveedor, prod, stock, costoUsd, soloExistentes);
+                String estado = upsertProducto(proveedor, prod, stock, costoUsd, soloExistentes, vistos);
                 if ("creado".equals(estado)) creados++;
                 else if ("actualizado".equals(estado)) actualizados++;
             }
             offset += PAGINA;
             paginas++;
         }
+
+        productoRepository.marcarVistos(vistos);
 
         String mensaje = soloExistentes
                 ? String.format("Sincronización de Elit: %d productos actualizados.", actualizados)
@@ -182,7 +185,8 @@ public class ElitImportService {
     }
 
     /** Crea o actualiza el Producto + Variante a partir de un item de Elit. Devuelve "creado"/"actualizado"/"salteado". */
-    private String upsertProducto(Proveedor proveedor, JsonNode prod, int stock, BigDecimal costoUsd, boolean soloExistentes) {
+    private String upsertProducto(Proveedor proveedor, JsonNode prod, int stock, BigDecimal costoUsd,
+                                  boolean soloExistentes, List<Long> vistos) {
         String codigoExterno = prod.path("id").asText(null);
         Producto existente = productoRepository
                 .findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno).orElse(null);
@@ -219,6 +223,10 @@ public class ElitImportService {
         if (!imagenes.isEmpty()) producto.setImagenUrl(imagenes.get(0));
         producto.setActivo(true);
         producto = productoRepository.save(producto);
+        // Visto en el feed, haya cambiado de precio o no: esta es la señal que usa Depurar catálogo
+        // para saber si el mayorista lo sigue teniendo. No se escribe acá para no pisar updatedAt;
+        // se junta y se marca en masa al final (ver marcarVistos).
+        vistos.add(producto.getId());
         sincronizarGaleria(producto, imagenes);
 
         // Una sola variante por producto importado de Elit.

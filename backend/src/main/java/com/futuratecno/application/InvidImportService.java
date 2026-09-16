@@ -111,6 +111,7 @@ public class InvidImportService {
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
 
         int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosSinPrecio = 0, salteadosPorPrecio = 0;
+        List<Long> vistos = new ArrayList<>();
 
         for (JsonNode art : arts) {
             if (!coincide(art, categoria, marca)) continue;
@@ -126,10 +127,12 @@ public class InvidImportService {
                 continue;
             }
 
-            String estado = upsert(proveedor, art, precioOrigen, stock, cotizacion, soloExistentes);
+            String estado = upsert(proveedor, art, precioOrigen, stock, cotizacion, soloExistentes, vistos);
             if ("creado".equals(estado)) creados++;
             else if ("actualizado".equals(estado)) actualizados++;
         }
+
+        productoRepository.marcarVistos(vistos);
 
         String mensaje = soloExistentes
                 ? String.format("Sincronización de Invid: %d productos actualizados.", actualizados)
@@ -155,7 +158,8 @@ public class InvidImportService {
                      : precioOrigen.divide(cotizacion, 2, RoundingMode.HALF_UP);
     }
 
-    private String upsert(Proveedor proveedor, JsonNode art, BigDecimal precioArs, Integer stock, BigDecimal cotizacion, boolean soloExistentes) {
+    private String upsert(Proveedor proveedor, JsonNode art, BigDecimal precioArs, Integer stock,
+                          BigDecimal cotizacion, boolean soloExistentes, List<Long> vistos) {
         String codigoExterno = txt(art, "ID");
         Producto existente = productoRepository
                 .findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno).orElse(null);
@@ -196,6 +200,9 @@ public class InvidImportService {
         if (imagen != null) producto.setImagenUrl(imagen);
         producto.setActivo(true);
         producto = productoRepository.save(producto);
+        // Visto en el feed, haya cambiado de precio o no: es la señal que usa Depurar catálogo para
+        // saber si el mayorista lo sigue teniendo. Se marca en masa al final para no pisar updatedAt.
+        vistos.add(producto.getId());
 
         Variante variante = (producto.getVariantes() != null && !producto.getVariantes().isEmpty())
                 ? producto.getVariantes().get(0)

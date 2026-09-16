@@ -73,6 +73,42 @@ class ProductoAdminDepurarTest {
         assertTrue(service.listarVencidos(3).isEmpty());
     }
 
+    /**
+     * El caso que motivó la V40: Invid informó 1.188 actualizados y solo 70 movieron updated_at,
+     * porque el resto vino con precio y stock idénticos. Siguen en el feed y no deben proponerse.
+     */
+    @Test void noProponeUnProductoQueElMayoristaSigueTeniendo() {
+        Producto p = producto(1L, "INVID", LocalDateTime.now().minusDays(10));
+        p.setVistoEnSyncAt(LocalDateTime.now().minusHours(2));
+        when(productos.findByActivo(true)).thenReturn(List.of(p));
+        when(variantes.findByProductoIdInAndActivo(anyList(), eq(true))).thenReturn(List.of());
+
+        assertTrue(service.listarVencidos(3).isEmpty(),
+                "el precio no cambió hace 10 días, pero el mayorista lo devolvió hace 2 horas");
+    }
+
+    /** Si dejó de aparecer en el feed, sí se propone aunque su fila se haya tocado por otra cosa. */
+    @Test void proponeElQueDesaparecioDelFeed() {
+        Producto p = producto(1L, "ELIT", LocalDateTime.now().minusHours(1));
+        p.setVistoEnSyncAt(LocalDateTime.now().minusDays(10));
+        when(productos.findByActivo(true)).thenReturn(List.of(p));
+        when(variantes.findByProductoIdInAndActivo(anyList(), eq(true))).thenReturn(List.of());
+
+        assertEquals(1, service.listarVencidos(3).size());
+    }
+
+    /** Sin feed (carga por JSON) se usa la última actualización, que ahí sí es la señal honesta. */
+    @Test void sinVistoEnSyncCaeEnLaUltimaActualizacion() {
+        Producto viejo = producto(1L, "JSON", LocalDateTime.now().minusDays(10));
+        Producto fresco = producto(2L, "JSON", LocalDateTime.now().minusHours(2));
+        when(productos.findByActivo(true)).thenReturn(List.of(viejo, fresco));
+        when(variantes.findByProductoIdInAndActivo(anyList(), eq(true))).thenReturn(List.of());
+
+        var vencidos = service.listarVencidos(3);
+        assertEquals(1, vencidos.size());
+        assertEquals(1L, vencidos.getFirst().getId());
+    }
+
     @Test void guardaImagenYCategoriaAntesDeDarDeBaja() {
         Producto p = producto(1L, "JSON", LocalDateTime.now().minusDays(10));
         when(productos.findAllById(List.of(1L))).thenReturn(List.of(p));

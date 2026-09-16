@@ -110,6 +110,7 @@ public class ProductoAdminService {
                         dto.setEspecificaciones(variantes.get(0).getEspecificaciones());
                     }
                     dto.setUltimaActualizacion(calcularUltimaActualizacion(p, variantes));
+                    dto.setVistoEnSync(p.getVistoEnSyncAt());
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -148,9 +149,25 @@ public class ProductoAdminService {
     public List<ProductoAdminDTO> listarVencidos(int dias) {
         LocalDateTime corte = LocalDateTime.now().minusDays(Math.max(dias, 1));
         return listar().stream()
-                .filter(d -> d.getUltimaActualizacion() != null && d.getUltimaActualizacion().isBefore(corte))
-                .sorted(Comparator.comparing(ProductoAdminDTO::getUltimaActualizacion))
+                .filter(d -> senalDeVigencia(d) != null && senalDeVigencia(d).isBefore(corte))
+                .sorted(Comparator.comparing(ProductoAdminService::senalDeVigencia))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * La prueba más reciente de que el producto sigue vigente.
+     *
+     * <p>Para un mayorista es `vistoEnSync`: la última vez que apareció en su feed. NO sirve
+     * `ultimaActualizacion`, que responde "¿cambió algo?": el 2026-09-16 una importación de Invid
+     * informó 1.188 actualizados y solo 70 movieron la fecha, porque el resto vino con precio y
+     * stock idénticos. Filtrar por eso habría propuesto dar de baja 1.134 productos que Invid
+     * sigue ofreciendo (V40).
+     *
+     * <p>Para lo cargado por JSON no hay feed, así que se cae a `ultimaActualizacion`, que ahí sí
+     * es honesta: refleja cuándo el admin recargó ese listado.
+     */
+    private static LocalDateTime senalDeVigencia(ProductoAdminDTO d) {
+        return d.getVistoEnSync() != null ? d.getVistoEnSync() : d.getUltimaActualizacion();
     }
 
     @Transactional
