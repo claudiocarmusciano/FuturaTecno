@@ -121,17 +121,13 @@ public class InvidApiClient {
                 resp = restTemplate.exchange(url, HttpMethod.GET, req, JsonNode.class);
             } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {
                 logger.warn("Invid: rate-limit (429) alcanzado en la página {}", paginas);
-                String espera = e.getResponseHeaders() != null ? e.getResponseHeaders().getFirst("Retry-After") : null;
-                String detalle = "Probá de nuevo más tarde.";
-                if (espera != null) {
-                    try {
-                        detalle = "Esperá aproximadamente " + Math.max(1, Long.parseLong(espera) / 60) + " minuto(s).";
-                    } catch (NumberFormatException ignored) {
-                        // Si Invid mandase un Retry-After no numérico, mantenemos un error claro.
-                    }
-                }
-                throw new IllegalStateException("Invid limitó las consultas (50/hora). "
-                        + detalle);
+                java.time.Duration espera = esperaSugerida(e);
+                String detalle = espera != null
+                        ? "Esperá aproximadamente " + Math.max(1, espera.toMinutes()) + " minuto(s)."
+                        : "Probá de nuevo más tarde.";
+                // La espera viaja en la excepción, no solo en el texto: el scheduler la usa para
+                // reprogramar el reintento (ver SincronizacionScheduler).
+                throw new InvidRateLimitException("Invid limitó las consultas (50/hora). " + detalle, espera);
             }
             JsonNode bodyResp = resp.getBody();
             if (bodyResp == null) break;
@@ -161,6 +157,17 @@ public class InvidApiClient {
     }
 
     /** Agrega filtros soportados por la API manteniéndolos también en las URLs de paginación. */
+    /** `Retry-After` viene en segundos. Null si Invid no lo manda o manda algo no numérico. */
+    private static java.time.Duration esperaSugerida(org.springframework.web.client.HttpClientErrorException e) {
+        String valor = e.getResponseHeaders() != null ? e.getResponseHeaders().getFirst("Retry-After") : null;
+        if (valor == null) return null;
+        try {
+            return java.time.Duration.ofSeconds(Long.parseLong(valor.trim()));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
     private String urlCatalogo(String url, boolean soloConStock) {
         StringBuilder out = new StringBuilder(url);
         if (!url.contains("exclude_zero_price=")) out.append(url.contains("?") ? '&' : '?').append("exclude_zero_price=1");
