@@ -17,6 +17,12 @@ public class ProductoAdminDTO {
     // Última vez que el mayorista lo devolvió en su feed (V40). Null en lo cargado por JSON.
     private LocalDateTime vistoEnSync;
 
+    // Costo y precio de venta de la primera variante activa, para verlos en el listado sin entrar
+    // a editar. La venta se calcula con el mismo PrecioService que el catálogo público.
+    private java.math.BigDecimal costoUsd;
+    private java.math.BigDecimal ventaUsd;
+    private java.math.BigDecimal ventaArs;
+
     public ProductoAdminDTO() {}
 
     public ProductoAdminDTO(Long id, String categoria, String marca, String modelo, String proveedor, String imagenUrl) {
@@ -59,4 +65,13 @@ public class ProductoAdminDTO {
     public void setUltimaActualizacion(LocalDateTime ultimaActualizacion) { this.ultimaActualizacion = ultimaActualizacion; }
     public LocalDateTime getVistoEnSync() { return vistoEnSync; }
     public void setVistoEnSync(LocalDateTime vistoEnSync) { this.vistoEnSync = vistoEnSync; }
+
+    public java.math.BigDecimal getCostoUsd() { return costoUsd; }
+    public void setCostoUsd(java.math.BigDecimal costoUsd) { this.costoUsd = costoUsd; }
+
+    public java.math.BigDecimal getVentaUsd() { return ventaUsd; }
+    public void setVentaUsd(java.math.BigDecimal ventaUsd) { this.ventaUsd = ventaUsd; }
+
+    public java.math.BigDecimal getVentaArs() { return ventaArs; }
+    public void setVentaArs(java.math.BigDecimal ventaArs) { this.ventaArs = ventaArs; }
 }

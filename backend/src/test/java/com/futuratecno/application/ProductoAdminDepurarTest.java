@@ -33,7 +33,7 @@ class ProductoAdminDepurarTest {
             imagenes, descripciones, atributos, stub(MargenManualService.class), productos, variantes,
             stub(IcecatService.class), stub(GoogleImageService.class), stub(AnthropicImageService.class),
             stub(DuckDuckGoImageService.class), stub(ImageUrlValidatorService.class),
-            stub(CotizacionService.class), stub(CategoriaClasificadorService.class),
+            stub(CotizacionService.class), stub(PrecioService.class), stub(CategoriaClasificadorService.class),
             categorias, stub(CategoriaRepository.class));
 
     private Producto producto(long id, String fuente, LocalDateTime actualizado) {

@@ -45,6 +45,7 @@ public class ProductoAdminService {
     private final DuckDuckGoImageService duckDuckGoImageService;
     private final ImageUrlValidatorService imageUrlValidatorService;
     private final CotizacionService cotizacionService;
+    private final PrecioService precioService;
     private final CategoriaClasificadorService categoriaClasificadorService;
     private final CategoriaService categoriaService;
     private final CategoriaRepository categoriaRepository;
@@ -61,6 +62,7 @@ public class ProductoAdminService {
                                 DuckDuckGoImageService duckDuckGoImageService,
                                 ImageUrlValidatorService imageUrlValidatorService,
                                 CotizacionService cotizacionService,
+                                PrecioService precioService,
                                 CategoriaClasificadorService categoriaClasificadorService,
                                 CategoriaService categoriaService,
                                 CategoriaRepository categoriaRepository) {
@@ -76,6 +78,7 @@ public class ProductoAdminService {
         this.duckDuckGoImageService = duckDuckGoImageService;
         this.imageUrlValidatorService = imageUrlValidatorService;
         this.cotizacionService = cotizacionService;
+        this.precioService = precioService;
         this.categoriaClasificadorService = categoriaClasificadorService;
         this.categoriaService = categoriaService;
         this.categoriaRepository = categoriaRepository;
@@ -95,6 +98,8 @@ public class ProductoAdminService {
         Map<Long, List<Variante>> variantesPorProducto = varianteRepository
                 .findByProductoIdInAndActivo(ids, true).stream()
                 .collect(Collectors.groupingBy(v -> v.getProducto().getId()));
+        // Una sola vez para todo el listado: la cotización es la misma para los 4.000 productos.
+        BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
 
         return productos.stream()
                 .map(p -> {
@@ -110,7 +115,17 @@ public class ProductoAdminService {
                     dto.setCategoriaId(p.getCategoriaId());
                     dto.setSku(sku(p));
                     if (!variantes.isEmpty()) {
-                        dto.setEspecificaciones(variantes.get(0).getEspecificaciones());
+                        Variante v = variantes.get(0);
+                        dto.setEspecificaciones(v.getEspecificaciones());
+                        // Se calcula con el MISMO PrecioService que el catálogo público, así el
+                        // admin ve exactamente el precio que ve el cliente — incluido el override
+                        // de margen del producto (V41). Duplicar la cuenta acá sería mentirle.
+                        dto.setCostoUsd(v.getCostoUsd());
+                        if (v.getCostoUsd() != null) {
+                            BigDecimal venta = precioService.precioVentaUsd(v, p, p.getProveedor());
+                            dto.setVentaUsd(venta);
+                            if (cotizacion != null) dto.setVentaArs(precioService.aArs(venta, cotizacion));
+                        }
                     }
                     dto.setUltimaActualizacion(calcularUltimaActualizacion(p, variantes));
                     dto.setVistoEnSync(p.getVistoEnSyncAt());

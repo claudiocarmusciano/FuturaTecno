@@ -640,6 +640,8 @@ function ProductosPage() {
                 <th>Categoría</th>
                 <th>Proveedor</th>
                 <th>SKU</th>
+                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Costo USD</th>
+                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Venta</th>
                 <th>Últ. actualización</th>
                 <th></th>
               </tr>
@@ -661,6 +663,19 @@ function ProductosPage() {
                   </td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{p.proveedor}</td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{p.sku}</td>
+                  <td style={{ fontSize: '13px', textAlign: 'right', whiteSpace: 'nowrap', color: 'var(--color-text-muted)' }}>
+                    {p.costoUsd != null ? `US$ ${formatNumber(p.costoUsd)}` : '—'}
+                  </td>
+                  <td style={{ fontSize: '13px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {p.ventaUsd != null ? <>
+                      <strong>US$ {formatNumber(p.ventaUsd)}</strong>
+                      {p.ventaArs != null && (
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                          ${formatNumber(p.ventaArs)}
+                        </div>
+                      )}
+                    </> : '—'}
+                  </td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>{formatFecha(p.ultimaActualizacion)}</td>
                   <td>
                     <button onClick={() => abrirEdicion(p.id)} className="btn-accion"><IconEdit /> Editar</button>
