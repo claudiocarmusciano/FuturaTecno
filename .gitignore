@@ -51,3 +51,19 @@ pesos-categorias-PROMPT.md
 
 # Bot de atención (Forja) — vive acá pero es un proyecto aparte, no del e-commerce.
 starter/
+
+# Materiales locales de marketing, documentación y contactos. No forman parte
+# del código desplegable ni deben publicarse en el repositorio.
+/AnunciosMeta/
+/CalendarioDeAcción.xlsx
+/Documentos/
+/Fichas Proveedores.xlsx
+/assets/instagram-highlights/
+/assets/instagram-stories/
+/marketing/social/*.png
+/social/
+/tmp/
+
+# Volcados de listados de proveedores: son precios de COSTO. El repo es público.
+/productos.json
+/celulares_reemplazo.json
