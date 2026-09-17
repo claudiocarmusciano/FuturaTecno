@@ -214,7 +214,20 @@ public class ClasificadorPorNombre {
             return contiene(full, "gamer|gaming|\\brtx\\b|\\bgtx\\b")
                     ? "Notebooks > Gamer" : "Notebooks > Consumo";
         }
-        if (contiene(cab, "switch")) {
+        // "Nintendo Switch" comparte la palabra con los switches de red, y esta regla va antes
+        // que la de consolas: sin esto toda la línea Nintendo caía en "Switches No Administrables".
+        // Se mira `full` y no `cab` porque la marca no entra en el encabezado: si el modelo es
+        // "Switch OLED 64GB" con marca NINTENDO, "nintendo" solo aparece en el texto completo.
+        boolean nintendoSwitch = contiene(full, "nintendo") && contiene(full, "switch");
+        // La consola va a su categoría; los accesorios (joysticks, fundas, docks) siguen de largo
+        // hasta las reglas genéricas, que ya saben qué hacer con ellos.
+        if (nintendoSwitch
+                && !contiene(full, "joystick|joy-?con|gamepad|mando|funda|estuche|cargador|soporte|dock")) {
+            return "Consolas > Nintendo Switch";
+        }
+        // El `!nintendoSwitch` es imprescindible: sin él un Joy-Con vuelve a caer acá, que es
+        // exactamente el bug que esto viene a arreglar. Nada de Nintendo es un switch de red.
+        if (contiene(cab, "switch") && !nintendoSwitch) {
             return contiene(full, "administrable|managed|\\bsmart\\b|\\bl[23]\\b")
                     ? "Conectividad > Switches Administrables" : "Conectividad > Switches No Administrables";
         }

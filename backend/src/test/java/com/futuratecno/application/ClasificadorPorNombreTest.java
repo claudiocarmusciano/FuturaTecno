@@ -38,6 +38,29 @@ class ClasificadorPorNombreTest {
     }
 
     @Test
+    @DisplayName("Nintendo Switch es una consola, no un switch de red")
+    void nintendoSwitchNoEsSwitchDeRed() {
+        // El bug: la regla de "switch" iba antes que la de consolas y la de consolas ni
+        // mencionaba Nintendo, así que toda la línea caía en "Switches No Administrables".
+        assertEquals("Consolas > Nintendo Switch",
+                clasificar("NINTENDO", "Nintendo Switch OLED 64GB Blanco"));
+        assertEquals("Consolas > Nintendo Switch",
+                clasificar("NINTENDO", "Nintendo Switch 2"));
+        // La marca no entra en el encabezado: acá "nintendo" solo está en marca.
+        assertEquals("Consolas > Nintendo Switch",
+                clasificar("NINTENDO", "Switch Lite Turquesa"));
+        // Y los switches de red siguen clasificando igual que antes.
+        assertEquals("Conectividad > Switches No Administrables",
+                clasificar("TP-LINK", "Switch Gigabit 48P TL-SG1048"));
+        assertEquals("Conectividad > Switches Administrables",
+                clasificar("TP-LINK", "Switch SG3428X 24P L2 Gigabit Omada Administrable"));
+        // Un accesorio de Switch no es la consola, pero tampoco un switch de red: sigue de largo
+        // hasta las reglas genéricas. Sin el guard en la regla de red volvía a caer ahí.
+        assertEquals("Accesorios",
+                clasificar("NINTENDO", "Joystick Joy-Con Nintendo Switch Par"));
+    }
+
+    @Test
     @DisplayName("Lo específico gana sobre lo genérico según el orden de las reglas")
     void especificoAntesQueGenerico() {
         assertEquals("Coolers > Watercoolers",
