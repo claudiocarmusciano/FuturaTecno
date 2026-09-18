@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import axios from 'axios'
 import { Link, useSearchParams } from 'react-router-dom'
 import { IconTrash } from '../../components/icons'
@@ -53,6 +53,23 @@ function ImagesPage() {
       setMensaje('Error al buscar imágenes automáticamente.')
     } finally {
       setBuscando(false)
+    }
+  }
+
+  // Candidatas traídas de la propia base, por producto: { [id]: {cargando, items, error} }.
+  // Es el paso barato antes de salir a la web: no gasta cuota de ningún proveedor y suele
+  // resolverlo, porque el catálogo ya tiene otra variante del mismo equipo cargada con foto.
+  const [similares, setSimilares] = useState({})
+
+  const buscarSimilares = async (id) => {
+    if (similares[id]) { setSimilares(prev => { const c = { ...prev }; delete c[id]; return c }); return }
+    setSimilares(prev => ({ ...prev, [id]: { cargando: true, items: [] } }))
+    try {
+      const res = await axios.get(`/api/admin/productos/${id}/imagenes-similares`)
+      setSimilares(prev => ({ ...prev, [id]: { cargando: false, items: res.data } }))
+    } catch (e) {
+      console.error(e)
+      setSimilares(prev => ({ ...prev, [id]: { cargando: false, items: [], error: true } }))
     }
   }
 
@@ -150,7 +167,8 @@ function ImagesPage() {
             </thead>
             <tbody>
               {productosFiltrados.map(p => (
-                <tr key={p.id}>
+                <Fragment key={p.id}>
+                <tr>
                   <td>
                     {(() => {
                       const preview = edits[p.id] !== undefined ? edits[p.id] : p.imagenUrl
@@ -193,6 +211,12 @@ function ImagesPage() {
                       title="Abrir Google Imágenes (incluye las especificaciones) — click derecho en la foto → Copiar dirección de imagen → pegar acá"
                     >🔍 Buscar</a>
                     <button
+                      onClick={() => buscarSimilares(p.id)}
+                      className="btn btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }}
+                      title="Ver fotos que ya están en el catálogo para productos parecidos de esta misma marca. No consulta internet."
+                    >📁 De la base</button>
+                    <button
                       onClick={() => guardarUrl(p.id)}
                       className="btn btn-primary"
                       style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }}
@@ -205,6 +229,58 @@ function ImagesPage() {
                     ><IconTrash /> Eliminar</button>
                   </td>
                 </tr>
+                {similares[p.id] && (
+                  <tr>
+                    <td colSpan={4} style={{ background: 'var(--color-surface-2)' }}>
+                      {similares[p.id].cargando ? (
+                        <p style={{ margin: 0, fontSize: '13px' }}>Buscando en el catálogo...</p>
+                      ) : similares[p.id].error ? (
+                        <p style={{ margin: 0, fontSize: '13px', color: '#dc3545' }}>No se pudieron traer las candidatas.</p>
+                      ) : similares[p.id].items.length === 0 ? (
+                        <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                          No hay ningún {p.marca} parecido con foto en el catálogo. Buscá en la web con “🔍 Buscar”.
+                        </p>
+                      ) : (
+                        <>
+                          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                            Fotos de otros {p.marca} del catálogo. <strong>Mirá el modelo debajo de cada una</strong>: la
+                            que elijas queda recordada para esta marca+modelo y se reusa en cada carga futura.
+                          </p>
+                          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                            {similares[p.id].items.map(c => (
+                              <button
+                                key={c.productoId}
+                                type="button"
+                                onClick={() => setEdits(prev => ({ ...prev, [p.id]: c.url }))}
+                                title={`${c.marca} ${c.modelo}`}
+                                style={{
+                                  width: '132px', padding: '6px', cursor: 'pointer', textAlign: 'left',
+                                  background: 'var(--color-surface)', borderRadius: '6px',
+                                  border: edits[p.id] === c.url ? '2px solid var(--color-lime)' : '1px solid var(--color-border)'
+                                }}
+                              >
+                                <img src={c.url} alt="" style={{ width: '100%', height: '78px', objectFit: 'contain' }} />
+                                <div style={{ fontSize: '11px', color: 'var(--color-text)', marginTop: '4px', lineHeight: 1.25 }}>
+                                  {c.modelo}
+                                </div>
+                                <div style={{ fontSize: '10px', marginTop: '3px', color: 'var(--color-text-muted)' }}>
+                                  {c.exacto ? '✓ mismo modelo'
+                                    : c.afinidad >= 12 ? 'parecido'
+                                    : 'apenas parecido — verificá'}
+                                  {!c.activo && ' · dado de baja'}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                          <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                            Al elegir una queda cargada en el campo URL; revisá la vista previa y apretá “Guardar”.
+                          </p>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>

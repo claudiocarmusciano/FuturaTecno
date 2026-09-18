@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { IconEdit, IconSearch, IconTrash } from '../../components/icons'
@@ -93,16 +93,31 @@ function ProductosPage() {
     setMensaje('')
     try {
       const res = await axios.get(`/api/admin/productos/${id}/editar`)
+      // El path de categoría lo arma el efecto de abajo, que espera a que esté el árbol.
+      pathDerivadoPara.current = null
+      setCatPath({ topId: '', subId: '' })
       setEditData(res.data)
-      const hojaId = res.data.categoriaId ?? ''
-      const padreId = hojaId !== '' ? (padreDe[hojaId] ?? '') : ''
-      // Si tiene padre, la hoja es la subcategoría; si no, la hoja es la categoría top-level misma.
-      setCatPath(padreId !== '' ? { topId: padreId, subId: hojaId } : { topId: hojaId, subId: '' })
     } catch (e) {
       console.error(e)
       setMensaje('Error al abrir el producto.')
     }
   }
+
+  // El árbol de categorías (GET /api/categorias) llega por su cuenta, y la edición puede abrirse
+  // antes: entrando por ?editar= desde Imágenes o desde un reporte, abrirEdicion corría con
+  // padreDe todavía vacío, así que la hoja (ej. "iPhone") terminaba en el select de primer nivel,
+  // donde no figura como opción — y la categoría se veía vacía aunque el producto la tuviera.
+  // Por eso el path se deriva acá, recién cuando están el producto Y el árbol.
+  const pathDerivadoPara = useRef(null)
+  useEffect(() => {
+    if (!editData || arbol.length === 0) return
+    if (pathDerivadoPara.current === editData.id) return   // no pisar lo que el usuario ya eligió
+    pathDerivadoPara.current = editData.id
+    const hojaId = editData.categoriaId ?? ''
+    const padreId = hojaId !== '' ? (padreDe[hojaId] ?? '') : ''
+    // Si tiene padre, la hoja es la subcategoría; si no, la hoja es la categoría top-level misma.
+    setCatPath(padreId !== '' ? { topId: padreId, subId: hojaId } : { topId: hojaId, subId: '' })
+  }, [editData, arbol])
 
   // Permite llegar desde los reportes administrativos a la edición de un producto puntual.
   // La URL se conserva para que el enlace se pueda abrir también en otra pestaña.

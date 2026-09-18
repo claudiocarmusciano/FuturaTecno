@@ -1,8 +1,13 @@
 package com.futuratecno.application;
 
+import com.futuratecno.api.dto.ImagenSimilarDTO;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 /** Memoria compartida entre proveedores. No elimina colores, capacidades ni nombres de combos. */
@@ -84,6 +89,67 @@ public class ImagenManualService {
                 ORDER BY activo DESC, id DESC LIMIT 1
                 """, (rs, row) -> rs.getString("imagen_url"), clave)
                 .stream().findFirst();
+    }
+
+    /**
+     * Candidatas de la propia base para un producto sin foto, para elegir a mano antes de salir a
+     * buscar afuera. No pega a ninguna API y no guarda nada: solo propone.
+     *
+     * <p>Mira únicamente productos de la MISMA marca. Aflojar eso traería la funda de Spigen para
+     * el iPhone, y el error de esta pantalla no es quedarse corto sino ofrecer una foto ajena que
+     * después queda recordada por marca+modelo.
+     *
+     * <p>Ordena por cuánto comparten las claves sueltas (V37) desde el principio: el modelo
+     * arranca con la línea ("legion5", "swiftgo") y termina en lo que distingue (capacidad, color),
+     * así que a más prefijo en común, más cerca. El match exacto de clave va primero y se marca
+     * como tal. Se deduplica por URL porque una familia entera suele compartir un mismo render.
+     */
+    public List<ImagenSimilarDTO> similares(String marca, String modelo, int limite) {
+        String objetivo = clave(marca, modelo);
+        String m = claveSuelta(marca);
+        if (m.isEmpty() || objetivo.isEmpty()) return List.of();
+
+        var candidatas = jdbc.query("""
+                SELECT id, marca, modelo, imagen_url, activo, clave_suelta
+                FROM productos
+                WHERE regexp_replace(lower(marca), '[^a-z0-9]', '', 'g') = ?
+                  AND nullif(trim(imagen_url), '') IS NOT NULL
+                """,
+                (rs, row) -> new Object[]{
+                        rs.getLong("id"), rs.getString("marca"), rs.getString("modelo"),
+                        rs.getString("imagen_url"), rs.getBoolean("activo"), rs.getString("clave_suelta")},
+                m);
+
+        // Piso deliberado. Sin él, un producto sin ningún pariente igual devuelve lo primero que
+        // comparta la marca y lo ofrece con la misma cara que una coincidencia buena: medido el
+        // 2026-09-18, "Dell LDC16255" traía "Dell LDC15255-A117", que es otra notebook. Se exige
+        // que coincidan al menos 6 caracteres del modelo, no solo la marca.
+        int minimo = m.length() + 6;
+
+        // Entre dos candidatas con la misma foto gana la más parecida, y a igual parecido la
+        // publicada: es la que el cliente está viendo hoy, así que es la que ya se validó sola.
+        var porUrl = new LinkedHashMap<String, ImagenSimilarDTO>();
+        candidatas.stream()
+                .map(c -> Map.entry(prefijoComun((String) c[5], objetivo), c))
+                .filter(e -> e.getKey() >= minimo)
+                .sorted(Comparator.<Map.Entry<Integer, Object[]>>comparingInt(e -> -e.getKey())
+                        .thenComparing(e -> !((Boolean) e.getValue()[4]))
+                        .thenComparing(e -> -((Long) e.getValue()[0])))
+                .map(e -> { Object[] c = e.getValue();
+                    return new ImagenSimilarDTO((Long) c[0], (String) c[1], (String) c[2],
+                            (String) c[3], (Boolean) c[4], objetivo.equals(c[5]),
+                            e.getKey() - m.length()); })
+                .forEach(dto -> porUrl.putIfAbsent(dto.url(), dto));
+
+        return porUrl.values().stream().limit(limite).toList();
+    }
+
+    /** Cuántos caracteres comparten dos claves sueltas desde el principio. */
+    private static int prefijoComun(String a, String b) {
+        if (a == null || b == null) return 0;
+        int n = Math.min(a.length(), b.length()), i = 0;
+        while (i < n && a.charAt(i) == b.charAt(i)) i++;
+        return i;
     }
 
     /**
