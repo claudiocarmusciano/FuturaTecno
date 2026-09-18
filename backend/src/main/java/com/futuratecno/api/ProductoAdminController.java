@@ -3,6 +3,7 @@ package com.futuratecno.api;
 import com.futuratecno.api.dto.AsignarCategoriaRequest;
 import com.futuratecno.api.dto.BuscarImagenesResponse;
 import com.futuratecno.api.dto.ClasificarCategoriasResponse;
+import com.futuratecno.api.dto.ImagenSimilarDTO;
 import com.futuratecno.api.dto.ProductoAdminDTO;
 import com.futuratecno.api.dto.ProductoEditDTO;
 import com.futuratecno.api.dto.IdsRequest;
@@ -48,6 +49,20 @@ public class ProductoAdminController {
     public ResponseEntity<ProductoEditDTO> obtenerParaEditar(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(productoAdminService.obtenerParaEditar(id));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Fotos que ya están en el catálogo y podrían servir para este producto. Es solo lectura y no
+     * llama a ningún servicio externo: propone para que el admin elija, no guarda nada. El paso
+     * caro (Icecat/Google/DuckDuckGo/Anthropic) sigue estando en /buscar-imagenes.
+     */
+    @GetMapping("/{id}/imagenes-similares")
+    public ResponseEntity<List<ImagenSimilarDTO>> imagenesSimilares(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(productoAdminService.imagenesSimilares(id));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }

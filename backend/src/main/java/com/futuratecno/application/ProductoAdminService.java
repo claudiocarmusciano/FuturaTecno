@@ -2,6 +2,7 @@ package com.futuratecno.application;
 
 import com.futuratecno.api.dto.BuscarImagenesResponse;
 import com.futuratecno.api.dto.ClasificarCategoriasResponse;
+import com.futuratecno.api.dto.ImagenSimilarDTO;
 import com.futuratecno.api.dto.ProductoAdminDTO;
 import com.futuratecno.api.dto.ProductoEditDTO;
 import com.futuratecno.api.dto.VarianteEditDTO;
@@ -32,6 +33,10 @@ public class ProductoAdminService {
     // La búsqueda incluye servicios externos. Un lote chico evita que una única acción de la
     // interfaz quede esperando varios minutos si alguno de ellos está lento o bloquea requests.
     private static final int MAXIMO_IMAGENES_POR_EJECUCION = 5;
+    // Candidatas de la propia base que se le ofrecen al admin. Son pocas a propósito: cada una se
+    // valida con una petición real antes de mostrarla, y elegir entre veinte miniaturas parecidas
+    // no ayuda a decidir — las buenas son siempre las primeras, que es donde la clave coincide más.
+    private static final int CANDIDATAS_POR_PRODUCTO = 8;
 
     private final ImagenManualService imagenManualService;
     private final DescripcionManualService descripcionManualService;
@@ -233,6 +238,23 @@ public class ProductoAdminService {
 
     /** Devuelve un producto con sus variantes en formato editable (precio en moneda de origen). */
     @Transactional(readOnly = true)
+    /**
+     * Fotos ya presentes en el catálogo que podrían servir para este producto, para que el admin
+     * elija antes de gastar una búsqueda externa.
+     *
+     * <p>Cada candidata se valida de verdad antes de ofrecerla: que una URL esté guardada no
+     * significa que siga viva. Medido el 2026-09-18, dos URLs de notebooks ACER que parecían
+     * buenas —y ni siquiera eran thumbnails de Google— devolvían error al cargarlas.
+     */
+    public List<ImagenSimilarDTO> imagenesSimilares(Long productoId) {
+        Producto p = productoRepository.findById(productoId)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
+        return imagenManualService.similares(p.getMarca(), p.getModelo(), CANDIDATAS_POR_PRODUCTO).stream()
+                .filter(c -> !c.productoId().equals(productoId))
+                .filter(c -> imageUrlValidatorService.esImagenDirecta(c.url()))
+                .toList();
+    }
+
     public ProductoEditDTO obtenerParaEditar(Long productoId) {
         Producto p = productoRepository.findById(productoId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
