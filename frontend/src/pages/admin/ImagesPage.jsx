@@ -60,6 +60,11 @@ function ImagesPage() {
   // Es el paso barato antes de salir a la web: no gasta cuota de ningún proveedor y suele
   // resolverlo, porque el catálogo ya tiene otra variante del mismo equipo cargada con foto.
   const [similares, setSimilares] = useState({})
+  // URLs cuya <img> no cargó. El servidor ya no valida: pedirlas desde Railway descartaba todas
+  // las de gstatic, que Google no sirve a IPs de datacenter aunque anden bien en un navegador.
+  // Acá la prueba es real, porque es el mismo contexto donde la foto se va a ver.
+  const [rotas, setRotas] = useState(new Set())
+  const marcarRota = url => setRotas(prev => prev.has(url) ? prev : new Set(prev).add(url))
 
   const buscarSimilares = async (id) => {
     if (similares[id]) { setSimilares(prev => { const c = { ...prev }; delete c[id]; return c }); return }
@@ -247,19 +252,30 @@ function ImagesPage() {
                             que elijas queda recordada para esta marca+modelo y se reusa en cada carga futura.
                           </p>
                           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                            {similares[p.id].items.map(c => (
+                            {similares[p.id].items.map(c => {
+                              const rota = rotas.has(c.url)
+                              return (
                               <button
                                 key={c.productoId}
                                 type="button"
+                                disabled={rota}
                                 onClick={() => setEdits(prev => ({ ...prev, [p.id]: c.url }))}
-                                title={`${c.marca} ${c.modelo}`}
+                                title={rota ? 'Esta foto ya no carga' : `${c.marca} ${c.modelo}`}
                                 style={{
-                                  width: '132px', padding: '6px', cursor: 'pointer', textAlign: 'left',
+                                  width: '132px', padding: '6px', textAlign: 'left',
+                                  cursor: rota ? 'not-allowed' : 'pointer', opacity: rota ? 0.45 : 1,
                                   background: 'var(--color-surface)', borderRadius: '6px',
                                   border: edits[p.id] === c.url ? '2px solid var(--color-lime)' : '1px solid var(--color-border)'
                                 }}
                               >
-                                <img src={c.url} alt="" style={{ width: '100%', height: '78px', objectFit: 'contain' }} />
+                                {rota ? (
+                                  <div style={{ height: '78px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#dc3545', textAlign: 'center' }}>
+                                    foto rota
+                                  </div>
+                                ) : (
+                                  <img src={c.url} alt="" onError={() => marcarRota(c.url)}
+                                       style={{ width: '100%', height: '78px', objectFit: 'contain' }} />
+                                )}
                                 <div style={{ fontSize: '11px', color: 'var(--color-text)', marginTop: '4px', lineHeight: 1.25 }}>
                                   {c.modelo}
                                 </div>
@@ -270,7 +286,7 @@ function ImagesPage() {
                                   {!c.activo && ' · dado de baja'}
                                 </div>
                               </button>
-                            ))}
+                            )})}
                           </div>
                           <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
                             Al elegir una queda cargada en el campo URL; revisá la vista previa y apretá “Guardar”.

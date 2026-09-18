@@ -33,9 +33,9 @@ public class ProductoAdminService {
     // La búsqueda incluye servicios externos. Un lote chico evita que una única acción de la
     // interfaz quede esperando varios minutos si alguno de ellos está lento o bloquea requests.
     private static final int MAXIMO_IMAGENES_POR_EJECUCION = 5;
-    // Candidatas de la propia base que se le ofrecen al admin. Son pocas a propósito: cada una se
-    // valida con una petición real antes de mostrarla, y elegir entre veinte miniaturas parecidas
-    // no ayuda a decidir — las buenas son siempre las primeras, que es donde la clave coincide más.
+    // Candidatas de la propia base que se le ofrecen al admin. Son pocas a propósito: elegir entre
+    // veinte miniaturas parecidas no ayuda a decidir, y las buenas son siempre las primeras, que es
+    // donde la clave coincide más.
     private static final int CANDIDATAS_POR_PRODUCTO = 8;
 
     private final ImagenManualService imagenManualService;
@@ -242,16 +242,21 @@ public class ProductoAdminService {
      * Fotos ya presentes en el catálogo que podrían servir para este producto, para que el admin
      * elija antes de gastar una búsqueda externa.
      *
-     * <p>Cada candidata se valida de verdad antes de ofrecerla: que una URL esté guardada no
-     * significa que siga viva. Medido el 2026-09-18, dos URLs de notebooks ACER que parecían
-     * buenas —y ni siquiera eran thumbnails de Google— devolvían error al cargarlas.
+     * <p><b>No se valida la URL desde el servidor, a propósito.</b> Se intentó y salió mal: pedir
+     * cada candidata desde Railway descartaba todas las de `encrypted-tbn*.gstatic.com` —Google
+     * bloquea las IPs de datacenter, igual que MercadoLibre—, y son 1.101 de las 4.122 imágenes
+     * del catálogo. Eso dejaba sin candidatas a 141 de los 210 productos que sí tenían una. Eran
+     * falsos negativos: esas fotos cargan perfecto en un navegador, que es donde importan.
+     *
+     * <p>Quien valida es la grilla del admin, que renderiza cada miniatura: una foto muerta se ve
+     * como un recuadro vacío y queda marcada como inservible. Valida desde donde la imagen se va a
+     * ver de verdad, no desde un datacenter, y de paso el endpoint responde sin salir a la red.
      */
     public List<ImagenSimilarDTO> imagenesSimilares(Long productoId) {
         Producto p = productoRepository.findById(productoId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
         return imagenManualService.similares(p.getMarca(), p.getModelo(), CANDIDATAS_POR_PRODUCTO).stream()
                 .filter(c -> !c.productoId().equals(productoId))
-                .filter(c -> imageUrlValidatorService.esImagenDirecta(c.url()))
                 .toList();
     }
 
