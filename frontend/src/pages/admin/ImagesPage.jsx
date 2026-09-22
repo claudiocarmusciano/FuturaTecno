@@ -13,6 +13,7 @@ function ImagesPage() {
   const [mensaje, setMensaje] = useState('')
   const [edits, setEdits] = useState({}) // { [productoId]: urlEnEdicion }
   const [searchParams, setSearchParams] = useSearchParams()
+  const [pagina, setPagina] = useState(1)
   const busqueda = searchParams.get('busqueda') || ''
   const soloSinImagen = searchParams.get('filtro') !== 'todos'
   const actualizarFiltro = (clave, valor) => {
@@ -40,6 +41,8 @@ function ImagesPage() {
   }
 
   useEffect(() => { cargar() }, [])
+  // Cambiar el filtro o la búsqueda acorta el listado: seguir en la página 7 dejaría la tabla vacía.
+  useEffect(() => { setPagina(1) }, [busqueda, soloSinImagen])
 
   const buscarImagenes = async () => {
     setBuscando(true)
@@ -117,6 +120,14 @@ function ImagesPage() {
       .includes(terminoBusqueda))
     : productosBase
 
+  // Misma razón que en Productos: pintar las ~4.000 filas de una bloqueaba el hilo principal
+  // varios segundos y encolaba una petición de imagen por fila. Acá además cada fila abre un
+  // panel de candidatas, así que conviene todavía más tener pocas en pantalla.
+  const POR_PAGINA = 50
+  const totalPaginas = Math.max(1, Math.ceil(productosFiltrados.length / POR_PAGINA))
+  const paginaActual = Math.min(pagina, totalPaginas)
+  const productosPagina = productosFiltrados.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA)
+
   return (
     <div>
       <h1>Gestión de Imágenes</h1>
@@ -171,14 +182,14 @@ function ImagesPage() {
               </tr>
             </thead>
             <tbody>
-              {productosFiltrados.map(p => (
+              {productosPagina.map(p => (
                 <Fragment key={p.id}>
                 <tr>
                   <td>
                     {(() => {
                       const preview = edits[p.id] !== undefined ? edits[p.id] : p.imagenUrl
                       return preview ? (
-                        <img src={preview} alt="" style={{ width: '50px', height: '50px', objectFit: 'contain' }}
+                        <img src={preview} alt="" loading="lazy" width="50" height="50" style={{ width: '50px', height: '50px', objectFit: 'contain' }}
                              onError={(e) => { e.target.style.opacity = '0.2' }}
                              onLoad={(e) => { e.target.style.opacity = '1' }} />
                       ) : (
@@ -300,6 +311,17 @@ function ImagesPage() {
               ))}
             </tbody>
           </table>
+        )}
+        {totalPaginas > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}
+                    disabled={paginaActual === 1} onClick={() => setPagina(paginaActual - 1)}>← Anterior</button>
+            <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+              Página {paginaActual} de {totalPaginas} · mostrando {productosPagina.length} de {productosFiltrados.length}
+            </span>
+            <button type="button" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}
+                    disabled={paginaActual === totalPaginas} onClick={() => setPagina(paginaActual + 1)}>Siguiente →</button>
+          </div>
         )}
       </div>
     </div>

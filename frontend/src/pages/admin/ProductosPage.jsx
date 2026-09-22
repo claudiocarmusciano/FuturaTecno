@@ -53,6 +53,8 @@ function ProductosPage() {
 
   // Filtro "solo sin categoría" + búsqueda + selección múltiple + cascada para asignación masiva.
   const [soloSinCategoria, setSoloSinCategoria] = useState(false)
+  const [pagina, setPagina] = useState(1)
+  // Cambiar un filtro deja el listado más corto: seguir en la página 7 mostraría una tabla vacía.
   const [proveedorFiltro, setProveedorFiltro] = useState('')
   const [busqueda, setBusqueda] = useState('')
   const [seleccionados, setSeleccionados] = useState(new Set())
@@ -126,6 +128,8 @@ function ProductosPage() {
     if (Number.isInteger(productoId) && productoId > 0) abrirEdicion(productoId)
   }, [searchParams])
 
+  useEffect(() => { setPagina(1) }, [busqueda, soloSinCategoria, proveedorFiltro])
+
   const elegirCategoria = (id) => {
     const tieneHijos = (nodoDe[id]?.hijos || []).length > 0
     setCatPath({ topId: id, subId: '' })
@@ -190,6 +194,16 @@ function ProductosPage() {
     .filter(p => !proveedorFiltro || p.proveedor === proveedorFiltro)
     .filter(coincide)
   const proveedores = ordenarPor([...new Set(productos.map(p => p.proveedor).filter(Boolean))])
+
+  // Se pinta de a una página. Antes se dibujaban las ~4.000 filas de una: 75.000 nodos de DOM y
+  // una petición de imagen por fila, con el hilo principal bloqueado varios segundos y las fotos
+  // cayendo de a goteo (medida una en 133 s). La API nunca fue el problema: responde en ~500 ms.
+  // `productosVisibles` sigue siendo el filtrado COMPLETO a propósito: es lo que usan "seleccionar
+  // todos" y las acciones masivas, y paginarlo cambiaría en silencio qué abarca una asignación.
+  const POR_PAGINA = 50
+  const totalPaginas = Math.max(1, Math.ceil(productosVisibles.length / POR_PAGINA))
+  const paginaActual = Math.min(pagina, totalPaginas)
+  const productosPagina = productosVisibles.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA)
 
   const toggleSeleccion = (id) => setSeleccionados(prev => {
     const n = new Set(prev)
@@ -662,14 +676,14 @@ function ProductosPage() {
               </tr>
             </thead>
             <tbody>
-              {productosVisibles.map(p => (
+              {productosPagina.map(p => (
                 <tr key={p.id} style={seleccionados.has(p.id) ? { background: 'var(--color-accent-light)' } : {}}>
                   <td>
                     <input type="checkbox" className="check-seleccion" checked={seleccionados.has(p.id)} onChange={() => toggleSeleccion(p.id)} />
                   </td>
                   <td>
                     {p.imagenUrl
-                      ? <img src={p.imagenUrl} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain' }} onError={e => { e.target.style.opacity = '0.2' }} />
+                      ? <img src={p.imagenUrl} alt="" loading="lazy" width="40" height="40" style={{ width: '40px', height: '40px', objectFit: 'contain' }} onError={e => { e.target.style.opacity = '0.2' }} />
                       : <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>—</span>}
                   </td>
                   <td>{[p.marca, p.modelo].filter(Boolean).join(' ')}</td>
@@ -699,6 +713,17 @@ function ProductosPage() {
               ))}
             </tbody>
           </table>
+        )}
+        {totalPaginas > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}
+                    disabled={paginaActual === 1} onClick={() => setPagina(paginaActual - 1)}>← Anterior</button>
+            <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+              Página {paginaActual} de {totalPaginas} · mostrando {productosPagina.length} de {productosVisibles.length}
+            </span>
+            <button type="button" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}
+                    disabled={paginaActual === totalPaginas} onClick={() => setPagina(paginaActual + 1)}>Siguiente →</button>
+          </div>
         )}
       </div>
     </div>
