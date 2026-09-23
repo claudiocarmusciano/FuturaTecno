@@ -31,6 +31,8 @@ public class AuthService {
     private static final long ACTIVACION_TOKEN_TTL_MINUTOS = 24 * 60;
     /** Quienes completen el alta antes de este instante conservan la doble chance anunciada. */
     private static final LocalDateTime LIMITE_DOBLE_CHANCE = LocalDateTime.of(2026, 9, 1, 0, 0);
+    private static final String ADMIN_SIN_GOOGLE =
+            "La cuenta de administrador ingresa solo con email y contraseña.";
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -243,6 +245,14 @@ public class AuthService {
      *    la vincula al Google de esa persona (así no quedan cuentas duplicadas);
      *  - si no existe ninguna, crea una nueva con rol USUARIO (sin contraseña local).
      * Nunca otorga rol ADMIN: los usuarios de Google son siempre clientes.
+     *
+     * Reglas de la vinculación, porque es una toma de cuenta si sale mal:
+     *  - La cuenta ADMIN nunca entra por Google, ni vinculada ni por vincular. Un vínculo no se
+     *    corta al cambiar la contraseña, así que quien lograra vincularse conservaría el admin.
+     *  - Nunca se pisa un Google ya vinculado a la cuenta.
+     *  - Si el email de la cuenta no estaba verificado, la contraseña la pudo haber elegido
+     *    cualquiera (el registro no exige verificar): se borra al vincular, y Google, que sí
+     *    probó que la persona es dueña del email, deja el email como verificado.
      */
     @Transactional
     public AuthResponse loginConGoogle(String credential) {
@@ -252,7 +262,16 @@ public class AuthService {
         if (u == null) {
             u = usuarioRepository.findByEmailIgnoreCase(g.email()).orElse(null);
             if (u != null) {
+                if (esAdmin(u)) throw new IllegalArgumentException(ADMIN_SIN_GOOGLE);
+                if (u.getGoogleSub() != null && !u.getGoogleSub().isBlank()) {
+                    throw new IllegalArgumentException(
+                            "Esta cuenta ya está vinculada a otra cuenta de Google. Ingresá con esa o con tu contraseña.");
+                }
                 // Cuenta existente con ese email → la vinculamos a Google.
+                if (!Boolean.TRUE.equals(u.getEmailVerificado())) {
+                    u.setPassword(null);
+                    u.setEmailVerificado(true);
+                }
                 u.setGoogleSub(g.sub());
                 if ((u.getNombre() == null || u.getNombre().isBlank()) && g.nombre() != null) {
                     u.setNombre(g.nombre());
@@ -269,6 +288,8 @@ public class AuthService {
                 u.setActivo(true);
                 usuarioRepository.save(u);
             }
+        } else if (esAdmin(u)) {
+            throw new IllegalArgumentException(ADMIN_SIN_GOOGLE);
         }
 
         if (!Boolean.TRUE.equals(u.getActivo())) {
@@ -330,6 +351,10 @@ public class AuthService {
         u.setResetToken(null);           // un solo uso
         u.setResetTokenExpira(null);
         usuarioRepository.save(u);
+    }
+
+    private static boolean esAdmin(Usuario u) {
+        return "ADMIN".equalsIgnoreCase(u.getRol());
     }
 
     private String generarTokenPlano() {
