@@ -15,6 +15,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     List<Producto> findByActivo(Boolean activo);
 
+    List<Producto> findByActivoAndFuenteIn(Boolean activo, java.util.Collection<String> fuentes);
+
     Optional<Producto> findByProveedorIdAndMarcaAndModelo(Long proveedorId, String marca, String modelo);
 
     Optional<Producto> findByProveedorIdAndCodigoExterno(Long proveedorId, String codigoExterno);

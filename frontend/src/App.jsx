@@ -14,6 +14,7 @@ import CategoriasPage from './pages/admin/CategoriasPage'
 import DepurarPage from './pages/admin/DepurarPage'
 import PromocionesPage from './pages/admin/PromocionesPage'
 import CatalogPage from './pages/public/CatalogPage'
+import ArmaTuPcPage from './pages/public/ArmaTuPcPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
 import LandingPage from './pages/public/LandingPage'
 import PreLandingPage from './pages/public/PreLandingPage'
@@ -48,6 +49,7 @@ function App() {
 
         <Route element={<PublicLayout />}>
           <Route path="/catalogo" element={<CatalogPage />} />
+          <Route path="/arma-tu-pc" element={<ArmaTuPcPage />} />
           <Route path="/producto/:id" element={<ProductDetailPage />} />
           {/* El carrito y el checkout son públicos: la sesión se pide recién al confirmar. */}
           <Route path="/carrito" element={<CartPage />} />
