@@ -42,6 +42,11 @@
 - **Envío por Andreani (V15):** la cotización sale de la **API Pyme** (`woocommerce-api-acom.andreani.com`), que es el middleware del plugin de WooCommerce — **no** la API corporativa (`apis.andreani.com`, esa exige contrato comercial y nunca la conseguimos). Es la única vía para una cuenta Pyme, pero Andreani podría cambiarla sin avisar: por eso `AndreaniClient` degrada con gracia y el checkout funciona igual sin cotización. Auth: la credencial del portal (Integraciones → WooCommerce) va tal cual en `Authorization` a `POST /api/v1/Login`; la respuesta trae el `accessToken` (header `X-Auth-Token` de ahí en más) **y los contratos de la cuenta** — no hace falta conocer `cliente` ni `contrato`, los devuelve la API. Cotización: `POST /api/v1/Pyme/rates` con `{postal_code_origin, postal_code_destination, products[{quantity, price, dimensions{width,height,depth,grams}}]}`. Exige los 4 datos de peso/dimensiones de cada producto (de ahí la V14); si falta alguno no se cotiza. La modalidad "sucursal" viene repetida una vez por punto de retiro del CP → hay que quedarse con el mínimo por modalidad.
 - **El costo de envío también se congela.** Mismo criterio que los precios: el checkout manda solo CP + modalidad, `PedidoService` **recotiza server-side** y guarda el importe. Si Andreani no responde en ese momento, el pedido igual se crea con `costo_envio_ars` en null ("a cotizar") — la cotización nunca bloquea una venta.
 - **La home (`/`) es la TIENDA**, desde 2026-09-13. El sorteo se mudó a `/sorteo` y `/inicio` redirige ahí. El banner del sorteo en la landing **se apaga solo el 31/10 a las 00:00**, cuando cierra la inscripción (prorrogada del 30/09 al **30/10** el 2026-09-15). Ojo: la inscripción cierra el 30/10 a las 23:59 y el **sorteo** es el 31/10 — son dos fechas distintas y están en cuatro lugares: `LandingPage` (el corte del banner), `PreLandingPage`, `BasesSorteoPage` y dos plantillas de mail. Nada en el backend corta la inscripción por fecha: es solo texto y visibilidad. El gate `SoloAdmin` que escondía el catálogo **ya no existe** (venció el 7/9, eliminado en `d9f04cf`): el catálogo es público.
+- **Armá tu PC (`/arma-tu-pc`, 2026-09-22).** `GET /api/arma-tu-pc/componentes` (público) lista **solo Elit e Invid** — los únicos con ficha técnica completa — y `ComponentePcExtractor` lee de nombre + ficha socket, DDR, formato, ranuras de RAM, watts, video integrado y cooler incluido; no hay columnas, se calcula por request. Tres cosas aprendidas midiendo contra el catálogo real (`ComponentePcExtractorCatalogoRealTest`):
+  - **El tipo sale del encabezado del nombre antes que de la categoría**: "Coolers > Fans" tiene fuentes y gabinetes de Cooler Master, y "Memoria DDR4" tenía 34 tarjetas SD.
+  - **Sin socket escrito, se deduce** por chipset (B650 → AM5) o por generación del CPU (i5-12400 → LGA1700). Micro-ATX **no** fija la cantidad de ranuras (sale con 2 y con 4): queda null y el front avisa.
+  - **Solo se bloquea lo cierto** (socket, DDR, kit que no entra en las ranuras); formato de gabinete, potencia de fuente y datos faltantes son aviso. Un null nunca oculta un producto.
+  La placa de video es obligatoria solo si el CPU no tiene video; el cooler, solo si viene sin. "Agregar todo al carrito" usa el carrito normal, así que el precio lo recalcula el backend como siempre.
 - **Repo público en GitHub** — NUNCA commitear secrets. Las credenciales van solo en `backend/.env` (gitignored) y en Railway.
 
 ## Límites conocidos (escalabilidad)
@@ -86,7 +91,7 @@ cd frontend && npm run dev          # → http://localhost:5173
 ```bash
 mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test
 ```
-(al 2026-09-16: 97 tests, 1 skipped, 0 fallas)
+(al 2026-09-22: 112 tests, 2 skipped, 0 fallas)
 
 ## Prod (Railway)
 | Env var | Descripción |

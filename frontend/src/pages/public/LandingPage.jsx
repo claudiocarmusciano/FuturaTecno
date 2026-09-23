@@ -152,6 +152,7 @@ function LandingPage() {
             <a href="#por-que">Por qué</a>
             <a href="#categorias">Categorías</a>
             <a href="#productos">Productos</a>
+            <Link to="/arma-tu-pc">Armá tu PC</Link>
             {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>
@@ -236,6 +237,25 @@ function LandingPage() {
           <div><div className="lp-stat-n">WhatsApp</div><div className="lp-stat-l">atención directa</div></div>
         </div>
       </div>
+
+      {/* ARMÁ TU PC */}
+      <section className="lp-armador" aria-labelledby="armador-title">
+        <div className="lp-wrap">
+          <Link to="/arma-tu-pc" className="lp-armador-card">
+            <div>
+              <span className="lp-eyebrow">Nuevo</span>
+              <h2 className="lp-title" id="armador-title">Armá tu PC a medida.</h2>
+              <p className="lp-armador-texto">
+                Elegí procesador, mother, memoria y el resto, paso a paso. Te mostramos solo lo que es compatible entre sí.
+              </p>
+              <span className="lp-btn lp-btn-primary">Empezar a armar →</span>
+            </div>
+            <ul className="lp-armador-pasos" aria-hidden="true">
+              {['Procesador', 'Motherboard', 'Memoria', 'Video', 'Disco', 'Fuente', 'Gabinete', 'Cooler'].map(p => <li key={p}>{p}</li>)}
+            </ul>
+          </Link>
+        </div>
+      </section>
 
       {/* MARCAS */}
       <section className="lp-brands" aria-labelledby="marcas-title">
