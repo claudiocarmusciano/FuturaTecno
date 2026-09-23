@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import { WHATSAPP_NUMBER } from '../../config'
+import { etiquetaEnvio } from '../../utils/envio'
 import './ArmaTuPcPage.css'
 
 const formatNumber = (n) =>
@@ -12,22 +14,51 @@ const STORAGE_KEY = 'armaTuPc'
 const POR_PAGINA = 24
 const FORMATOS = ['ITX', 'MATX', 'ATX', 'EATX']
 const NOMBRE_FORMATO = { ITX: 'Mini-ITX', MATX: 'Micro-ATX', ATX: 'ATX', EATX: 'E-ATX' }
+/**
+ * Código corto de cada paso en el link para compartir: `?armado=cpu:123,ram:456x2`.
+ * El número es el varianteId; si se renombra un código, los links viejos dejan de abrir esa pieza.
+ */
+const CODIGO_LINK = {
+  PROCESADOR: 'cpu', MOTHER: 'mb', MEMORIA: 'ram', VIDEO: 'gpu', ALMACENAMIENTO: 'd1',
+  ALMACENAMIENTO_2: 'd2', FUENTE: 'psu', GABINETE: 'gab', COOLER: 'cool',
+}
+const CLAVE_DE_CODIGO = Object.fromEntries(Object.entries(CODIGO_LINK).map(([k, v]) => [v, k]))
+
+function aLink(sel) {
+  return PASOS.filter(p => sel[p.clave])
+    .map(p => `${CODIGO_LINK[p.clave]}:${sel[p.clave].item.varianteId}${sel[p.clave].cantidad > 1 ? `x${sel[p.clave].cantidad}` : ''}`)
+    .join(',')
+}
+
+/** Lee `?armado=`. Devuelve { clave: { varianteId, cantidad } }, ignorando lo que no se entiende. */
+function deLink(texto) {
+  const out = {}
+  for (const parte of (texto || '').split(',')) {
+    const m = parte.match(/^([a-z0-9]+):(\d+)(?:x(\d))?$/)
+    if (m && CLAVE_DE_CODIGO[m[1]]) out[CLAVE_DE_CODIGO[m[1]]] = { varianteId: Number(m[2]), cantidad: Number(m[3] || 1) }
+  }
+  return out
+}
+
 const RAM_DE_SOCKET = { AM4: 'DDR4', AM5: 'DDR5', LGA1851: 'DDR5', LGA1200: 'DDR4' }
 
 /**
  * Orden de armado. Cada paso filtra por lo elegido en los anteriores, así que el orden importa:
  * el socket lo fija el procesador, el tipo de RAM lo fija el mother.
- * `cantidad`: se puede llevar más de una unidad (dos memorias, dos discos).
+ * `clave`: dónde se guarda lo elegido. Coincide con `tipo` salvo en el 2º disco, que ofrece el
+ * mismo tipo de componente que "Almacenamiento" pero es otra elección (un SSD + un rígido).
+ * `cantidad`: se puede llevar más de una unidad (dos memorias, dos discos iguales).
  */
 const PASOS = [
-  { tipo: 'PROCESADOR', titulo: 'Procesador', icono: '🧠' },
-  { tipo: 'MOTHER', titulo: 'Motherboard', icono: '🧩' },
-  { tipo: 'MEMORIA', titulo: 'Memoria RAM', icono: '💾', cantidad: true },
-  { tipo: 'VIDEO', titulo: 'Placa de video', icono: '🎮' },
-  { tipo: 'ALMACENAMIENTO', titulo: 'Almacenamiento', icono: '🗄️', cantidad: true },
-  { tipo: 'FUENTE', titulo: 'Fuente', icono: '⚡' },
-  { tipo: 'GABINETE', titulo: 'Gabinete', icono: '🖥️' },
-  { tipo: 'COOLER', titulo: 'Cooler', icono: '❄️' },
+  { clave: 'PROCESADOR', tipo: 'PROCESADOR', titulo: 'Procesador', icono: '🧠' },
+  { clave: 'MOTHER', tipo: 'MOTHER', titulo: 'Motherboard', icono: '🧩' },
+  { clave: 'MEMORIA', tipo: 'MEMORIA', titulo: 'Memoria RAM', icono: '💾', cantidad: true },
+  { clave: 'VIDEO', tipo: 'VIDEO', titulo: 'Placa de video', icono: '🎮' },
+  { clave: 'ALMACENAMIENTO', tipo: 'ALMACENAMIENTO', titulo: 'Almacenamiento', icono: '🗄️', cantidad: true },
+  { clave: 'ALMACENAMIENTO_2', tipo: 'ALMACENAMIENTO', titulo: '2º disco', icono: '💽', cantidad: true },
+  { clave: 'FUENTE', tipo: 'FUENTE', titulo: 'Fuente', icono: '⚡' },
+  { clave: 'GABINETE', tipo: 'GABINETE', titulo: 'Gabinete', icono: '🖥️' },
+  { clave: 'COOLER', tipo: 'COOLER', titulo: 'Cooler', icono: '❄️' },
 ]
 
 /**
@@ -96,28 +127,34 @@ function maxUnidades(memoria, sel) {
 }
 
 /** ¿El paso es obligatorio con lo elegido hasta ahora? */
-function esObligatorio(tipo, sel) {
+function esObligatorio(clave, sel) {
   const cpu = sel.PROCESADOR?.item
-  if (tipo === 'VIDEO') return cpu?.videoIntegrado === false
-  if (tipo === 'COOLER') return cpu?.incluyeCooler === false
+  if (clave === 'ALMACENAMIENTO_2') return false
+  if (clave === 'VIDEO') return cpu?.videoIntegrado === false
+  if (clave === 'COOLER') return cpu?.incluyeCooler === false
   return true
 }
 
-function notaDelPaso(tipo, sel) {
+function notaDelPaso(clave, sel) {
   const cpu = sel.PROCESADOR?.item
-  if (tipo === 'MEMORIA') {
+  if (clave === 'ALMACENAMIENTO_2') {
+    return sel.ALMACENAMIENTO
+      ? 'Opcional: sumá un disco distinto al primero, por ejemplo un SSD para el sistema y un rígido para tus archivos.'
+      : 'Opcional: elegí primero el disco principal en el paso anterior.'
+  }
+  if (clave === 'MEMORIA') {
     const mother = sel.MOTHER?.item
     if (!mother) return 'Podés llevar más de un módulo: elegí la cantidad en cada opción.'
     return mother.ranurasRam
       ? `Tu mother tiene ${mother.ranurasRam} ranuras de memoria: podés poner hasta ${mother.ranurasRam} módulos.`
       : 'No sabemos cuántas ranuras de memoria tiene tu mother (suelen ser 2 o 4): verificalo antes de llevar más de dos módulos.'
   }
-  if (tipo === 'VIDEO' && cpu) {
+  if (clave === 'VIDEO' && cpu) {
     return cpu.videoIntegrado === false
       ? 'Tu procesador no tiene video integrado: necesitás una placa de video.'
       : cpu.videoIntegrado ? 'Tu procesador tiene video integrado: la placa de video es opcional.' : null
   }
-  if (tipo === 'COOLER' && cpu) {
+  if (clave === 'COOLER' && cpu) {
     if (cpu.incluyeCooler === false) return 'Tu procesador viene sin cooler: necesitás uno.'
     if (cpu.incluyeCooler) return 'Tu procesador trae cooler en la caja: este paso es opcional.'
     return 'No sabemos si tu procesador trae cooler: si no lo trae, sumá uno.'
@@ -129,11 +166,11 @@ function notaDelPaso(tipo, sel) {
 function depurar(sel) {
   const limpio = {}
   for (const p of PASOS) {
-    const actual = sel[p.tipo]
+    const actual = sel[p.clave]
     if (!actual) continue
     const { bloqueo } = evaluar(actual.item, limpio)
     if (bloqueo) continue
-    limpio[p.tipo] = p.tipo === 'MEMORIA'
+    limpio[p.clave] = p.clave === 'MEMORIA'
       ? { ...actual, cantidad: Math.min(actual.cantidad, maxUnidades(actual.item, limpio)) }
       : actual
   }
@@ -176,6 +213,12 @@ export default function ArmaTuPcPage() {
   const [cantidades, setCantidades] = useState({})
   const { agregar } = useCart()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [avisoLink, setAvisoLink] = useState(null)
+  const [cp, setCp] = useState(() => localStorage.getItem('armaTuPcCp') || '')
+  const [envio, setEnvio] = useState(null)
+  const [cotizando, setCotizando] = useState(false)
+  const [copiado, setCopiado] = useState(false)
 
   useEffect(() => {
     axios.get('/api/arma-tu-pc/componentes')
@@ -184,10 +227,29 @@ export default function ArmaTuPcPage() {
   }, [])
 
   // Lo guardado puede tener precios viejos o productos que ya no están: se reemplaza por la
-  // versión de hoy, y lo que desapareció se descarta.
+  // versión de hoy, y lo que desapareció se descarta. Un link compartido (?armado=) pisa lo
+  // guardado: quien lo abre quiere ver ESE armado. Después se saca de la URL, para que recargar
+  // no deshaga los cambios que haga encima.
   useEffect(() => {
     if (!componentes) return
     const porVariante = new Map(componentes.map(c => [c.varianteId, c]))
+    const compartido = searchParams.get('armado')
+    if (compartido) {
+      const pedido = deLink(compartido)
+      const armado = {}
+      let faltan = 0
+      for (const [clave, { varianteId, cantidad }] of Object.entries(pedido)) {
+        const hoy = porVariante.get(varianteId)
+        if (hoy) armado[clave] = { item: hoy, cantidad }
+        else faltan++
+      }
+      setSeleccion(depurar(armado))
+      setAvisoLink(faltan
+        ? `Abriste un armado compartido. ${faltan} ${faltan === 1 ? 'componente ya no está disponible' : 'componentes ya no están disponibles'}: elegí un reemplazo.`
+        : 'Abriste un armado compartido. Podés cambiar lo que quieras.')
+      setSearchParams({}, { replace: true })
+      return
+    }
     setSeleccion(prev => {
       const vigente = {}
       for (const [tipo, s] of Object.entries(prev)) {
@@ -204,6 +266,46 @@ export default function ArmaTuPcPage() {
 
   useEffect(() => { setBusqueda(''); setVisibles(POR_PAGINA) }, [paso])
 
+  // Una cotización vale para las piezas con que se pidió.
+  useEffect(() => { setEnvio(null) }, [seleccion])
+
+  const cotizarEnvio = async () => {
+    setCotizando(true)
+    setEnvio(null)
+    try { localStorage.setItem('armaTuPcCp', cp) } catch { /* modo privado */ }
+    try {
+      const { data } = await axios.post('/api/envio/cotizar', {
+        cpDestino: cp.trim(),
+        items: Object.values(seleccion).map(s => ({ varianteId: s.item.varianteId, cantidad: s.cantidad }))
+      })
+      setEnvio(data)
+    } catch (err) {
+      setEnvio({ disponible: false, mensaje: err.response?.data?.error || 'No pudimos cotizar el envío. Probá de nuevo o consultanos.' })
+    } finally {
+      setCotizando(false)
+    }
+  }
+
+  const link = `${window.location.origin}/arma-tu-pc?armado=${aLink(seleccion)}`
+
+  const compartir = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Mi PC armada en FuturaTecno', url: link })
+        return
+      } catch (e) {
+        if (e?.name === 'AbortError') return   // cerró el menú de compartir
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2500)
+    } catch {
+      window.prompt('Copiá este link:', link)
+    }
+  }
+
   const pasoActual = PASOS[paso]
 
   const { opciones, ocultos } = useMemo(() => {
@@ -213,6 +315,8 @@ export default function ArmaTuPcPage() {
     const lista = []
     for (const c of componentes) {
       if (c.tipo !== pasoActual.tipo) continue
+      // El 2º disco es para sumar uno distinto: el mismo modelo se lleva con la cantidad del primero.
+      if (pasoActual.clave === 'ALMACENAMIENTO_2' && c.varianteId === seleccion.ALMACENAMIENTO?.item?.varianteId) continue
       if (q && !`${c.marca} ${c.modelo}`.toLowerCase().includes(q)) continue
       const ev = evaluar(c, seleccion)
       if (ev.bloqueo) { ocultos++; continue }
@@ -231,41 +335,41 @@ export default function ArmaTuPcPage() {
     return { usd, ars }
   }, [seleccion])
 
-  const faltantes = PASOS.filter(p => esObligatorio(p.tipo, seleccion) && !seleccion[p.tipo])
+  const faltantes = PASOS.filter(p => esObligatorio(p.clave, seleccion) && !seleccion[p.clave])
   const avisosResumen = PASOS.flatMap(p => {
-    const s = seleccion[p.tipo]
+    const s = seleccion[p.clave]
     if (!s) return []
     const resto = { ...seleccion }
-    delete resto[p.tipo]
+    delete resto[p.clave]
     const avisos = evaluar(s.item, resto).avisos?.map(a => `${p.titulo}: ${a}`) || []
     const modulos = s.cantidad * (s.item.modulos || 1)
-    if (p.tipo === 'MEMORIA' && seleccion.MOTHER && !seleccion.MOTHER.item.ranurasRam && modulos > 2) {
+    if (p.clave === 'MEMORIA' && seleccion.MOTHER && !seleccion.MOTHER.item.ranurasRam && modulos > 2) {
       avisos.push(`Memoria RAM: son ${modulos} módulos y no sabemos si tu mother tiene esas ranuras`)
     }
     return avisos
   })
 
-  const cantidadDe = (c) => {
-    const n = cantidades[c.varianteId]
-      ?? (seleccion[c.tipo]?.item?.varianteId === c.varianteId ? seleccion[c.tipo].cantidad : 1)
+  const cantidadDe = (clave, c) => {
+    const n = cantidades[`${clave}:${c.varianteId}`]
+      ?? (seleccion[clave]?.item?.varianteId === c.varianteId ? seleccion[clave].cantidad : 1)
     return c.tipo === 'MEMORIA' ? Math.max(1, Math.min(n, maxUnidades(c, seleccion))) : n
   }
 
-  const elegir = (c) => {
-    const cantidad = PASOS.find(p => p.tipo === c.tipo)?.cantidad ? cantidadDe(c) : 1
-    setSeleccion(prev => depurar({ ...prev, [c.tipo]: { item: c, cantidad } }))
+  const elegir = (clave, c) => {
+    const cantidad = PASOS.find(p => p.clave === clave)?.cantidad ? cantidadDe(clave, c) : 1
+    setSeleccion(prev => depurar({ ...prev, [clave]: { item: c, cantidad } }))
     if (paso < PASOS.length - 1) setPaso(paso + 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const quitar = (tipo) => setSeleccion(prev => depurar(Object.fromEntries(Object.entries(prev).filter(([t]) => t !== tipo))))
+  const quitar = (clave) => setSeleccion(prev => depurar(Object.fromEntries(Object.entries(prev).filter(([k]) => k !== clave))))
 
-  const cambiarCantidad = (tipo, n) => setSeleccion(prev => ({ ...prev, [tipo]: { ...prev[tipo], cantidad: n } }))
+  const cambiarCantidad = (clave, n) => setSeleccion(prev => ({ ...prev, [clave]: { ...prev[clave], cantidad: n } }))
 
   /** En la tarjeta: si ya es la elegida, cambia la selección; si no, queda para cuando la elija. */
-  const cambiarCantidadTarjeta = (c, n) => {
-    setCantidades(prev => ({ ...prev, [c.varianteId]: n }))
-    if (seleccion[c.tipo]?.item?.varianteId === c.varianteId) cambiarCantidad(c.tipo, n)
+  const cambiarCantidadTarjeta = (clave, c, n) => {
+    setCantidades(prev => ({ ...prev, [`${clave}:${c.varianteId}`]: n }))
+    if (seleccion[clave]?.item?.varianteId === c.varianteId) cambiarCantidad(clave, n)
   }
 
   const opcionesCantidad = (tipo, item) => {
@@ -281,7 +385,7 @@ export default function ArmaTuPcPage() {
 
   const agregarTodo = () => {
     for (const p of PASOS) {
-      const s = seleccion[p.tipo]
+      const s = seleccion[p.clave]
       if (!s) continue
       const c = s.item
       agregar(
@@ -293,10 +397,22 @@ export default function ArmaTuPcPage() {
     navigate('/carrito')
   }
 
-  const empezarDeNuevo = () => { setSeleccion({}); setPaso(0) }
+  const empezarDeNuevo = () => { setSeleccion({}); setPaso(0); setAvisoLink(null) }
 
-  const nota = notaDelPaso(pasoActual.tipo, seleccion)
-  const opcional = !esObligatorio(pasoActual.tipo, seleccion)
+  const mensajeWa = [
+    'Hola FuturaTecno, armé esta PC y quiero consultar:',
+    ...PASOS.filter(p => seleccion[p.clave]).map(p => {
+      const s = seleccion[p.clave]
+      return `• ${p.titulo}: ${s.item.modelo}${s.cantidad > 1 ? ` (x${s.cantidad})` : ''}`
+    }),
+    `Total: US$ ${formatNumber(totales.usd)}`,
+    link
+  ].join('\n')
+  const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensajeWa)}`
+  const hayAlgo = Object.keys(seleccion).length > 0
+
+  const nota = notaDelPaso(pasoActual.clave, seleccion)
+  const opcional = !esObligatorio(pasoActual.clave, seleccion)
 
   return (
     <div className="atp">
@@ -308,10 +424,10 @@ export default function ArmaTuPcPage() {
 
       <nav className="atp-pasos" aria-label="Pasos del armado">
         {PASOS.map((p, i) => {
-          const elegido = seleccion[p.tipo]
+          const elegido = seleccion[p.clave]
           return (
             <button
-              key={p.tipo}
+              key={p.clave}
               className={`atp-paso${i === paso ? ' activo' : ''}${elegido ? ' hecho' : ''}`}
               onClick={() => setPaso(i)}
               aria-current={i === paso ? 'step' : undefined}
@@ -343,6 +459,7 @@ export default function ArmaTuPcPage() {
                 <button className="btn btn-secondary" onClick={() => setPaso(paso + 1)}>Omitir paso →</button>
               )}
             </div>
+            {avisoLink && <p className="atp-aviso-link">🔗 {avisoLink}</p>}
             {ocultos > 0 && (
               <p className="atp-ocultos">Ocultamos {ocultos} {ocultos === 1 ? 'opción incompatible' : 'opciones incompatibles'} con lo que elegiste.</p>
             )}
@@ -356,7 +473,7 @@ export default function ArmaTuPcPage() {
 
           <div className="atp-grid">
             {opciones.slice(0, visibles).map(({ c, avisos }) => {
-              const elegido = seleccion[c.tipo]?.item?.varianteId === c.varianteId
+              const elegido = seleccion[pasoActual.clave]?.item?.varianteId === c.varianteId
               return (
                 <article key={c.varianteId} className={`atp-card${elegido ? ' elegido' : ''}`}>
                   <div className="atp-card-img">
@@ -377,14 +494,14 @@ export default function ArmaTuPcPage() {
                   <div className="atp-card-acciones">
                     {pasoActual.cantidad && (
                       <select
-                        value={cantidadDe(c)}
-                        onChange={e => cambiarCantidadTarjeta(c, Number(e.target.value))}
+                        value={cantidadDe(pasoActual.clave, c)}
+                        onChange={e => cambiarCantidadTarjeta(pasoActual.clave, c, Number(e.target.value))}
                         aria-label="Cantidad"
                       >
                         {opcionesCantidad(c.tipo, c).map(n => <option key={n} value={n}>{etiquetaCantidad(c.tipo, c, n)}</option>)}
                       </select>
                     )}
-                    <button className={`btn ${elegido ? 'btn-secondary' : 'btn-primary'}`} onClick={() => elegir(c)}>
+                    <button className={`btn ${elegido ? 'btn-secondary' : 'btn-primary'}`} onClick={() => elegir(pasoActual.clave, c)}>
                       {elegido ? 'Elegido ✓' : 'Elegir'}
                     </button>
                   </div>
@@ -409,25 +526,25 @@ export default function ArmaTuPcPage() {
             <h2>Tu PC</h2>
             <ul>
               {PASOS.map((p, i) => {
-                const s = seleccion[p.tipo]
+                const s = seleccion[p.clave]
                 return (
-                  <li key={p.tipo}>
+                  <li key={p.clave}>
                     <button className="atp-resumen-paso" onClick={() => { setPaso(i); setResumenAbierto(false) }}>{p.titulo}</button>
                     {s ? (
                       <div className="atp-resumen-item">
                         <span className="atp-resumen-nombre">{s.item.modelo}</span>
                         <div className="atp-resumen-fila">
                           {p.cantidad ? (
-                            <select value={s.cantidad} onChange={e => cambiarCantidadTarjeta(s.item, Number(e.target.value))} aria-label="Cantidad">
+                            <select value={s.cantidad} onChange={e => cambiarCantidadTarjeta(p.clave, s.item, Number(e.target.value))} aria-label="Cantidad">
                               {opcionesCantidad(p.tipo, s.item).map(n => <option key={n} value={n}>{etiquetaCantidad(p.tipo, s.item, n)}</option>)}
                             </select>
                           ) : <span />}
                           <span>US$ {formatNumber(s.item.precioUsd * s.cantidad)}</span>
-                          <button className="atp-quitar" onClick={() => quitar(p.tipo)} aria-label={`Quitar ${p.titulo}`}>✕</button>
+                          <button className="atp-quitar" onClick={() => quitar(p.clave)} aria-label={`Quitar ${p.titulo}`}>✕</button>
                         </div>
                       </div>
                     ) : (
-                      <span className="atp-resumen-vacio">{esObligatorio(p.tipo, seleccion) ? 'Falta elegir' : 'Opcional'}</span>
+                      <span className="atp-resumen-vacio">{esObligatorio(p.clave, seleccion) ? 'Falta elegir' : 'Opcional'}</span>
                     )}
                   </li>
                 )
@@ -452,7 +569,49 @@ export default function ArmaTuPcPage() {
               <p className="atp-faltan">Falta: {faltantes.map(f => f.titulo).join(', ')}.</p>
             )}
             <p className="atp-legal">Stock sujeto a disponibilidad. El precio final se confirma al hacer el pedido.</p>
-            {Object.keys(seleccion).length > 0 && (
+
+            {hayAlgo && (
+              <div className="atp-envio">
+                <span className="atp-envio-titulo">Calcular envío</span>
+                <div className="atp-envio-form">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Código postal"
+                    value={cp}
+                    onChange={e => setCp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    onKeyDown={e => { if (e.key === 'Enter' && cp.length === 4) cotizarEnvio() }}
+                    aria-label="Código postal"
+                  />
+                  <button className="btn btn-secondary" onClick={cotizarEnvio} disabled={cotizando || cp.length !== 4}>
+                    {cotizando ? 'Cotizando…' : 'Cotizar'}
+                  </button>
+                </div>
+                {envio && !envio.disponible && <p className="atp-envio-msg">{envio.mensaje}</p>}
+                {envio?.disponible && (
+                  <>
+                    <ul className="atp-envio-opciones">
+                      {envio.opciones.map(o => (
+                        <li key={o.codigo}>
+                          <span>{etiquetaEnvio(o.codigo)}</span>
+                          <strong>{Number(o.totalArs) === 0 ? 'Gratis' : `$ ${formatNumber(o.totalArs)}`}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="atp-envio-msg">Cotizado para todo el armado junto. La modalidad se elige al confirmar el pedido.</p>
+                  </>
+                )}
+              </div>
+            )}
+
+            {hayAlgo && (
+              <div className="atp-compartir">
+                <button className="btn btn-secondary" onClick={compartir}>{copiado ? '✓ Link copiado' : '🔗 Compartir armado'}</button>
+                <a className="btn btn-secondary" href={waLink} target="_blank" rel="noreferrer">💬 Consultar por WhatsApp</a>
+              </div>
+            )}
+
+            {hayAlgo && (
               <button className="atp-reiniciar" onClick={empezarDeNuevo}>Empezar de nuevo</button>
             )}
           </div>

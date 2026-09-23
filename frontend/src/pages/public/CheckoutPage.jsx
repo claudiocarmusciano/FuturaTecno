@@ -6,23 +6,12 @@ import { useCart } from '../../cart/CartContext'
 import { NOMBRE_NEGOCIO } from '../../config'
 import PaymentPrices from '../../components/PaymentPrices'
 import { CASH_DISCOUNT_PERCENTAGE, cashPrice, mpImmediatePrice } from '../../utils/paymentPricing'
+import { etiquetaEnvio } from '../../utils/envio'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const MONTO_MINIMO_PEDIDO_USD = 250
-
-// Andreani devuelve el código de la modalidad en su propia jerga ("estándar", "sucursal").
-// También existe una modalidad local propia. El código se traduce para el cliente, pero se manda
-// al backend tal como está para que este recotice o preserve el envío gratuito según corresponda.
-const ETIQUETA_ENVIO = {
-  'entrega-local-olavarria': 'Envío gratis dentro de Olavarría',
-  'estándar': 'Envío a tu domicilio',
-  'sucursal': 'Retiro en sucursal Andreani',
-  'llega hoy': 'Llega hoy (a domicilio)',
-  'bigger': 'Envío de paquete grande'
-}
-const etiquetaEnvio = (codigo) => ETIQUETA_ENVIO[codigo] || `Envío ${codigo}`
 
 function CheckoutPage() {
   const { user, isAuth, listo } = useAuth()
