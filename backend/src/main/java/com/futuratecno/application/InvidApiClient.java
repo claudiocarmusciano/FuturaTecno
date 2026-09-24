@@ -26,6 +26,7 @@ public class InvidApiClient {
     private static final Logger logger = LoggerFactory.getLogger(InvidApiClient.class);
     private static final int TOPE_PAGINAS = 300;          // tope de seguridad (300 x 100 = 30.000 items)
     private static final long CACHE_MINUTOS = 55;          // la cuota oficial es por hora: evita re-recorrer el catálogo en la misma ventana
+    private static final long PARCIAL_HORAS = 8;           // cubre los 6 reintentos horarios del scheduler; una descarga de ayer no se retoma
 
     private final RestTemplate restTemplate;
 
@@ -46,6 +47,16 @@ public class InvidApiClient {
     // descarga; no mezclamos el catálogo completo con el que Invid ya filtró sin stock.
     private final Map<Boolean, List<JsonNode>> articulosCache = new HashMap<>();
     private final Map<Boolean, Instant> articulosCacheTs = new HashMap<>();
+
+    /**
+     * Descarga cortada por el rate limit, para retomarla. El catálogo entero de Invid pasa las 50
+     * páginas y la cuota es de 50 consultas por hora: si cada reintento arrancara de la página 1,
+     * volvería a cortar en la misma página y la sync no terminaría nunca (pasó del 21 al 23/9/2026:
+     * tres días sin actualizar precio ni stock). Se guarda lo bajado y la página que falló.
+     */
+    private final Map<Boolean, Parcial> parciales = new HashMap<>();
+
+    private record Parcial(List<JsonNode> articulos, String urlPendiente, int paginas, Instant desde) {}
 
     public InvidApiClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -114,13 +125,25 @@ public class InvidApiClient {
         List<JsonNode> acumulado = new ArrayList<>();
         String url = urlCatalogo(base() + "/api/v1/articulo.php", soloConStock);
         int paginas = 0;
+        Instant desde = Instant.now();
+        Parcial parcial = parciales.remove(soloConStock);
+        if (parcial != null && Duration.between(parcial.desde(), Instant.now()).toHours() < PARCIAL_HORAS) {
+            acumulado.addAll(parcial.articulos());
+            url = parcial.urlPendiente();
+            paginas = parcial.paginas();
+            desde = parcial.desde();
+            logger.info("Invid: retomando la descarga del catálogo en la página {} ({} artículos ya bajados)",
+                    paginas + 1, acumulado.size());
+        }
 
         while (url != null && paginas < TOPE_PAGINAS) {
             ResponseEntity<JsonNode> resp;
             try {
                 resp = restTemplate.exchange(url, HttpMethod.GET, req, JsonNode.class);
             } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {
-                logger.warn("Invid: rate-limit (429) alcanzado en la página {}", paginas);
+                logger.warn("Invid: rate-limit (429) alcanzado en la página {}; se guardan {} artículos para retomar desde ahí",
+                        paginas + 1, acumulado.size());
+                parciales.put(soloConStock, new Parcial(acumulado, url, paginas, desde));
                 java.time.Duration espera = esperaSugerida(e);
                 String detalle = espera != null
                         ? "Esperá aproximadamente " + Math.max(1, espera.toMinutes()) + " minuto(s)."

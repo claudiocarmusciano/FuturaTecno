@@ -21,7 +21,9 @@ public class SincronizacionScheduler {
     private static final Logger logger = LoggerFactory.getLogger(SincronizacionScheduler.class);
 
     /** Invid limita a 50 consultas/hora y su catálogo entero necesita más de una tanda. */
-    private static final int MAX_INTENTOS_INVID = 3;
+    // Cada intento avanza hasta 50 páginas (la cuota horaria) porque InvidApiClient retoma donde
+    // cortó el anterior: 6 intentos cubren las 300 páginas de su TOPE_PAGINAS.
+    private static final int MAX_INTENTOS_INVID = 6;
     /** Si Invid no manda Retry-After, media hora es lo que tarda en liberarse su ventana. */
     private static final Duration ESPERA_POR_DEFECTO = Duration.ofMinutes(30);
     /** Tope de cordura: si pidiera esperar medio día, no vale la pena seguir colgados de eso. */

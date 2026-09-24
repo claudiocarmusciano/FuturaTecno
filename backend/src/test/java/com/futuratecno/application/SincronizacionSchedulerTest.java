@@ -88,9 +88,9 @@ class SincronizacionSchedulerTest {
 
         scheduler().sincronizarDiario();
 
-        // 3 intentos en total: el original y dos reprogramados.
-        verify(invid, times(3)).sincronizar();
-        verify(taskScheduler, times(2)).schedule(any(Runnable.class), any(Instant.class));
+        // 6 intentos en total: el original y cinco reprogramados.
+        verify(invid, times(6)).sincronizar();
+        verify(taskScheduler, times(5)).schedule(any(Runnable.class), any(Instant.class));
     }
 
     /** Un error que no es de rate limit no se reintenta: no se sabe cuánto esperar. */
