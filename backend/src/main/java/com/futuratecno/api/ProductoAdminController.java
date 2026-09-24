@@ -7,6 +7,7 @@ import com.futuratecno.api.dto.ImagenSimilarDTO;
 import com.futuratecno.api.dto.ProductoAdminDTO;
 import com.futuratecno.api.dto.ProductoEditDTO;
 import com.futuratecno.api.dto.IdsRequest;
+import com.futuratecno.application.IdentidadTransicionService;
 import com.futuratecno.application.ProductoAdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,9 +70,11 @@ public class ProductoAdminController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductoEditDTO> actualizar(@PathVariable Long id, @RequestBody ProductoEditDTO dto) {
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ProductoEditDTO dto) {
         try {
             return ResponseEntity.ok(productoAdminService.actualizarProducto(id, dto));
+        } catch (IdentidadTransicionService.IdentidadEnUsoException e) {
+            return ResponseEntity.status(409).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }

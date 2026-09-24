@@ -457,7 +457,7 @@ public class CargaJsonService {
      * mismo lugar y con los mismos valores: la fuente de verdad es {@code productos.identidad_*} y
      * estos campos no se usan para decidir nada, así que no pueden contradecirla.
      */
-    private static void proyectarAtributos(Variante v, Resolucion r) {
+    static void proyectarAtributos(Variante v, Resolucion r) {
         if (!r.esTelefono()) return;
         v.setAlmacenamientoGb(entero(r.atributos().get("almacenamiento_gb")));
         v.setRamGb(entero(r.atributos().get("ram_gb")));

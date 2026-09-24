@@ -305,7 +305,7 @@ function ProductosPage() {
       setMensaje('Producto actualizado ✓')
     } catch (e) {
       console.error(e)
-      setMensaje('Error al guardar: ' + (e.response?.data?.message || e.message))
+      setMensaje('Error al guardar: ' + (e.response?.data?.error || e.response?.data?.message || e.message))
     } finally {
       setGuardando(false)
     }

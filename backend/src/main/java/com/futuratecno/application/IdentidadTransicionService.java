@@ -161,6 +161,63 @@ public class IdentidadTransicionService {
         return asignados;
     }
 
+    /** Qué pasó con la identidad al editar un producto a mano. */
+    public enum ResultadoEdicion { NO_APLICA, SIN_CAMBIO, ASIGNADA, CONSERVADA }
+
+    /** Otro producto del mismo proveedor ya tiene la identidad que resultaría de la edición. */
+    public static class IdentidadEnUsoException extends IllegalStateException {
+        public IdentidadEnUsoException(String mensaje) { super(mensaje); }
+    }
+
+    /**
+     * Recalcula la identidad después de que el admin editó marca, modelo o especificaciones. Sin
+     * esto, completar un dato a mano (el color que faltaba) no cambiaba nada: la carga compara
+     * contra la identidad GUARDADA, no contra el texto, y el artículo seguía yendo a revisión.
+     *
+     * <p>Dos resguardos. Si otro producto del proveedor ya tiene la identidad nueva, se lanza
+     * {@link IdentidadEnUsoException} y la edición entera vuelve atrás: serían el mismo artículo
+     * publicado dos veces. Y si el texto editado pierde un atributo que la identidad guardada tenía
+     * (la carga la pudo resolver con especificaciones estructuradas que el texto no refleja entero),
+     * se conserva la guardada: una edición menor no debe degradarla.
+     */
+    @Transactional
+    public ResultadoEdicion recalcularTrasEdicion(Producto p, String especificaciones) {
+        if (p.getCodigoExterno() != null && !p.getCodigoExterno().isBlank()) return ResultadoEdicion.NO_APLICA;
+        Resolucion nueva = identidad.resolverGuardado(p.getMarca(), p.getModelo(), especificaciones, categoria(p.getCategoriaId()));
+        if (!nueva.resuelta()) return p.getIdentidadClave() != null ? ResultadoEdicion.CONSERVADA : ResultadoEdicion.NO_APLICA;
+        if (nueva.clave().equals(p.getIdentidadClave())) return ResultadoEdicion.SIN_CAMBIO;
+        if (p.getIdentidadClave() != null && pierdeAtributos(nueva, CargaJsonService.leerAtributos(p.getIdentidadAtributos()))) {
+            return ResultadoEdicion.CONSERVADA;
+        }
+        Long prov = p.getProveedor().getId();
+        // Mismo bloqueo que la carga por JSON y la asignación: sin él, una carga simultánea podría
+        // tomar la misma identidad entre la consulta y el UPDATE.
+        jdbc.query("SELECT pg_advisory_xact_lock(CAST(? AS int), hashtext(?))", rs -> null,
+                prov.intValue(), nueva.familia() != null ? nueva.familia() : nueva.clave());
+        List<Long> duenios = jdbc.queryForList(
+                "SELECT id FROM productos WHERE proveedor_id = ? AND identidad_clave = ? AND id <> ? ORDER BY id",
+                Long.class, prov, nueva.clave(), p.getId());
+        if (!duenios.isEmpty()) {
+            throw new IdentidadEnUsoException("Con estos datos, el producto sería el mismo artículo que el " + duenios
+                    + " de este proveedor (" + nueva.clave() + "). No se guardó nada: revisá cuál de los dos corresponde.");
+        }
+        p.setIdentidadClave(nueva.clave());
+        p.setIdentidadVersion(nueva.version());
+        p.setIdentidadFamilia(nueva.familia());
+        p.setIdentidadAtributos(CargaJsonService.escribirAtributos(nueva.atributos()));
+        productoRepository.save(p);
+        varianteRepository.findByProductoIdIn(List.of(p.getId()))
+                .forEach(v -> { CargaJsonService.proyectarAtributos(v, nueva); varianteRepository.save(v); });
+        return ResultadoEdicion.ASIGNADA;
+    }
+
+    /** ¿La guardada conocía algún atributo del teléfono que la nueva ya no conoce? */
+    static boolean pierdeAtributos(Resolucion nueva, Map<String, String> guardados) {
+        if (!nueva.esTelefono()) return false;
+        return IdentidadProductoService.CAMPOS_TELEFONO.stream()
+                .anyMatch(c -> guardados.get(c) != null && nueva.atributos().get(c) == null);
+    }
+
     private List<Analizado> analizarTodos() {
         List<Producto> productos = productoRepository.findAll().stream()
                 .filter(p -> p.getCodigoExterno() == null || p.getCodigoExterno().isBlank())

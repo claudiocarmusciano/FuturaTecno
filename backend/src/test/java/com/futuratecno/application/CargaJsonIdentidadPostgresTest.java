@@ -2,6 +2,8 @@ package com.futuratecno.application;
 
 import com.futuratecno.api.dto.ArticuloJsonDTO;
 import com.futuratecno.api.dto.CargaJsonResponse;
+import com.futuratecno.api.dto.ProductoEditDTO;
+import com.futuratecno.api.dto.VarianteEditDTO;
 import com.futuratecno.domain.Producto;
 import com.futuratecno.domain.Proveedor;
 import com.futuratecno.domain.Variante;
@@ -93,6 +95,8 @@ class CargaJsonIdentidadPostgresTest {
     @Autowired AtributosManualService atributos;
     @Autowired MargenManualService margenes;
     @Autowired JdbcTemplate jdbc;
+    @Autowired ProductoAdminService admin;
+    @Autowired org.springframework.transaction.support.TransactionTemplate tx;
 
     private Long prov;
 
@@ -388,6 +392,57 @@ class CargaJsonIdentidadPostgresTest {
         }
         // Y la carga no elige sola entre duplicados: los manda a revisión.
         assertEquals("revision", cargarUno(prov, art("Samsung", "Galaxy A16 128GB", "160", esp("128GB", "4GB"))).getEstado());
+    }
+
+    // ------------------------------------------------------------------ edición manual en el admin
+
+    /** Edita solo las especificaciones de la variante, sin mandar precio ni stock (quedan como están). */
+    private void editarEspecificaciones(Long productoId, java.util.function.UnaryOperator<String> cambio) {
+        // En producción la sesión la abre el request (open-in-view); acá hay que abrirla a mano.
+        ProductoEditDTO dto = tx.execute(st -> admin.obtenerParaEditar(productoId));
+        Variante v = variantes.findByProductoIdAndActivo(productoId, true).get(0);
+        VarianteEditDTO ve = new VarianteEditDTO();
+        ve.setId(v.getId());
+        ve.setEspecificaciones(cambio.apply(v.getEspecificaciones()));
+        dto.setVariantes(List.of(ve));
+        admin.actualizarProducto(productoId, dto);
+    }
+
+    @Test
+    void completarElColorEnElAdminAlineaLaIdentidadYLaCargaDejaDeMandarlaARevision() {
+        // El caso del 8127: nació sin color y después llega el mismo teléfono en azul.
+        Long id = cargarUno(prov, art("Motorola", "G06 4G 64GB", "107", esp("64GB", "4GB"))).getProductoId();
+        ArticuloJsonDTO azul = art("Motorola", "G06 4G 64GB / 4GB RAM", "107", esp("64GB", "4GB"));
+        azul.getEspecificaciones().put("color", "Azul");
+        assertEquals("revision", cargarUno(prov, azul).getEstado());
+        BigDecimal costoAntes = costo(id);
+
+        editarEspecificaciones(id, e -> e + " · Azul");
+
+        Producto p = productos.findById(id).orElseThrow();
+        assertEquals("tel1|motorola|g06|4g|64|4|-|azul|nuevo|-|-", p.getIdentidadClave());
+        assertEquals("G06 4G 64GB", p.getModelo());
+        assertEquals("azul", variantes.findByProductoIdAndActivo(id, true).get(0).getColor());
+        assertEquals(0, costoAntes.compareTo(costo(id)));
+        CargaJsonResponse.Item otraVez = cargarUno(prov, azul);
+        assertEquals("actualizado", otraVez.getEstado());
+        assertEquals(id, otraVez.getProductoId());
+
+        // Una edición que pierde un dato conocido no degrada la identidad.
+        editarEspecificaciones(id, e -> e.replace(" · Azul", ""));
+        assertEquals("tel1|motorola|g06|4g|64|4|-|azul|nuevo|-|-", productos.findById(id).orElseThrow().getIdentidadClave());
+    }
+
+    @Test
+    void unaEdicionQueLoConvierteEnOtroProductoExistenteSeRechazaYNoGuardaNada() {
+        Long verde = cargarUno(prov, art("Motorola", "G06 4G 64GB Verde", "107", esp("64GB", "4GB"))).getProductoId();
+        Long viejo = productoViejo(prov, "Motorola", "G06 4G 64GB", "4GB RAM · 64GB · 4G", "107");
+
+        var e = assertThrows(IdentidadTransicionService.IdentidadEnUsoException.class,
+                () -> editarEspecificaciones(viejo, s -> s + " · Verde"));
+        assertTrue(e.getMessage().contains(String.valueOf(verde)));
+        assertNull(productos.findById(viejo).orElseThrow().getIdentidadClave());
+        assertEquals("4GB RAM · 64GB · 4G", variantes.findByProductoIdAndActivo(viejo, true).get(0).getEspecificaciones());
     }
 
     /** Un producto como los que hay antes de la V42: sin identidad, con su variante. */

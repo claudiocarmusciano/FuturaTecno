@@ -34,7 +34,7 @@ class ProductoAdminDepurarTest {
             stub(IcecatService.class), stub(GoogleImageService.class), stub(AnthropicImageService.class),
             stub(DuckDuckGoImageService.class), stub(ImageUrlValidatorService.class),
             stub(CotizacionService.class), stub(PrecioService.class), stub(CategoriaClasificadorService.class),
-            categorias, stub(CategoriaRepository.class));
+            categorias, stub(CategoriaRepository.class), stub(IdentidadTransicionService.class));
 
     private Producto producto(long id, String fuente, LocalDateTime actualizado) {
         Producto p = new Producto();
