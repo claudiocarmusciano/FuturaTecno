@@ -432,6 +432,36 @@ public class IdentidadProductoService {
         return t;
     }
 
+    /**
+     * El color canónico ("verde", "titanio-natural", "medianoche-negro") como se muestra en la
+     * tienda ("Verde", "Titanio Natural", "Medianoche Negro"). Null si no es del vocabulario — un
+     * texto crudo como "azulglaciar" no se agrega al nombre.
+     */
+    public static String nombreVisibleColor(String canonico) {
+        if (canonico == null || canonico.isBlank()) return null;
+        java.util.Set<String> conocidos = new java.util.HashSet<>();
+        for (String[] c : COLORES) conocidos.add(c[1]);
+        List<String> partes = new ArrayList<>();
+        String resto = canonico;
+        // Los compuestos del vocabulario llevan guión ("titanio-natural"): se prueban primero.
+        for (String[] c : COLORES) {
+            if (c[1].contains("-") && resto.contains(c[1])) {
+                partes.add(c[1]);
+                resto = resto.replace(c[1], "");
+            }
+        }
+        for (String p : resto.split("-")) {
+            if (p.isBlank()) continue;
+            if (!conocidos.contains(p)) return null;
+            partes.add(p);
+        }
+        List<String> palabras = new ArrayList<>();
+        for (String p : partes) {
+            for (String w : p.split("-")) palabras.add(Character.toUpperCase(w.charAt(0)) + w.substring(1));
+        }
+        return String.join(" ", palabras);
+    }
+
     /** Colores del vocabulario que aparecen en el texto; los devuelve en {@code colores} y los saca del texto. */
     private static String sacarColores(String t, TreeSet<String> colores) {
         for (String[] c : COLORES) {

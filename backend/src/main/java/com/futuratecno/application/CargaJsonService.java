@@ -110,7 +110,7 @@ public class CargaJsonService {
             String marca = limpiar(art.getMarca());
             String modelo = derivarModelo(art, marca);
             resoluciones.add(marca == null || modelo == null ? null
-                    : identidad.resolver(marca, modelo, art.getEspecificaciones(), limpiar(art.getCategoria())));
+                    : identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria())));
         }
 
         // 2) Bloquear las familias del lote, siempre en el mismo orden. Con esto, dos cargas
@@ -163,7 +163,7 @@ public class CargaJsonService {
             if (nuevo) {
                 producto.setProveedor(proveedor);
                 producto.setMarca(marca);
-                producto.setModelo(modelo);
+                producto.setModelo(nombreAlCrear(modelo, r));
                 producto.setFuente(FUENTE);
             }
             // El nombre visible de un producto existente NO se pisa con la redacción de esta carga:
@@ -299,7 +299,7 @@ public class CargaJsonService {
                 fila.put("identidad", null);
                 fila.put("motivos", List.of("Falta marca o modelo."));
             } else {
-                Resolucion r = identidad.resolver(marca, modelo, art.getEspecificaciones(), limpiar(art.getCategoria()));
+                Resolucion r = identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria()));
                 fila.put("estado", r.resuelta() ? "resuelta" : "revision");
                 fila.put("identidad", r.clave());
                 fila.put("version", r.version());
@@ -509,7 +509,7 @@ public class CargaJsonService {
 
     /** Modelo "limpio": usa `modelo` si vino; si no, la primera parte de `modelo_exacto` (o `listado`), sin el prefijo de marca. */
     private String derivarModelo(ArticuloJsonDTO art, String marca) {
-        if (limpiar(art.getModelo()) != null) return limpiar(art.getModelo());
+        if (limpiar(art.getModelo()) != null) return sinMarcaRepetida(limpiar(art.getModelo()), marca);
         String base = art.getModeloExacto() != null ? art.getModeloExacto()
                 : (art.getListado() != null ? art.getListado() : null);
         if (base == null) return null;
@@ -519,11 +519,51 @@ public class CargaJsonService {
         // "ASUS 15.6\" ... – USD 320" (listado): cortar en un guión largo de precio si quedó
         int guion = base.indexOf('–');
         if (guion > 0) base = base.substring(0, guion).trim();
-        if (marca != null && base.toLowerCase().startsWith(marca.toLowerCase() + " ")) {
-            base = base.substring(marca.length()).trim();
-        }
+        base = sinMarcaRepetida(base, marca);
         if (base.length() > 200) base = base.substring(0, 200).trim();
         return base.isEmpty() ? null : base;
+    }
+
+    /**
+     * "Motorola" + "Motorola G04 4G 64GB" → "G04 4G 64GB". El catálogo muestra marca + modelo, así
+     * que la marca repetida se veía dos veces ("Motorola Motorola G04"). Pasa con cualquier fuente
+     * del JSON, no solo con el generador. Si el modelo es solo la marca, se deja como está.
+     */
+    static String sinMarcaRepetida(String modelo, String marca) {
+        if (modelo == null || marca == null || marca.isBlank()) return modelo;
+        String m = modelo.strip(), mc = marca.strip();
+        if (m.length() > mc.length() && m.regionMatches(true, 0, mc, 0, mc.length())
+                && !Character.isLetterOrDigit(m.charAt(mc.length()))) {
+            String resto = m.substring(mc.length()).replaceFirst("^[\\s\\-–:,]+", "").strip();
+            if (!resto.isEmpty()) return resto;
+        }
+        return m;
+    }
+
+    /**
+     * Especificaciones para resolver la identidad. Si el JSON trae además {@code modelo_exacto}
+     * (la redacción completa del listado) y dice algo que {@code modelo} no, se lee como una fuente
+     * más: "Motorola G04 4G 64GB / 4GB RAM (Green)" aporta el color. Si contradice al modelo, la
+     * identidad lo detecta y el artículo va a revisión.
+     */
+    private Map<String, Object> especificacionesParaIdentidad(ArticuloJsonDTO art, String modelo) {
+        String exacto = limpiar(art.getModeloExacto());
+        if (exacto == null || exacto.equalsIgnoreCase(modelo)) return art.getEspecificaciones();
+        Map<String, Object> m = new LinkedHashMap<>();
+        if (art.getEspecificaciones() != null) m.putAll(art.getEspecificaciones());
+        m.put("modelo_exacto", exacto);
+        return m;
+    }
+
+    /**
+     * Nombre con el que se crea un producto nuevo. Si su color se supo por las especificaciones o
+     * por {@code modelo_exacto} pero no está en el modelo, se agrega: dos colores del mismo
+     * teléfono son dos productos, y en la tienda no pueden verse con el mismo nombre.
+     */
+    static String nombreAlCrear(String modelo, Resolucion r) {
+        if (!r.esTelefono() || !"especificaciones".equals(r.atributos().get("fuente.color"))) return modelo;
+        String color = IdentidadProductoService.nombreVisibleColor(r.atributos().get("color"));
+        return color == null ? modelo : modelo + " " + color;
     }
 
     /** Texto de especificaciones (≤500) a partir del objeto `especificaciones`, en orden legible. */

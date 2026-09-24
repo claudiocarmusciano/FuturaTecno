@@ -179,6 +179,26 @@ class CargaJsonIdentidadPostgresTest {
         assertEquals(0, new BigDecimal("100.00").compareTo(costo(base)));   // nadie pisó el precio del 4/64
     }
 
+    /** El JSON de la captura del 24/9: marca repetida en el modelo y el color solo en modelo_exacto. */
+    @Test
+    void elJsonDeLaCapturaCreaUnNombreLimpioConColorYDespuesActualiza() {
+        ArticuloJsonDTO a = art("Motorola", "Motorola G04 4G 64GB", "106",
+                new LinkedHashMap<>(Map.of("ram", "4GB RAM", "almacenamiento", "64GB", "otros", "4G")));
+        a.setModeloExacto("Motorola G04 4G 64GB / 4GB RAM (Green)");
+        CargaJsonResponse.Item creado = cargarUno(prov, a);
+        assertEquals("creado", creado.getEstado());
+        assertEquals("G04 4G 64GB Verde", productos.findById(creado.getProductoId()).orElseThrow().getModelo());
+
+        // Recargarlo, o cargarlo con el color ya en el nombre, actualiza el mismo producto.
+        assertEquals(creado.getProductoId(), cargarUno(prov, a).getProductoId());
+        assertEquals(creado.getProductoId(), cargarUno(prov,
+                art("Motorola", "G04 4G 64GB Verde", "107", esp("64GB", "4GB"))).getProductoId());
+        // Otro color es otro producto.
+        CargaJsonResponse.Item negro = cargarUno(prov, art("Motorola", "Motorola G04 4G 64GB Negro", "106", esp("64GB", "4GB")));
+        assertEquals("creado", negro.getEstado());
+        assertEquals("G04 4G 64GB Negro", productos.findById(negro.getProductoId()).orElseThrow().getModelo());
+    }
+
     // ------------------------------------------------------------------ revisión sin sobrescritura
 
     @Test
