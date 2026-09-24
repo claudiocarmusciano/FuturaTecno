@@ -74,15 +74,16 @@ class CargaJsonVarianteUnicaTest {
         producto.setModelo("iPhone 17 Pro 256GB eSIM");
 
         when(proveedores.findById(2L)).thenReturn(Optional.of(new Proveedor()));
-        when(productos.findByProveedorIdAndMarcaAndModelo(2L, "Apple", "iPhone 17 Pro 256GB eSIM"))
-                .thenReturn(Optional.of(producto));
-        when(productos.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(productos.candidatosDeIdentidad(eq(2L), any(), any(), anyString(), anyString(), anyString()))
+                .thenReturn(List.of(producto));
+        when(productos.saveAndFlush(any())).thenAnswer(inv -> inv.getArgument(0));
         when(variantes.findByProductoIdAndActivo(10L, true)).thenReturn(existentes);
 
         var service = new CargaJsonService(mock(ImagenManualService.class),
                 mock(DescripcionManualService.class), mock(AtributosManualService.class), mock(MargenManualService.class),
                 productos, variantes, proveedores, mock(ImagenRepository.class),
-                mock(CategoriaClasificadorService.class), mock(CategoriaService.class), mock(ImageUrlValidatorService.class));
+                mock(CategoriaClasificadorService.class), mock(CategoriaService.class), mock(ImageUrlValidatorService.class),
+                new IdentidadProductoService(), mock(org.springframework.jdbc.core.JdbcTemplate.class));
 
         var art = new ArticuloJsonDTO();
         art.setMarca("Apple");

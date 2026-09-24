@@ -16,6 +16,23 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
   const controller = useRef(null)
   useEffect(() => () => controller.current?.abort(), [])
 
+  // Identidad de cada fila según las mismas reglas que la importación (el backend no toca la base
+  // para calcularla). Dos filas con el mismo nombre pero otra RAM no son duplicado; dos redacciones
+  // del mismo teléfono sí. Si la consulta falla, se vuelve a comparar marca+modelo como texto.
+  const [identidades, setIdentidades] = useState(null)
+  const firmaIdentidad = JSON.stringify(articulos.map(a => [a.marca, a.modelo, a.especificaciones, a.categoria]))
+  useEffect(() => {
+    if (articulos.length === 0) { setIdentidades(null); return }
+    const abort = new AbortController()
+    const t = setTimeout(() => {
+      axios.post('/api/admin/carga-json/identidades', { articulos: articulos.map(({ marca, modelo, especificaciones, categoria }) => ({ marca, modelo, especificaciones, categoria })) }, { signal: abort.signal })
+        .then(r => setIdentidades(Array.isArray(r.data) && r.data.length === articulos.length ? r.data : null))
+        .catch(e => { if (!abort.signal.aborted) setIdentidades(null) })
+    }, 400)
+    return () => { clearTimeout(t); abort.abort() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firmaIdentidad])
+
   const generar = async (desdeNotion = false) => {
     const abort = new AbortController()
     controller.current = abort
@@ -62,9 +79,15 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
 
   const editar = (index, key, valor) => setArticulos(prev => prev.map((a, i) => i === index ? { ...a, [key]: valor, ...(['marca', 'modelo'].includes(key) ? { imagenes: [] } : {}) } : a))
   const eliminar = index => { setArticulos(prev => prev.filter((_, i) => i !== index)); setPagina(0) }
+  const identidadDe = i => identidades?.[i]
+  const claveFila = i => {
+    const idn = identidadDe(i)
+    return idn?.estado === 'resuelta' && idn.identidad ? `id:${idn.identidad}` : `txt:${clave(articulos[i])}`
+  }
   const vistos = new Set()
   const duplicados = new Set()
-  for (const a of articulos) { const k = clave(a); if (vistos.has(k)) duplicados.add(k); vistos.add(k) }
+  articulos.forEach((_, i) => { const k = claveFila(i); if (vistos.has(k)) duplicados.add(k); vistos.add(k) })
+  const enRevision = articulos.flatMap((_, i) => identidadDe(i)?.estado === 'revision' ? [i + 1] : [])
   const filasInvalidas = articulos.flatMap((a, i) => ( !a.marca.trim() || !a.modelo.trim() || a.modelo.length > 255 || a.marca.length > 255 || !Number.isFinite(Number(a.precio_usd)) || Number(a.precio_usd) <= 0 || Object.values(a.especificaciones || {}).join(' · ').length >= 500 || a.imagenes.some(u => !/^https?:\/\/\S+$/i.test(u) || u.length > 1000)) ? [i + 1] : [])
   const invalidos = filasInvalidas.length > 0
   const ocupado = Boolean(etapa) || importando
@@ -92,14 +115,18 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
     {articulos.length > 0 && <>
       <h3>Revisar {articulos.length} artículos</h3>
       <p style={{ color: 'var(--color-text-muted)' }}>Podés corregir cada campo o quitar artículos. Las filas sin imagen también pueden importarse.</p>
-      {duplicados.size > 0 && <p role="alert" style={{ color: 'var(--color-danger)' }}>Hay artículos con la misma marca y modelo. Eliminá las filas repetidas o diferenciá las variantes antes de importar.</p>}
+      {duplicados.size > 0 && <p role="alert" style={{ color: 'var(--color-danger)' }}>Hay filas que son el mismo artículo (misma marca, modelo y características, aunque estén escritas distinto). Eliminá las repetidas o diferenciá las variantes antes de importar.</p>}
+      {enRevision.length > 0 && <details style={{ color: '#f0c05a', marginBottom: 8 }}><summary>{enRevision.length === 1 ? 'La fila' : 'Las filas'} {enRevision.join(', ')} {enRevision.length === 1 ? 'quedará' : 'quedarán'} para revisión: no se van a crear ni actualizar hasta completar los datos.</summary>
+        <ul>{enRevision.map(n => <li key={n}>Fila {n}: {identidadDe(n - 1).motivos.join(' ')}</li>)}</ul></details>}
       {invalidos && <p role="alert" style={{ color: 'var(--color-danger)' }}>Revisá marcas, modelos, precios positivos, URLs y especificaciones (menos de 500 caracteres).</p>}
       <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
         <table className="table" style={{ minWidth: 960 }}>
           <thead><tr><th>Marca</th><th>Modelo y variante</th><th>USD</th><th>Categoría</th><th>Imagen</th><th>Detalles</th></tr></thead>
           <tbody>{articulos.slice(pagina * 15, pagina * 15 + 15).map((a, offset) => {
             const i = pagina * 15 + offset
-            return <tr key={i} style={duplicados.has(clave(a)) ? { background: 'var(--color-danger-bg)' } : undefined}>
+            const revision = identidadDe(i)?.estado === 'revision'
+            return <tr key={i} title={revision ? identidadDe(i).motivos.join(' ') : undefined}
+              style={duplicados.has(claveFila(i)) ? { background: 'var(--color-danger-bg)' } : revision ? { background: 'rgba(240, 192, 90, .12)' } : undefined}>
               <td><input aria-label={`Marca ${i + 1}`} style={{ ...campo, minWidth: 100 }} value={a.marca} disabled={ocupado} onChange={e => editar(i, 'marca', e.target.value)} /></td>
               <td><textarea aria-label={`Modelo ${i + 1}`} style={{ ...campo, minWidth: 240 }} value={a.modelo} rows={3} disabled={ocupado} onChange={e => editar(i, 'modelo', e.target.value)} /></td>
               <td><input aria-label={`Precio USD ${i + 1}`} type="number" min="0.01" step="0.01" style={{ ...campo, minWidth: 100 }} value={a.precio_usd} disabled={ocupado} onChange={e => editar(i, 'precio_usd', e.target.value)} /></td>
@@ -123,7 +150,7 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
         {etapa === 'imagenes' && <p>Buscando imágenes: {procesados} de {articulos.length}. Podés esperar o <button className="btn btn-secondary" onClick={() => controller.current?.abort()}>Detener búsqueda y revisar</button>.</p>}
         {etapa && etapa !== 'imagenes' && <p>{etapa === 'notion' ? 'Leyendo Notion…' : 'Generando artículos…'}</p>}
         {importando && <p>Importando artículos. Esperá la confirmación del servidor.</p>}
-        {duplicados.size > 0 && <p>Hay marcas y modelos repetidos. Revisá las filas resaltadas antes de importar.</p>}
+        {duplicados.size > 0 && <p>Hay artículos repetidos. Revisá las filas resaltadas antes de importar.</p>}
         {invalidos && <p>Hay datos inválidos en las filas {filasInvalidas.join(', ')}. Revisá marca, modelo, precio, URL y especificaciones. <button className="btn btn-secondary" onClick={() => setPagina(Math.floor((filasInvalidas[0] - 1) / 15))}>Ver primera fila con error</button></p>}
       </div>
       {errorImportacion && <p role="alert" style={{ color: 'var(--color-danger)' }}>No se pudo importar: {typeof errorImportacion === 'string' ? errorImportacion : 'Revisá los datos e intentá nuevamente.'}</p>}

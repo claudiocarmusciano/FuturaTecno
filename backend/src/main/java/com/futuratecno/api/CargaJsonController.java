@@ -61,6 +61,17 @@ public class CargaJsonController {
         }
     }
 
+    /**
+     * Identidad de cada artículo de un borrador, sin tocar la base: el panel la usa para marcar
+     * duplicados antes de importar. Dos filas con el mismo nombre pero otra RAM NO son duplicado;
+     * dos redacciones del mismo teléfono sí.
+     */
+    @PostMapping("/identidades")
+    public ResponseEntity<?> identidades(@RequestBody CargaJsonRequest req) {
+        if (req.getArticulos() == null) return ResponseEntity.badRequest().body(Map.of("error", "Falta la lista de artículos."));
+        return ResponseEntity.ok(cargaJsonService.identidades(req.getArticulos()));
+    }
+
     @PostMapping
     public ResponseEntity<?> cargar(@RequestBody CargaJsonRequest req) {
         if (req.getProveedorId() == null || req.getArticulos() == null || req.getArticulos().isEmpty()) {

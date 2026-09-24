@@ -37,6 +37,51 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             """, nativeQuery = true)
     Optional<Long> idPorClaveSuelta(@Param("proveedorId") Long proveedorId, @Param("clave") String clave);
 
+    /**
+     * Candidatos a ser el mismo artículo en una carga por JSON, del mismo proveedor y activos o
+     * no: por identidad resuelta (V42), por familia, por clave suelta (V37) o por nombre exacto.
+     * Devuelve una lista y no un Optional a propósito: con duplicados históricos, un Optional
+     * lanza una excepción y tira la carga entera; así se ven y se mandan a revisión.
+     */
+    @Query(value = """
+            SELECT * FROM productos
+            WHERE proveedor_id = :proveedorId
+              AND (identidad_clave = :identidad
+                   OR identidad_familia = :familia
+                   OR clave_suelta = :claveSuelta
+                   OR (lower(regexp_replace(trim(marca), '\\s+', ' ', 'g')) = :marca
+                       AND lower(regexp_replace(trim(modelo), '\\s+', ' ', 'g')) = :modelo))
+            ORDER BY id
+            """, nativeQuery = true)
+    List<Producto> candidatosDeIdentidad(@Param("proveedorId") Long proveedorId,
+                                         @Param("identidad") String identidad,
+                                         @Param("familia") String familia,
+                                         @Param("claveSuelta") String claveSuelta,
+                                         @Param("marca") String marcaNormalizada,
+                                         @Param("modelo") String modeloNormalizado);
+
+    /**
+     * Todos los productos de esas marcas en el proveedor, para los teléfonos: un producto viejo
+     * sin identidad asignada solo se reconoce resolviéndolo, porque su nombre puede no compartir
+     * ni la clave suelta ("G04 4G 64GB / 4GB RAM" vs. "G04 4G 64GB").
+     */
+    @Query(value = """
+            SELECT * FROM productos
+            WHERE proveedor_id = :proveedorId
+              AND lower(regexp_replace(trim(marca), '\\s+', ' ', 'g')) IN (:marcas)
+            ORDER BY id
+            """, nativeQuery = true)
+    List<Producto> deMarcasEnProveedor(@Param("proveedorId") Long proveedorId,
+                                       @Param("marcas") java.util.Collection<String> marcasNormalizadas);
+
+    /** Otros nombres con los que se cargó el mismo artículo, en cualquier proveedor (memorias). */
+    @Query(value = """
+            SELECT DISTINCT marca, modelo FROM productos
+            WHERE identidad_clave = :identidad
+            LIMIT 10
+            """, nativeQuery = true)
+    List<Object[]> nombresPorIdentidad(@Param("identidad") String identidad);
+
     /** Cuántos productos quedarían sin categoría si se borrara esa categoría. */
     long countByCategoriaId(Long categoriaId);
 

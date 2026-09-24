@@ -51,6 +51,20 @@ public class Producto extends BaseEntity {
     @Column(name = "visto_en_sync_at")
     private LocalDateTime vistoEnSyncAt;
 
+    // Identidad del artículo (V42), separada del nombre visible. La resuelve
+    // IdentidadProductoService; acá solo se guarda. identidadClave es única por proveedor.
+    @Column(name = "identidad_clave")
+    private String identidadClave;
+
+    @Column(name = "identidad_version", length = 30)
+    private String identidadVersion;
+
+    @Column(name = "identidad_familia")
+    private String identidadFamilia;
+
+    @Column(name = "identidad_atributos")
+    private String identidadAtributos;
+
     // Override del margen y el flete de ESTE producto (V41). En null = usar el del proveedor,
     // que NO es lo mismo que 0% (eso sería vender al costo). La fórmula vive en PrecioService.
     @Column(name = "margen_porcentaje")
@@ -222,6 +236,18 @@ public class Producto extends BaseEntity {
     public void setActivo(Boolean activo) {
         this.activo = activo;
     }
+
+    public String getIdentidadClave() { return identidadClave; }
+    public void setIdentidadClave(String identidadClave) { this.identidadClave = identidadClave; }
+
+    public String getIdentidadVersion() { return identidadVersion; }
+    public void setIdentidadVersion(String identidadVersion) { this.identidadVersion = identidadVersion; }
+
+    public String getIdentidadFamilia() { return identidadFamilia; }
+    public void setIdentidadFamilia(String identidadFamilia) { this.identidadFamilia = identidadFamilia; }
+
+    public String getIdentidadAtributos() { return identidadAtributos; }
+    public void setIdentidadAtributos(String identidadAtributos) { this.identidadAtributos = identidadAtributos; }
 
     /**
      * SKU camuflado: código corto del proveedor + identificador del artículo. No delata al

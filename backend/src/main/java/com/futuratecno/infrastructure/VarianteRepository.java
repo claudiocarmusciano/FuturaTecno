@@ -17,4 +17,7 @@ public interface VarianteRepository extends JpaRepository<Variante, Long> {
     List<Variante> findByProductoIdInAndActivo(List<Long> productoIds, Boolean activo);
 
     List<Variante> findByProductoId(Long productoId);
+
+    /** Todas las variantes (activas o no) de varios productos: resolver la identidad de un producto dado de baja. */
+    List<Variante> findByProductoIdIn(java.util.Collection<Long> productoIds);
 }
