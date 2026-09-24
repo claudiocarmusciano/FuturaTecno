@@ -127,4 +127,32 @@ class CargaJsonProductoUnicoTest {
         assertEquals("revision", filas.get(3).get("estado"));
         verifyNoInteractions(productos);
     }
+
+    @Test void laMarcaRepetidaSeSacaDelModelo() {
+        assertEquals("G04 4G 64GB", CargaJsonService.sinMarcaRepetida("Motorola G04 4G 64GB", "Motorola"));
+        assertEquals("G04 4G 64GB", CargaJsonService.sinMarcaRepetida("MOTOROLA - G04 4G 64GB", "Motorola"));
+        assertEquals("Pencil Pro", CargaJsonService.sinMarcaRepetida("Apple Pencil Pro", "Apple"));
+        assertEquals("Motorola", CargaJsonService.sinMarcaRepetida("Motorola", "Motorola"));          // solo la marca: se deja
+        assertEquals("Motorolas X1", CargaJsonService.sinMarcaRepetida("Motorolas X1", "Motorola"));  // no es la marca entera
+        assertEquals("G04", CargaJsonService.sinMarcaRepetida("G04", "Motorola"));
+    }
+
+    /** El JSON real de la captura del 24/9: marca repetida en el modelo y el color solo en modelo_exacto. */
+    @Test void elColorDeModeloExactoCompletaLaIdentidad() {
+        var a = new ArticuloJsonDTO();
+        a.setMarca("Motorola");
+        a.setModelo("Motorola G04 4G 64GB");
+        a.setModeloExacto("Motorola G04 4G 64GB / 4GB RAM (Green)");
+        a.setEspecificaciones(Map.of("ram", "4GB RAM", "almacenamiento", "64GB", "otros", "4G"));
+        var negro = new ArticuloJsonDTO();
+        negro.setMarca("Motorola");
+        negro.setModelo("G04 4G 64GB Negro");
+        negro.setEspecificaciones(Map.of("ram", "4GB", "almacenamiento", "64GB"));
+
+        var filas = service.identidades(List.of(a, negro));
+
+        assertEquals("resuelta", filas.get(0).get("estado"), String.valueOf(filas.get(0).get("motivos")));
+        assertTrue(String.valueOf(filas.get(0).get("identidad")).contains("|verde|"));
+        assertNotEquals(filas.get(0).get("identidad"), filas.get(1).get("identidad"));
+    }
 }

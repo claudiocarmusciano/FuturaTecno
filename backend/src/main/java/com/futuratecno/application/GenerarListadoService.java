@@ -313,6 +313,8 @@ public class GenerarListadoService {
             fila++;
             String marca = texto(n, "marca"), nombre = texto(n, "modelo");
             if (nombre.isEmpty()) nombre = texto(n, "modelo_exacto");
+            // La IA a veces repite la marca aunque se le pida que no ("Motorola" + "Motorola G04").
+            nombre = CargaJsonService.sinMarcaRepetida(nombre, marca);
             JsonNode precio = n.path("precio_usd");
             if (marca.isEmpty() || nombre.isEmpty() || !precio.isNumber() || precio.decimalValue().signum() <= 0 || marca.length() > 255 || nombre.length() > 255) {
                 avisos.add("Fila " + fila + " omitida: marca, modelo o precio inválido."); continue;

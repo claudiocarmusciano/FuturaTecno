@@ -221,4 +221,13 @@ class IdentidadProductoServiceTest {
         assertEquals(a, b);
         assertEquals(IdentidadProductoService.VERSION_TELEFONO, a.version());
     }
+
+    @Test
+    void elColorCanonicoSeMuestraEnCastellano() {
+        assertEquals("Verde", IdentidadProductoService.nombreVisibleColor("verde"));
+        assertEquals("Titanio Natural", IdentidadProductoService.nombreVisibleColor("titanio-natural"));
+        assertEquals("Medianoche Negro", IdentidadProductoService.nombreVisibleColor("medianoche-negro"));
+        assertNull(IdentidadProductoService.nombreVisibleColor("azulglaciar"));   // texto crudo: no se agrega
+        assertNull(IdentidadProductoService.nombreVisibleColor(null));
+    }
 }
