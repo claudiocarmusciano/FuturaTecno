@@ -46,14 +46,15 @@ class CargaJsonDescripcionManualTest {
         var descripciones = mock(DescripcionManualService.class);
 
         when(proveedores.findById(2L)).thenReturn(Optional.of(new Proveedor()));
-        when(productos.findByProveedorIdAndMarcaAndModelo(2L, "DJI", "Nano 64GB")).thenReturn(Optional.empty());
-        when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
-        when(descripciones.buscar("DJI", "Nano 64GB")).thenReturn(recordada);
+        when(productos.candidatosDeIdentidad(eq(2L), any(), any(), anyString(), anyString(), anyString())).thenReturn(List.of());
+        when(productos.saveAndFlush(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
+        when(descripciones.buscar(anyList())).thenReturn(recordada);
         when(variantes.findByProductoIdAndActivo(anyLong(), anyBoolean())).thenReturn(List.of());
 
         var service = new CargaJsonService(mock(ImagenManualService.class), descripciones,
                 mock(AtributosManualService.class), mock(MargenManualService.class), productos, variantes, proveedores, mock(ImagenRepository.class),
-                mock(CategoriaClasificadorService.class), mock(CategoriaService.class), mock(ImageUrlValidatorService.class));
+                mock(CategoriaClasificadorService.class), mock(CategoriaService.class), mock(ImageUrlValidatorService.class),
+                new IdentidadProductoService(), mock(org.springframework.jdbc.core.JdbcTemplate.class));
 
         var art = new ArticuloJsonDTO();
         art.setMarca("DJI");

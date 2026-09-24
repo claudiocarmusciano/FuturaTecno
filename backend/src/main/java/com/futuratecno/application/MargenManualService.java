@@ -76,9 +76,22 @@ public class MargenManualService {
 
     /** Completa los huecos del producto con lo recordado. Nunca pisa un valor ya cargado en la fila. */
     public void aplicar(Producto p) {
+        if (p == null) return;
+        aplicar(p, java.util.List.of(new NombreArticulo(p.getMarca(), p.getModelo())));
+    }
+
+    /**
+     * Igual, probando varios nombres del mismo artículo. Sigue siendo por proveedor: el margen está
+     * atado a lo que ESE mayorista cobra, aunque el artículo se haya redactado distinto.
+     */
+    public void aplicar(Producto p, java.util.List<NombreArticulo> nombres) {
         if (p == null || p.getProveedor() == null) return;
         if (p.getMargenPorcentaje() != null && p.getFletePorcentaje() != null) return;
-        buscar(p.getProveedor().getId(), p.getMarca(), p.getModelo()).ifPresent(m -> {
+        NombreArticulo.distintos(nombres).stream()
+                .map(n -> buscar(p.getProveedor().getId(), n.marca(), n.modelo()))
+                .flatMap(Optional::stream)
+                .findFirst()
+                .ifPresent(m -> {
             if (p.getMargenPorcentaje() == null) p.setMargenPorcentaje(m.margenPorcentaje());
             if (p.getFletePorcentaje() == null) p.setFletePorcentaje(m.fletePorcentaje());
         });

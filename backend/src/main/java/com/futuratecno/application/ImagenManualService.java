@@ -67,6 +67,15 @@ public class ImagenManualService {
                 .or(() -> buscarSuelto(marca, modelo));
     }
 
+    /** La primera imagen conocida para cualquiera de esos nombres, en orden (ver {@link NombreArticulo}). */
+    public Optional<String> buscar(List<NombreArticulo> nombres) {
+        for (NombreArticulo n : NombreArticulo.distintos(nombres)) {
+            Optional<String> url = buscar(n.marca(), n.modelo());
+            if (url.isPresent()) return url;
+        }
+        return Optional.empty();
+    }
+
     /**
      * Último intento antes de salir a pagar una búsqueda: el mismo artículo cargado ayer, con el
      * modelo redactado apenas distinto. Solo mira el catálogo, que es donde están las imágenes

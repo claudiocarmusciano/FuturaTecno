@@ -73,6 +73,7 @@ class CargaJsonAtributosManualTest {
         when(atributos.buscar(anyString(), anyString()))
                 .thenReturn(Optional.ofNullable(recordados));
         doCallRealMethod().when(atributos).aplicar(any());
+        doCallRealMethod().when(atributos).aplicar(any(), anyList());
 
         // Una fila existente ya trae marca y modelo de la base: el servicio solo los asigna cuando
         // el producto es nuevo. Sin esto, aplicar() buscaría la memoria con la marca vacía.
@@ -80,16 +81,17 @@ class CargaJsonAtributosManualTest {
         inicial.setModelo("Nano 64GB");
 
         when(proveedores.findById(2L)).thenReturn(Optional.of(new Proveedor()));
-        when(productos.findByProveedorIdAndMarcaAndModelo(2L, "DJI", "Nano 64GB"))
+        when(productos.candidatosDeIdentidad(eq(2L), any(), any(), anyString(), anyString(), anyString()))
                 .thenReturn(inicial.getCategoriaId() == null && inicial.getPesoGramos() == null
-                        ? Optional.empty() : Optional.of(inicial));
-        when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
+                        ? List.of() : List.of(inicial));
+        when(productos.saveAndFlush(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
         when(variantes.findByProductoIdAndActivo(anyLong(), anyBoolean())).thenReturn(List.of());
 
         var service = new CargaJsonService(mock(ImagenManualService.class),
                 mock(DescripcionManualService.class), atributos, mock(MargenManualService.class),
                 productos, variantes, proveedores, mock(ImagenRepository.class),
-                clasificador, mock(CategoriaService.class), mock(ImageUrlValidatorService.class));
+                clasificador, mock(CategoriaService.class), mock(ImageUrlValidatorService.class),
+                new IdentidadProductoService(), mock(org.springframework.jdbc.core.JdbcTemplate.class));
 
         var art = new ArticuloJsonDTO();
         art.setMarca("DJI");
@@ -98,7 +100,7 @@ class CargaJsonAtributosManualTest {
         service.cargar(2L, List.of(art));
 
         var captor = org.mockito.ArgumentCaptor.forClass(Producto.class);
-        verify(productos).save(captor.capture());
+        verify(productos).saveAndFlush(captor.capture());
         return captor.getValue();
     }
 }

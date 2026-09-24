@@ -56,20 +56,21 @@ class CargaJsonImagenManualTest {
         var proveedores = mock(ProveedorRepository.class);
         var memoria = mock(ImagenManualService.class);
         when(proveedores.findById(2L)).thenReturn(Optional.of(new Proveedor()));
-        when(productos.findByProveedorIdAndMarcaAndModelo(2L, "DJI", "Nano 64GB")).thenReturn(Optional.empty());
-        when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
-        when(memoria.buscar("DJI", "Nano 64GB")).thenReturn(Optional.empty());
+        when(productos.candidatosDeIdentidad(eq(2L), any(), any(), anyString(), anyString(), anyString())).thenReturn(List.of());
+        when(productos.saveAndFlush(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
+        when(memoria.buscar(anyList())).thenReturn(Optional.empty());
         var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
                 mock(AtributosManualService.class), mock(MargenManualService.class), productos, mock(VarianteRepository.class), proveedores,
                 mock(ImagenRepository.class), mock(CategoriaClasificadorService.class), mock(CategoriaService.class),
-                validador(false));
+                validador(false),
+                new IdentidadProductoService(), mock(org.springframework.jdbc.core.JdbcTemplate.class));
         var art = new ArticuloJsonDTO();
         art.setMarca("DJI"); art.setModelo("Nano 64GB"); art.setPrecioUsd(BigDecimal.TEN);
         art.setImagenes(List.of("https://json/rota.jpg"));
 
         var res = service.cargar(2L, List.of(art));
 
-        verify(productos).save(argThat(p -> p.getImagenUrl() == null));
+        verify(productos).saveAndFlush(argThat(p -> p.getImagenUrl() == null));
         assertEquals("La imagen del JSON no responde. Quedó sin foto: cargala desde Admin → Imágenes.",
                 res.getItems().getFirst().getMotivo());
     }
@@ -88,13 +89,14 @@ class CargaJsonImagenManualTest {
         var proveedores = mock(ProveedorRepository.class);
         var memoria = mock(ImagenManualService.class);
         when(proveedores.findById(2L)).thenReturn(Optional.of(new Proveedor()));
-        when(productos.findByProveedorIdAndMarcaAndModelo(2L, "DJI", "Nano 64GB")).thenReturn(Optional.empty());
-        when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
-        when(memoria.buscar("DJI", "Nano 64GB")).thenReturn(Optional.of("https://manual/image.jpg"));
+        when(productos.candidatosDeIdentidad(eq(2L), any(), any(), anyString(), anyString(), anyString())).thenReturn(List.of());
+        when(productos.saveAndFlush(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
+        when(memoria.buscar(anyList())).thenReturn(Optional.of("https://manual/image.jpg"));
         var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
                 mock(AtributosManualService.class), mock(MargenManualService.class), productos, mock(VarianteRepository.class), proveedores,
                 mock(ImagenRepository.class), mock(CategoriaClasificadorService.class), mock(CategoriaService.class),
-                validador);
+                validador,
+                new IdentidadProductoService(), mock(org.springframework.jdbc.core.JdbcTemplate.class));
         var art = new ArticuloJsonDTO();
         art.setMarca("DJI"); art.setModelo("Nano 64GB"); art.setPrecioUsd(BigDecimal.TEN);
         art.setImagenes(List.of("https://json/image.jpg"));
@@ -144,13 +146,14 @@ class CargaJsonImagenManualTest {
         var productos = mock(ProductoRepository.class);
         var proveedores = mock(ProveedorRepository.class);
         when(proveedores.findById(2L)).thenReturn(Optional.of(new Proveedor()));
-        when(productos.findByProveedorIdAndMarcaAndModelo(2L, "DJI", "Nano 64GB")).thenReturn(Optional.empty());
-        when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
-        when(memoria.buscar("DJI", "Nano 64GB")).thenReturn(manual);
+        when(productos.candidatosDeIdentidad(eq(2L), any(), any(), anyString(), anyString(), anyString())).thenReturn(List.of());
+        when(productos.saveAndFlush(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
+        when(memoria.buscar(anyList())).thenReturn(manual);
         var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
                 mock(AtributosManualService.class), mock(MargenManualService.class), productos, mock(VarianteRepository.class), proveedores,
                 mock(ImagenRepository.class), mock(CategoriaClasificadorService.class), mock(CategoriaService.class),
-                validador(urlViva));
+                validador(urlViva),
+                new IdentidadProductoService(), mock(org.springframework.jdbc.core.JdbcTemplate.class));
         var art = new ArticuloJsonDTO();
         art.setMarca("DJI"); art.setModelo("Nano 64GB"); art.setPrecioUsd(BigDecimal.TEN); art.setImagenes(urls);
         service.cargar(2L, List.of(art));
@@ -165,18 +168,21 @@ class CargaJsonImagenManualTest {
         var producto = new Producto();
         producto.setId(10L);
         producto.setImagenUrl("https://existing/image.jpg");
+        producto.setMarca("DJI");
+        producto.setModelo("Nano 64GB");
         when(proveedores.findById(2L)).thenReturn(Optional.of(new Proveedor()));
-        when(productos.findByProveedorIdAndMarcaAndModelo(2L, "DJI", "Nano 64GB"))
-                .thenReturn(nuevo ? Optional.empty() : Optional.of(producto));
-        when(productos.save(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
-        when(memoria.buscar("DJI", "Nano 64GB")).thenReturn(manual);
+        when(productos.candidatosDeIdentidad(eq(2L), any(), any(), anyString(), anyString(), anyString()))
+                .thenReturn(nuevo ? List.of() : List.of(producto));
+        when(productos.saveAndFlush(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
+        when(memoria.buscar(anyList())).thenReturn(manual);
         var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
                 mock(AtributosManualService.class), mock(MargenManualService.class), productos, variantes, proveedores, imagenes,
-                mock(CategoriaClasificadorService.class), mock(CategoriaService.class), validador(true));
+                mock(CategoriaClasificadorService.class), mock(CategoriaService.class), validador(true),
+                new IdentidadProductoService(), mock(org.springframework.jdbc.core.JdbcTemplate.class));
         var art = new ArticuloJsonDTO();
         art.setMarca("DJI"); art.setModelo("Nano 64GB"); art.setPrecioUsd(BigDecimal.TEN); art.setImagenes(urls);
         service.cargar(2L, List.of(art));
-        verify(productos).save(argThat(p -> esperado.equals(p.getImagenUrl())));
+        verify(productos).saveAndFlush(argThat(p -> esperado.equals(p.getImagenUrl())));
         if (manual.isPresent() || !urls.isEmpty()) {
             verify(imagenes).save(argThat(img -> esperado.equals(img.getUrl())));
         } else verify(imagenes, never()).deleteAll(any(Iterable.class));

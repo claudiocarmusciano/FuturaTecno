@@ -41,6 +41,15 @@ public class DescripcionManualService {
                 .stream().findFirst();
     }
 
+    /** La descripción manual de cualquiera de esos nombres, en orden (ver {@link NombreArticulo}). */
+    public Optional<String> buscar(java.util.List<NombreArticulo> nombres) {
+        for (NombreArticulo n : NombreArticulo.distintos(nombres)) {
+            Optional<String> d = buscar(n.marca(), n.modelo());
+            if (d.isPresent()) return d;
+        }
+        return Optional.empty();
+    }
+
     /**
      * Guarda la descripción para esa marca+modelo. Una descripción vacía borra la memoria: es cómo
      * el admin dice "olvidate de la que había", igual que vaciar el campo de imagen.

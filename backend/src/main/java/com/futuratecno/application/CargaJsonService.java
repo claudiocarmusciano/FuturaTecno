@@ -11,8 +11,12 @@ import com.futuratecno.infrastructure.ImagenRepository;
 import com.futuratecno.infrastructure.ProductoRepository;
 import com.futuratecno.infrastructure.ProveedorRepository;
 import com.futuratecno.infrastructure.VarianteRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.futuratecno.application.IdentidadProductoService.Resolucion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,15 +24,25 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeSet;
 
 /**
  * Carga manual de productos a partir de un JSON (sección admin "Cargar artículos por JSON").
  * Emula el guardado del parsing pero además: carga imágenes (galería) e intenta clasificar la
- * categoría automáticamente. Precio siempre en USD ({@code precio_usd}). Dedup por proveedor+marca+modelo.
+ * categoría automáticamente. Precio siempre en USD ({@code precio_usd}).
+ *
+ * <p>Qué producto es cada artículo lo decide la identidad (V42, {@link IdentidadProductoService}),
+ * no el nombre: el mismo teléfono redactado distinto actualiza el mismo producto, y variantes
+ * distintas (64GB/128GB, 4GB/8GB de RAM, G04/G04s) nunca se pisan. Lo dudoso queda "revision" en
+ * la respuesta, sin crear ni actualizar nada.
  */
 @Service
 public class CargaJsonService {
@@ -50,6 +64,8 @@ public class CargaJsonService {
     private final CategoriaClasificadorService categoriaClasificadorService;
     private final CategoriaService categoriaService;
     private final ImageUrlValidatorService imageUrlValidatorService;
+    private final IdentidadProductoService identidad;
+    private final JdbcTemplate jdbc;
 
     public CargaJsonService(ImagenManualService imagenManualService,
                             DescripcionManualService descripcionManualService,
@@ -61,7 +77,9 @@ public class CargaJsonService {
                             ImagenRepository imagenRepository,
                             CategoriaClasificadorService categoriaClasificadorService,
                             CategoriaService categoriaService,
-                            ImageUrlValidatorService imageUrlValidatorService) {
+                            ImageUrlValidatorService imageUrlValidatorService,
+                            IdentidadProductoService identidad,
+                            JdbcTemplate jdbc) {
         this.imagenManualService = imagenManualService;
         this.descripcionManualService = descripcionManualService;
         this.atributosManualService = atributosManualService;
@@ -73,6 +91,8 @@ public class CargaJsonService {
         this.categoriaClasificadorService = categoriaClasificadorService;
         this.categoriaService = categoriaService;
         this.imageUrlValidatorService = imageUrlValidatorService;
+        this.identidad = identidad;
+        this.jdbc = jdbc;
     }
 
     @Transactional
@@ -81,9 +101,31 @@ public class CargaJsonService {
                 .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado: " + proveedorId));
 
         CargaJsonResponse res = new CargaJsonResponse();
-        int creados = 0, actualizados = 0, omitidos = 0, sinCategoria = 0;
+        int creados = 0, actualizados = 0, omitidos = 0, sinCategoria = 0, revision = 0;
+        List<ArticuloJsonDTO> lista = articulos != null ? articulos : List.of();
 
-        for (ArticuloJsonDTO art : (articulos != null ? articulos : List.<ArticuloJsonDTO>of())) {
+        // 1) Resolver la identidad de todo el lote antes de tocar la base.
+        List<Resolucion> resoluciones = new ArrayList<>();
+        for (ArticuloJsonDTO art : lista) {
+            String marca = limpiar(art.getMarca());
+            String modelo = derivarModelo(art, marca);
+            resoluciones.add(marca == null || modelo == null ? null
+                    : identidad.resolver(marca, modelo, art.getEspecificaciones(), limpiar(art.getCategoria())));
+        }
+
+        // 2) Bloquear las familias del lote, siempre en el mismo orden. Con esto, dos cargas
+        // simultáneas del mismo artículo no pueden consultar las dos "no existe" y crear dos filas:
+        // la segunda espera a que la primera confirme y después la encuentra. El orden fijo evita
+        // que dos lotes con los mismos artículos en otro orden se traben entre sí. El índice único
+        // de la V42 queda como red de seguridad.
+        bloquearFamilias(proveedorId, resoluciones);
+
+        Map<String, Integer> vistasEnLote = new HashMap<>();
+        Map<Long, Resolucion> cacheGuardadas = new HashMap<>();
+        Map<String, List<Producto>> cacheMarcas = new HashMap<>();
+
+        for (int i = 0; i < lista.size(); i++) {
+            ArticuloJsonDTO art = lista.get(i);
             String marca = limpiar(art.getMarca());
             String modelo = derivarModelo(art, marca);
             BigDecimal precio = art.getPrecioUsd();
@@ -96,31 +138,48 @@ public class CargaJsonService {
                 continue;
             }
 
-            // Exacto primero; si no, la clave suelta. El modelo lo redacta la IA en cada carga, así
-            // que "iPhone 17 Pro 256GB eSIM" y "iPhone 17 Pro 256 GB (eSIM)" son el mismo teléfono
-            // y sin esto nacía un producto nuevo por cada redacción: el catálogo mostraba el mismo
-            // artículo dos veces a precios distintos y había que recargarle la foto a mano.
-            // La clave conserva capacidad, color y versión, así que un 512GB nunca cae sobre un
-            // 256GB. Solo aplica a esta vía: Elit e Invid deduplican por codigo_externo, que es
-            // estable, y no tienen este problema.
-            var existente = productoRepository.findByProveedorIdAndMarcaAndModelo(proveedorId, marca, modelo)
-                    .or(() -> productoRepository
-                            .idPorClaveSuelta(proveedorId, ImagenManualService.clave(marca, modelo))
-                            .flatMap(productoRepository::findById));
-            boolean nuevo = existente.isEmpty();
-            Producto producto = existente.orElseGet(Producto::new);
+            Resolucion r = resoluciones.get(i);
+            Decision decision;
+            Integer filaPrevia = r.resuelta() ? vistasEnLote.putIfAbsent(r.clave(), i + 1) : null;
+            if (filaPrevia != null) {
+                decision = Decision.revision(List.of("El mismo artículo ya aparece en la fila " + filaPrevia
+                        + " de esta carga: no se actualiza dos veces con precios que pueden ser distintos."), List.of());
+            } else {
+                decision = decidir(identidad, r, candidatos(proveedorId, marca, modelo, r, cacheGuardadas, cacheMarcas));
+            }
+
+            if (decision.accion() == Accion.REVISION) {
+                revision++;
+                CargaJsonResponse.Item item = new CargaJsonResponse.Item(marca + " " + modelo, "revision", null,
+                        String.join(" ", decision.motivos()));
+                item.setIdentidad(r.clave());
+                item.setCandidatos(decision.relacionados());
+                res.getItems().add(item);
+                continue;
+            }
+
+            boolean nuevo = decision.accion() == Accion.CREAR;
+            Producto producto = nuevo ? new Producto() : decision.producto();
             if (nuevo) {
                 producto.setProveedor(proveedor);
                 producto.setMarca(marca);
                 producto.setModelo(modelo);
                 producto.setFuente(FUENTE);
             }
+            // El nombre visible de un producto existente NO se pisa con la redacción de esta carga:
+            // la identidad decide que es el mismo artículo, el nombre lo sigue eligiendo el admin.
+            asignarIdentidad(producto, r);
             // Una nueva carga manual debe volver a publicar un producto que se había dado de baja.
             // De lo contrario figura como "actualizado" pero continúa oculto del panel y catálogo.
             producto.setActivo(true);
             producto.setCategoria(limpiar(art.getCategoria()));
 
-            Optional<String> recordada = imagenManualService.buscar(marca, modelo);
+            // Nombres con los que se conoce este artículo, para las memorias manuales: el guardado
+            // primero (es con el que el admin las editó), después el de esta carga y después el de
+            // otros productos con la misma identidad (el mismo artículo en otro proveedor).
+            List<NombreArticulo> nombres = nombresDelArticulo(producto, marca, modelo, r);
+
+            Optional<String> recordada = imagenManualService.buscar(nombres);
             // Las URLs del JSON solo entran si la base no tenía nada, y recién ahí se verifica que
             // estén vivas: hasta ahora alcanzaba con que empezaran por "http". Una URL muerta no
             // solo publicaba el producto con la foto rota — además se guardaba como imagen
@@ -135,16 +194,16 @@ public class CargaJsonService {
                 producto.setImagenUrl(imagenes.get(0));
                 // Una imagen nueva se recuerda para que el próximo listado con este marca+modelo no
                 // vuelva a pagar una búsqueda. Entra como automática: con ON CONFLICT DO NOTHING
-                // jamás pisa una que el admin haya elegido a mano. Si ya venía de la memoria no se
-                // reescribe, sería un INSERT por artículo que no cambia nada.
-                if (recordada.isEmpty()) imagenManualService.guardarAutomatica(marca, modelo, imagenes.get(0));
+                // jamás pisa una que el admin haya elegido a mano. Se guarda con el nombre del
+                // producto, que es con el que la buscan el admin y las próximas cargas.
+                if (recordada.isEmpty()) imagenManualService.guardarAutomatica(producto.getMarca(), producto.getModelo(), imagenes.get(0));
             }
 
-            // Categoría y medidas ya resueltas para este marca+modelo, aunque haya sido con otro
-            // proveedor. Solo rellena huecos: lo que la fila ya tenga cargado manda.
-            atributosManualService.aplicar(producto);
-            // Margen y flete recordados para este marca+modelo EN ESTE PROVEEDOR (V41).
-            margenManualService.aplicar(producto);
+            // Categoría y medidas ya resueltas para este artículo, aunque haya sido con otro
+            // proveedor o con otra redacción. Solo rellena huecos: lo que la fila ya tenga manda.
+            atributosManualService.aplicar(producto, nombres);
+            // Margen y flete recordados para este artículo EN ESTE PROVEEDOR (V41).
+            margenManualService.aplicar(producto, nombres);
 
             // Clasificación automática: solo si todavía no tiene categoría (ni propia ni recordada).
             // Si no se puede resolver (categoría ambigua o IA sin crédito), queda null → el admin
@@ -156,12 +215,13 @@ public class CargaJsonService {
                     logger.warn("Clasificación falló para '{} {}': {}", marca, modelo, e.toString());
                 }
             }
-            final Producto prod = productoRepository.save(producto);
+            // saveAndFlush: las consultas de candidatos del resto del lote tienen que verlo.
+            final Producto prod = productoRepository.saveAndFlush(producto);
 
             // Variante con el precio (siempre USD) y las specs.
             // La descripción curada a mano gana sobre la del JSON, igual que la imagen: si alguien
             // ya la corrigió, un reimport no debe pisarla con el texto crudo del proveedor.
-            String especificaciones = descripcionManualService.buscar(marca, modelo)
+            String especificaciones = descripcionManualService.buscar(nombres)
                     .orElseGet(() -> construirEspecificaciones(art));
             // Un producto cargado por JSON tiene UNA sola variante: la capacidad, el color y la
             // versión SIM/eSIM viajan dentro del modelo ("iPhone 17 Pro 256GB eSIM"), así que las
@@ -184,6 +244,7 @@ public class CargaJsonService {
             variante.setMonedaOrigen("USD");
             variante.setPrecioOrigen(precio);
             variante.setActivo(true);
+            proyectarAtributos(variante, r);
             varianteRepository.save(variante);
 
             // Galería de imágenes: se reemplaza por la del JSON (borra las anteriores del producto).
@@ -203,20 +264,247 @@ public class CargaJsonService {
             String categoriaPath = pathDe(prod.getCategoriaId());
             if (categoriaPath == null) sinCategoria++;
             if (nuevo) creados++; else actualizados++;
-            res.getItems().add(new CargaJsonResponse.Item(
+            CargaJsonResponse.Item item = new CargaJsonResponse.Item(
                     marca + " " + modelo, nuevo ? "creado" : "actualizado", categoriaPath,
-                    fotoRota ? "La imagen del JSON no responde. Quedó sin foto: cargala desde Admin → Imágenes." : null));
+                    fotoRota ? "La imagen del JSON no responde. Quedó sin foto: cargala desde Admin → Imágenes." : null);
+            item.setProductoId(prod.getId());
+            item.setIdentidad(r.clave());
+            if (!decision.motivos().isEmpty()) item.setAviso(String.join(" ", decision.motivos()));
+            res.getItems().add(item);
         }
 
         res.setCreados(creados);
         res.setActualizados(actualizados);
         res.setOmitidos(omitidos);
         res.setSinCategoria(sinCategoria);
+        res.setRevision(revision);
         res.setMensaje(String.format(
-                "Carga completada: %d creados, %d actualizados, %d omitidos. %d quedaron sin categoría (asignar a mano).",
-                creados, actualizados, omitidos, sinCategoria));
+                "Carga completada: %d creados, %d actualizados, %d omitidos, %d para revisar. %d quedaron sin categoría (asignar a mano).",
+                creados, actualizados, omitidos, revision, sinCategoria));
         logger.info(res.getMensaje());
         return res;
+    }
+
+    // ------------------------------------------------------------------ identidad
+
+    /** Vista previa para el borrador: la identidad de cada artículo, en el mismo orden. No toca la base. */
+    public List<Map<String, Object>> identidades(List<ArticuloJsonDTO> articulos) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (ArticuloJsonDTO art : articulos) {
+            String marca = limpiar(art.getMarca());
+            String modelo = derivarModelo(art, marca);
+            Map<String, Object> fila = new LinkedHashMap<>();
+            if (marca == null || modelo == null) {
+                fila.put("estado", "omitido");
+                fila.put("identidad", null);
+                fila.put("motivos", List.of("Falta marca o modelo."));
+            } else {
+                Resolucion r = identidad.resolver(marca, modelo, art.getEspecificaciones(), limpiar(art.getCategoria()));
+                fila.put("estado", r.resuelta() ? "resuelta" : "revision");
+                fila.put("identidad", r.clave());
+                fila.put("version", r.version());
+                fila.put("motivos", r.motivos());
+            }
+            out.add(fila);
+        }
+        return out;
+    }
+
+    enum Accion { CREAR, ACTUALIZAR, REVISION }
+
+    /** Un producto existente con la identidad con la que se lo compara. */
+    record Candidato(Producto producto, Resolucion resolucion) {}
+
+    /**
+     * @param producto     el producto a actualizar (solo en ACTUALIZAR)
+     * @param motivos      por qué va a revisión; en ACTUALIZAR, avisos que no impiden la carga
+     * @param relacionados ids de los productos existentes que motivaron la decisión
+     */
+    record Decision(Accion accion, Producto producto, List<String> motivos, List<Long> relacionados) {
+        static Decision revision(List<String> motivos, List<Long> relacionados) {
+            return new Decision(Accion.REVISION, null, motivos, relacionados);
+        }
+    }
+
+    /**
+     * Qué hacer con un artículo entrante, comparándolo con los productos del proveedor que
+     * podrían ser el mismo. No hay atajos: el nombre exacto y la clave suelta traen candidatos,
+     * pero lo que decide es la comparación de atributos.
+     * <ul>
+     *   <li>Un producto que ya tiene esta identidad asignada es el dueño: se actualiza.</li>
+     *   <li>Si no, un único producto que resuelve a la misma identidad se adopta y se actualiza.</li>
+     *   <li>Dos o más que resuelven igual son duplicados históricos: revisión, no se elige uno.</li>
+     *   <li>Un candidato que no se puede afirmar igual ni distinto (le falta un dato que el
+     *       entrante tiene, o al revés): revisión.</li>
+     *   <li>Nada de lo anterior: se crea.</li>
+     * </ul>
+     */
+    static Decision decidir(IdentidadProductoService svc, Resolucion entrante, List<Candidato> candidatos) {
+        if (!entrante.resuelta()) {
+            List<Long> familia = candidatos.stream()
+                    .filter(c -> entrante.familia() != null && entrante.familia().equals(c.resolucion().familia()))
+                    .map(c -> c.producto().getId()).toList();
+            return Decision.revision(entrante.motivos(), familia);
+        }
+        Candidato duenio = null;
+        List<Candidato> iguales = new ArrayList<>();
+        List<Candidato> conflictos = new ArrayList<>();
+        for (Candidato c : candidatos) {
+            if (entrante.clave().equals(c.producto().getIdentidadClave())) duenio = c;
+            switch (svc.comparar(entrante, c.resolucion())) {
+                case IGUAL -> iguales.add(c);
+                case CONFLICTO -> conflictos.add(c);
+                case DISTINTA -> { }
+            }
+        }
+        if (duenio != null) {
+            Long idDuenio = duenio.producto().getId();
+            List<Long> otros = iguales.stream().map(c -> c.producto().getId()).filter(id -> !id.equals(idDuenio)).toList();
+            List<String> avisos = otros.isEmpty() ? List.of() : List.of("Hay otros productos con esta misma identidad "
+                    + "(ids " + otros + "): posibles duplicados históricos, revisalos en Admin → Identidad.");
+            return new Decision(Accion.ACTUALIZAR, duenio.producto(), avisos, otros);
+        }
+        if (iguales.size() > 1) {
+            // Duplicados históricos. Si el admin ya los resolvió dando de baja a todos menos uno
+            // (así se consolidaron el 18/9/2026), el activo es el elegido: se actualiza ese. Con
+            // varios activos, o ninguno, no hay a quién elegir sin adivinar.
+            List<Candidato> activos = iguales.stream().filter(c -> Boolean.TRUE.equals(c.producto().getActivo())).toList();
+            if (activos.size() == 1) {
+                List<Long> inactivos = iguales.stream().filter(c -> c != activos.get(0)).map(c -> c.producto().getId()).toList();
+                return new Decision(Accion.ACTUALIZAR, activos.get(0).producto(), List.of("Se actualizó el producto "
+                        + "activo; hay copias dadas de baja del mismo artículo (ids " + inactivos + ")."), inactivos);
+            }
+            return Decision.revision(List.of("Hay " + iguales.size() + " productos existentes que son este mismo "
+                    + "artículo (ids " + ids(iguales) + ") y " + (activos.isEmpty() ? "ninguno está activo" : activos.size() + " están activos")
+                    + ": duplicados históricos. Consolidalos (Admin → Identidad) antes de recargar."), ids(iguales));
+        }
+        if (iguales.size() == 1) {
+            List<String> avisos = conflictos.isEmpty() ? List.of() : List.of("Otros productos parecidos no se pudieron "
+                    + "comparar del todo (ids " + ids(conflictos) + "); revisá que no sean el mismo artículo.");
+            return new Decision(Accion.ACTUALIZAR, iguales.get(0).producto(), avisos, ids(conflictos));
+        }
+        if (!conflictos.isEmpty()) {
+            return Decision.revision(List.of("Podría ser el mismo artículo que los productos " + ids(conflictos)
+                    + ", pero a uno de los dos le falta un dato que distingue variantes (conectividad, SIM, color, "
+                    + "región…) o sus datos no se pueden leer. Completá el JSON o el producto y recargá."), ids(conflictos));
+        }
+        return new Decision(Accion.CREAR, null, List.of(), List.of());
+    }
+
+    private static List<Long> ids(List<Candidato> cs) {
+        return cs.stream().map(c -> c.producto().getId()).toList();
+    }
+
+    /**
+     * Productos del proveedor que podrían ser este artículo, cada uno con su identidad: la
+     * guardada si ya tiene una, o resuelta ahora desde su nombre y sus especificaciones si es
+     * anterior a la V42. Para teléfonos se miran todos los de la marca, porque un producto viejo
+     * redactado distinto no comparte ni la clave suelta.
+     */
+    private List<Candidato> candidatos(Long proveedorId, String marca, String modelo, Resolucion r,
+                                       Map<Long, Resolucion> cacheGuardadas, Map<String, List<Producto>> cacheMarcas) {
+        Map<Long, Producto> porId = new LinkedHashMap<>();
+        productoRepository.candidatosDeIdentidad(proveedorId, r.clave(), r.familia(),
+                        ImagenManualService.clave(marca, modelo), normalizar(marca), normalizar(modelo))
+                .forEach(p -> porId.put(p.getId(), p));
+        if (r.esTelefono() && r.atributos().get("marca") != null) {
+            String m = r.atributos().get("marca");
+            List<String> marcas = m.equals("xiaomi") ? List.of("xiaomi", "redmi", "poco") : List.of(m);
+            cacheMarcas.computeIfAbsent(proveedorId + "|" + m, k -> productoRepository.deMarcasEnProveedor(proveedorId, marcas))
+                    .forEach(p -> porId.putIfAbsent(p.getId(), p));
+        }
+        if (porId.isEmpty()) return List.of();
+
+        List<Long> sinResolver = porId.keySet().stream().filter(id -> !cacheGuardadas.containsKey(id)).toList();
+        Map<Long, String> specs = new HashMap<>();
+        if (!sinResolver.isEmpty()) {
+            varianteRepository.findByProductoIdIn(sinResolver).stream()
+                    .sorted(Comparator.comparing(Variante::getActivo).thenComparing(Variante::getUpdatedAt,
+                            Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .forEach(v -> specs.put(v.getProducto().getId(), v.getEspecificaciones()));
+        }
+        List<Candidato> out = new ArrayList<>();
+        for (Producto p : porId.values()) {
+            Resolucion rp = cacheGuardadas.computeIfAbsent(p.getId(), id -> resolucionGuardada(p, specs.get(id)));
+            // De la búsqueda por marca solo interesan los de la misma familia; lo demás de la marca
+            // (otro modelo, un televisor) no es candidato.
+            boolean porNombre = Objects.equals(p.getIdentidadClave(), r.clave())
+                    || Objects.equals(r.familia(), rp.familia())
+                    || ImagenManualService.clave(p.getMarca(), p.getModelo()).equals(ImagenManualService.clave(marca, modelo));
+            if (porNombre) out.add(new Candidato(p, rp));
+        }
+        return out;
+    }
+
+    private Resolucion resolucionGuardada(Producto p, String especificaciones) {
+        if (p.getIdentidadClave() != null && p.getIdentidadVersion() != null) {
+            return new Resolucion(IdentidadProductoService.Estado.RESUELTA, p.getIdentidadVersion(), p.getIdentidadClave(),
+                    p.getIdentidadFamilia(), leerAtributos(p.getIdentidadAtributos()), List.of(), false);
+        }
+        return identidad.resolverGuardado(p.getMarca(), p.getModelo(), especificaciones, pathDe(p.getCategoriaId()));
+    }
+
+    private void asignarIdentidad(Producto p, Resolucion r) {
+        p.setIdentidadClave(r.clave());
+        p.setIdentidadVersion(r.version());
+        p.setIdentidadFamilia(r.familia());
+        p.setIdentidadAtributos(escribirAtributos(r.atributos()));
+    }
+
+    /**
+     * Los campos estructurados de la variante (ramGb, almacenamientoGb, color) existían desde la V1
+     * sin que nadie los escribiera. Se llenan como PROYECCIÓN de la identidad del producto, en el
+     * mismo lugar y con los mismos valores: la fuente de verdad es {@code productos.identidad_*} y
+     * estos campos no se usan para decidir nada, así que no pueden contradecirla.
+     */
+    private static void proyectarAtributos(Variante v, Resolucion r) {
+        if (!r.esTelefono()) return;
+        v.setAlmacenamientoGb(entero(r.atributos().get("almacenamiento_gb")));
+        v.setRamGb(entero(r.atributos().get("ram_gb")));
+        v.setColor(r.atributos().get("color"));
+    }
+
+    private List<NombreArticulo> nombresDelArticulo(Producto producto, String marca, String modelo, Resolucion r) {
+        List<NombreArticulo> nombres = new ArrayList<>();
+        nombres.add(new NombreArticulo(producto.getMarca(), producto.getModelo()));
+        nombres.add(new NombreArticulo(marca, modelo));
+        if (r.clave() != null) {
+            for (Object[] fila : productoRepository.nombresPorIdentidad(r.clave())) {
+                nombres.add(new NombreArticulo((String) fila[0], (String) fila[1]));
+            }
+        }
+        return NombreArticulo.distintos(nombres);
+    }
+
+    private void bloquearFamilias(Long proveedorId, List<Resolucion> resoluciones) {
+        new TreeSet<>(resoluciones.stream().filter(Objects::nonNull)
+                .map(r -> r.familia() != null ? r.familia() : r.clave())
+                .filter(Objects::nonNull).toList())
+                .forEach(k -> jdbc.query("SELECT pg_advisory_xact_lock(CAST(? AS int), hashtext(?))",
+                        rs -> null, proveedorId.intValue(), k));
+    }
+
+    private static Integer entero(String s) {
+        try { return s == null ? null : Integer.valueOf(s); } catch (NumberFormatException e) { return null; }
+    }
+
+    private static String normalizar(String s) {
+        return s == null ? "" : s.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+    }
+
+    private static final ObjectMapper JSON = new ObjectMapper();
+
+    static String escribirAtributos(Map<String, String> atributos) {
+        try { return JSON.writeValueAsString(atributos); } catch (Exception e) { return null; }
+    }
+
+    static Map<String, String> leerAtributos(String json) {
+        if (json == null || json.isBlank()) return Map.of();
+        try {
+            return JSON.readValue(json, new TypeReference<LinkedHashMap<String, String>>() {});
+        } catch (Exception e) {
+            return Map.of();
+        }
     }
 
     /** Modelo "limpio": usa `modelo` si vino; si no, la primera parte de `modelo_exacto` (o `listado`), sin el prefijo de marca. */

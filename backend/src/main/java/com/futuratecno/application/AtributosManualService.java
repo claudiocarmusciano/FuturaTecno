@@ -91,7 +91,20 @@ public class AtributosManualService {
      */
     public void aplicar(Producto p) {
         if (p == null) return;
-        buscar(p.getMarca(), p.getModelo()).ifPresent(a -> {
+        aplicar(p, java.util.List.of(new NombreArticulo(p.getMarca(), p.getModelo())));
+    }
+
+    /**
+     * Igual, pero probando varios nombres del mismo artículo en orden: el primero que tenga algo
+     * recordado es el que se usa (ver {@link NombreArticulo}).
+     */
+    public void aplicar(Producto p, java.util.List<NombreArticulo> nombres) {
+        if (p == null) return;
+        NombreArticulo.distintos(nombres).stream()
+                .map(n -> buscar(n.marca(), n.modelo()))
+                .flatMap(Optional::stream)
+                .findFirst()
+                .ifPresent(a -> {
             if (p.getCategoriaId() == null) p.setCategoriaId(a.categoriaId());
             if (p.getPesoGramos() == null) p.setPesoGramos(a.pesoGramos());
             if (p.getAltoCm() == null) p.setAltoCm(a.altoCm());

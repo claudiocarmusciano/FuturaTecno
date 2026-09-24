@@ -161,7 +161,8 @@ function CargarJsonPage() {
       {/* Resultado */}
       {resultado && (
         <div className="card" ref={resultadoRef} tabIndex={-1} role="status" aria-live="polite" style={{ border: '2px solid var(--color-border)' }}>
-          <h2 style={{ marginTop: 0 }}>{resultado.omitidos > 0 ? 'Importación finalizada con artículos omitidos' : 'Importación realizada'}</h2>
+          <h2 style={{ marginTop: 0 }}>{resultado.revision > 0 ? 'Importación finalizada con artículos para revisar' : resultado.omitidos > 0 ? 'Importación finalizada con artículos omitidos' : 'Importación realizada'}</h2>
+          {resultado.revision > 0 && <p style={{ color: '#f0c05a' }}>Los artículos "para revisar" no se crearon ni actualizaron: no se pudo confirmar si son un producto existente o uno nuevo. Completá los datos que indica cada uno (por ejemplo la RAM) y volvé a cargarlos.</p>}
           <p>{resultado.creados + resultado.actualizados > 0 ? 'Los artículos creados o actualizados ya se guardaron en el catálogo.' : 'No se crearon ni actualizaron artículos. Revisá el detalle de esta carga.'}</p>
           <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '10px' }}>{resultado.mensaje}</div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '14px', fontSize: '13px' }}>
@@ -169,6 +170,7 @@ function CargarJsonPage() {
             <span>♻️ Actualizados: <strong>{resultado.actualizados}</strong></span>
             <span>⏭️ Omitidos: <strong>{resultado.omitidos}</strong></span>
             <span>🏷️ Sin categoría: <strong>{resultado.sinCategoria}</strong></span>
+            {resultado.revision > 0 && <span style={{ color: '#f0c05a' }}>🔎 Para revisar: <strong>{resultado.revision}</strong></span>}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="table" style={{ fontSize: '13px' }}>
@@ -179,8 +181,12 @@ function CargarJsonPage() {
                     <td>{it.producto}</td>
                     {/* El motivo ya no es solo de los omitidos: un artículo que se creó bien puede
                         traer un aviso, como que su imagen no respondía y quedó sin foto. */}
-                    <td>{it.motivo ? `${it.estado} — ${it.motivo}` : it.estado}</td>
-                    <td>{it.categoria || (it.estado === 'omitido' ? '—' : <span style={{ color: '#f0b429' }}>sin categoría (asignar a mano)</span>)}</td>
+                    <td style={it.estado === 'revision' ? { color: '#f0c05a' } : undefined}>
+                      {it.estado === 'revision' ? 'para revisar' : it.estado}{it.motivo ? ` — ${it.motivo}` : ''}
+                      {it.candidatos?.length > 0 && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Productos relacionados: {it.candidatos.join(', ')}</div>}
+                      {it.aviso && <div style={{ fontSize: '12px', color: '#f0c05a' }}>{it.aviso}</div>}
+                    </td>
+                    <td>{it.categoria || (['omitido', 'revision'].includes(it.estado) ? '—' : <span style={{ color: '#f0b429' }}>sin categoría (asignar a mano)</span>)}</td>
                   </tr>
                 ))}
               </tbody>
