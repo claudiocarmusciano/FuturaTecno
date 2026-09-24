@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -54,6 +55,7 @@ public class ProductoAdminService {
     private final CategoriaClasificadorService categoriaClasificadorService;
     private final CategoriaService categoriaService;
     private final CategoriaRepository categoriaRepository;
+    private final IdentidadTransicionService identidadTransicionService;
 
     public ProductoAdminService(ImagenManualService imagenManualService,
                                 DescripcionManualService descripcionManualService,
@@ -70,7 +72,8 @@ public class ProductoAdminService {
                                 PrecioService precioService,
                                 CategoriaClasificadorService categoriaClasificadorService,
                                 CategoriaService categoriaService,
-                                CategoriaRepository categoriaRepository) {
+                                CategoriaRepository categoriaRepository,
+                                IdentidadTransicionService identidadTransicionService) {
         this.imagenManualService = imagenManualService;
         this.descripcionManualService = descripcionManualService;
         this.atributosManualService = atributosManualService;
@@ -87,6 +90,7 @@ public class ProductoAdminService {
         this.categoriaClasificadorService = categoriaClasificadorService;
         this.categoriaService = categoriaService;
         this.categoriaRepository = categoriaRepository;
+        this.identidadTransicionService = identidadTransicionService;
     }
 
     /**
@@ -313,7 +317,7 @@ public class ProductoAdminService {
     public ProductoEditDTO actualizarProducto(Long productoId, ProductoEditDTO dto) {
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
-
+        String marcaAntes = producto.getMarca(), modeloAntes = producto.getModelo();
         if (dto.getCategoriaId() != null) producto.setCategoriaId(dto.getCategoriaId());
         if (dto.getMarca() != null && !dto.getMarca().isBlank()) producto.setMarca(dto.getMarca().trim());
         if (dto.getModelo() != null && !dto.getModelo().isBlank()) producto.setModelo(dto.getModelo().trim());
@@ -349,16 +353,17 @@ public class ProductoAdminService {
 
         // Null = no vino ninguna variante en el request, así que no hay nada que recordar (y no
         // hay que borrar lo que ya estaba). "" sí es un valor: el admin vació la descripción.
-        String descripcionEditada = null;
+        String descripcionEditada = null, descripcionAntes = null;
         if (dto.getVariantes() != null) {
             for (VarianteEditDTO ve : dto.getVariantes()) {
                 if (ve.getId() == null) continue;
                 Variante v = varianteRepository.findById(ve.getId()).orElse(null);
                 if (v == null || v.getProducto() == null || !v.getProducto().getId().equals(productoId)) continue;
 
+                String previa = v.getEspecificaciones();
                 v.setEspecificaciones(ve.getEspecificaciones() != null ? ve.getEspecificaciones().trim() : "");
                 // La descripción del producto es la de su primera variante, igual que en el listado.
-                if (descripcionEditada == null) descripcionEditada = v.getEspecificaciones();
+                if (descripcionEditada == null) { descripcionEditada = v.getEspecificaciones(); descripcionAntes = previa; }
                 if (ve.getPrecio() != null) {
                     String moneda = "USD".equalsIgnoreCase(ve.getMoneda()) ? "USD" : "ARS";
                     v.setMonedaOrigen(moneda);
@@ -377,8 +382,24 @@ public class ProductoAdminService {
         if (descripcionEditada != null && !DescripcionManualService.esDeMayorista(producto.getFuente())) {
             descripcionManualService.guardar(producto.getMarca(), producto.getModelo(), descripcionEditada);
         }
+        // Si cambió lo que define qué artículo es, la identidad guardada tiene que acompañar: la
+        // carga por JSON compara contra ella, no contra el texto (ver recalcularTrasEdicion).
+        boolean cambioNombre = !Objects.equals(marcaAntes, producto.getMarca()) || !Objects.equals(modeloAntes, producto.getModelo());
+        boolean cambioDescripcion = descripcionEditada != null && !Objects.equals(descripcionAntes, descripcionEditada);
+        if (cambioNombre || cambioDescripcion) {
+            String especificaciones = descripcionEditada != null ? descripcionEditada : especificacionesDe(productoId);
+            var resultado = identidadTransicionService.recalcularTrasEdicion(producto, especificaciones);
+            logger.info("Identidad del producto {} tras editarlo: {} ({})", productoId, resultado, producto.getIdentidadClave());
+        }
 
         return obtenerParaEditar(productoId);
+    }
+
+    /** La descripción del producto: la de su primera variante activa, igual que en el listado. */
+    private String especificacionesDe(Long productoId) {
+        return varianteRepository.findByProductoIdAndActivo(productoId, true).stream()
+                .min(Comparator.comparing(Variante::getId))
+                .map(Variante::getEspecificaciones).orElse(null);
     }
 
     /** Asigna el mismo categoriaId a varios productos de una. Devuelve cuántos se actualizaron. */
