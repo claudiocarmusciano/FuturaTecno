@@ -47,6 +47,8 @@ class ComponentePcExtractorCatalogoRealTest {
 
         reportar(items, Tipo.PROCESADOR, "socket", i -> ComponentePcExtractor.socket(i.tipo, i.modelo, i.specs));
         reportar(items, Tipo.PROCESADOR, "video", i -> ComponentePcExtractor.videoIntegrado(i.modelo, i.specs));
+        reportar(items, Tipo.PROCESADOR, "gama", i -> ComponentePcExtractor.gamaProcesador(i.modelo, i.specs));
+        reportar(items, Tipo.VIDEO, "gama", i -> ComponentePcExtractor.gamaVideo(i.modelo, i.specs));
         reportar(items, Tipo.PROCESADOR, "cooler", i -> ComponentePcExtractor.incluyeCooler(i.modelo, i.specs));
         reportar(items, Tipo.MOTHER, "socket", i -> ComponentePcExtractor.socket(i.tipo, i.modelo, i.specs));
         reportar(items, Tipo.MOTHER, "ram", i -> ComponentePcExtractor.tipoRam(i.tipo, i.modelo, i.specs, i.categoria,
