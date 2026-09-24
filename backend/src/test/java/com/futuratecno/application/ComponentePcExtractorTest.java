@@ -95,6 +95,12 @@ class ComponentePcExtractorTest {
         assertFalse(ComponentePcExtractor.incluyeCooler("Procesador AMD Ryzen 7 7800X3D", null));
         assertFalse(ComponentePcExtractor.incluyeCooler("Procesador Intel Core i7-14700K", null));
         assertNull(ComponentePcExtractor.incluyeCooler("Procesador Core i5-14400 2.5GHz", null));
+        // Elit lo dice en la ficha; Invid, abreviado en el nombre; el código BX de Intel es la caja con cooler.
+        assertTrue(ComponentePcExtractor.incluyeCooler("Procesador Core i5-14400", "Socket: LGA1700. CPU cooler incluido: Sí. Núcleos: 10"));
+        assertFalse(ComponentePcExtractor.incluyeCooler("Procesador Ryzen 5 5600", "CPU cooler incluido: No."));
+        assertTrue(ComponentePcExtractor.incluyeCooler("Proces. Intel Core I3-14100F Raptorlake R S/video C/cooler S1700", null));
+        assertTrue(ComponentePcExtractor.incluyeCooler("Proces. Intel Core I7-14700 Raptorlake R  S1700 (9239)", "Más información: BX8071514700"));
+        assertFalse(ComponentePcExtractor.incluyeCooler("Proces. Intel Core I7-14700K", "Más información: BX8071514700K"));
     }
 
     @Test
