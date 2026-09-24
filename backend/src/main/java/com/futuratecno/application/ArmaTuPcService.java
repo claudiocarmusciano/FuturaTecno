@@ -99,6 +99,8 @@ public class ArmaTuPcService {
         Integer recomendada = tipo == Tipo.VIDEO ? ComponentePcExtractor.fuenteRecomendadaW(modelo, specs) : null;
         Boolean video = tipo == Tipo.PROCESADOR ? ComponentePcExtractor.videoIntegrado(modelo, specs) : null;
         Boolean cooler = tipo == Tipo.PROCESADOR ? ComponentePcExtractor.incluyeCooler(modelo, specs) : null;
+        Integer gama = tipo == Tipo.PROCESADOR ? ComponentePcExtractor.gamaProcesador(modelo, specs)
+                : tipo == Tipo.VIDEO ? ComponentePcExtractor.gamaVideo(modelo, specs) : null;
 
         String limpia = DescripcionProductoSanitizer.limpiar(specs);
         if (limpia != null && limpia.length() > MAX_ESPECIFICACIONES) {
@@ -106,6 +108,6 @@ public class ArmaTuPcService {
         }
         return new ComponentePcDTO(p.getId(), v.getId(), tipo.name(), p.getMarca(), modelo,
                 p.skuCamuflado(), limpia, p.getImagenUrl(), usd, ars,
-                socket, tipoRam, formato, ranuras, modulos, potencia, recomendada, video, cooler);
+                socket, tipoRam, formato, ranuras, modulos, potencia, recomendada, video, cooler, gama);
     }
 }

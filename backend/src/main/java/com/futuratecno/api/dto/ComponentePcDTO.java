@@ -26,5 +26,6 @@ public record ComponentePcDTO(
         Integer potenciaW,
         Integer fuenteRecomendadaW,
         Boolean videoIntegrado,
-        Boolean incluyeCooler) {
+        Boolean incluyeCooler,
+        Integer gama) {
 }

@@ -57,6 +57,11 @@
   font-size: 11px; padding: 2px 7px; border-radius: 6px; background: var(--color-surface-2); color: var(--color-text-muted);
 }
 .atp-aviso { margin: 0; font-size: 12px; color: #f0c05a; }
+.atp-sugerencia { margin: 0; font-size: 12px; color: #9ec5ff; line-height: 1.4; }
+.atp-recomendada {
+  margin: 0; font-size: 11px; font-weight: 600; color: var(--color-lime);
+  background: var(--color-lime-tint); padding: 3px 8px; border-radius: 6px; align-self: flex-start;
+}
 .atp-card-precio { margin-top: auto; }
 .atp-card-precio strong { font-size: 18px; }
 .atp-card-acciones { display: flex; gap: 8px; }

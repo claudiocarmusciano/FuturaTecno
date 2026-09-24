@@ -324,14 +324,76 @@ public final class ComponentePcExtractor {
     }
 
     public static Integer fuenteRecomendadaW(String modelo, String especificaciones) {
-        String t = normalizar(modelo) + " " + normalizar(especificaciones);
-        // "RTX5060TI" y "RTX 5060 Ti" tienen que dar lo mismo.
-        t = t.replaceAll("GEFORCE\\s+([2-5]0\\d0)\\b", "GEFORCE RTX $1")
-                .replaceAll("(RTX|GTX|RX|GT|ARC)(\\d)", "$1 $2").replaceAll("(\\d)(TI|XT)\\b", "$1 $2");
+        String t = normalizarGpu(modelo, especificaciones);
         for (Object[] g : FUENTE_POR_GPU) {
             if (((Pattern) g[0]).matcher(t).find()) return (Integer) g[1];
         }
         return null;
+    }
+
+    // ---------------------------------------------------------------- gama (cuellos de botella)
+
+    /**
+     * Gama de 1 (entrada) a 5 (tope) de un procesador, para avisar cuellos de botella con la placa
+     * de video. Es una guía para juegos, no un benchmark: la línea (Ryzen 5, i7) da la base y la
+     * generación la corrige — un Ryzen 5 3600 rinde claramente menos que un Ryzen 5 7600.
+     */
+    public static Integer gamaProcesador(String modelo, String especificaciones) {
+        String t = normalizar(modelo) + " " + normalizar(especificaciones);
+        Matcher m = RYZEN_LINEA.matcher(t);
+        if (m.find()) {
+            int linea = Integer.parseInt(m.group(1));
+            int serie = Integer.parseInt(m.group(2));
+            String sufijo = m.group(3);
+            int gama = switch (linea) { case 3 -> 1; case 5 -> 3; case 7 -> 4; default -> 5; };
+            if (serie <= 3) gama--;                  // Zen/Zen+/Zen 2 (1000–3000)
+            if (sufijo.contains("X3D")) gama++;      // caché 3D: lo mejor para juegos de su línea
+            return Math.max(1, Math.min(5, gama));
+        }
+        m = INTEL_LINEA.matcher(t);
+        if (m.find()) {
+            int linea = Integer.parseInt(m.group(1));
+            int gen = Integer.parseInt(m.group(2));
+            int gama = switch (linea) { case 3 -> 2; case 5 -> 3; case 7 -> 4; default -> 5; };
+            if (gen < 12) gama--;
+            return Math.max(1, gama);
+        }
+        m = INTEL_ULTRA.matcher(t);
+        if (m.find()) {
+            Matcher l = Pattern.compile("\\bULTRA\\s*([3579])").matcher(t);
+            if (l.find()) return switch (Integer.parseInt(l.group(1))) { case 3 -> 2; case 5 -> 3; case 7 -> 4; default -> 5; };
+        }
+        if (t.matches(".*\\b(ATHLON|PENTIUM|CELERON)\\b.*")) return 1;
+        return null;
+    }
+
+    private static final Pattern RYZEN_LINEA = Pattern.compile("\\bRYZEN\\s*([3579])\\s*(?:PRO\\s*)?(\\d)\\d{3}([A-Z0-9]*)");
+    private static final Pattern INTEL_LINEA = Pattern.compile("\\bI([3579])\\s*-?\\s*(1[0-4]|[4-9])\\d{3}");
+
+    /** Gama de 1 a 5 de una placa de video, por chip. De lo más específico a lo menos. */
+    private static final List<Object[]> GAMA_POR_GPU = List.of(
+            gpu("RTX\\s*(5090|4090|5080|4080|3090)", 5), gpu("RX\\s*7900\\s*XTX", 5),
+            gpu("RTX\\s*(5070|4070|3080|3070)", 4), gpu("RX\\s*(9070|7900|7800|7700|6[89]\\d0)", 4),
+            gpu("RTX\\s*(5060|4060|3060|2060|2070)", 3), gpu("RX\\s*(9060|7600|67[05]0|66[05]0)", 3),
+            gpu("ARC\\s*(B5[78]0|A7[57]0)", 3),
+            gpu("RTX\\s*(3050|5050)", 2), gpu("GTX\\s*16[56]0", 2), gpu("RX\\s*(6[45]00|5[5-8]0|9050)", 2),
+            gpu("ARC\\s*A3[18]0", 2),
+            gpu("GTX\\s*1630", 1), gpu("GT\\s*(210|710|730|1030)", 1));
+
+    public static Integer gamaVideo(String modelo, String especificaciones) {
+        String t = normalizarGpu(modelo, especificaciones);
+        for (Object[] g : GAMA_POR_GPU) {
+            if (((Pattern) g[0]).matcher(t).find()) return (Integer) g[1];
+        }
+        return null;
+    }
+
+    /** "RTX5060TI", "GeForce 5060 Ti" y "RTX 5060 Ti" tienen que leerse igual. */
+    private static String normalizarGpu(String modelo, String especificaciones) {
+        String t = normalizar(modelo) + " " + normalizar(especificaciones);
+        return t.replaceAll("GEFORCE\\s+([2-5]0\\d0)\\b", "GEFORCE RTX $1")
+                .replaceAll("(RTX|GTX|RX|GT|ARC)(\\d)", "$1 $2")
+                .replaceAll("(\\d)(TI|XT)\\b", "$1 $2");
     }
 
     // ---------------------------------------------------------------- procesador

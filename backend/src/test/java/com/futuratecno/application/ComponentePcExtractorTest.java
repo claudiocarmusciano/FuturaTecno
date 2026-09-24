@@ -110,4 +110,24 @@ class ComponentePcExtractorTest {
         assertEquals(2, ComponentePcExtractor.modulosPorUnidad("Memoria Kingston Fury Beast 32GB (2x16GB) DDR5"));
         assertEquals(1, ComponentePcExtractor.modulosPorUnidad("Memoria Ram UDIMM ADATA 8GB DDR5 5600MHz"));
     }
+
+    @Test
+    void gamaParaCuellosDeBotella() {
+        assertEquals(1, ComponentePcExtractor.gamaProcesador("Procesador AMD Ryzen 3 3200G 3.60Ghz AM4", null));
+        assertEquals(2, ComponentePcExtractor.gamaProcesador("Procesador AMD Ryzen 5 3600", null));
+        assertEquals(3, ComponentePcExtractor.gamaProcesador("Procesador AMD Ryzen 5 7600 AM5", null));
+        assertEquals(5, ComponentePcExtractor.gamaProcesador("Procesador AMD Ryzen 7 7800X3D", null));
+        assertEquals(2, ComponentePcExtractor.gamaProcesador("Procesador Core i3-14100 3.5GHz", null));
+        assertEquals(4, ComponentePcExtractor.gamaProcesador("Proces. Intel Core I7-14700 Raptorlake R  S1700", null));
+        assertEquals(5, ComponentePcExtractor.gamaProcesador("Procesador Intel Core Ultra 9 285K", null));
+        assertEquals(1, ComponentePcExtractor.gamaProcesador("Procesador INTEL Pentium Gold G7400", null));
+
+        assertEquals(5, ComponentePcExtractor.gamaVideo("VGA ASUS ROG Astral RTX 5090 32GB", null));
+        assertEquals(4, ComponentePcExtractor.gamaVideo("Placa MSI NVIDIA GeForce  5070 Ti 16G", null));
+        assertEquals(3, ComponentePcExtractor.gamaVideo("VGA Gigabyte RTX5060 8GB", null));
+        assertEquals(4, ComponentePcExtractor.gamaVideo("VGA Sapphire RX 7900 XT 20GB", null));
+        assertEquals(5, ComponentePcExtractor.gamaVideo("VGA Sapphire RX 7900 XTX 24GB", null));
+        assertEquals(1, ComponentePcExtractor.gamaVideo("VGA MSI GeForce GT 210 1GB", null));
+        assertNull(ComponentePcExtractor.gamaVideo("VGA PNY QUADRO RTX A1000 8Gb", null));
+    }
 }

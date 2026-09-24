@@ -40,6 +40,7 @@ function deLink(texto) {
   return out
 }
 
+const NOMBRE_GAMA = { 1: 'entrada', 2: 'básica', 3: 'media', 4: 'alta', 5: 'tope' }
 const RAM_DE_SOCKET = { AM4: 'DDR4', AM5: 'DDR5', LGA1851: 'DDR5', LGA1200: 'DDR4' }
 
 /**
@@ -113,7 +114,23 @@ function evaluar(c, sel) {
       avisos.push('Verificá que la potencia alcance para la placa de video')
     }
   }
-  return { avisos }
+  // Cuello de botella: no es incompatibilidad, es una combinación que no se aprovecha. Se sugiere,
+  // nunca se bloquea — la gama es una guía para juegos, y para edición o render puede convenir
+  // justamente un procesador fuerte con una placa modesta.
+  const sugerencias = []
+  let recomendada = false
+  if (c.tipo === 'VIDEO' && cpu?.gama && c.gama) {
+    const dif = c.gama - cpu.gama
+    if (dif >= 2) sugerencias.push('Tu procesador podría limitar a esta placa de video: no vas a aprovechar todo su rendimiento. Te conviene un procesador de gama más alta o una placa más acorde.')
+    else if (dif <= -2) sugerencias.push('Para juegos, esta placa queda corta para tu procesador.')
+    else recomendada = true
+  }
+  if (c.tipo === 'PROCESADOR' && video?.gama && c.gama) {
+    const dif = video.gama - c.gama
+    if (dif >= 2) sugerencias.push('Este procesador podría limitar a tu placa de video: no la vas a aprovechar del todo.')
+    else if (dif <= -2) sugerencias.push('Para juegos, tu placa de video queda corta para este procesador.')
+  }
+  return { avisos, sugerencias, recomendada }
 }
 
 /**
@@ -190,6 +207,7 @@ function atributos(c) {
   if (c.videoIntegrado === false) a.push('Sin video')
   if (c.incluyeCooler === true) a.push('Con cooler')
   if (c.incluyeCooler === false) a.push('Sin cooler')
+  if (c.gama) a.push(`Gama ${NOMBRE_GAMA[c.gama]}`)
   return a
 }
 
@@ -320,7 +338,7 @@ export default function ArmaTuPcPage() {
       if (q && !`${c.marca} ${c.modelo}`.toLowerCase().includes(q)) continue
       const ev = evaluar(c, seleccion)
       if (ev.bloqueo) { ocultos++; continue }
-      lista.push({ c, avisos: ev.avisos })
+      lista.push({ c, avisos: ev.avisos, sugerencias: ev.sugerencias || [], recomendada: ev.recomendada })
     }
     lista.sort((a, b) => (orden === 'asc' ? 1 : -1) * (a.c.precioUsd - b.c.precioUsd))
     return { opciones: lista, ocultos }
@@ -341,7 +359,10 @@ export default function ArmaTuPcPage() {
     if (!s) return []
     const resto = { ...seleccion }
     delete resto[p.clave]
-    const avisos = evaluar(s.item, resto).avisos?.map(a => `${p.titulo}: ${a}`) || []
+    const ev = evaluar(s.item, resto)
+    const avisos = ev.avisos?.map(a => `${p.titulo}: ${a}`) || []
+    // El cuello de botella se ve desde los dos lados; en el resumen va una sola vez, del lado de la placa.
+    if (p.clave === 'VIDEO') ev.sugerencias?.forEach(a => avisos.push(`Placa de video: ${a}`))
     const modulos = s.cantidad * (s.item.modulos || 1)
     if (p.clave === 'MEMORIA' && seleccion.MOTHER && !seleccion.MOTHER.item.ranurasRam && modulos > 2) {
       avisos.push(`Memoria RAM: son ${modulos} módulos y no sabemos si tu mother tiene esas ranuras`)
@@ -472,7 +493,7 @@ export default function ArmaTuPcPage() {
           )}
 
           <div className="atp-grid">
-            {opciones.slice(0, visibles).map(({ c, avisos }) => {
+            {opciones.slice(0, visibles).map(({ c, avisos, sugerencias, recomendada }) => {
               const elegido = seleccion[pasoActual.clave]?.item?.varianteId === c.varianteId
               return (
                 <article key={c.varianteId} className={`atp-card${elegido ? ' elegido' : ''}`}>
@@ -486,7 +507,9 @@ export default function ArmaTuPcPage() {
                   <div className="atp-atributos">
                     {atributos(c).map(a => <span key={a}>{a}</span>)}
                   </div>
+                  {recomendada && <p className="atp-recomendada">✓ Recomendada para tu procesador</p>}
                   {avisos.map(a => <p key={a} className="atp-aviso">⚠ {a}</p>)}
+                  {sugerencias.map(a => <p key={a} className="atp-sugerencia">💡 {a}</p>)}
                   <div className="atp-card-precio">
                     <strong>US$ {formatNumber(c.precioUsd)}</strong>
                     <PaymentPrices transferPrice={c.precioArs} compact />

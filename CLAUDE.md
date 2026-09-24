@@ -50,6 +50,7 @@
   - **Solo se bloquea lo cierto** (socket, DDR, kit que no entra en las ranuras); formato de gabinete, potencia de fuente y datos faltantes son aviso. Un null nunca oculta un producto.
   La placa de video es obligatoria solo si el CPU no tiene video; el cooler, solo si viene sin. "Agregar todo al carrito" usa el carrito normal, así que el precio lo recalcula el backend como siempre.
   El envío del armado se cotiza con el mismo `POST /api/envio/cotizar` del checkout (todas las piezas juntas). Un armado se comparte por link: `?armado=cpu:<varianteId>,ram:<varianteId>x2,…`; los códigos cortos están en `CODIGO_LINK` de `ArmaTuPcPage` y **renombrarlos rompe los links ya enviados**. El 2º disco es un paso aparte (`clave` ALMACENAMIENTO_2, `tipo` ALMACENAMIENTO).
+  **Cuellos de botella (2026-09-23):** `gama` 1–5 para procesador (línea + generación) y placa de video (tabla por chip). Diferencia de 2 gamas o más = sugerencia, **nunca bloqueo**: es una guía para juegos, y para edición o render puede convenir justamente un procesador fuerte con una placa modesta.
 - **Repo público en GitHub** — NUNCA commitear secrets. Las credenciales van solo en `backend/.env` (gitignored) y en Railway.
 
 ## Límites conocidos (escalabilidad)
