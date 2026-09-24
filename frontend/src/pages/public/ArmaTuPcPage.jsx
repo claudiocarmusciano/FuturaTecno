@@ -148,7 +148,8 @@ function esObligatorio(clave, sel) {
   const cpu = sel.PROCESADOR?.item
   if (clave === 'ALMACENAMIENTO_2') return false
   if (clave === 'VIDEO') return cpu?.videoIntegrado === false
-  if (clave === 'COOLER') return cpu?.incluyeCooler === false
+  // Sin cooler el equipo no arranca: se exige salvo que se sepa que el procesador lo trae.
+  if (clave === 'COOLER') return !!cpu && cpu.incluyeCooler !== true
   return true
 }
 
@@ -174,7 +175,7 @@ function notaDelPaso(clave, sel) {
   if (clave === 'COOLER' && cpu) {
     if (cpu.incluyeCooler === false) return 'Tu procesador viene sin cooler: necesitás uno.'
     if (cpu.incluyeCooler) return 'Tu procesador trae cooler en la caja: este paso es opcional.'
-    return 'No sabemos si tu procesador trae cooler: si no lo trae, sumá uno.'
+    return 'No pudimos confirmar si tu procesador trae cooler: sumá uno para asegurarte de que el equipo funcione.'
   }
   return null
 }

@@ -424,14 +424,18 @@ public final class ComponentePcExtractor {
     }
 
     /**
-     * ¿Viene con cooler en la caja? Invid lo escribe; si no, los desbloqueados (Intel "K",
-     * Ryzen "X" de AM5 y todos los X3D) se venden sin cooler. El resto queda en null: no se
-     * sabe, y el armador lo sugiere sin exigirlo.
+     * ¿Viene con cooler en la caja? Primero lo que dice el mayorista: Elit en la ficha ("CPU
+     * cooler incluido: Sí"), Invid en el nombre ("CON COOLER", abreviado "C/cooler"). Si no, los
+     * desbloqueados (Intel "K", Ryzen "X" de AM5 y todos los X3D) se venden sin cooler, y el
+     * código de caja de Intel (BX…) sin "K" es la versión que sí lo trae. Lo demás queda en null,
+     * y el armador lo trata como "sin cooler": un equipo sin refrigeración no arranca.
      */
     public static Boolean incluyeCooler(String modelo, String especificaciones) {
         String t = normalizar(modelo) + " " + normalizar(especificaciones);
-        if (t.contains("SIN COOLER")) return false;
-        if (t.contains("CON COOLER")) return true;
+        Matcher ficha = COOLER_EN_FICHA.matcher(t);
+        if (ficha.find()) return ficha.group(1).equals("SI");
+        if (t.contains("SIN COOLER") || t.contains("S/COOLER")) return false;
+        if (t.contains("CON COOLER") || t.contains("C/COOLER")) return true;
         Matcher m = RYZEN.matcher(t);
         if (m.find()) {
             String sufijo = m.group(3);
@@ -443,6 +447,11 @@ public final class ComponentePcExtractor {
         if (m.find() && m.group(3).startsWith("K")) return false;
         m = INTEL_ULTRA.matcher(t);
         if (m.find() && m.group(2).startsWith("K")) return false;
+        m = CAJA_INTEL.matcher(t);
+        if (m.find()) return !m.group(1).startsWith("K");
         return null;
     }
+
+    private static final Pattern COOLER_EN_FICHA = Pattern.compile("CPU COOLER INCLUIDO\\s*:\\s*(SI|NO)\\b");
+    private static final Pattern CAJA_INTEL = Pattern.compile("\\bBX80\\d{5,}([A-Z]*)");
 }
