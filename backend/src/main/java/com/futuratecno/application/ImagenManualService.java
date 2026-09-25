@@ -179,6 +179,16 @@ public class ImagenManualService {
                 """, normalizar(marca), normalizar(modelo), url.trim());
     }
 
+    /**
+     * Borra una URL de las dos memorias, bajo cualquier nombre. Se usa cuando la foto recordada da
+     * 404/410: seguir guardándola la repartiría rota en cada carga futura del artículo.
+     */
+    public int olvidarUrl(String url) {
+        if (url == null || url.isBlank()) return 0;
+        return jdbc.update("DELETE FROM imagenes_automaticas WHERE url = ?", url.trim())
+                + jdbc.update("DELETE FROM imagenes_manuales WHERE url = ?", url.trim());
+    }
+
     public void guardar(String marca, String modelo, String url) {
         String m = normalizar(marca), mod = normalizar(modelo);
         if (m.isEmpty() || mod.isEmpty()) return;

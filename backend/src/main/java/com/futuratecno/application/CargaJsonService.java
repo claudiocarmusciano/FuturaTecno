@@ -218,6 +218,19 @@ public class CargaJsonService {
             List<NombreArticulo> nombres = nombresDelArticulo(producto, marca, modelo, r);
 
             Optional<String> recordada = reemplazo ? Optional.empty() : imagenManualService.buscar(nombres);
+            // La memoria no se validaba al reusarla, y una URL inventada que alguna vez entró se
+            // repartía a cada producto nuevo del artículo (pasó el 25/9: seis Galaxy publicados con
+            // fotos de images.samsung.com que daban 404). Se verifica solo cuando va a cambiar la
+            // foto del producto, así recargar un listado ya cargado no dispara peticiones. Solo un
+            // 404/410 la descarta: un 403 o un timeout pueden ser un sitio que bloquea servidores.
+            boolean memoriaMuerta = false;
+            if (recordada.isPresent() && !recordada.get().equals(producto.getImagenUrl())
+                    && imageUrlValidatorService.verificar(recordada.get()) == ImageUrlValidatorService.Verificacion.MUERTA) {
+                imagenManualService.olvidarUrl(recordada.get());
+                logger.warn("Imagen recordada muerta para '{} {}', se descarta: {}", marca, modelo, recordada.get());
+                recordada = Optional.empty();
+                memoriaMuerta = true;
+            }
             // Las URLs del JSON solo entran si la base no tenía nada, y recién ahí se verifica que
             // estén vivas: hasta ahora alcanzaba con que empezaran por "http". Una URL muerta no
             // solo publicaba el producto con la foto rota — además se guardaba como imagen
@@ -304,7 +317,10 @@ public class CargaJsonService {
             if (nuevo) creados++; else actualizados++;
             CargaJsonResponse.Item item = new CargaJsonResponse.Item(
                     marca + " " + modelo, nuevo ? "creado" : "actualizado", categoriaPath,
-                    fotoRota ? "La imagen del JSON no responde. Quedó sin foto: cargala desde Admin → Imágenes." : null);
+                    fotoRota ? "La imagen del JSON no responde. Quedó sin foto: cargala desde Admin → Imágenes."
+                            : memoriaMuerta && prod.getImagenUrl() == null
+                            ? "La foto recordada para este artículo ya no existe (404) y se descartó. Quedó sin foto: cargala desde Admin → Imágenes."
+                            : null);
             item.setProductoId(prod.getId());
             item.setIdentidad(r.clave());
             if (!decision.motivos().isEmpty()) item.setAviso(String.join(" ", decision.motivos()));

@@ -103,7 +103,48 @@ class CargaJsonImagenManualTest {
 
         service.cargar(2L, List.of(art));
 
-        verifyNoInteractions(validador);
+        // La del JSON no se verifica; la recordada sí, una vez, porque va a ser la foto del producto nuevo.
+        verify(validador, never()).esImagenDirecta(anyString());
+        verify(validador).verificar("https://manual/image.jpg");
+    }
+
+    /**
+     * Una foto recordada que da 404 no se reparte: el producto queda sin foto, se avisa por artículo
+     * y la URL se borra de la memoria. Pasó el 25/9 con seis Galaxy y URLs inventadas.
+     */
+    @Test void unaFotoRecordadaMuertaNoSePublicaYSeOlvida() {
+        var res = cargarConMemoria("https://images.samsung.com/inventada.jpg", ImageUrlValidatorService.Verificacion.MUERTA);
+        verify(res.productos).saveAndFlush(argThat(p -> p.getImagenUrl() == null));
+        verify(res.memoria).olvidarUrl("https://images.samsung.com/inventada.jpg");
+        assertTrue(res.respuesta.getItems().getFirst().getMotivo().contains("ya no existe (404)"));
+    }
+
+    /** Un 403 o un timeout pueden ser un sitio que bloquea servidores: la foto se sigue usando. */
+    @Test void unaFotoRecordadaDudosaSeSigueUsando() {
+        var res = cargarConMemoria("https://tienda/bloquea.jpg", ImageUrlValidatorService.Verificacion.DUDOSA);
+        verify(res.productos).saveAndFlush(argThat(p -> "https://tienda/bloquea.jpg".equals(p.getImagenUrl())));
+        verify(res.memoria, never()).olvidarUrl(anyString());
+    }
+
+    private record Resultado(ProductoRepository productos, ImagenManualService memoria, com.futuratecno.api.dto.CargaJsonResponse respuesta) {}
+
+    private Resultado cargarConMemoria(String url, ImageUrlValidatorService.Verificacion verificacion) {
+        var productos = mock(ProductoRepository.class);
+        var proveedores = mock(ProveedorRepository.class);
+        var memoria = mock(ImagenManualService.class);
+        var validador = mock(ImageUrlValidatorService.class);
+        when(validador.verificar(url)).thenReturn(verificacion);
+        when(proveedores.findById(2L)).thenReturn(Optional.of(new Proveedor()));
+        when(productos.candidatosDeIdentidad(eq(2L), any(), any(), anyString(), anyString(), anyString())).thenReturn(List.of());
+        when(productos.saveAndFlush(any())).thenAnswer(inv -> { Producto p = inv.getArgument(0); p.setId(10L); return p; });
+        when(memoria.buscar(anyList())).thenReturn(Optional.of(url));
+        var service = new CargaJsonService(memoria, mock(DescripcionManualService.class),
+                mock(AtributosManualService.class), mock(MargenManualService.class), productos, mock(VarianteRepository.class), proveedores,
+                mock(ImagenRepository.class), mock(CategoriaClasificadorService.class), mock(CategoriaService.class),
+                validador, new IdentidadProductoService(), mock(org.springframework.jdbc.core.JdbcTemplate.class));
+        var art = new ArticuloJsonDTO();
+        art.setMarca("Samsung"); art.setModelo("Galaxy S26 Ultra 12/256GB"); art.setPrecioUsd(BigDecimal.TEN); art.setImagenes(List.of());
+        return new Resultado(productos, memoria, service.cargar(2L, List.of(art)));
     }
 
     /**
