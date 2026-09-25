@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { useCart } from '../../cart/CartContext'
 import CartBadge from '../CartBadge'
+import { IconInfo } from '../../components/icons'
 import './PublicLayout.css'
 
 function PublicLayout() {
@@ -22,7 +23,11 @@ function PublicLayout() {
         <div className="header-container">
           <Link to="/" className="logo"><img src="/logo.png?v=2" alt="FuturaTecno" className="header-logo" /></Link>
           <nav className="public-nav">
+            {/* Mismo orden que la barra de la home. */}
+            <Link to="/catalogo">Productos</Link>
+            <Link to="/#categorias">Categorías</Link>
             <Link to="/arma-tu-pc">Armá tu PC</Link>
+            <Link to="/#por-que">Por qué</Link>
             {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>
@@ -34,7 +39,7 @@ function PublicLayout() {
             ) : (
               <>
                 <Link to="/login">Ingresar</Link>
-                <Link to="/registro">Registrarse</Link>
+                <Link to="/registro" className="public-nav-cta">Registrarse</Link>
               </>
             )}
             <CartBadge cantidad={cantidadTotal} />
@@ -43,7 +48,7 @@ function PublicLayout() {
       </header>
       <main className="public-main">
         <div className="public-image-disclaimer" role="note">
-          <span aria-hidden="true">ⓘ</span>
+          <IconInfo />
           <span><strong>Imágenes meramente ilustrativas.</strong> Confirmá con Futura Tecno las características, el color y la disponibilidad antes de finalizar tu compra. Debido a la alta rotación de stock, la disponibilidad se confirma al procesar el pedido.</span>
         </div>
         <Outlet />

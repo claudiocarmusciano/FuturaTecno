@@ -5,6 +5,7 @@ import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
 import { WHATSAPP_NUMBER } from '../../config'
 import { etiquetaEnvio } from '../../utils/envio'
+import { IconAlert, IconBulb, IconCheck, IconChat, IconCpu, IconDisc, IconFan, IconGpu, IconHardDrive, IconLink, IconMemory, IconMotherboard, IconPlug, IconTower, IconX } from '../../components/icons'
 import './ArmaTuPcPage.css'
 
 const formatNumber = (n) =>
@@ -51,15 +52,15 @@ const RAM_DE_SOCKET = { AM4: 'DDR4', AM5: 'DDR5', LGA1851: 'DDR5', LGA1200: 'DDR
  * `cantidad`: se puede llevar más de una unidad (dos memorias, dos discos iguales).
  */
 const PASOS = [
-  { clave: 'PROCESADOR', tipo: 'PROCESADOR', titulo: 'Procesador', icono: '🧠' },
-  { clave: 'MOTHER', tipo: 'MOTHER', titulo: 'Motherboard', icono: '🧩' },
-  { clave: 'MEMORIA', tipo: 'MEMORIA', titulo: 'Memoria RAM', icono: '💾', cantidad: true },
-  { clave: 'VIDEO', tipo: 'VIDEO', titulo: 'Placa de video', icono: '🎮' },
-  { clave: 'ALMACENAMIENTO', tipo: 'ALMACENAMIENTO', titulo: 'Almacenamiento', icono: '🗄️', cantidad: true },
-  { clave: 'ALMACENAMIENTO_2', tipo: 'ALMACENAMIENTO', titulo: '2º disco', icono: '💽', cantidad: true },
-  { clave: 'FUENTE', tipo: 'FUENTE', titulo: 'Fuente', icono: '⚡' },
-  { clave: 'GABINETE', tipo: 'GABINETE', titulo: 'Gabinete', icono: '🖥️' },
-  { clave: 'COOLER', tipo: 'COOLER', titulo: 'Cooler', icono: '❄️' },
+  { clave: 'PROCESADOR', tipo: 'PROCESADOR', titulo: 'Procesador', icono: IconCpu },
+  { clave: 'MOTHER', tipo: 'MOTHER', titulo: 'Motherboard', icono: IconMotherboard },
+  { clave: 'MEMORIA', tipo: 'MEMORIA', titulo: 'Memoria RAM', icono: IconMemory, cantidad: true },
+  { clave: 'VIDEO', tipo: 'VIDEO', titulo: 'Placa de video', icono: IconGpu },
+  { clave: 'ALMACENAMIENTO', tipo: 'ALMACENAMIENTO', titulo: 'Almacenamiento', icono: IconHardDrive, cantidad: true },
+  { clave: 'ALMACENAMIENTO_2', tipo: 'ALMACENAMIENTO', titulo: '2º disco', icono: IconDisc, cantidad: true },
+  { clave: 'FUENTE', tipo: 'FUENTE', titulo: 'Fuente', icono: IconPlug },
+  { clave: 'GABINETE', tipo: 'GABINETE', titulo: 'Gabinete', icono: IconTower },
+  { clave: 'COOLER', tipo: 'COOLER', titulo: 'Cooler', icono: IconFan },
 ]
 
 /**
@@ -454,7 +455,7 @@ export default function ArmaTuPcPage() {
               onClick={() => setPaso(i)}
               aria-current={i === paso ? 'step' : undefined}
             >
-              <span className="atp-paso-icono" aria-hidden="true">{elegido ? '✓' : p.icono}</span>
+              <span className="atp-paso-icono" aria-hidden="true">{elegido ? <IconCheck /> : <p.icono />}</span>
               <span className="atp-paso-titulo">{p.titulo}</span>
             </button>
           )
@@ -464,7 +465,7 @@ export default function ArmaTuPcPage() {
       <div className="atp-layout">
         <section className="atp-lista">
           <div className="atp-lista-header">
-            <h2>{pasoActual.icono} {pasoActual.titulo}{opcional && <span className="atp-opcional">opcional</span>}</h2>
+            <h2><pasoActual.icono /> {pasoActual.titulo}{opcional && <span className="atp-opcional">opcional</span>}</h2>
             {nota && <p className="atp-nota">{nota}</p>}
             <div className="atp-filtros">
               <input
@@ -481,7 +482,7 @@ export default function ArmaTuPcPage() {
                 <button className="btn btn-secondary" onClick={() => setPaso(paso + 1)}>Omitir paso →</button>
               )}
             </div>
-            {avisoLink && <p className="atp-aviso-link">🔗 {avisoLink}</p>}
+            {avisoLink && <p className="atp-aviso-link"><IconLink /> {avisoLink}</p>}
             {ocultos > 0 && (
               <p className="atp-ocultos">Ocultamos {ocultos} {ocultos === 1 ? 'opción incompatible' : 'opciones incompatibles'} con lo que elegiste.</p>
             )}
@@ -508,9 +509,9 @@ export default function ArmaTuPcPage() {
                   <div className="atp-atributos">
                     {atributos(c).map(a => <span key={a}>{a}</span>)}
                   </div>
-                  {recomendada && <p className="atp-recomendada">✓ Recomendada para tu procesador</p>}
-                  {avisos.map(a => <p key={a} className="atp-aviso">⚠ {a}</p>)}
-                  {sugerencias.map(a => <p key={a} className="atp-sugerencia">💡 {a}</p>)}
+                  {recomendada && <p className="atp-recomendada"><IconCheck /> Recomendada para tu procesador</p>}
+                  {avisos.map(a => <p key={a} className="atp-aviso"><IconAlert /> {a}</p>)}
+                  {sugerencias.map(a => <p key={a} className="atp-sugerencia"><IconBulb /> {a}</p>)}
                   <div className="atp-card-precio">
                     <strong>US$ {formatNumber(c.precioUsd)}</strong>
                     <PaymentPrices transferPrice={c.precioArs} compact />
@@ -526,7 +527,7 @@ export default function ArmaTuPcPage() {
                       </select>
                     )}
                     <button className={`btn ${elegido ? 'btn-secondary' : 'btn-primary'}`} onClick={() => elegir(pasoActual.clave, c)}>
-                      {elegido ? 'Elegido ✓' : 'Elegir'}
+                      {elegido ? <>Elegido <IconCheck /></> : 'Elegir'}
                     </button>
                   </div>
                 </article>
@@ -564,7 +565,7 @@ export default function ArmaTuPcPage() {
                             </select>
                           ) : <span />}
                           <span>US$ {formatNumber(s.item.precioUsd * s.cantidad)}</span>
-                          <button className="atp-quitar" onClick={() => quitar(p.clave)} aria-label={`Quitar ${p.titulo}`}>✕</button>
+                          <button className="atp-quitar" onClick={() => quitar(p.clave)} aria-label={`Quitar ${p.titulo}`}><IconX /></button>
                         </div>
                       </div>
                     ) : (
@@ -577,7 +578,7 @@ export default function ArmaTuPcPage() {
 
             {avisosResumen.length > 0 && (
               <div className="atp-resumen-avisos">
-                {avisosResumen.map(a => <p key={a}>⚠ {a}</p>)}
+                {avisosResumen.map(a => <p key={a}><IconAlert /> {a}</p>)}
               </div>
             )}
 
@@ -630,8 +631,8 @@ export default function ArmaTuPcPage() {
 
             {hayAlgo && (
               <div className="atp-compartir">
-                <button className="btn btn-secondary" onClick={compartir}>{copiado ? '✓ Link copiado' : '🔗 Compartir armado'}</button>
-                <a className="btn btn-secondary" href={waLink} target="_blank" rel="noreferrer">💬 Consultar por WhatsApp</a>
+                <button className="btn btn-secondary" onClick={compartir}>{copiado ? <><IconCheck /> Link copiado</> : <><IconLink /> Compartir armado</>}</button>
+                <a className="btn btn-secondary" href={waLink} target="_blank" rel="noreferrer"><IconChat /> Consultar por WhatsApp</a>
               </div>
             )}
 

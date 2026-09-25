@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { IconMail } from '../../components/icons'
 
 function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -37,7 +38,7 @@ function ForgotPasswordPage() {
 
         {enviado ? (
           <div style={{ background: 'var(--color-lime-tint)', color: 'var(--color-lime)', border: '1px solid rgba(200,224,72,0.3)', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
-            📧 {enviado}
+            <IconMail /> {enviado}
             <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px' }}>
               Revisá tu casilla (y la carpeta de spam). El enlace vence en 1 hora.
             </p>

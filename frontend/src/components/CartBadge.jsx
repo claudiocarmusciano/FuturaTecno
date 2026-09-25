@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { IconCart } from '../components/icons'
 
 /**
  * Acceso al carrito con el contador de artículos. Se usa tanto en el header del catálogo
@@ -12,7 +13,7 @@ function CartBadge({ cantidad = 0, className }) {
       aria-label={cantidad > 0 ? `Carrito, ${cantidad} artículo(s)` : 'Carrito vacío'}
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
     >
-      <span style={{ fontSize: '20px', lineHeight: 1 }} aria-hidden="true">🛒</span>
+      <IconCart size="20px" />
       {cantidad > 0 && (
         <span
           style={{
