@@ -303,6 +303,7 @@ public class IdentidadProductoService {
 
     /** Colores con sinónimos en castellano e inglés. Las frases compuestas van primero. */
     private static final List<String[]> COLORES = List.of(
+            new String[]{"SAGE", "sage"},
             new String[]{"TITANIO NATURAL|NATURAL TITANIUM", "titanio-natural"},
             new String[]{"TITANIO NEGRO|BLACK TITANIUM", "titanio-negro"},
             new String[]{"TITANIO BLANCO|WHITE TITANIUM", "titanio-blanco"},

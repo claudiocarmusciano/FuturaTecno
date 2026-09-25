@@ -97,6 +97,19 @@ public class CargaJsonService {
 
     @Transactional
     public CargaJsonResponse cargar(Long proveedorId, List<ArticuloJsonDTO> articulos) {
+        return cargar(proveedorId, articulos, List.of());
+    }
+
+    /** Reemplazo explícito y acotado: todo el lote o nada; conserva los registros históricos. */
+    @Transactional
+    public CargaJsonResponse cargar(Long proveedorId, List<ArticuloJsonDTO> articulos, List<Long> reemplazarIds) {
+        var excluidos = new LinkedHashSet<Long>();
+        if (reemplazarIds != null) {
+            if (reemplazarIds.size() > 50 || reemplazarIds.stream().anyMatch(id -> id == null || id <= 0))
+                throw new IllegalArgumentException("IDs de reemplazo inválidos (máximo 50).");
+            excluidos.addAll(reemplazarIds);
+        }
+        boolean reemplazo = !excluidos.isEmpty();
         Proveedor proveedor = proveedorRepository.findById(proveedorId)
                 .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado: " + proveedorId));
 
@@ -119,6 +132,30 @@ public class CargaJsonService {
         // que dos lotes con los mismos artículos en otro orden se traben entre sí. El índice único
         // de la V42 queda como red de seguridad.
         bloquearFamilias(proveedorId, resoluciones);
+        List<Producto> anteriores = new ArrayList<>();
+        if (reemplazo) {
+            if (lista.isEmpty() || resoluciones.stream().anyMatch(r -> r == null || !r.resuelta())
+                    || lista.stream().anyMatch(a -> a.getImagenes() != null && !a.getImagenes().isEmpty()))
+                throw new IllegalArgumentException("Reemplazo requiere identidades resueltas e imágenes vacías.");
+            var claves = resoluciones.stream().map(Resolucion::clave).collect(java.util.stream.Collectors.toSet());
+            if (claves.size() != lista.size()) throw new IllegalArgumentException("Variantes duplicadas en el reemplazo.");
+            var familias = resoluciones.stream().map(Resolucion::familia).collect(java.util.stream.Collectors.toSet());
+            String placeholders = String.join(",", java.util.Collections.nCopies(excluidos.size(), "?"));
+            jdbc.queryForList("SELECT id FROM productos WHERE id IN (" + placeholders + ") ORDER BY id FOR UPDATE",
+                    Long.class, excluidos.toArray());
+            anteriores = productoRepository.findAllById(excluidos);
+            if (anteriores.size() != excluidos.size()) throw new IllegalArgumentException("No existen todos los productos a reemplazar.");
+            for (Producto anterior : anteriores) {
+                if (anterior.getProveedor() == null || !proveedorId.equals(anterior.getProveedor().getId())
+                        || anterior.getCodigoExterno() != null || !"JSON".equals(anterior.getFuente()))
+                    throw new IllegalArgumentException("El reemplazo solo admite productos JSON del mismo proveedor.");
+                String specs = varianteRepository.findByProductoIdAndActivo(anterior.getId(), true).stream()
+                        .min(Comparator.comparing(Variante::getId)).map(Variante::getEspecificaciones).orElse(null);
+                Resolucion previa = resolucionGuardada(anterior, specs);
+                if (!familias.contains(previa.familia()) || claves.contains(previa.clave()))
+                    throw new IllegalArgumentException("El producto " + anterior.getId() + " no es un agrupado de las familias del lote.");
+            }
+        }
 
         Map<String, Integer> vistasEnLote = new HashMap<>();
         Map<Long, Resolucion> cacheGuardadas = new HashMap<>();
@@ -145,7 +182,8 @@ public class CargaJsonService {
                 decision = Decision.revision(List.of("El mismo artículo ya aparece en la fila " + filaPrevia
                         + " de esta carga: no se actualiza dos veces con precios que pueden ser distintos."), List.of());
             } else {
-                decision = decidir(identidad, r, candidatos(proveedorId, marca, modelo, r, cacheGuardadas, cacheMarcas));
+                decision = decidir(identidad, r, candidatos(proveedorId, marca, modelo, r, cacheGuardadas, cacheMarcas).stream()
+                        .filter(c -> !excluidos.contains(c.producto().getId())).toList());
             }
 
             if (decision.accion() == Accion.REVISION) {
@@ -179,7 +217,7 @@ public class CargaJsonService {
             // otros productos con la misma identidad (el mismo artículo en otro proveedor).
             List<NombreArticulo> nombres = nombresDelArticulo(producto, marca, modelo, r);
 
-            Optional<String> recordada = imagenManualService.buscar(nombres);
+            Optional<String> recordada = reemplazo ? Optional.empty() : imagenManualService.buscar(nombres);
             // Las URLs del JSON solo entran si la base no tenía nada, y recién ahí se verifica que
             // estén vivas: hasta ahora alcanzaba con que empezaran por "http". Una URL muerta no
             // solo publicaba el producto con la foto rota — además se guardaba como imagen
@@ -221,7 +259,7 @@ public class CargaJsonService {
             // Variante con el precio (siempre USD) y las specs.
             // La descripción curada a mano gana sobre la del JSON, igual que la imagen: si alguien
             // ya la corrigió, un reimport no debe pisarla con el texto crudo del proveedor.
-            String especificaciones = descripcionManualService.buscar(nombres)
+            String especificaciones = reemplazo ? construirEspecificaciones(art) : descripcionManualService.buscar(nombres)
                     .orElseGet(() -> construirEspecificaciones(art));
             // Un producto cargado por JSON tiene UNA sola variante: la capacidad, el color y la
             // versión SIM/eSIM viajan dentro del modelo ("iPhone 17 Pro 256GB eSIM"), así que las
@@ -277,10 +315,33 @@ public class CargaJsonService {
         res.setActualizados(actualizados);
         res.setOmitidos(omitidos);
         res.setSinCategoria(sinCategoria);
+        if (reemplazo) {
+            if (revision != 0 || omitidos != 0 || creados + actualizados != lista.size()) {
+                // Sin los motivos, quien llama (n8n) no tiene cómo saber qué artículo frenó el lote:
+                // la transacción se revierte y la respuesta por ítem se pierde.
+                String detalle = res.getItems().stream()
+                        .filter(i -> !"creado".equals(i.getEstado()) && !"actualizado".equals(i.getEstado()))
+                        .limit(5)
+                        .map(i -> i.getProducto() + " (" + i.getEstado() + "): " + i.getMotivo())
+                        .collect(java.util.stream.Collectors.joining("; "));
+                throw new IllegalArgumentException("Reemplazo cancelado: hay artículos omitidos o en revisión. "
+                        + "No se cambió ningún producto. " + detalle);
+            }
+            // Baja lógica al final, en la misma transacción: no borra pedidos, variantes ni fotos históricas.
+            for (Producto anterior : anteriores) {
+                anterior.setActivo(false);
+                productoRepository.save(anterior);
+                for (Variante v : varianteRepository.findByProductoIdAndActivo(anterior.getId(), true)) {
+                    v.setActivo(false);
+                    varianteRepository.save(v);
+                }
+            }
+        }
         res.setRevision(revision);
         res.setMensaje(String.format(
-                "Carga completada: %d creados, %d actualizados, %d omitidos, %d para revisar. %d quedaron sin categoría (asignar a mano).",
-                creados, actualizados, omitidos, revision, sinCategoria));
+                "Carga completada: %d creados, %d actualizados, %d omitidos, %d para revisar. %d quedaron sin categoría (asignar a mano).%s",
+                creados, actualizados, omitidos, revision, sinCategoria,
+                reemplazo ? " Reemplazo: dados de baja los productos anteriores " + excluidos + "." : ""));
         logger.info(res.getMensaje());
         return res;
     }
@@ -356,6 +417,10 @@ public class CargaJsonService {
                 case CONFLICTO -> conflictos.add(c);
                 case DISTINTA -> { }
             }
+        }
+        if (duenio != null && !Boolean.TRUE.equals(duenio.producto().getActivo())
+                && conflictos.stream().anyMatch(c -> Boolean.TRUE.equals(c.producto().getActivo()))) {
+            return Decision.revision(List.of("El producto anterior está retirado y hay variantes activas más específicas. No se reactiva el agrupado."), ids(conflictos));
         }
         if (duenio != null) {
             Long idDuenio = duenio.producto().getId();
