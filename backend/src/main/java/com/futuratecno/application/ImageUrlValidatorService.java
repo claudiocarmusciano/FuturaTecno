@@ -3,6 +3,7 @@ package com.futuratecno.application;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -14,10 +15,21 @@ public class ImageUrlValidatorService {
     public ImageUrlValidatorService(@Qualifier("imageRestTemplate") RestTemplate restTemplate) { this.restTemplate = restTemplate; }
     private record Resultado(boolean imagen, String siguiente) {}
 
+    /**
+     * MUERTA solo con 404/410: es lo único definitivo. Un 403, un 5xx o un timeout pueden ser un
+     * sitio que bloquea pedidos desde un datacenter y carga perfecto en el navegador del cliente,
+     * así que quedan como DUDOSA y no alcanzan para descartar una foto.
+     */
+    public enum Verificacion { IMAGEN, MUERTA, DUDOSA }
+
     public boolean esImagenDirecta(String url) {
+        return verificar(url) == Verificacion.IMAGEN;
+    }
+
+    public Verificacion verificar(String url) {
         String destino = url == null ? "" : url.trim();
         for (int i = 0; i < 3; i++) {
-            if (!UrlPublica.permitida(destino)) return false;
+            if (!UrlPublica.permitida(destino)) return Verificacion.DUDOSA;
             try {
                 Resultado r = restTemplate.execute(destino, HttpMethod.GET, request -> {
                     request.getHeaders().set(HttpHeaders.USER_AGENT, "Mozilla/5.0");
@@ -29,11 +41,14 @@ public class ImageUrlValidatorService {
                     if (!response.getStatusCode().is2xxSuccessful() || type == null || !"image".equalsIgnoreCase(type.getType())) return new Resultado(false, null);
                     return new Resultado(esFirmaImagen(response.getBody().readNBytes(32)), null);
                 });
-                if (r == null || r.siguiente() == null) return r != null && r.imagen();
+                if (r == null || r.siguiente() == null) return r != null && r.imagen() ? Verificacion.IMAGEN : Verificacion.DUDOSA;
                 destino = URI.create(destino).resolve(r.siguiente()).toString();
-            } catch (Exception e) { return false; }
+            } catch (HttpClientErrorException e) {
+                int codigo = e.getStatusCode().value();
+                return codigo == 404 || codigo == 410 ? Verificacion.MUERTA : Verificacion.DUDOSA;
+            } catch (Exception e) { return Verificacion.DUDOSA; }
         }
-        return false;
+        return Verificacion.DUDOSA;
     }
 
     static boolean esFirmaImagen(byte[] b) {

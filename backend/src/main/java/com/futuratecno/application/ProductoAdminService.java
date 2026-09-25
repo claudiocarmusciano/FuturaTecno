@@ -465,6 +465,12 @@ public class ProductoAdminService {
         int desdeIcecat = 0, desdeGoogle = 0, desdeAnthropic = 0, desdeDuckDuckGo = 0;
         for (Producto p : sinImagen) {
             String url = imagenManualService.buscar(p.getMarca(), p.getModelo()).orElse(null);
+            // Misma regla que la carga por JSON: una foto recordada que da 404/410 no se reparte.
+            if (url != null && imageUrlValidatorService.verificar(url) == ImageUrlValidatorService.Verificacion.MUERTA) {
+                imagenManualService.olvidarUrl(url);
+                logger.warn("Imagen recordada muerta para producto {}, se descarta: {}", p.getId(), url);
+                url = null;
+            }
             if (url != null) desdeMemoria++;
 
             // Especificaciones de la primera variante (CPU/RAM/SSD, color, capacidad, etc.):
