@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
@@ -80,6 +80,15 @@ function LandingPage() {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const { user, isAdmin, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // La barra de las otras páginas lleva a /#categorias y /#por-que. React Router no baja solo a
+  // la sección al cambiar de página, así que se hace acá una vez montada la home.
+  useEffect(() => {
+    if (!location.hash) return
+    const el = document.getElementById(decodeURIComponent(location.hash.slice(1)))
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [location.hash])
 
   const handleLogout = () => {
     logout()
@@ -149,10 +158,11 @@ function LandingPage() {
         <div className="lp-wrap lp-nav">
           <a className="lp-nav-logo" href="#top"><img src="/logo.png?v=2" alt="FuturaTecno" /></a>
           <nav className={`lp-nav-links${menuAbierto ? ' abierto' : ''}`} onClick={cerrarMenu}>
-            <a href="#por-que">Por qué</a>
+            {/* Un solo acceso a los productos: el catálogo completo. "Ver catálogo" llevaba al mismo lugar. */}
+            <Link to="/catalogo">Productos</Link>
             <a href="#categorias">Categorías</a>
-            <a href="#productos">Productos</a>
             <Link to="/arma-tu-pc">Armá tu PC</Link>
+            <a href="#por-que">Por qué</a>
             {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>
@@ -167,10 +177,9 @@ function LandingPage() {
             ) : (
               <>
                 <Link to="/login">Ingresar</Link>
-                <Link to="/registro">Registrarse</Link>
+                <Link to="/registro" className="lp-nav-cta">Registrarse</Link>
               </>
             )}
-            <Link to="/catalogo" className="lp-nav-cta">Ver catálogo →</Link>
           </nav>
           <button className="lp-nav-toggle" aria-label="Abrir menú" onClick={() => setMenuAbierto(v => !v)}>
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

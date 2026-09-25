@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import axios from 'axios'
 import { EstadoChip } from '../../components/EstadoPedido'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
+import { IconChat } from '../../components/icons'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -211,7 +212,7 @@ function PedidoDetailPage() {
           padding: '12px 24px', borderRadius: '8px', fontSize: '16px', fontWeight: 600
         }}
       >
-        <span style={{ fontSize: '20px' }}>💬</span> Consultar por WhatsApp
+        <IconChat size="20px" /> Consultar por WhatsApp
       </a>
     </div>
   )

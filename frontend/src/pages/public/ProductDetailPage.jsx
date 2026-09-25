@@ -4,6 +4,7 @@ import axios from 'axios'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import { IconCart, IconChat, IconCheck, IconTruck } from '../../components/icons'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -144,7 +145,7 @@ function ProductDetailPage() {
                   padding: '11px 22px', borderRadius: '8px', fontSize: '15px', fontWeight: 600, cursor: 'pointer'
                 }}
               >
-                {agregado === v.id ? '✓ Agregado al carrito' : '🛒 Agregar al carrito'}
+                {agregado === v.id ? <><IconCheck /> Agregado al carrito</> : <><IconCart /> Agregar al carrito</>}
               </button>
               {agregado === v.id && (
                 <Link to="/carrito" style={{ marginLeft: '14px', fontSize: '14px', color: 'var(--color-accent)', fontWeight: 600 }}>
@@ -168,7 +169,7 @@ function ProductDetailPage() {
               background: 'var(--color-accent-light)', border: '1px solid var(--color-border)', borderRadius: '12px',
               padding: '14px 16px', marginBottom: '20px', fontSize: '14px', color: 'var(--color-text-muted)'
             }}>
-              🚚 <strong>Entrega estimada:</strong> {formatFechaLarga(eta.fechaEntrega)}
+              <IconTruck /> <strong>Entrega estimada:</strong> {formatFechaLarga(eta.fechaEntrega)}
               <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                 Comprando hoy{eta.antesDeCorte ? '' : ` (después de las ${eta.horaCorte}:00 hs)`} · {eta.diasHabiles} días hábiles · no incluye fines de semana ni feriados.
               </div>
@@ -187,7 +188,7 @@ function ProductDetailPage() {
               boxShadow: '0 2px 6px rgba(37,211,102,0.4)'
             }}
           >
-            <span style={{ fontSize: '20px' }}>💬</span> Consultar por WhatsApp
+            <IconChat size="20px" /> Consultar por WhatsApp
           </a>
           <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px' }}>
             Te abrimos un chat con el producto ya identificado.

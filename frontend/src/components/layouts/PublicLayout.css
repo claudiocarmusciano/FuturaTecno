@@ -52,6 +52,16 @@
   transition: color 0.15s;
 }
 .public-nav a:hover { color: var(--color-lime); }
+/* Acción principal: lima con texto oscuro, igual que .lp-nav-cta de la home (el lima sobre el header
+   oscuro contrasta; el texto blanco sobre lima no se leería). */
+.public-nav a.public-nav-cta {
+  background: var(--color-lime);
+  color: #16181d;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 999px;
+}
+.public-nav a.public-nav-cta:hover { color: #16181d; background: var(--color-lime-dark); }
 
 .public-main {
   flex: 1;

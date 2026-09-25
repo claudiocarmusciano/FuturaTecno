@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import { IconCart, IconX } from '../../components/icons'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -34,7 +35,7 @@ function CartPage() {
       <div>
         <h1>Tu carrito</h1>
         <div className="card" style={{ textAlign: 'center', padding: '48px 20px' }}>
-          <div style={{ fontSize: '44px', marginBottom: '12px' }}>🛒</div>
+          <div style={{ marginBottom: '12px', color: 'var(--color-text-muted)' }}><IconCart size="44px" /></div>
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '20px' }}>Todavía no agregaste nada.</p>
           <Link to="/catalogo" className="btn-primario" style={{ textDecoration: 'none' }}>Ver el catálogo</Link>
         </div>
@@ -127,7 +128,7 @@ function CartPage() {
                       aria-label={`Quitar ${i.nombre}`}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '17px', color: 'var(--color-text-muted)' }}
                     >
-                      ✕
+                      <IconX />
                     </button>
                   </td>
                 </tr>

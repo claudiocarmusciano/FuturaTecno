@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import PasswordInput from '../../components/PasswordInput'
+import { IconCheckCircle } from '../../components/icons'
 
 function ResetPasswordPage() {
   const [searchParams] = useSearchParams()
@@ -47,7 +48,7 @@ function ResetPasswordPage() {
 
         {ok ? (
           <div style={{ background: 'var(--color-lime-tint)', color: 'var(--color-lime)', border: '1px solid rgba(200,224,72,0.3)', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
-            ✅ Tu contraseña se actualizó.
+            <IconCheckCircle /> Tu contraseña se actualizó.
             <p style={{ marginTop: '12px' }}>
               <Link to="/login" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>Iniciá sesión</Link>
             </p>

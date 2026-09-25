@@ -4,6 +4,7 @@ import axios from 'axios'
 import { indexarArbol, idsHojaDe } from '../../utils/categorias'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import { IconArrowUpRight, IconBanknote, IconCart, IconCheck, IconGrid, IconMenu, IconSearchLine, IconX } from '../../components/icons'
 import './CatalogPage.css'
 
 const formatNumber = (n) =>
@@ -322,7 +323,7 @@ function CatalogPage() {
 
       {eta?.fechaEntrega && (
         <div className="catalog-eta">
-          <span className="catalog-eta-marker" aria-hidden="true">↗</span>
+          <span className="catalog-eta-marker" aria-hidden="true"><IconArrowUpRight /></span>
           <span>Comprando hoy, tu pedido llega aprox. el <strong>{formatFechaLarga(eta.fechaEntrega)}</strong> ({eta.diasHabiles} días hábiles).</span>
         </div>
       )}
@@ -334,7 +335,7 @@ function CatalogPage() {
 
       {/* Botón hamburguesa: solo visible en mobile (ver CSS) */}
       <button className="catalogo-menu-toggle" onClick={() => setMenuAbierto(true)} aria-label="Abrir categorías">
-        ☰ Categorías
+        <IconMenu /> Categorías
       </button>
 
       {menuAbierto && <div className="catalogo-sidebar-backdrop" onClick={() => setMenuAbierto(false)} />}
@@ -343,8 +344,8 @@ function CatalogPage() {
         {/* Sidebar de categorías (drawer deslizable en mobile, panel fijo en desktop) */}
         <aside className={`catalogo-sidebar${menuAbierto ? ' abierto' : ''}`}>
           <div className="catalogo-sidebar-header">
-            <span>📂 Categorías</span>
-            <button className="catalogo-sidebar-cerrar" onClick={() => setMenuAbierto(false)} aria-label="Cerrar">✕</button>
+            <span><IconGrid /> Categorías</span>
+            <button className="catalogo-sidebar-cerrar" onClick={() => setMenuAbierto(false)} aria-label="Cerrar"><IconX /></button>
           </div>
           <div style={{ marginTop: '10px' }}>
             <button
@@ -370,13 +371,18 @@ function CatalogPage() {
         <div>
           {/* Barra de filtros */}
           <div className="card catalog-filter-panel" style={{ marginBottom: '18px' }}>
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="🔍 Buscar por marca, modelo o características..."
-              style={{ ...inputFiltro, width: '100%', marginBottom: '16px' }}
-            />
+            {/* La lupa va superpuesta: dentro del placeholder solo entra texto, no un SVG. */}
+            <div style={{ position: 'relative', marginBottom: '16px' }}>
+              <IconSearchLine size="16px" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar por marca, modelo o características..."
+                aria-label="Buscar productos"
+                style={{ ...inputFiltro, width: '100%', paddingLeft: '36px' }}
+              />
+            </div>
 
             {marcas.length > 1 && (
               <div style={{ marginBottom: '14px' }}>
@@ -425,7 +431,7 @@ function CatalogPage() {
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
             <strong>Las imágenes son meramente ilustrativas:</strong> confirmá características, color y disponibilidad antes de comprar · Por la alta rotación de stock, la disponibilidad se confirma al procesar el pedido
-            {cotizacion?.valor && <> · 💵 Precios actualizados en USD y pesos, a ${formatNumber(cotizacion.valor)} por dólar</>}
+            {cotizacion?.valor && <> · <IconBanknote /> Precios actualizados en USD y pesos, a ${formatNumber(cotizacion.valor)} por dólar</>}
           </p>
 
           {filtrados.length === 0 ? (
@@ -492,7 +498,7 @@ function CatalogPage() {
                           fontSize: '14px', fontWeight: 600, cursor: 'pointer'
                         }}
                       >
-                        {agregado === p.id ? '✓ En el carrito' : '🛒 Agregar al carrito'}
+                        {agregado === p.id ? <><IconCheck /> En el carrito</> : <><IconCart /> Agregar al carrito</>}
                       </button>
                     ) : (
                       <div
