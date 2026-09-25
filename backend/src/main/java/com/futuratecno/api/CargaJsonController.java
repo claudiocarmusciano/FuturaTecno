@@ -78,7 +78,7 @@ public class CargaJsonController {
             return ResponseEntity.badRequest().body(Map.of("error", "Falta el proveedor o la lista de artículos."));
         }
         try {
-            CargaJsonResponse res = cargaJsonService.cargar(req.getProveedorId(), req.getArticulos());
+            CargaJsonResponse res = cargaJsonService.cargar(req.getProveedorId(), req.getArticulos(), req.getReemplazarProductoIds());
             return ResponseEntity.ok(res);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));

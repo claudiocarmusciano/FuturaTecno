@@ -457,4 +457,63 @@ class CargaJsonIdentidadPostgresTest {
                 """, id, specs, new BigDecimal(costo));
         return id;
     }
+
+    @Test
+    void reemplazoSeparaColoresSinFotosYLaRecargaEsIdempotente() {
+        var agrupado = art("Apple", "iPhone 17 256GB", "975", esp("256GB", null));
+        Long anterior = cargarUno(prov, agrupado).getProductoId();
+        var negro = art("Apple", "iPhone 17 256GB Negro", "975", Map.of("almacenamiento", "256GB", "color", "Negro"));
+        var azul = art("Apple", "iPhone 17 256GB Azul", "975", Map.of("almacenamiento", "256GB", "color", "Azul"));
+        imagenes.guardar("Apple", negro.getModelo(), "https://example.com/no-copiar.jpg");
+        descripciones.guardar("Apple", negro.getModelo(), "1TB · descripción anterior incompatible");
+        CargaJsonResponse r = carga.cargar(prov, List.of(negro, azul), List.of(anterior));
+        assertEquals(2, r.getCreados());
+        assertTrue(r.getMensaje().contains("Reemplazo: dados de baja los productos anteriores [" + anterior + "]"), r.getMensaje());
+        assertEquals(false, productos.findById(anterior).orElseThrow().getActivo());
+        assertTrue(variantes.findByProductoIdAndActivo(anterior, true).isEmpty());
+        for (var item : r.getItems()) {
+            assertNull(productos.findById(item.getProductoId()).orElseThrow().getImagenUrl());
+            assertTrue(variantes.findByProductoIdAndActivo(item.getProductoId(), true).get(0).getEspecificaciones().contains("256GB"));
+        }
+        assertEquals("revision", cargarUno(prov, agrupado).getEstado());
+        assertEquals(false, productos.findById(anterior).orElseThrow().getActivo());
+        // Recarga normal: el dueño de cada identidad prevalece sobre el agrupado retirado.
+        CargaJsonResponse otra = carga.cargar(prov, List.of(negro, azul));
+        assertEquals(2, otra.getActualizados());
+        assertEquals(0, otra.getCreados());
+        assertEquals(3, productosDelProveedor(prov));
+        assertEquals(false, productos.findById(anterior).orElseThrow().getActivo());
+    }
+
+    @Test
+    void reemplazoConArticuloInvalidoRevierteCreacionPreviaYConservaAgrupado() {
+        Long anterior = cargarUno(prov, art("Apple", "iPhone 17 256GB", "975", esp("256GB", null))).getProductoId();
+        var negro = art("Apple", "iPhone 17 256GB Negro", "975", Map.of("color", "Negro"));
+        var azul = art("Apple", "iPhone 17 256GB Azul", "0", Map.of("color", "Azul"));
+        var e = assertThrows(IllegalArgumentException.class, () -> carga.cargar(prov, List.of(negro, azul), List.of(anterior)));
+        assertTrue(e.getMessage().contains("iPhone 17 256GB Azul"), "el error dice qué artículo frenó el lote: " + e.getMessage());
+        assertEquals(1, productosDelProveedor(prov));
+        assertTrue(productos.findById(anterior).orElseThrow().getActivo());
+        assertEquals(1, variantes.findByProductoIdAndActivo(anterior, true).size());
+    }
+
+    @Test
+    void reemplazoRechazaOtroProveedorYFotosYDuplicados() {
+        Long anterior = cargarUno(prov, art("Apple", "iPhone 17 256GB", "975", esp("256GB", null))).getProductoId();
+        var negro = art("Apple", "iPhone 17 256GB Negro", "975", Map.of("color", "Negro"));
+        Long otro = nuevoProveedor();
+        assertThrows(IllegalArgumentException.class, () -> carga.cargar(otro, List.of(negro), List.of(anterior)));
+        assertThrows(IllegalArgumentException.class, () -> carga.cargar(prov, List.of(negro, negro), List.of(anterior)));
+        negro.setImagenes(List.of("https://example.com/no.jpg"));
+        assertThrows(IllegalArgumentException.class, () -> carga.cargar(prov, List.of(negro), List.of(anterior)));
+        assertTrue(productos.findById(anterior).orElseThrow().getActivo());
+        assertEquals(1, productosDelProveedor(prov));
+    }
+
+    @Test
+    void sageEsColorYNoOtroModelo() {
+        var a = art("Apple", "iPhone 17 256GB Sage", "975", Map.of("almacenamiento", "256GB", "color", "Sage"));
+        var vista = carga.identidades(List.of(a)).get(0);
+        assertEquals("tel1|apple|iphone 17|-|256|na|-|sage|nuevo|-|-", vista.get("identidad"));
+    }
 }
