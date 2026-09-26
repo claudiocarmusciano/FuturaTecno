@@ -471,6 +471,11 @@ public class IdentidadProductoService {
     public static List<String> coloresVisibles(String texto) {
         TreeSet<String> colores = new TreeSet<>();
         sacarColores(" " + norm(texto) + " ", colores);
+        // Las abreviaturas solo cuentan como un tramo propio de la ficha ("16GB · 1TB · Star").
+        for (String tramo : norm(texto).split("·")) {
+            String c = ABREVIATURAS_COLOR.get(tramo.trim());
+            if (c != null) colores.add(c);
+        }
         List<String> out = new ArrayList<>();
         for (String c : colores) {
             String v = nombreVisibleColor(c);
@@ -478,6 +483,13 @@ public class IdentidadProductoService {
         }
         return out;
     }
+
+    /**
+     * Abreviaturas que usan los proveedores de Apple ("Star" = Starlight, "Mid" = Midnight). Solo valen
+     * cuando son el color solo —el campo color, o un tramo propio de la ficha—, nunca dentro de un
+     * nombre: en el catálogo real hay 65 gabinetes "Mid Tower" y un parlante "Karaoke Star".
+     */
+    private static final Map<String, String> ABREVIATURAS_COLOR = Map.of("STAR", "blanco-estelar", "MID", "medianoche");
 
     /** Colores del vocabulario que aparecen en el texto; los devuelve en {@code colores} y los saca del texto. */
     private static String sacarColores(String t, TreeSet<String> colores) {
@@ -572,6 +584,8 @@ public class IdentidadProductoService {
                 case "COLOR", "COLORES" -> {
                     // Uno reconocido: ese. Ninguno: el texto tal cual ("Azul Glaciar" sin vocabulario
                     // sigue distinguiendo). Varios: es la lista de disponibles y no dice cuál es este.
+                    String abreviado = ABREVIATURAS_COLOR.get(norm(valor).trim());
+                    if (abreviado != null) { ex.poner("color", abreviado, "especificaciones"); break; }
                     TreeSet<String> colores = new TreeSet<>();
                     sacarColores(" " + valor + " ", colores);
                     if (colores.size() == 1) ex.poner("color", colores.first(), "especificaciones");
