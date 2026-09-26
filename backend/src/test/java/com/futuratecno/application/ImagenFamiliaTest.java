@@ -29,11 +29,27 @@ class ImagenFamiliaTest {
     }
 
     @Test
+    void loInternoQueNoSeVeTampocoCambiaLaFamilia() {
+        assertEquals(familia("LENOVO", "LOQ 15ARP10E RYZEN 7 7735HS 16GB 1TB RTX 4050 6GB 144HZ"),
+                familia("LENOVO", "LOQ 15ARP10E RYZEN 7 170 16GB, 512GB RTX 4050 6GB 15.6” 144HZ"));
+        assertEquals(familia("HP", "250 G10 CORE i7-1355U 8GB 256GB"), familia("HP", "250 G10 CORE i5-1334U 16GB 512GB"));
+        assertEquals(familia("MSI", "Vector 16 HX AI CORE ULTRA 9 275HX 32GB 1TB RTX 5080 16GB QHD 240HZ"),
+                familia("MSI", "Vector 16 HX AI CORE ULTRA 7 255HX 16GB 1TB RTX 5070 Ti 12GB 165HZ"));
+        assertEquals(familia("ASUS", "Zenbook A14 SNAPDRAGON X PLUS 16GB 512GB 14\" OLED"), familia("ASUS", "Zenbook A14 SNAPDRAGON X2 ELITE 32GB 1TB 14\""));
+        assertEquals(familia("Apple", "MacBook Pro M5 Pro 14 24GB 1TB"), familia("Apple", "MacBook Pro M5 14\" 16GB 1TB"));
+        assertEquals(familia("Dell", "15 CORE i7-1355U 16GB 512GB FHD TOUCH"), familia("Dell", "15 CORE i5-1334U 8GB 512GB FHD"));
+    }
+
+    @Test
     void loQueCambiaElAparatoSiCambiaLaFamilia() {
         assertNotEquals(familia("Apple", "iPhone 17 Pro 256GB"), familia("Apple", "iPhone 17 Pro Max 256GB"));
         assertNotEquals(familia("Apple", "MacBook Air 13 M5 16GB 512GB"), familia("Apple", "MacBook Air 15 M5 16GB 512GB"));
         assertNotEquals(familia("Apple", "iPad Pro M5 11 256GB"), familia("Apple", "iPad Pro M5 13 256GB"));
         assertNotEquals(familia("Motorola", "Moto G06 4/128GB"), familia("Motorola", "Moto G06s 4/128GB"));
+        assertNotEquals(familia("Apple", "MacBook Pro M5 14 16GB 1TB"), familia("Apple", "MacBook Pro M5 16 16GB 1TB"));
+        assertNotEquals(familia("LENOVO", "Legion 5 CORE i9-14900HX 16GB 1TB"), familia("LENOVO", "Legion Pro 5i CORE ULTRA 9 275HX 32GB 1TB"));
+        // Touch ID es una tecla que se ve: un Magic Keyboard con y sin Touch ID son distintos.
+        assertNotEquals(familia("Apple", "Magic Keyboard Touch ID"), familia("Apple", "Magic Keyboard"));
         // Lo que queda sin nada identificable no forma familia: juntaría artículos distintos.
         assertEquals("", familia("Kingston", "1TB"));
     }
