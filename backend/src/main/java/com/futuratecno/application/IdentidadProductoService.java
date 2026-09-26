@@ -469,19 +469,32 @@ public class IdentidadProductoService {
      * decidir: varios colores = la ficha lista los disponibles, no cuál es este.
      */
     public static List<String> coloresVisibles(String texto) {
-        TreeSet<String> colores = new TreeSet<>();
-        sacarColores(" " + norm(texto) + " ", colores);
-        // Las abreviaturas solo cuentan como un tramo propio de la ficha ("16GB · 1TB · Star").
-        for (String tramo : norm(texto).split("·")) {
-            String c = ABREVIATURAS_COLOR.get(tramo.trim());
-            if (c != null) colores.add(c);
-        }
         List<String> out = new ArrayList<>();
-        for (String c : colores) {
+        for (String c : coloresDe(texto)) {
             String v = nombreVisibleColor(c);
             if (v != null) out.add(v);
         }
         return out;
+    }
+
+    /**
+     * Colores del texto en su forma canónica ("negro", "plata", "blanco-estelar"), con el mismo
+     * vocabulario que la identidad. Las abreviaturas ("Star", "Mid") solo cuentan como un tramo
+     * propio de la ficha ("16GB · 1TB · Star"), nunca dentro de un nombre.
+     */
+    public static java.util.Set<String> coloresDe(String texto) {
+        TreeSet<String> colores = new TreeSet<>();
+        sacarColores(" " + norm(texto) + " ", colores);
+        for (String tramo : norm(texto).split("·")) {
+            String c = ABREVIATURAS_COLOR.get(tramo.trim());
+            if (c != null) colores.add(c);
+        }
+        return colores;
+    }
+
+    /** El texto normalizado (mayúsculas, sin tildes) y sin las palabras de color del vocabulario. */
+    public static String sinColores(String texto) {
+        return sacarColores(" " + norm(texto) + " ", new TreeSet<>()).replaceAll("\\s+", " ").trim();
     }
 
     /**

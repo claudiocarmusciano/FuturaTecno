@@ -240,14 +240,24 @@ public class CargaJsonService {
             List<String> delJson = recordada.isEmpty() ? imagenesLimpias(art.getImagenes()) : List.of();
             List<String> vivas = soloVivas(delJson);
             boolean fotoRota = vivas.isEmpty() && !delJson.isEmpty();
-            List<String> imagenes = recordada.map(List::of).orElse(vivas);
+            // Último recurso: la foto de un pariente del catálogo que solo cambia en capacidad,
+            // RAM, teclado o conectividad (un iMac M4 de 1TB con la foto del de 256GB). Respeta el
+            // color: si el artículo dice uno, solo sirve un pariente de ese color. Va después de la
+            // URL del JSON porque una foto propia del artículo siempre es mejor que una prestada.
+            Optional<String> prestada = Optional.empty();
+            if (!reemplazo && recordada.isEmpty() && vivas.isEmpty()
+                    && (producto.getImagenUrl() == null || producto.getImagenUrl().isBlank())) {
+                prestada = imagenManualService.buscarPorFamilia(producto.getMarca(), producto.getModelo(), construirEspecificaciones(art))
+                        .filter(url -> imageUrlValidatorService.verificar(url) != ImageUrlValidatorService.Verificacion.MUERTA);
+            }
+            List<String> imagenes = recordada.map(List::of).orElse(prestada.map(List::of).orElse(vivas));
             if (!imagenes.isEmpty()) {
                 producto.setImagenUrl(imagenes.get(0));
                 // Una imagen nueva se recuerda para que el próximo listado con este marca+modelo no
                 // vuelva a pagar una búsqueda. Entra como automática: con ON CONFLICT DO NOTHING
                 // jamás pisa una que el admin haya elegido a mano. Se guarda con el nombre del
                 // producto, que es con el que la buscan el admin y las próximas cargas.
-                if (recordada.isEmpty()) imagenManualService.guardarAutomatica(producto.getMarca(), producto.getModelo(), imagenes.get(0));
+                if (recordada.isEmpty() && prestada.isEmpty()) imagenManualService.guardarAutomatica(producto.getMarca(), producto.getModelo(), imagenes.get(0));
             }
 
             // Categoría y medidas ya resueltas para este artículo, aunque haya sido con otro
@@ -317,7 +327,8 @@ public class CargaJsonService {
             if (nuevo) creados++; else actualizados++;
             CargaJsonResponse.Item item = new CargaJsonResponse.Item(
                     marca + " " + modelo, nuevo ? "creado" : "actualizado", categoriaPath,
-                    fotoRota ? "La imagen del JSON no responde. Quedó sin foto: cargala desde Admin → Imágenes."
+                    prestada.isPresent() ? "Sin foto propia: se usó la de otro producto del mismo modelo (distinta capacidad o sin color). Cambiala desde Admin → Imágenes si no corresponde."
+                            : fotoRota ? "La imagen del JSON no responde. Quedó sin foto: cargala desde Admin → Imágenes."
                             : memoriaMuerta && prod.getImagenUrl() == null
                             ? "La foto recordada para este artículo ya no existe (404) y se descartó. Quedó sin foto: cargala desde Admin → Imágenes."
                             : null);

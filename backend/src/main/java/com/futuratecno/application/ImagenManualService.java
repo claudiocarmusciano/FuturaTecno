@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /** Memoria compartida entre proveedores. No elimina colores, capacidades ni nombres de combos. */
 @Service
@@ -153,6 +155,85 @@ public class ImagenManualService {
         return porUrl.values().stream().limit(limite).toList();
     }
 
+    /**
+     * Lo que NO cambia la foto de un artículo: capacidad y RAM ("256GB", "12/512GB"), teclado,
+     * conectividad (+Cell, WiFi, LTE) y núcleos ("10C-10C"). Un iMac M4 de 256GB y uno de 1TB se
+     * ven igual; un iPhone 17 Pro y un 17 Pro Max no, y eso queda en la clave.
+     */
+    private static final Pattern NO_CAMBIA_LA_FOTO = Pattern.compile(
+            "\\b\\d+\\s*/\\s*\\d+\\s*(?:GB|TB)?\\b"
+            + "|\\b\\d+(?:[.,]\\d+)?\\s*(?:GB|TB)\\b"
+            + "|\\bRAM\\b|\\bUNIFIED\\s+MEMORY\\b"
+            + "|\\bTECLADO\\s+(?:EN\\s+)?(?:ESPANOLA?|INGLES|LATINO|US)\\b"
+            + "|\\+\\s*CELL(?:ULAR)?\\b|\\bCELL(?:ULAR)?\\b|\\bWI-?FI\\b|\\bLTE\\b"
+            + "|\\b\\d+C\\s*-\\s*\\d+C\\b");
+
+    /** Colores que sirven de foto "genérica" cuando el artículo no dice el suyo, del más neutro al menos. */
+    private static final List<Set<String>> NEUTROS = List.of(
+            Set.of("gris", "plata", "titanio", "titanio-natural"),
+            Set.of("negro", "titanio-negro", "medianoche"));
+
+    /**
+     * Marca + modelo sin color ni lo que no cambia la foto, en clave suelta. Vacío si no queda
+     * nada que identifique la línea: una clave de 3 letras juntaría artículos distintos.
+     */
+    static String claveFamilia(String marca, String modelo) {
+        String sinVariantes = NO_CAMBIA_LA_FOTO.matcher(IdentidadProductoService.sinColores(modelo)).replaceAll(" ");
+        String k = claveSuelta(sinVariantes), m = claveSuelta(marca);
+        if (!m.isEmpty() && k.startsWith(m) && k.length() > m.length()) k = k.substring(m.length());
+        return k.length() < 4 ? "" : k;
+    }
+
+    /** Un producto con foto de la misma marca y familia, con los colores que dice su nombre. */
+    record ParienteConFoto(long id, String url, boolean activo, Set<String> colores) {}
+
+    /**
+     * Elige la foto de un pariente con estas reglas (acordadas el 2026-09-26):
+     * <ul>
+     *   <li>Si el artículo dice UN color, solo sirve un pariente de ese mismo color: mostrar un
+     *       iPhone plateado en la ficha del naranja es mostrar otro producto.</li>
+     *   <li>Si no dice color (o lista varios, que son los disponibles y no el suyo), se prefiere
+     *       gris/plata, después negro, después un pariente sin color y al final cualquiera.</li>
+     * </ul>
+     * A igual preferencia, el publicado y el más nuevo.
+     */
+    static Optional<String> elegirPariente(Set<String> coloresArticulo, List<ParienteConFoto> parientes) {
+        Comparator<ParienteConFoto> publicadoYNuevo = Comparator
+                .comparing((ParienteConFoto p) -> !p.activo()).thenComparing(p -> -p.id());
+        if (coloresArticulo.size() == 1) {
+            return parientes.stream().filter(p -> p.colores().equals(coloresArticulo))
+                    .sorted(publicadoYNuevo).map(ParienteConFoto::url).findFirst();
+        }
+        return parientes.stream()
+                .sorted(Comparator.comparingInt(ImagenManualService::preferencia).thenComparing(publicadoYNuevo))
+                .map(ParienteConFoto::url).findFirst();
+    }
+
+    /**
+     * Último recurso antes de dejar un artículo sin foto: la de un pariente del catálogo que solo
+     * cambia en capacidad, RAM, teclado o conectividad (ver {@link #elegirPariente}). No se guarda
+     * en la memoria de imágenes: es una foto prestada, y una propia que aparezca después tiene
+     * que poder reemplazarla sin chocar con un recuerdo.
+     */
+    public Optional<String> buscarPorFamilia(String marca, String modelo, String especificaciones) {
+        String familia = claveFamilia(marca, modelo);
+        String m = claveSuelta(marca);
+        if (familia.isEmpty() || m.isEmpty()) return Optional.empty();
+        List<ParienteConFoto> parientes = jdbc.query("""
+                SELECT id, modelo, imagen_url, activo FROM productos
+                WHERE regexp_replace(lower(marca), '[^a-z0-9]', '', 'g') = ?
+                  AND nullif(trim(imagen_url), '') IS NOT NULL
+                """,
+                (rs, row) -> new Object[]{rs.getLong("id"), rs.getString("modelo"), rs.getString("imagen_url"), rs.getBoolean("activo")},
+                m).stream()
+                .filter(c -> familia.equals(claveFamilia(marca, (String) c[1])))
+                .map(c -> new ParienteConFoto((Long) c[0], (String) c[2], (Boolean) c[3],
+                        IdentidadProductoService.coloresDe((String) c[1])))
+                .toList();
+        String texto = (modelo == null ? "" : modelo) + " · " + (especificaciones == null ? "" : especificaciones);
+        return elegirPariente(IdentidadProductoService.coloresDe(texto), parientes);
+    }
+
     /** Cuántos caracteres comparten dos claves sueltas desde el principio. */
     private static int prefijoComun(String a, String b) {
         if (a == null || b == null) return 0;
@@ -201,5 +282,12 @@ public class ImagenManualService {
                     ON CONFLICT (marca, modelo) DO UPDATE SET url = EXCLUDED.url
                     """, m, mod, url.trim());
         }
+    }
+
+    private static int preferencia(ParienteConFoto p) {
+        if (p.colores().size() == 1) {
+            for (int i = 0; i < NEUTROS.size(); i++) if (NEUTROS.get(i).containsAll(p.colores())) return i;
+        }
+        return p.colores().isEmpty() ? NEUTROS.size() : NEUTROS.size() + 1;
     }
 }
