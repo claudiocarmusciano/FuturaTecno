@@ -73,7 +73,12 @@ public class CategoriaClasificadorService {
         // Apple va SIEMPRE a su propio árbol (V38), aunque la carga sugiera otra categoría: n8n
         // manda "Celulares" para los iPhone y los iPad +Cell, y esa pista ganaba (36 productos
         // de Apple fuera de su árbol al 2026-09-26). La regla de Apple nunca devuelve null.
-        if (producto.getMarca() != null && producto.getMarca().strip().equalsIgnoreCase("Apple")) {
+        // Lo mismo con las Nintendo Switch: "switch" también es un equipo de red, y una pista
+        // o una categoría vieja las dejaba en "Switches No Administrables".
+        String texto = ((producto.getMarca() == null ? "" : producto.getMarca()) + " "
+                + (producto.getModelo() == null ? "" : producto.getModelo())).toLowerCase(java.util.Locale.ROOT);
+        boolean nintendoSwitch = texto.contains("nintendo") && texto.contains("switch");
+        if (nintendoSwitch || (producto.getMarca() != null && producto.getMarca().strip().equalsIgnoreCase("Apple"))) {
             String pathApple = clasificadorPorNombre.clasificar(producto);
             Long id = pathApple == null ? null : categoriaService.idPorPath(pathApple);
             if (id != null) return id;

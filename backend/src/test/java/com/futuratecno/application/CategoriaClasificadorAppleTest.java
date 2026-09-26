@@ -32,6 +32,16 @@ class CategoriaClasificadorAppleTest {
     }
 
     @Test
+    void laNintendoSwitchNoTerminaEnSwitchesDeRedAunqueLaPistaLoDiga() {
+        Producto sw = producto("Nintendo", "Switch 2 + Mario (1 día de uso)");
+        when(porNombre.clasificar(sw)).thenReturn("Consolas > Nintendo Switch");
+        when(categorias.idPorPath("Consolas > Nintendo Switch")).thenReturn(210L);
+        when(categorias.idPorPath("Switches No Administrables")).thenReturn(300L);
+
+        assertEquals(210L, servicio.clasificar(sw, "Switches No Administrables"));
+    }
+
+    @Test
     void otraMarcaSigueUsandoLaPista() {
         Producto galaxy = producto("Samsung", "Galaxy S26 Ultra 12/256GB");
         when(categorias.idPorPath("Celulares")).thenReturn(107L);

@@ -677,6 +677,11 @@ public class ProductoAdminService {
         return (base + " " + variante).trim();
     }
 
+    private boolean nintendoFueraDeConsolas(Producto p) {
+        String texto = ((p.getMarca() == null ? "" : p.getMarca()) + " " + (p.getModelo() == null ? "" : p.getModelo())).toLowerCase(java.util.Locale.ROOT);
+        return texto.contains("nintendo") && texto.contains("switch") && !categoriaService.estaBajo(p.getCategoriaId(), "Consolas");
+    }
+
     private boolean appleFueraDeSuArbol(Producto p) {
         return p.getMarca() != null && p.getMarca().strip().equalsIgnoreCase("Apple")
                 && !categoriaService.estaBajo(p.getCategoriaId(), "Apple");
@@ -685,10 +690,14 @@ public class ProductoAdminService {
     /** Clasifica los productos sin categoría y reubica los de Apple que quedaron fuera de su árbol. */
     @Transactional
     public ClasificarCategoriasResponse clasificarCategoriasFaltantes() {
-        // Además de los que no tienen categoría, los de Apple que quedaron fuera de su árbol
-        // (una carga les sugirió "Celulares" o "Accesorios" y esa pista ganaba a la regla Apple).
-        List<Producto> sinCategoria = productoRepository.findByActivo(true).stream()
-                .filter(p -> p.getCategoriaId() == null || appleFueraDeSuArbol(p))
+        // Además de los que no tienen categoría, los que una regla segura ubica en otro árbol:
+        // Apple (una carga les sugería "Celulares") y las Nintendo Switch (se dieron de alta antes
+        // de la regla de consolas y quedaron en "Switches No Administrables"). Un producto que se
+        // actualiza no se reclasifica solo: conserva la categoría con la que nació.
+        // Incluye los dados de baja, así un alta futura no hereda la categoría equivocada.
+        List<Producto> sinCategoria = productoRepository.findAll().stream()
+                .filter(p -> (Boolean.TRUE.equals(p.getActivo()) && p.getCategoriaId() == null)
+                        || appleFueraDeSuArbol(p) || nintendoFueraDeConsolas(p))
                 .collect(Collectors.toList());
 
         int clasificados = 0;
