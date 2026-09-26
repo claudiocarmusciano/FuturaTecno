@@ -237,4 +237,15 @@ class IdentidadProductoServiceTest {
         assertEquals(3, IdentidadProductoService.coloresVisibles("12GB · 256GB · Color Black / Blue / White").size());
         assertTrue(IdentidadProductoService.coloresVisibles("MacBook Air 13 16GB 512GB SSD").isEmpty());
     }
+
+    /** "Star"/"Mid" son colores de Apple solo cuando van solos; "Mid Tower" es un tamaño de gabinete. */
+    @Test void lasAbreviaturasStarYMidSoloCuentanSolas() {
+        assertEquals(java.util.List.of("Blanco Estelar"), IdentidadProductoService.coloresVisibles("MacBook Air 13 16/1TB 16GB · 1TB · 13\" · Star"));
+        assertEquals(java.util.List.of("Medianoche"), IdentidadProductoService.coloresVisibles("MacBook Air 15 16/512GB 16GB · 512GB · 15\" · Mid"));
+        assertTrue(IdentidadProductoService.coloresVisibles("Gabinete CORSAIR 3500X RS-R ARGB Mid Tower").isEmpty());
+        assertTrue(IdentidadProductoService.coloresVisibles("Parlante LG XBOOM 2000W · Karaoke Star").isEmpty());
+        // En el campo color de la carga, la abreviatura es el color.
+        var r = svc.resolver("Apple", "iPhone 17 256GB", java.util.Map.of("almacenamiento", "256GB", "color", "Star"), null);
+        assertEquals("blanco-estelar", r.atributos().get("color"));
+    }
 }
