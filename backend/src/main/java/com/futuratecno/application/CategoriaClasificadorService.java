@@ -70,6 +70,14 @@ public class CategoriaClasificadorService {
      * directo, sin gastar una llamada a la IA.
      */
     public Long clasificar(Producto producto, String categoriaCruda, String categoriaPadreSugerida) {
+        // Apple va SIEMPRE a su propio árbol (V38), aunque la carga sugiera otra categoría: n8n
+        // manda "Celulares" para los iPhone y los iPad +Cell, y esa pista ganaba (36 productos
+        // de Apple fuera de su árbol al 2026-09-26). La regla de Apple nunca devuelve null.
+        if (producto.getMarca() != null && producto.getMarca().strip().equalsIgnoreCase("Apple")) {
+            String pathApple = clasificadorPorNombre.clasificar(producto);
+            Long id = pathApple == null ? null : categoriaService.idPorPath(pathApple);
+            if (id != null) return id;
+        }
         if (categoriaPadreSugerida != null && categoriaCruda != null) {
             Long id = categoriaService.idPorPath(categoriaPadreSugerida + " > " + categoriaCruda);
             if (id != null) return id;
