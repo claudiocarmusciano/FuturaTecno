@@ -38,6 +38,9 @@ class ImagenFamiliaTest {
         assertEquals(familia("ASUS", "Zenbook A14 SNAPDRAGON X PLUS 16GB 512GB 14\" OLED"), familia("ASUS", "Zenbook A14 SNAPDRAGON X2 ELITE 32GB 1TB 14\""));
         assertEquals(familia("Apple", "MacBook Pro M5 Pro 14 24GB 1TB"), familia("Apple", "MacBook Pro M5 14\" 16GB 1TB"));
         assertEquals(familia("Dell", "15 CORE i7-1355U 16GB 512GB FHD TOUCH"), familia("Dell", "15 CORE i5-1334U 8GB 512GB FHD"));
+        // Opciones comerciales del proveedor.
+        assertEquals(familia("Apple", "MacBook Air M5 13\" 24GB 512GB"), familia("Apple", "MacBook Air M5 13 24GB 512GB ABM OPT"));
+        assertEquals(familia("Apple", "iPhone 17 Pro 256GB"), familia("Apple", "iPhone 17 Pro 256GB eSIM Sellado"));
     }
 
     @Test
