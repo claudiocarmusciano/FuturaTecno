@@ -22,6 +22,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,9 +32,10 @@ import java.util.stream.Collectors;
 @Service
 public class ProductoAdminService {
     private static final Logger logger = LoggerFactory.getLogger(ProductoAdminService.class);
-    // La búsqueda incluye servicios externos. Un lote chico evita que una única acción de la
-    // interfaz quede esperando varios minutos si alguno de ellos está lento o bloquea requests.
-    private static final int MAXIMO_IMAGENES_POR_EJECUCION = 5;
+    // La búsqueda en internet usa servicios externos (y Anthropic gasta crédito). Un lote chico
+    // evita que un clic quede esperando minutos si alguno está lento o bloquea requests; cada
+    // producto intentado queda marcado, así el clic siguiente sigue con los próximos 10.
+    private static final int MAXIMO_INTERNET_POR_CLIC = 10;
     // Candidatas de la propia base que se le ofrecen al admin. Son pocas a propósito: elegir entre
     // veinte miniaturas parecidas no ayuda a decidir, y las buenas son siempre las primeras, que es
     // donde la clave coincide más.
@@ -440,7 +442,95 @@ public class ProductoAdminService {
     }
 
     /**
-     * Cascada de búsqueda de imagen para cada producto sin imagen:
+     * Botón "Buscar en la base": TODOS los productos sin foto de una vez, solo con lo que ya hay en
+     * la base (memoria de imágenes y la foto de otro producto del mismo modelo, ver
+     * {@link ImagenManualService#buscarPorFamilia}). No sale a internet ni gasta crédito, así que
+     * no necesita lote. Cada foto elegida se verifica (un 404 no se reparte), y como son cientos
+     * de pedidos HTTP chicos se hacen en paralelo: de a uno tardaba minutos.
+     */
+    @Transactional
+    public BuscarImagenesResponse buscarImagenesEnBase() {
+        List<Producto> faltantes = productosSinImagen();
+        Map<Producto, String> memoria = new LinkedHashMap<>(), familia = new LinkedHashMap<>();
+        for (Producto p : faltantes) {
+            imagenManualService.buscar(p.getMarca(), p.getModelo()).ifPresentOrElse(u -> memoria.put(p, u),
+                    () -> imagenManualService.buscarPorFamilia(p.getMarca(), p.getModelo(), especificacionesDe(p)).ifPresent(u -> familia.put(p, u)));
+        }
+        java.util.Set<String> muertas = urlsMuertas(java.util.stream.Stream.concat(memoria.values().stream(), familia.values().stream())
+                .collect(Collectors.toSet()));
+
+        int desdeMemoria = 0, desdeFamilia = 0;
+        for (var e : memoria.entrySet()) {
+            Producto p = e.getKey();
+            String url = e.getValue();
+            if (muertas.contains(url)) {
+                // Misma regla que la carga por JSON: una foto recordada que da 404/410 se olvida
+                // y se prueba con la del mismo modelo.
+                imagenManualService.olvidarUrl(url);
+                logger.warn("Imagen recordada muerta para producto {}, se descarta: {}", p.getId(), url);
+                url = imagenManualService.buscarPorFamilia(p.getMarca(), p.getModelo(), especificacionesDe(p))
+                        .filter(u -> imageUrlValidatorService.verificar(u) != ImageUrlValidatorService.Verificacion.MUERTA)
+                        .orElse(null);
+                if (url == null) continue;
+                desdeFamilia++;
+            } else {
+                desdeMemoria++;
+            }
+            p.setImagenUrl(url);
+            productoRepository.save(p);
+        }
+        for (var e : familia.entrySet()) {
+            if (muertas.contains(e.getValue())) continue;
+            e.getKey().setImagenUrl(e.getValue());
+            productoRepository.save(e.getKey());
+            desdeFamilia++;
+        }
+
+        int encontradas = desdeMemoria + desdeFamilia;
+        String mensaje = String.format(
+                "Búsqueda en la base: %d con imagen (%d recordadas, %d del mismo modelo) de %d sin foto. Quedan %d: para esos, \"Buscar en internet\".",
+                encontradas, desdeMemoria, desdeFamilia, faltantes.size(), faltantes.size() - encontradas);
+        logger.info(mensaje);
+        return new BuscarImagenesResponse(faltantes.size(), encontradas, faltantes.size() - encontradas, mensaje);
+    }
+
+    /** Productos publicados sin foto: primero los que nunca se buscaron en internet, después por antigüedad del intento. */
+    private List<Producto> productosSinImagen() {
+        return productoRepository.findByActivo(true).stream()
+                .filter(p -> p.getImagenUrl() == null || p.getImagenUrl().isBlank())
+                .sorted(Comparator.comparing(Producto::getImagenBusquedaAt,
+                        Comparator.nullsFirst(Comparator.naturalOrder())))
+                .collect(Collectors.toList());
+    }
+
+    private static String especificacionesDe(Producto p) {
+        return p.getVariantes() == null || p.getVariantes().isEmpty() ? null : p.getVariantes().get(0).getEspecificaciones();
+    }
+
+    /** Cuáles de estas URLs dan 404/410, verificadas en paralelo (solo HTTP, sin tocar la base). */
+    private java.util.Set<String> urlsMuertas(java.util.Set<String> urls) {
+        if (urls.isEmpty()) return java.util.Set.of();
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(Math.min(8, urls.size()));
+        try {
+            Map<String, java.util.concurrent.Future<ImageUrlValidatorService.Verificacion>> futuros = new LinkedHashMap<>();
+            for (String u : urls) futuros.put(u, pool.submit(() -> imageUrlValidatorService.verificar(u)));
+            java.util.Set<String> muertas = new java.util.HashSet<>();
+            for (var f : futuros.entrySet()) {
+                try {
+                    if (f.getValue().get() == ImageUrlValidatorService.Verificacion.MUERTA) muertas.add(f.getKey());
+                } catch (Exception e) {
+                    // Si no se pudo verificar no se descarta: mismo criterio que DUDOSA.
+                }
+            }
+            return muertas;
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    /**
+     * Botón "Buscar en internet", de a {@value #MAXIMO_INTERNET_POR_CLIC} productos. Antes de
+     * pagar una búsqueda se mira igual la base (gratis). Después, la cascada:
      *   1) Icecat (por marca + código, si está configurado) — gratis, matchea pocos.
      *   2) Google Custom Search Images, si está configurado.
      *   3) DuckDuckGo Images, probando varios candidatos.
@@ -448,20 +538,16 @@ public class ProductoAdminService {
      * Lo que no se encuentre queda para carga manual.
      */
     @Transactional
-    public BuscarImagenesResponse buscarImagenesFaltantes() {
+    public BuscarImagenesResponse buscarImagenesEnInternet() {
         boolean icecatOk = icecatService.estaConfigurado();
         boolean googleOk = googleImageService.estaConfigurado();
         boolean anthropicOk = anthropicImageService.estaConfigurado();
 
-        List<Producto> faltantes = productoRepository.findByActivo(true).stream()
-                .filter(p -> p.getImagenUrl() == null || p.getImagenUrl().isBlank())
-                // Primero los que nunca se intentaron. Cuando se agoten, los intentos fallidos
-                // vuelven a la cola por antigüedad para permitir que nuevas fuentes los resuelvan.
-                .sorted(Comparator.comparing(Producto::getImagenBusquedaAt,
-                        Comparator.nullsFirst(Comparator.naturalOrder())))
-                .collect(Collectors.toList());
+        // Primero los que nunca se intentaron. Cuando se agoten, los intentos fallidos vuelven a
+        // la cola por antigüedad, para que una fuente nueva o arreglada pueda resolverlos.
+        List<Producto> faltantes = productosSinImagen();
         List<Producto> sinImagen = faltantes.stream()
-                .limit(MAXIMO_IMAGENES_POR_EJECUCION)
+                .limit(MAXIMO_INTERNET_POR_CLIC)
                 .collect(Collectors.toList());
 
         int desdeMemoria = 0, desdeFamilia = 0;
@@ -478,8 +564,7 @@ public class ProductoAdminService {
             // Antes de salir a la web (y gastar crédito): la foto de un pariente del catálogo que
             // solo cambia en capacidad, RAM o conectividad, respetando el color (ver ImagenManualService).
             if (url == null) {
-                String specs = p.getVariantes() == null || p.getVariantes().isEmpty() ? null : p.getVariantes().get(0).getEspecificaciones();
-                url = imagenManualService.buscarPorFamilia(p.getMarca(), p.getModelo(), specs)
+                url = imagenManualService.buscarPorFamilia(p.getMarca(), p.getModelo(), especificacionesDe(p))
                         .filter(u -> imageUrlValidatorService.verificar(u) != ImageUrlValidatorService.Verificacion.MUERTA)
                         .orElse(null);
                 if (url != null) desdeFamilia++;
@@ -546,25 +631,22 @@ public class ProductoAdminService {
                 }
             }
 
-            if (url != null) {
-                p.setImagenUrl(url);
-                productoRepository.save(p);
-            } else {
-                // Un error de una fuente no debe bloquear toda la cola en los próximos clics.
-                p.setImagenBusquedaAt(LocalDateTime.now());
-                productoRepository.save(p);
-            }
+            // Intentado, con o sin resultado: el próximo clic sigue con los que nunca se buscaron.
+            p.setImagenBusquedaAt(LocalDateTime.now());
+            if (url != null) p.setImagenUrl(url);
+            productoRepository.save(p);
         }
 
         int encontradas = desdeMemoria + desdeFamilia + desdeIcecat + desdeGoogle + desdeAnthropic + desdeDuckDuckGo;
         int noEncontradas = sinImagen.size() - encontradas;
-        int sinProcesar = faltantes.size() - sinImagen.size();
         int pendientesTotales = faltantes.size() - encontradas;
+        long sinIntentar = faltantes.stream().skip(sinImagen.size()).filter(p -> p.getImagenBusquedaAt() == null).count();
         String mensaje = String.format(
-                "Búsqueda completada: %d con imagen (%d guardadas, %d del mismo modelo, %d Google, %d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d procesados). Quedan %d artículo(s) sin imagen en total.%s",
-                encontradas, desdeMemoria, desdeFamilia, desdeGoogle, desdeIcecat, desdeAnthropic, desdeDuckDuckGo,
-                noEncontradas, sinImagen.size(), pendientesTotales,
-                sinProcesar > 0 ? " " + sinProcesar + " todavía no fueron procesados." : "");
+                "Búsqueda en internet: %d de %d con imagen (%d de la base, %d DuckDuckGo, %d Anthropic, %d Google, %d Icecat), %d sin resultado. Quedan %d sin foto; %s",
+                encontradas, sinImagen.size(), desdeMemoria + desdeFamilia, desdeDuckDuckGo, desdeAnthropic, desdeGoogle, desdeIcecat,
+                noEncontradas, pendientesTotales,
+                sinIntentar > 0 ? sinIntentar + " todavía no se buscaron: el próximo clic sigue con los 10 siguientes."
+                        : "ya se intentaron todos: el próximo clic vuelve a probar los más viejos.");
         logger.info(mensaje);
 
         BuscarImagenesResponse resp = new BuscarImagenesResponse(sinImagen.size(), encontradas, noEncontradas, mensaje);

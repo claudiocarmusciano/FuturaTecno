@@ -9,7 +9,7 @@ const formatFecha = (iso) =>
 function ImagesPage() {
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
-  const [buscando, setBuscando] = useState(false)
+  const [buscando, setBuscando] = useState(null)   // 'base' | 'internet' | null
   const [mensaje, setMensaje] = useState('')
   const [edits, setEdits] = useState({}) // { [productoId]: urlEnEdicion }
   const [searchParams, setSearchParams] = useSearchParams()
@@ -44,18 +44,22 @@ function ImagesPage() {
   // Cambiar el filtro o la búsqueda acorta el listado: seguir en la página 7 dejaría la tabla vacía.
   useEffect(() => { setPagina(1) }, [busqueda, soloSinImagen])
 
-  const buscarImagenes = async () => {
-    setBuscando(true)
-    setMensaje('Procesando hasta 5 artículos. Puede demorar unos segundos; el resto quedará para el próximo lote.')
+  // Dos búsquedas separadas: la de la base es gratis y recorre todos los productos sin foto de
+  // una vez; la de internet va de a 10 (puede gastar crédito) y cada clic sigue con los siguientes.
+  const buscarImagenes = async (donde) => {
+    setBuscando(donde)
+    setMensaje(donde === 'base'
+      ? 'Buscando en la base todos los productos sin foto…'
+      : 'Buscando en internet 10 productos. Puede demorar un minuto.')
     try {
-      const res = await axios.post('/api/admin/productos/buscar-imagenes')
+      const res = await axios.post(`/api/admin/productos/buscar-imagenes-${donde}`)
       setMensaje(res.data.mensaje)
       await cargar()
     } catch (e) {
       console.error(e)
-      setMensaje('Error al buscar imágenes automáticamente.')
+      setMensaje(`Error al buscar imágenes en ${donde === 'base' ? 'la base' : 'internet'}.`)
     } finally {
-      setBuscando(false)
+      setBuscando(null)
     }
   }
 
@@ -136,9 +140,16 @@ function ImagesPage() {
         <p style={{ marginBottom: '12px' }}>
           <strong>{conImagen}</strong> con imagen · <strong>{sinImagen}</strong> sin imagen · {productos.length} en total
         </p>
-        <button onClick={buscarImagenes} className="btn btn-primary" disabled={buscando}>
-          {buscando ? 'Buscando hasta 5 imágenes...' : 'Buscar imágenes faltantes (automático)'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button onClick={() => buscarImagenes('base')} className="btn btn-primary" disabled={!!buscando || sinImagen === 0}
+            title="Todos los productos sin foto, con fotos que ya están en la base: la memoria de imágenes y otro producto del mismo modelo. No gasta crédito.">
+            <IconDatabase /> {buscando === 'base' ? 'Buscando en la base…' : 'Buscar en la base (todos)'}
+          </button>
+          <button onClick={() => buscarImagenes('internet')} className="btn btn-secondary" disabled={!!buscando || sinImagen === 0}
+            title="10 productos por clic en DuckDuckGo y Anthropic (gasta crédito). Cada clic sigue con los 10 siguientes.">
+            <IconSearchLine /> {buscando === 'internet' ? 'Buscando en internet…' : 'Buscar en internet (de a 10)'}
+          </button>
+        </div>
         {mensaje && <p style={{ marginTop: '12px', color: 'var(--color-text)' }}>{mensaje}</p>}
       </div>
 
