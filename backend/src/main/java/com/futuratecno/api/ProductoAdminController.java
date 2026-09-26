@@ -31,9 +31,16 @@ public class ProductoAdminController {
         return ResponseEntity.ok(productoAdminService.listar());
     }
 
-    @PostMapping("/buscar-imagenes")
-    public ResponseEntity<BuscarImagenesResponse> buscarImagenes() {
-        return ResponseEntity.ok(productoAdminService.buscarImagenesFaltantes());
+    /** Todos los productos sin foto, solo con lo que ya hay en la base. No gasta crédito. */
+    @PostMapping("/buscar-imagenes-base")
+    public ResponseEntity<BuscarImagenesResponse> buscarImagenesEnBase() {
+        return ResponseEntity.ok(productoAdminService.buscarImagenesEnBase());
+    }
+
+    /** De a 10, en internet (DuckDuckGo, Anthropic…); cada clic sigue con los siguientes. */
+    @PostMapping({"/buscar-imagenes-internet", "/buscar-imagenes"})
+    public ResponseEntity<BuscarImagenesResponse> buscarImagenesEnInternet() {
+        return ResponseEntity.ok(productoAdminService.buscarImagenesEnInternet());
     }
 
     @PostMapping("/clasificar-categorias")
@@ -58,7 +65,7 @@ public class ProductoAdminController {
     /**
      * Fotos que ya están en el catálogo y podrían servir para este producto. Es solo lectura y no
      * llama a ningún servicio externo: propone para que el admin elija, no guarda nada. El paso
-     * caro (Icecat/Google/DuckDuckGo/Anthropic) sigue estando en /buscar-imagenes.
+     * caro (Icecat/Google/DuckDuckGo/Anthropic) sigue estando en /buscar-imagenes-internet.
      */
     @GetMapping("/{id}/imagenes-similares")
     public ResponseEntity<List<ImagenSimilarDTO>> imagenesSimilares(@PathVariable Long id) {
