@@ -102,6 +102,9 @@ cotizacion:
 
 app:
   public-url: ${APP_PUBLIC_URL:https://www.futuratecno.com.ar}
+  n8n:
+    # Webhook del workflow que procesa las listas de Notion. El path aleatorio ES el secreto: solo en Railway.
+    procesar-listas-url: ${N8N_PROCESAR_LISTAS_URL:}
   cutoff-hour: ${CUTOFF_HOUR:14}
   image-storage-path: /app/static/images
   # URL canónica: el apex (sin www) redirige 301 a este host. Vacío = sin redirección.

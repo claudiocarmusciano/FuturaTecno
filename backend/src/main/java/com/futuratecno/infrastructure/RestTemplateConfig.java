@@ -95,4 +95,16 @@ public class RestTemplateConfig {
                 .setReadTimeout(Duration.ofSeconds(10))
                 .build();
     }
+
+    /**
+     * Para disparar el webhook de n8n desde el botón del admin. El webhook responde al recibir
+     * (no espera a que terminen las listas), así que 10 s sobran y el botón nunca queda colgado.
+     */
+    @Bean(name = "n8nRestTemplate")
+    public RestTemplate n8nRestTemplate(RestTemplateBuilder builder) {
+        return builder
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(10))
+                .build();
+    }
 }

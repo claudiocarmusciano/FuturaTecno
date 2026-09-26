@@ -136,6 +136,7 @@ mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test -Dtest=CargaJsonId
 | `ADMIN_NOTIFY_EMAIL` | Destinatario de avisos internos. Si no está, usa `ADMIN_EMAIL`. |
 | `ANDREANI_HASH` | Credencial de la cuenta Pyme de Andreani (portal → Integraciones → WooCommerce). Vacía = sin cotización de envío (el checkout sigue andando). |
 | `ANDREANI_CP_ORIGEN` | Código postal de despacho (origen de toda cotización). |
+| `N8N_PROCESAR_LISTAS_URL` | Webhook del workflow de n8n (proyecto Railway **aparte**, `futuratecno-n8n`) que procesa las listas de proveedores de Notion en "Pendiente". Lo usa el botón **"Procesar listas Notion"** del Inicio del admin (`POST /api/admin/listas-notion/procesar`). **El path aleatorio es el secreto**: nunca al front ni al repo, y el log lo tapa. Vacía = el botón avisa "no configurado". El n8n tiene `N8N_CONCURRENCY_PRODUCTION_LIMIT=1`: apretar dos veces encola, no duplica. |
 
 **Verificar un deploy (el MCP de Railway no sirve):** el MCP devuelve `Unauthorized`, pero la **CLI está logueada**. El deploy vivo es el único `SUCCESS`; comparar su `meta.commitHash` con el HEAD local — nunca dar un deploy por hecho sin mirarlo.
 ```bash
