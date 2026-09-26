@@ -109,7 +109,9 @@ function ProcesarListasNotion({ proveedores }) {
                   {r.detalle.map((d, i) => (
                     <li key={d.notionPageId || i}>
                       {nombreProveedor(d.proveedorId)}: {d.estadoFinal}
-                      {d.pendientes > 0 && ` (${d.pendientes} con pendientes)`}
+                      {/* Lo que hay que mirar primero va primero; las fotos faltantes son lo esperable. */}
+                      {d.conProblemas > 0 && <> · <span style={{ color: '#f0c05a' }}>{d.conProblemas} para revisar</span></>}
+                      {d.faltanFotos > 0 && ` · ${d.faltanFotos} sin foto`}
                     </li>
                   ))}
                 </ul>
