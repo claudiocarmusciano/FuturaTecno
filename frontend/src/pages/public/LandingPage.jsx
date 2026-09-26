@@ -80,6 +80,10 @@ function LandingPage() {
   const [portada, setPortada] = useState(null)
   const [arbol, setArbol] = useState([])
   const [menuAbierto, setMenuAbierto] = useState(false)
+  // Ids de productos cuya foto no cargó: se usan para descartarlos de las tarjetas del hero.
+  const [imgsRotas, setImgsRotas] = useState(() => new Set())
+  const marcarImagenRota = (id) =>
+    setImgsRotas(prev => (prev.has(id) ? prev : new Set(prev).add(id)))
   const { user, isAdmin, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -117,16 +121,41 @@ function LandingPage() {
 
   // Hero: un producto real de cada categoría, elegido por id del árbol (no por nombre). El
   // servidor ya sortea uno con foto y precio por categoría raíz.
+  //
+  // Pero "tiene imagenUrl" no es lo mismo que "la imagen carga": muchas fotos son hotlinks a
+  // miniaturas de Google Shopping o .webp del mayorista que devuelven contenido inválido. Antes,
+  // cuando una fallaba se ocultaba el <img> y quedaba un recuadro blanco en la portada. Ahora
+  // anotamos el producto como roto y la tarjeta pasa sola al siguiente candidato con foto.
   const heroCards = useMemo(() => {
     const porRaiz = portada?.heroPorCategoriaRaiz || {}
     if (!arbol.length) return HERO_FALLBACK
+
+    // Repuestos: el resto de los hero (uno por categoría) y los destacados. Todos vienen del
+    // servidor ya filtrados por foto y precio, así que sirven tal cual.
+    const repuestos = [...Object.values(porRaiz), ...(portada?.destacados || [])].filter(Boolean)
+    const usados = new Set()
+
     return ['Notebooks', 'Placas de video', 'Monitores'].map((nombreCat, i) => {
       const cat = arbol.find(c => c.nombre === nombreCat)
-      const p = cat ? porRaiz[cat.id] : null
-      if (!p) return HERO_FALLBACK[i]
-      return { chip: nombreCat, nombre: cortar(nombreDe(p), 34), usd: precioDesde(p), id: p.id, img: p.imagenUrl }
+      const propio = cat ? porRaiz[cat.id] : null
+      const candidatos = [propio, ...repuestos].filter(Boolean)
+      const elegido = candidatos.find(
+        p => p.id && p.imagenUrl && !imgsRotas.has(p.id) && !usados.has(p.id),
+      )
+      if (!elegido) return HERO_FALLBACK[i]
+      usados.add(elegido.id)
+      // Si el reemplazo vino de otro rubro, la etiqueta tiene que decir la verdad.
+      const chip =
+        elegido === propio ? nombreCat : elegido.categoriaPadre || elegido.categoria || nombreCat
+      return {
+        chip,
+        nombre: cortar(nombreDe(elegido), 34),
+        usd: precioDesde(elegido),
+        id: elegido.id,
+        img: elegido.imagenUrl,
+      }
     })
-  }, [arbol, portada])
+  }, [arbol, portada, imgsRotas])
 
   const destacados = portada?.destacados || []
 
@@ -209,7 +238,13 @@ function LandingPage() {
             {heroCards.map((c, i) => (
               <Link key={i} to={`/producto/${c.id}`} className={`lp-mock-card lp-mc${i + 1}`}>
                 <div className="lp-ph">
-                  <img src={c.img} alt={c.nombre} loading="lazy" onError={e => { e.target.style.display = 'none' }} />
+                  <img
+                    key={c.id}
+                    src={c.img}
+                    alt={c.nombre}
+                    loading="lazy"
+                    onError={() => marcarImagenRota(c.id)}
+                  />
                 </div>
                 <span className="lp-chip">{c.chip}</span>
                 <div className="lp-name">{c.nombre}</div>
