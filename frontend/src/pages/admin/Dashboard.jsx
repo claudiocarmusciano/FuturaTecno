@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
+import { IconRefresh } from '../../components/icons'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -18,6 +19,48 @@ function StatCard({ label, valor, sub, to }) {
     </div>
   )
   return to ? <Link to={to} style={{ textDecoration: 'none', color: 'inherit' }}>{contenido}</Link> : contenido
+}
+
+/**
+ * Dispara el workflow de n8n que procesa las listas de proveedores de Notion en "Pendiente".
+ * El backend llama a n8n (la URL del webhook es secreta y no pasa por el navegador); la respuesta
+ * llega enseguida y el resultado de cada lista se ve en Notion.
+ */
+function ProcesarListasNotion() {
+  const [enviando, setEnviando] = useState(false)
+  const [resultado, setResultado] = useState(null)
+
+  const procesar = async () => {
+    setEnviando(true)
+    setResultado(null)
+    try {
+      const r = await axios.post('/api/admin/listas-notion/procesar')
+      setResultado({ ok: true, texto: r.data.mensaje })
+    } catch (e) {
+      setResultado({ ok: false, texto: e.response?.data?.error || 'No se pudo contactar al servidor.' })
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <div className="card" style={{ marginBottom: '18px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ flex: '1 1 260px' }}>
+        <h2 style={{ marginBottom: '4px' }}>Listas de proveedores</h2>
+        <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
+          Procesa las páginas de Notion que estén en <strong>Pendiente</strong>. El resultado de cada lista queda en Notion.
+        </p>
+        {resultado && (
+          <p role="status" style={{ margin: '10px 0 0', fontSize: '14px', color: resultado.ok ? 'var(--color-lime)' : 'var(--color-danger)' }}>
+            {resultado.texto}
+          </p>
+        )}
+      </div>
+      <button className="btn btn-primary" onClick={procesar} disabled={enviando} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+        <IconRefresh /> {enviando ? 'Enviando…' : 'Procesar listas Notion'}
+      </button>
+    </div>
+  )
 }
 
 function Dashboard() {
@@ -44,6 +87,8 @@ function Dashboard() {
     <div>
       <h1 style={{ marginBottom: '4px' }}>Hola, {user?.nombre || 'Administrador'}</h1>
       <p style={{ color: 'var(--color-text-muted)', marginBottom: '28px' }}>Resumen de tu tienda</p>
+
+      <ProcesarListasNotion />
 
       {cargando ? (
         <div className="card"><p>Cargando métricas...</p></div>
