@@ -238,11 +238,16 @@ function LandingPage() {
             {heroCards.map((c, i) => (
               <Link key={i} to={`/producto/${c.id}`} className={`lp-mock-card lp-mc${i + 1}`}>
                 <div className="lp-ph">
+                  {/* eager, NO lazy: estas tres tarjetas están apiladas con transform y la
+                      tercera queda lo bastante abajo como para que el navegador nunca dispare
+                      la carga diferida. Resultado: no cargaba, quedaba un recuadro vacío, y
+                      como tampoco fallaba, el reemplazo por error nunca se activaba. Son las
+                      imágenes principales de la portada: se cargan sí o sí. */}
                   <img
                     key={c.id}
                     src={c.img}
                     alt={c.nombre}
-                    loading="lazy"
+                    loading="eager"
                     onError={() => marcarImagenRota(c.id)}
                   />
                 </div>
