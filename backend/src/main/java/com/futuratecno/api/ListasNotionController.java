@@ -32,4 +32,16 @@ public class ListasNotionController {
             return ResponseEntity.status(status).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @org.springframework.web.bind.annotation.GetMapping("/estado")
+    public Map<String, Object> estado() {
+        return listasNotionService.estado();
+    }
+
+    /** Lo llama n8n al final del workflow, autenticado como admin (el mismo login de la carga). */
+    @PostMapping("/resultado")
+    public ResponseEntity<Void> resultado(@org.springframework.web.bind.annotation.RequestBody Map<String, Object> resumen) {
+        listasNotionService.registrarResultado(resumen);
+        return ResponseEntity.noContent().build();
+    }
 }

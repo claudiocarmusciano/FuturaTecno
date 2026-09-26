@@ -386,3 +386,8 @@ a { color: var(--color-accent); text-decoration: none; }
   padding: 4px 11px;
   border-radius: 999px;
 }
+
+/* Ícono que gira mientras algo está en curso (p. ej. "Procesar listas Notion"). */
+.icono-girando { animation: icono-girar 1s linear infinite; }
+@keyframes icono-girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .icono-girando { animation: none; } }

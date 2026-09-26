@@ -205,6 +205,20 @@ function ImagesPage() {
                     >
                       {[p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')}
                     </Link>
+                    {/* El color primero: la foto tiene que ser de ESE color. Varios = la ficha lista
+                        los disponibles y no dice cuál es este artículo. */}
+                    {p.colores?.length > 0 && (
+                      <div style={{ marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{p.colores.length > 1 ? 'Colores:' : 'Color:'}</span>
+                        {p.colores.map(c => (
+                          <span key={c} style={{ fontSize: '12px', fontWeight: 600, color: '#16181d', background: 'var(--color-lime)', borderRadius: '999px', padding: '1px 8px' }}>{c}</span>
+                        ))}
+                        {p.colores.length > 1 && <span style={{ fontSize: '11px', color: 'var(--color-warning, #f0c05a)' }}>no dice cuál es este</span>}
+                      </div>
+                    )}
+                    {p.especificaciones && (
+                      <div style={{ fontSize: '12px', color: 'var(--color-text)', marginTop: '4px', maxWidth: '420px' }}>{p.especificaciones}</div>
+                    )}
                     <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                       Última actualización: {formatFecha(p.ultimaActualizacion)}
                     </div>

@@ -60,6 +60,10 @@ public class ProductoAdminDTO {
 
     public String getEspecificaciones() { return especificaciones; }
     public void setEspecificaciones(String especificaciones) { this.especificaciones = especificaciones; }
+    /** Colores reconocidos en el nombre y las especificaciones ("Plata", "Celeste"); vacío si ninguno. */
+    private java.util.List<String> colores = java.util.List.of();
+    public java.util.List<String> getColores() { return colores; }
+    public void setColores(java.util.List<String> colores) { this.colores = colores; }
 
     public LocalDateTime getUltimaActualizacion() { return ultimaActualizacion; }
     public void setUltimaActualizacion(LocalDateTime ultimaActualizacion) { this.ultimaActualizacion = ultimaActualizacion; }
