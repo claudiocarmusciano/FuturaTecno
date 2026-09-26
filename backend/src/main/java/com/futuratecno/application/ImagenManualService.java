@@ -185,7 +185,11 @@ public class ImagenManualService {
             + "|\\b\\d{2,3}\\s*HZ\\b|\\b(?:DYNAMIC\\s+)?A?MOLED\\b|\\bOLED\\b|\\bIPS\\b|\\bTOUCH\\b(?!\\s+ID)"
             + "|\\b(?:FHD|QHD|UHD|WUXGA|WQXGA|2\\.8K|[23]K)\\b"
             + "|\\b(?:SSD|NVME|LP)?DDR\\dX?\\b|\\bSSD\\b|\\bNVME\\b"
-            + "|\\bWIN(?:DOWS)?\\s*1[01](?:\\s+(?:PRO|HOME))?\\b");
+            + "|\\bWIN(?:DOWS)?\\s*1[01](?:\\s+(?:PRO|HOME))?\\b"
+            // Opciones comerciales del proveedor: "ABM OPT" (Apple Business Manager), CTO,
+            // sellado, open box, garantía, versión SIM. No cambian cómo se ve el aparato.
+            + "|\\b(?:ABM|OPT|CTO|BTO|SELLADOS?|NUEVOS?|NEW|OPEN\\s+BOX|ORIGINAL|OFICIAL|GARANTIA(?:\\s+OFICIAL)?"
+            + "|LIBERADOS?|NACIONAL|IMPORTADOS?|INTERNACIONAL|ESIM|DUALSIM|SIM\\s+FISICA)\\b");
 
     /** Colores que sirven de foto "genérica" cuando el artículo no dice el suyo, del más neutro al menos. */
     private static final List<Set<String>> NEUTROS = List.of(

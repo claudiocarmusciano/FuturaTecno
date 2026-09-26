@@ -182,6 +182,13 @@ public class CategoriaService {
         return c.getId();
     }
 
+    /** ¿La categoría cuelga (a cualquier profundidad) de la categoría raíz con ese nombre? */
+    public boolean estaBajo(Long categoriaId, String nombreRaiz) {
+        Long raiz = idRaiz(categoriaId);
+        Categoria c = raiz == null ? null : porId.get(raiz);
+        return c != null && c.getNombre().equalsIgnoreCase(nombreRaiz);
+    }
+
     /** Todos los paths de hoja válidos, para ofrecerle la lista cerrada a la IA clasificadora. */
     public List<String> pathsDeHoja() {
         return List.copyOf(idPorPath.keySet());

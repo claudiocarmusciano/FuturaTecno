@@ -677,17 +677,24 @@ public class ProductoAdminService {
         return (base + " " + variante).trim();
     }
 
-    /** Clasifica dentro del árbol de categorías todos los productos que todavía no lo tienen asignado. */
+    private boolean appleFueraDeSuArbol(Producto p) {
+        return p.getMarca() != null && p.getMarca().strip().equalsIgnoreCase("Apple")
+                && !categoriaService.estaBajo(p.getCategoriaId(), "Apple");
+    }
+
+    /** Clasifica los productos sin categoría y reubica los de Apple que quedaron fuera de su árbol. */
     @Transactional
     public ClasificarCategoriasResponse clasificarCategoriasFaltantes() {
+        // Además de los que no tienen categoría, los de Apple que quedaron fuera de su árbol
+        // (una carga les sugirió "Celulares" o "Accesorios" y esa pista ganaba a la regla Apple).
         List<Producto> sinCategoria = productoRepository.findByActivo(true).stream()
-                .filter(p -> p.getCategoriaId() == null)
+                .filter(p -> p.getCategoriaId() == null || appleFueraDeSuArbol(p))
                 .collect(Collectors.toList());
 
         int clasificados = 0;
         for (Producto p : sinCategoria) {
             Long id = categoriaClasificadorService.clasificar(p, p.getCategoria());
-            if (id != null) {
+            if (id != null && !id.equals(p.getCategoriaId())) {
                 p.setCategoriaId(id);
                 productoRepository.save(p);
                 clasificados++;
