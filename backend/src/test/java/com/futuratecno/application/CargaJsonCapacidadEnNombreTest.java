@@ -46,6 +46,13 @@ class CargaJsonCapacidadEnNombreTest {
     }
 
     @Test
+    void elNombreSinLaPlacaEsLoQueVieneAntes() {
+        assertEquals("LOQ Essential Core i7-13650HX 16GB 512GB", CargaJsonService.antesDeLaPlaca("LOQ Essential Core i7-13650HX 16GB 512GB RTX 5060"));
+        assertEquals("Raider 16 Max 32GB 1TB", CargaJsonService.antesDeLaPlaca("Raider 16 Max 32GB 1TB - RTX 5070 Ti 12GB 240Hz"));
+        assertEquals(null, CargaJsonService.antesDeLaPlaca("Vivobook 15 16GB 512GB"));
+    }
+
+    @Test
     void laFichaGuardadaTieneQueTraerLaMismaRamYElMismoDisco() {
         String ficha = "Intel Core i7-1355U · 8GB · 256GB · 15.6”";
         assertTrue(CargaJsonService.fichaConCapacidades(ficha, Map.of("ram", "8GB", "almacenamiento", "256GB")));
