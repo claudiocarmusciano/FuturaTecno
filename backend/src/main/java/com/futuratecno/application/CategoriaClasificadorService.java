@@ -78,6 +78,18 @@ public class CategoriaClasificadorService {
             Long id = pathApple == null ? null : categoriaService.idPorPath(pathApple);
             if (id != null) return id;
         }
+        // Las TABLETS caen en el mismo pozo que Apple: Kadabra manda "Celulares" para las
+        // Galaxy Tab y las Redmi Pad, esa pista matchea una hoja real y gana antes de que
+        // corra la clasificación por nombre — que SÍ las reconoce ("tablet|\\btab\\b|\\bpad\\b").
+        // Resultado al 2026-09-26: 11 tablets listadas como celulares. Si el NOMBRE del producto
+        // dice que es una tablet, eso pesa más que la categoría que informa el mayorista.
+        // Ojo: el clasificador por nombre ya descarta los accesorios (fundas, teclados, mousepad,
+        // gamepad) antes de llegar a su regla de tablets, así que acá no hay que repetir ese filtro.
+        String pathPorNombreTemprano = clasificadorPorNombre.clasificar(producto);
+        if (pathPorNombreTemprano != null && pathPorNombreTemprano.startsWith("Tablets")) {
+            Long idTablet = categoriaService.idPorPath(pathPorNombreTemprano);
+            if (idTablet != null) return idTablet;
+        }
         if (categoriaPadreSugerida != null && categoriaCruda != null) {
             Long id = categoriaService.idPorPath(categoriaPadreSugerida + " > " + categoriaCruda);
             if (id != null) return id;
