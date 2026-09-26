@@ -1,5 +1,7 @@
 package com.futuratecno.application;
 
+import com.futuratecno.api.dto.CatalogoPaginaDTO;
+import com.futuratecno.api.dto.PortadaCatalogoDTO;
 import com.futuratecno.api.dto.ProductoCatalogoDTO;
 import com.futuratecno.api.dto.VarianteCatalogoDTO;
 import com.futuratecno.domain.Imagen;
@@ -14,8 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,6 +75,46 @@ public class CatalogoService {
             if (!dto.getVariantes().isEmpty()) resultado.add(dto);
         }
         return resultado;
+    }
+
+    /** Una página del catálogo público con sus filtros; ver {@link BusquedaCatalogo}. */
+    @Transactional(readOnly = true)
+    public CatalogoPaginaDTO buscar(Long categoriaId, String marca, String texto, BigDecimal precioMin,
+                                    BigDecimal precioMax, String orden, int pagina, int porPagina) {
+        // Una categoría que ya no existe (link viejo) se ignora, como hacía el navegador, en vez
+        // de dejar el catálogo vacío sin explicación.
+        Set<Long> ids = categoriaId == null ? null : categoriaService.idsDeLaRama(categoriaId);
+        if (ids != null && ids.isEmpty()) ids = null;
+        return BusquedaCatalogo.buscar(listarCatalogo(), new BusquedaCatalogo.Filtro(
+                ids, marca, texto, precioMin, precioMax, orden, pagina, porPagina));
+    }
+
+    /** Lo que la home necesita del catálogo, sin mandarlo entero; ver {@link PortadaCatalogoDTO}. */
+    @Transactional(readOnly = true)
+    public PortadaCatalogoDTO portada() {
+        List<ProductoCatalogoDTO> catalogo = listarCatalogo();
+        Map<Long, Integer> cantidad = new HashMap<>();
+        Map<Long, List<ProductoCatalogoDTO>> conImagenPorRaiz = new HashMap<>();
+        List<ProductoCatalogoDTO> conImagen = new ArrayList<>();
+        for (ProductoCatalogoDTO p : catalogo) {
+            Long raiz = categoriaService.idRaiz(p.getCategoriaId());
+            if (raiz != null) cantidad.merge(raiz, 1, Integer::sum);
+            // Destacados y hero solo con foto y precio: una tarjeta vacía en la home no vende.
+            if (p.getImagenUrl() == null || p.getImagenUrl().isBlank() || BusquedaCatalogo.precioDesde(p) == null) continue;
+            conImagen.add(p);
+            if (raiz != null) conImagenPorRaiz.computeIfAbsent(raiz, k -> new ArrayList<>()).add(p);
+        }
+        ThreadLocalRandom azar = ThreadLocalRandom.current();
+        Collections.shuffle(conImagen, azar);
+        Map<Long, ProductoCatalogoDTO> hero = new HashMap<>();
+        conImagenPorRaiz.forEach((raiz, lista) -> hero.put(raiz, lista.get(azar.nextInt(lista.size()))));
+
+        PortadaCatalogoDTO out = new PortadaCatalogoDTO();
+        out.setTotalCatalogo(catalogo.size());
+        out.setCantidadPorCategoriaRaiz(cantidad);
+        out.setDestacados(new ArrayList<>(conImagen.subList(0, Math.min(8, conImagen.size()))));
+        out.setHeroPorCategoriaRaiz(hero);
+        return out;
     }
 
     /** Un solo producto: acá sí alcanza con las consultas puntuales, no hay N que multiplicar. */

@@ -230,7 +230,7 @@ function ProductosPage() {
       setSeleccionados(new Set())
       setCatMasiva({ topId: '', subId: '' })
       await cargar()
-      setMensaje(res.data?.mensaje || 'Categoría asignada ✓')
+      setMensaje(res.data?.mensaje || 'Categoría asignada')
     } catch (e) {
       console.error(e)
       setMensaje('Error al asignar categoría: ' + (e.response?.data?.message || e.message))
@@ -255,7 +255,7 @@ function ProductosPage() {
       setCatMasiva(padreId ? { topId: String(padreId), subId: String(data.id) } : { topId: String(data.id), subId: '' })
       setNombreCatNueva('')
       setCreandoCat(false)
-      setMensaje(`Categoría "${nombre}" creada ✓`)
+      setMensaje(`Categoría "${nombre}" creada`)
     } catch (e) {
       console.error(e)
       setMensaje('No se pudo crear la categoría: ' + (e.response?.data?.error || e.message))
@@ -276,7 +276,7 @@ function ProductosPage() {
       const res = await axios.post('/api/admin/productos/dar-de-baja', { ids: [...seleccionados] })
       setSeleccionados(new Set())
       await cargar()
-      setMensaje(res.data?.mensaje || `${cantidad} producto(s) dados de baja ✓`)
+      setMensaje(res.data?.mensaje || `${cantidad} producto(s) dados de baja`)
     } catch (e) {
       console.error(e)
       setMensaje('Error al dar de baja los productos: ' + (e.response?.data?.message || e.message))
@@ -302,7 +302,7 @@ function ProductosPage() {
       }
       setEditData(null)
       await cargar()
-      setMensaje('Producto actualizado ✓')
+      setMensaje('Producto actualizado')
     } catch (e) {
       console.error(e)
       setMensaje('Error al guardar: ' + (e.response?.data?.error || e.response?.data?.message || e.message))
@@ -327,7 +327,7 @@ function ProductosPage() {
       }
       setEditData(null)
       await cargar()
-      setMensaje('Producto eliminado ✓')
+      setMensaje('Producto eliminado')
     } catch (e) {
       console.error(e)
       setMensaje('Error al eliminar: ' + (e.response?.data?.message || e.message))
@@ -655,7 +655,7 @@ function ProductosPage() {
           <p>{termino
             ? `No hay resultados para "${busqueda.trim()}".`
             : soloSinCategoria
-              ? 'No hay productos sin categoría 🎉'
+              ? 'No hay productos sin categoría.'
               : 'No hay productos. Importá una lista en "Cargar por JSON".'}</p>
         ) : (
           <table className="table">

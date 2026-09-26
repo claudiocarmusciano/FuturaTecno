@@ -1,7 +1,7 @@
 import { useState, useEffect, Fragment } from 'react'
 import axios from 'axios'
 import { Link, useSearchParams } from 'react-router-dom'
-import { IconTrash } from '../../components/icons'
+import { IconTrash, IconDatabase, IconSearchLine, IconCheck } from '../../components/icons'
 
 const formatFecha = (iso) =>
   iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
@@ -239,13 +239,13 @@ function ImagesPage() {
                       className="btn btn-secondary"
                       style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', textDecoration: 'none', display: 'inline-block' }}
                       title="Abrir Google Imágenes (incluye las especificaciones) — click derecho en la foto → Copiar dirección de imagen → pegar acá"
-                    >🔍 Buscar</a>
+                    ><IconSearchLine /> Buscar</a>
                     <button
                       onClick={() => buscarSimilares(p.id)}
                       className="btn btn-secondary"
                       style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }}
                       title="Ver fotos que ya están en el catálogo para productos parecidos de esta misma marca. No consulta internet."
-                    >📁 De la base</button>
+                    ><IconDatabase /> De la base</button>
                     <button
                       onClick={() => guardarUrl(p.id)}
                       className="btn btn-primary"
@@ -268,7 +268,7 @@ function ImagesPage() {
                         <p style={{ margin: 0, fontSize: '13px', color: '#dc3545' }}>No se pudieron traer las candidatas.</p>
                       ) : similares[p.id].items.length === 0 ? (
                         <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                          No hay ningún {p.marca} parecido con foto en el catálogo. Buscá en la web con “🔍 Buscar”.
+                          No hay ningún {p.marca} parecido con foto en el catálogo. Buscá en la web con “Buscar”.
                         </p>
                       ) : (
                         <>
@@ -305,7 +305,7 @@ function ImagesPage() {
                                   {c.modelo}
                                 </div>
                                 <div style={{ fontSize: '10px', marginTop: '3px', color: 'var(--color-text-muted)' }}>
-                                  {c.exacto ? '✓ mismo modelo'
+                                  {c.exacto ? <><IconCheck /> mismo modelo</>
                                     : c.afinidad >= 12 ? 'parecido'
                                     : 'apenas parecido — verificá'}
                                   {!c.activo && ' · dado de baja'}

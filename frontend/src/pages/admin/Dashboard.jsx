@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
-import { IconRefresh } from '../../components/icons'
+import { IconRefresh, IconImage } from '../../components/icons'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -176,7 +176,7 @@ function Dashboard() {
             <Link to="/admin/imagenes" style={{ textDecoration: 'none' }}>
               <div className="card" style={{ marginBottom: '18px', borderLeft: '3px solid var(--color-accent)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: 'var(--color-text)' }}>
-                  🖼️ Tenés <strong>{sinImagen}</strong> producto(s) sin imagen.
+                  <IconImage /> Tenés <strong>{sinImagen}</strong> producto(s) sin imagen.
                 </span>
                 <span style={{ color: 'var(--color-accent)', fontSize: '14px', fontWeight: 500 }}>Buscar imágenes →</span>
               </div>

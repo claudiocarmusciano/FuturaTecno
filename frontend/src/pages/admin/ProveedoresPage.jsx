@@ -34,10 +34,10 @@ function ProveedoresPage() {
     try {
       if (editId) {
         await axios.put(`/api/admin/proveedores/${editId}`, formData)
-        setMensaje('Proveedor actualizado ✓')
+        setMensaje('Proveedor actualizado')
       } else {
         await axios.post('/api/admin/proveedores', formData)
-        setMensaje('Proveedor creado ✓')
+        setMensaje('Proveedor creado')
       }
       cancelarEdicion()
       cargarProveedores()

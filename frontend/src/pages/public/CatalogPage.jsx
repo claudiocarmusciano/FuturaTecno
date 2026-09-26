@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
-import { indexarArbol, idsHojaDe } from '../../utils/categorias'
+import { indexarArbol } from '../../utils/categorias'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
 import { IconArrowUpRight, IconBanknote, IconCart, IconCheck, IconGrid, IconMenu, IconSearchLine, IconX } from '../../components/icons'
@@ -26,8 +26,20 @@ const PRECIO_MINIMO_PREDETERMINADO_USD = '50'
 
 // Cuántas tarjetas se pintan por página. 24 es divisible por 2, 3 y 4, así que la última fila
 // queda completa en cualquiera de los anchos de la grilla (auto-fill de 260px).
-// Ojo: la paginación es del lado del cliente — la API sigue devolviendo el catálogo entero.
+// La paginación y los filtros los resuelve el servidor (GET /api/productos/buscar).
 const POR_PAGINA = 24
+// Espera antes de consultar mientras se escribe (búsqueda y precios): sin esto, cada tecla es un request.
+const ESPERA_TECLEO_MS = 300
+
+// Valor que se estabiliza recién cuando deja de cambiar por `ms` milisegundos.
+function useDemorado(valor, ms) {
+  const [demorado, setDemorado] = useState(valor)
+  useEffect(() => {
+    const t = setTimeout(() => setDemorado(valor), ms)
+    return () => clearTimeout(t)
+  }, [valor, ms])
+  return demorado
+}
 
 const botonPagina = (activo, deshabilitado) => ({
   padding: '8px 14px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
@@ -52,12 +64,6 @@ const paginasVisibles = (actual, total) => {
     out.push(n)
   })
   return out
-}
-
-// Precio "desde" del producto: el menor precio USD entre sus variantes (para ordenar/filtrar).
-const precioDesde = (p) => {
-  const precios = (p.variantes || []).map(v => Number(v.precioUsd)).filter(n => n > 0)
-  return precios.length ? Math.min(...precios) : Infinity
 }
 
 // Nodo del árbol de categorías, tipo acordeón: si tiene subcategorías, tocar la fila entera
@@ -153,8 +159,10 @@ function MarcaDropdown({ marca, marcas, onChange }) {
 }
 
 function CatalogPage() {
-  const [productos, setProductos] = useState([])
-  const [cargando, setCargando] = useState(true)
+  // Última respuesta del servidor: la página visible + las facetas del catálogo completo.
+  const [resultado, setResultado] = useState(null)
+  const [cargando, setCargando] = useState(true)       // primera carga: todavía no hay nada que mostrar
+  const [actualizando, setActualizando] = useState(false)   // cambió un filtro: se atenúa lo que ya está
   const [error, setError] = useState('')
 
   // Los filtros viven en la URL (?cat=&marca=&q=&orden=&min=&max=) para que se conserven
@@ -180,7 +188,7 @@ function CatalogPage() {
   const [cotizacion, setCotizacion] = useState(null)
   const { agregar } = useCart()
   const [agregado, setAgregado] = useState(null)   // id del producto recién agregado (feedback)
-  const [pagina, setPagina] = useState(1)
+  const [pagina, setPagina] = useState(() => Math.max(1, Number(searchParams.get('pag')) || 1))
 
   // Refleja los filtros actuales en la URL (replace: no ensucia el historial en cada tecla).
   useEffect(() => {
@@ -191,17 +199,54 @@ function CatalogPage() {
     if (orden && orden !== ORDEN_POR_DEFECTO) params.orden = orden
     if (precioMin) params.min = precioMin
     if (precioMax) params.max = precioMax
+    if (pagina > 1) params.pag = String(pagina)   // al volver del detalle, se vuelve a la misma página
     setSearchParams(params, { replace: true })
-  }, [categoriaId, marca, busqueda, orden, precioMin, precioMax, setSearchParams])
+  }, [categoriaId, marca, busqueda, orden, precioMin, precioMax, pagina, setSearchParams])
+
+  const busquedaDemorada = useDemorado(busqueda.trim(), ESPERA_TECLEO_MS)
+  const minDemorado = useDemorado(precioMin, ESPERA_TECLEO_MS)
+  const maxDemorado = useDemorado(precioMax, ESPERA_TECLEO_MS)
+
+  // Cualquier cambio de filtro devuelve a la página 1: si estabas en la 12 y filtrás algo que
+  // deja 3 resultados, quedarías mirando una página vacía. Se compara contra los filtros previos
+  // (y no con un "primer render") para respetar la página que vino en la URL también cuando
+  // React corre los efectos dos veces en desarrollo.
+  const claveFiltros = JSON.stringify([categoriaId, marca, busquedaDemorada, orden, minDemorado, maxDemorado])
+  const filtrosPrevios = useRef(claveFiltros)
+  useEffect(() => {
+    if (filtrosPrevios.current === claveFiltros) return
+    filtrosPrevios.current = claveFiltros
+    setPagina(1)
+  }, [claveFiltros])
 
   useEffect(() => {
-    axios.get('/api/productos')
-      .then(res => setProductos(res.data))
+    const params = { page: pagina, size: POR_PAGINA, orden }
+    if (categoriaId) params.cat = categoriaId
+    if (marca) params.marca = marca
+    if (busquedaDemorada) params.q = busquedaDemorada
+    if (minDemorado !== '' && Number.isFinite(Number(minDemorado))) params.min = minDemorado
+    if (maxDemorado !== '' && Number.isFinite(Number(maxDemorado))) params.max = maxDemorado
+
+    // Si el usuario cambia de filtro antes de que llegue la respuesta anterior, esa se descarta:
+    // sin esto, una respuesta lenta podía pisar a una más nueva y mostrar resultados de otro filtro.
+    const control = new AbortController()
+    setActualizando(true)
+    axios.get('/api/productos/buscar', { params, signal: control.signal })
+      .then(res => { setResultado(res.data); setError('') })
       .catch(err => {
+        if (axios.isCancel(err)) return
         console.error('Error al cargar catálogo:', err)
-        setError('No se pudo cargar el catálogo. ¿Está corriendo el backend?')
+        setError('No se pudo cargar el catálogo. Probá recargar la página en unos segundos.')
       })
-      .finally(() => setCargando(false))
+      .finally(() => {
+        if (control.signal.aborted) return
+        setCargando(false)
+        setActualizando(false)
+      })
+    return () => control.abort()
+  }, [pagina, categoriaId, marca, busquedaDemorada, orden, minDemorado, maxDemorado])
+
+  useEffect(() => {
     axios.get('/api/categorias').then(res => setArbol(res.data)).catch(err => console.error('Categorías:', err))
     axios.get('/api/eta').then(res => setEta(res.data)).catch(err => console.error('ETA:', err))
     axios.get('/api/cotizacion').then(res => setCotizacion(res.data)).catch(err => console.error('Cotización:', err))
@@ -210,7 +255,7 @@ function CatalogPage() {
   // Solo se muestran en el menú las categorías (y subcategorías) que tienen al menos
   // un producto cargado, en cualquier nivel de profundidad.
   const arbolConProductos = useMemo(() => {
-    const idsConProductos = new Set(productos.map(p => p.categoriaId).filter(Boolean))
+    const idsConProductos = new Set(resultado?.categoriaIds || [])
     const podar = (nodos) => nodos
       .map(n => {
         const hijos = n.hijos?.length ? podar(n.hijos) : []
@@ -219,9 +264,9 @@ function CatalogPage() {
       })
       .filter(Boolean)
     return podar(arbol)
-  }, [arbol, productos])
+  }, [arbol, resultado?.categoriaIds])
 
-  const { nodoDe, padreDe } = useMemo(() => indexarArbol(arbolConProductos), [arbolConProductos])
+  const { padreDe } = useMemo(() => indexarArbol(arbolConProductos), [arbolConProductos])
 
   // Al restaurar una categoría desde la URL (o al seleccionarla), expande su rama para que
   // la selección quede visible en el árbol lateral. Solo agrega; nunca colapsa lo que abrió el usuario.
@@ -243,56 +288,17 @@ function CatalogPage() {
     setMenuAbierto(false)   // en mobile, elegir una subcategoría cierra el drawer solo
   }
 
-  // Ids de subcategoría (hoja) que caen bajo el nodo elegido, sea sección, categoría u hoja.
-  // Se filtra por id, nunca por nombre: nombres como "Imagen" se repiten en ramas distintas.
-  const idsFiltro = useMemo(() => {
-    if (!categoriaId || !nodoDe[categoriaId]) return null
-    return new Set(idsHojaDe(nodoDe[categoriaId]))
-  }, [categoriaId, nodoDe])
-
-  const marcas = useMemo(
-    () => [...new Set(productos.map(p => p.marca).filter(Boolean))].sort(),
-    [productos]
-  )
-
-  // Rango real de precios (en US$) de todo el catálogo, para guiar al usuario.
-  const rangoPrecios = useMemo(() => {
-    const ps = productos.map(precioDesde).filter(n => Number.isFinite(n))
-    return ps.length ? { min: Math.floor(Math.min(...ps)), max: Math.ceil(Math.max(...ps)) } : null
-  }, [productos])
-
-  const filtrados = useMemo(() => {
-    const q = busqueda.trim().toLowerCase()
-    const min = precioMin !== '' ? Number(precioMin) : null
-    const max = precioMax !== '' ? Number(precioMax) : null
-
-    let lista = productos.filter(p => {
-      if (idsFiltro && !idsFiltro.has(p.categoriaId)) return false
-      if (marca && p.marca !== marca) return false
-      if (q) {
-        const texto = [p.categoria, p.marca, p.modelo,
-          ...(p.variantes || []).map(v => v.especificaciones)].filter(Boolean).join(' ').toLowerCase()
-        if (!texto.includes(q)) return false
-      }
-      const precio = precioDesde(p)
-      if (min != null && precio < min) return false
-      if (max != null && precio > max) return false
-      return true
-    })
-
-    if (orden === 'precio-asc') lista = [...lista].sort((a, b) => precioDesde(a) - precioDesde(b))
-    if (orden === 'precio-desc') lista = [...lista].sort((a, b) => precioDesde(b) - precioDesde(a))
-    return lista
-  }, [productos, busqueda, idsFiltro, marca, orden, precioMin, precioMax])
-
-  // Cualquier cambio de filtro devuelve a la página 1: si estabas en la 12 y filtrás algo que
-  // deja 3 resultados, quedarías mirando una página vacía.
-  useEffect(() => { setPagina(1) }, [categoriaId, marca, busqueda, orden, precioMin, precioMax])
-
-  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA))
-  const paginaActual = Math.min(pagina, totalPaginas)
+  const marcas = resultado?.marcas || []
+  const rangoPrecios = resultado?.precioMinUsd != null
+    ? { min: Number(resultado.precioMinUsd), max: Number(resultado.precioMaxUsd) }
+    : null
+  const totalCatalogo = resultado?.totalCatalogo ?? 0
+  const totalFiltrados = resultado?.total ?? 0
+  const visibles = resultado?.items || []
+  // La página que el servidor efectivamente devolvió (ajusta una fuera de rango a la última).
+  const paginaActual = resultado?.pagina ?? pagina
+  const totalPaginas = resultado?.totalPaginas ?? 1
   const desde = (paginaActual - 1) * POR_PAGINA
-  const visibles = filtrados.slice(desde, desde + POR_PAGINA)
 
   const irAPagina = (n) => {
     setPagina(Math.min(Math.max(1, n), totalPaginas))
@@ -305,8 +311,8 @@ function CatalogPage() {
   const hayFiltros = categoriaId || marca || busqueda || orden !== ORDEN_POR_DEFECTO || precioMin !== PRECIO_MINIMO_PREDETERMINADO_USD || precioMax
 
   if (cargando) return (<div><h1>Catálogo</h1><div className="card"><p>Cargando productos...</p></div></div>)
-  if (error) return (<div><h1>Catálogo</h1><div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div></div>)
-  if (productos.length === 0) return (<div><h1>Catálogo</h1><div className="card"><p>Todavía no hay productos cargados.</p></div></div>)
+  if (error && !resultado) return (<div><h1>Catálogo</h1><div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div></div>)
+  if (totalCatalogo === 0) return (<div><h1>Catálogo</h1><div className="card"><p>Todavía no hay productos cargados.</p></div></div>)
 
   const inputFiltro = {
     padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)',
@@ -424,20 +430,21 @@ function CatalogPage() {
           </div>
 
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '4px', fontSize: '14px' }}>
-            {filtrados.length === 0
-              ? <>Sin resultados de {productos.length} producto(s)</>
-              : <>Mostrando <strong>{desde + 1}–{desde + visibles.length}</strong> de {filtrados.length}
-                  {filtrados.length !== productos.length && <> (filtrados de {productos.length})</>}</>}
+            {totalFiltrados === 0
+              ? <>Sin resultados de {totalCatalogo} producto(s)</>
+              : <>Mostrando <strong>{desde + 1}–{desde + visibles.length}</strong> de {totalFiltrados}
+                  {totalFiltrados !== totalCatalogo && <> (filtrados de {totalCatalogo})</>}</>}
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
             <strong>Las imágenes son meramente ilustrativas:</strong> confirmá características, color y disponibilidad antes de comprar · Por la alta rotación de stock, la disponibilidad se confirma al procesar el pedido
             {cotizacion?.valor && <> · <IconBanknote /> Precios actualizados en USD y pesos, a ${formatNumber(cotizacion.valor)} por dólar</>}
           </p>
 
-          {filtrados.length === 0 ? (
+          {error && <div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div>}
+          {totalFiltrados === 0 ? (
             <div className="card"><p>No hay productos que coincidan con los filtros.</p></div>
           ) : (
-            <div className="catalog-product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '20px' }}>
+            <div className="catalog-product-grid" aria-busy={actualizando} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '20px', opacity: actualizando ? 0.55 : 1, transition: 'opacity .15s' }}>
               {visibles.map(p => (
                 <Link key={p.id} to={`/producto/${p.id}`} className="producto-card">
                   {/* Tile blanco a propósito: las fotos de los mayoristas vienen recortadas sobre

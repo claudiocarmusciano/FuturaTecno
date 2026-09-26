@@ -27,6 +27,7 @@
 }
 
 .header-container {
+  position: relative;
   max-width: 1120px;
   margin: 0 auto;
   padding: 16px 24px;
@@ -43,7 +44,7 @@
 .logo:hover { opacity: 0.85; }
 .header-logo { height: 72px; width: auto; display: block; }
 
-.public-nav { display: flex; gap: 24px; align-items: center; }
+.public-nav { display: flex; gap: 24px; align-items: center; margin-left: auto; }
 .public-nav a {
   color: #e9eae5;
   text-decoration: none;
@@ -62,6 +63,18 @@
   border-radius: 999px;
 }
 .public-nav a.public-nav-cta:hover { color: #16181d; background: var(--color-lime-dark); }
+/* max-width + ellipsis: un nombre largo no debe poder romper el header (mismo criterio que la home). */
+.public-nav-saludo {
+  color: #9a9d92; font-size: 14px;
+  max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.public-header-acciones { display: flex; align-items: center; gap: 18px; margin-left: 24px; color: #e9eae5; }
+.public-header-acciones a { color: inherit; }
+.public-header-acciones a:hover { color: var(--color-lime); }
+.public-nav-toggle {
+  display: none; background: none; border: none; color: #e9eae5; cursor: pointer;
+  padding: 4px; line-height: 0;
+}
 
 .public-main {
   flex: 1;
@@ -87,10 +100,24 @@
 .public-image-disclaimer > span:first-child { color: var(--color-lime); font-size: 15px; line-height: 1.1; }
 .public-image-disclaimer strong { color: #edf2cf; }
 
+/* Mismo corte que la home (Landing.css): por debajo, los links pasan a un menú desplegable. */
+@media (max-width: 860px) {
+  .public-nav { display: none; }
+  .public-nav.abierto {
+    display: flex; position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; align-items: flex-start; gap: 0;
+    background: #16181d; border-bottom: 1px solid var(--color-dark-border);
+    padding: 8px 24px 18px;
+  }
+  .public-nav.abierto a, .public-nav.abierto .public-nav-saludo { padding: 12px 0; width: 100%; max-width: none; }
+  .public-nav.abierto a.public-nav-cta { width: auto; margin-top: 8px; padding: 10px 22px; }
+  .public-nav-toggle { display: block; }
+}
+
 @media (max-width: 600px) {
-  .header-container { padding: 10px 16px; flex-wrap: wrap; gap: 8px 14px; }
+  .header-container { padding: 10px 16px; }
   .header-logo { height: 48px; }
-  .public-nav { gap: 12px; font-size: 13px; flex-wrap: wrap; }
+  .public-nav.abierto { padding: 4px 16px 16px; }
   .public-main { padding: 22px 16px; }
   .public-image-disclaimer { margin: -4px 0 18px; }
 }

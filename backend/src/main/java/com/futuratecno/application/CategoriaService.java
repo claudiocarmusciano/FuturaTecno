@@ -11,12 +11,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Collator;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -149,6 +153,33 @@ public class CategoriaService {
                 null,
                 padre != null ? padre.getNombre() : null,
                 hoja.getNombre());
+    }
+
+    /**
+     * El nodo y todo lo que cuelga de él, a cualquier profundidad. Para filtrar el catálogo por
+     * una sección o categoría entera sin comparar por nombre ("Imagen" se repite en ramas
+     * distintas). Vacío si el id no existe.
+     */
+    public Set<Long> idsDeLaRama(Long categoriaId) {
+        Set<Long> out = new HashSet<>();
+        if (categoriaId == null || !porId.containsKey(categoriaId)) return out;
+        Deque<Long> pendientes = new ArrayDeque<>(List.of(categoriaId));
+        while (!pendientes.isEmpty()) {
+            Long id = pendientes.pop();
+            if (!out.add(id)) continue;
+            for (Categoria hijo : hijosDe.getOrDefault(id, List.of())) pendientes.push(hijo.getId());
+        }
+        return out;
+    }
+
+    /** Categoría de primer nivel a la que pertenece el nodo (él mismo si ya es raíz); null si no existe. */
+    public Long idRaiz(Long categoriaId) {
+        Categoria c = categoriaId != null ? porId.get(categoriaId) : null;
+        if (c == null) return null;
+        // Se sube por el mapa y no por getPadre() encadenado: el padre puede ser un proxy lazy
+        // cargado fuera de la sesión, y pedirle su id no lo inicializa, pero su padre sí.
+        while (c.getPadre() != null && porId.containsKey(c.getPadre().getId())) c = porId.get(c.getPadre().getId());
+        return c.getId();
     }
 
     /** Todos los paths de hoja válidos, para ofrecerle la lista cerrada a la IA clasificadora. */
