@@ -230,4 +230,11 @@ class IdentidadProductoServiceTest {
         assertNull(IdentidadProductoService.nombreVisibleColor("azulglaciar"));   // texto crudo: no se agrega
         assertNull(IdentidadProductoService.nombreVisibleColor(null));
     }
+
+    /** Lo que muestra Admin → Imágenes: el color del artículo con el vocabulario de la identidad. */
+    @Test void coloresVisiblesReconoceUnoOVariosYNoInventa() {
+        assertEquals(java.util.List.of("Celeste"), IdentidadProductoService.coloresVisibles("Galaxy S26 Ultra 12/256GB · Sky Blue"));
+        assertEquals(3, IdentidadProductoService.coloresVisibles("12GB · 256GB · Color Black / Blue / White").size());
+        assertTrue(IdentidadProductoService.coloresVisibles("MacBook Air 13 16GB 512GB SSD").isEmpty());
+    }
 }

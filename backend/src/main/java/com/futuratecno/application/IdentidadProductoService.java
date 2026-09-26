@@ -463,17 +463,37 @@ public class IdentidadProductoService {
         return String.join(" ", palabras);
     }
 
+    /**
+     * Colores reconocidos en un texto libre (nombre + especificaciones), con el mismo vocabulario
+     * que usa la identidad y en su forma visible ("Plata", "Celeste"). Para mostrarlos, no para
+     * decidir: varios colores = la ficha lista los disponibles, no cuál es este.
+     */
+    public static List<String> coloresVisibles(String texto) {
+        TreeSet<String> colores = new TreeSet<>();
+        sacarColores(" " + norm(texto) + " ", colores);
+        List<String> out = new ArrayList<>();
+        for (String c : colores) {
+            String v = nombreVisibleColor(c);
+            if (v != null) out.add(v);
+        }
+        return out;
+    }
+
     /** Colores del vocabulario que aparecen en el texto; los devuelve en {@code colores} y los saca del texto. */
     private static String sacarColores(String t, TreeSet<String> colores) {
-        for (String[] c : COLORES) {
-            Pattern p = Pattern.compile("\\b(" + c[0] + ")\\b");
+        for (int i = 0; i < COLORES.size(); i++) {
+            Pattern p = PATRONES_COLOR.get(i);
             if (p.matcher(t).find()) {
-                colores.add(c[1]);
+                colores.add(COLORES.get(i)[1]);
                 t = p.matcher(t).replaceAll(" ");
             }
         }
         return t;
     }
+
+    /** Compilados una vez: sacarColores corre por cada producto del listado del admin (~4.000). */
+    private static final List<Pattern> PATRONES_COLOR = COLORES.stream()
+            .map(c -> Pattern.compile("\\b(" + c[0] + ")\\b")).toList();
 
     /**
      * La generación más alta que se menciona: un teléfono 5G también soporta 4G, y las fichas

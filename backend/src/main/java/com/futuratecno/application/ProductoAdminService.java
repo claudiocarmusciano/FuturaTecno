@@ -126,6 +126,9 @@ public class ProductoAdminService {
                     if (!variantes.isEmpty()) {
                         Variante v = variantes.get(0);
                         dto.setEspecificaciones(v.getEspecificaciones());
+                        // Para Admin → Imágenes: el color que dice el artículo, así la foto se elige
+                        // del color correcto. Mismo vocabulario que la identidad.
+                        dto.setColores(IdentidadProductoService.coloresVisibles(p.getModelo() + " " + v.getEspecificaciones()));
                         // Se calcula con el MISMO PrecioService que el catálogo público, así el
                         // admin ve exactamente el precio que ve el cliente — incluido el override
                         // de margen del producto (V41). Duplicar la cuenta acá sería mentirle.
