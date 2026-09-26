@@ -464,7 +464,7 @@ public class ProductoAdminService {
                 .limit(MAXIMO_IMAGENES_POR_EJECUCION)
                 .collect(Collectors.toList());
 
-        int desdeMemoria = 0;
+        int desdeMemoria = 0, desdeFamilia = 0;
         int desdeIcecat = 0, desdeGoogle = 0, desdeAnthropic = 0, desdeDuckDuckGo = 0;
         for (Producto p : sinImagen) {
             String url = imagenManualService.buscar(p.getMarca(), p.getModelo()).orElse(null);
@@ -475,6 +475,15 @@ public class ProductoAdminService {
                 url = null;
             }
             if (url != null) desdeMemoria++;
+            // Antes de salir a la web (y gastar crédito): la foto de un pariente del catálogo que
+            // solo cambia en capacidad, RAM o conectividad, respetando el color (ver ImagenManualService).
+            if (url == null) {
+                String specs = p.getVariantes() == null || p.getVariantes().isEmpty() ? null : p.getVariantes().get(0).getEspecificaciones();
+                url = imagenManualService.buscarPorFamilia(p.getMarca(), p.getModelo(), specs)
+                        .filter(u -> imageUrlValidatorService.verificar(u) != ImageUrlValidatorService.Verificacion.MUERTA)
+                        .orElse(null);
+                if (url != null) desdeFamilia++;
+            }
 
             // Especificaciones de la primera variante (CPU/RAM/SSD, color, capacidad, etc.):
             // ayudan a encontrar la publicación EXACTA en MercadoLibre. Se limpian los separadores.
@@ -547,13 +556,13 @@ public class ProductoAdminService {
             }
         }
 
-        int encontradas = desdeMemoria + desdeIcecat + desdeGoogle + desdeAnthropic + desdeDuckDuckGo;
+        int encontradas = desdeMemoria + desdeFamilia + desdeIcecat + desdeGoogle + desdeAnthropic + desdeDuckDuckGo;
         int noEncontradas = sinImagen.size() - encontradas;
         int sinProcesar = faltantes.size() - sinImagen.size();
         int pendientesTotales = faltantes.size() - encontradas;
         String mensaje = String.format(
-                "Búsqueda completada: %d con imagen (%d guardadas, %d Google, %d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d procesados). Quedan %d artículo(s) sin imagen en total.%s",
-                encontradas, desdeMemoria, desdeGoogle, desdeIcecat, desdeAnthropic, desdeDuckDuckGo,
+                "Búsqueda completada: %d con imagen (%d guardadas, %d del mismo modelo, %d Google, %d Icecat, %d Anthropic, %d DuckDuckGo), %d sin resultado (de %d procesados). Quedan %d artículo(s) sin imagen en total.%s",
+                encontradas, desdeMemoria, desdeFamilia, desdeGoogle, desdeIcecat, desdeAnthropic, desdeDuckDuckGo,
                 noEncontradas, sinImagen.size(), pendientesTotales,
                 sinProcesar > 0 ? " " + sinProcesar + " todavía no fueron procesados." : "");
         logger.info(mensaje);
