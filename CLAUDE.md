@@ -30,6 +30,7 @@
   - **Memorias:** imagen, descripción, atributos y margen se buscan por todos los nombres del artículo (el guardado, el entrante y los de otros productos con la misma identidad, ver `NombreArticulo`). Antes se buscaban con el modelo entrante y una redacción nueva pisaba la descripción manual.
   - **Transición:** los productos anteriores a la V42 no tienen identidad (la carga los resuelve al vuelo y adopta al inequívoco). `GET /api/admin/identidad/transicion` informa inequívocos, duplicados (con líneas de pedido que los referencian) y ambiguos; `POST …/asignar` asigna SOLO a los inequívocos. Nada se fusiona ni se da de baja solo.
   - `Variante.ramGb/almacenamientoGb/color` se llenan como **proyección** de la identidad; la fuente de verdad es `productos.identidad_*`.
+  - **RAM y disco al nombre (2026-09-26).** Lo que no es teléfono se identifica por el NOMBRE, y la IA deja la RAM y el disco de las notebooks solo en la ficha: "HP 250 G10 i7-1355U" de 8/256 y de 16/1TB eran la misma identidad y del segundo en adelante iban a revisión ("el mismo artículo ya aparece en la fila N": 70 notebooks en un día). Ahora `CargaJsonService#capacidadesFaltantes` agrega al modelo la RAM/almacenamiento de la ficha que el nombre no dice ("16/512" y "16GB" cuentan como dichos; "MacBook Pro 16" no es RAM) **antes** de resolver la identidad. Transición: si con el nombre largo no hay candidato, se busca UN producto activo del proveedor con el nombre corto y la misma RAM y disco en la ficha (`conNombreCorto`), se actualiza y se le completa el nombre; si la ficha no coincide, es otra variante y se crea aparte.
   - **Marca repetida y `modelo_exacto`:** la marca al inicio del modelo se saca al importar (cualquier fuente, no solo el generador: la skill `json-articulos-electronica` la repetía) → no más "Motorola Motorola G04". Si `modelo_exacto` dice algo que `modelo` no (típico: el color), se usa para la identidad, y al CREAR el producto el color se agrega al nombre ("G04 4G 64GB Verde").
 - **Memoria por marca+modelo (V31–V34):** cuatro tablas con la misma clave (`marca`, `modelo` normalizados a minúsculas y espacios colapsados) para que el trabajo manual sobreviva a un reimport y se comparta entre proveedores: `imagenes_manuales` (V31), `imagenes_automaticas` (V32), `descripciones_manuales` (V33) y `atributos_manuales` (V34: categoría + peso/dimensiones). Dos detalles que no se deducen del código:
   - **La "descripción" es `Variante.especificaciones`** — no existe columna `descripcion` en `Producto`.
@@ -105,7 +106,7 @@ cd frontend && npm run dev          # → http://localhost:5173
 ```bash
 mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test
 ```
-(al 2026-09-26: 182 tests, 3 skipped, 0 fallas, con `-Dpg.it=true`)
+(al 2026-09-26: 188 tests, 3 skipped, 0 fallas, con `-Dpg.it=true`)
 
 Las pruebas de identidad contra PostgreSQL (índice único, bloqueo, concurrencia) no corren por defecto. Usan una base descartable que se limpia y migra en cada corrida:
 ```bash

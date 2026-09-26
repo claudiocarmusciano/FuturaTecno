@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 /**
  * Carga manual de productos a partir de un JSON (sección admin "Cargar artículos por JSON").
@@ -119,11 +120,25 @@ public class CargaJsonService {
 
         // 1) Resolver la identidad de todo el lote antes de tocar la base.
         List<Resolucion> resoluciones = new ArrayList<>();
+        List<String> modelos = new ArrayList<>(), cortos = new ArrayList<>();
         for (ArticuloJsonDTO art : lista) {
             String marca = limpiar(art.getMarca());
-            String modelo = derivarModelo(art, marca);
-            resoluciones.add(marca == null || modelo == null ? null
-                    : identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria())));
+            String corto = derivarModelo(art, marca), modelo = corto;
+            Resolucion r = null;
+            if (marca != null && modelo != null) {
+                r = identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria()));
+                // Lo que no es teléfono se identifica por el NOMBRE, y la IA suele dejar la RAM y el
+                // disco solo en la ficha: "HP 250 G10 i7-1355U" de 8/256 y de 16/1TB eran el mismo
+                // artículo, y del segundo en adelante iban a revisión (70 notebooks el 2026-09-26).
+                String faltan = r.esTelefono() ? "" : capacidadesFaltantes(modelo, art.getEspecificaciones());
+                if (!faltan.isEmpty()) {
+                    modelo = modelo + " " + faltan;
+                    r = identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria()));
+                }
+            }
+            modelos.add(modelo);
+            cortos.add(corto);
+            resoluciones.add(r);
         }
 
         // 2) Bloquear las familias del lote, siempre en el mismo orden. Con esto, dos cargas
@@ -164,7 +179,7 @@ public class CargaJsonService {
         for (int i = 0; i < lista.size(); i++) {
             ArticuloJsonDTO art = lista.get(i);
             String marca = limpiar(art.getMarca());
-            String modelo = derivarModelo(art, marca);
+            String modelo = modelos.get(i);
             BigDecimal precio = art.getPrecioUsd();
 
             if (marca == null || modelo == null || precio == null || precio.signum() <= 0) {
@@ -184,6 +199,19 @@ public class CargaJsonService {
             } else {
                 decision = decidir(identidad, r, candidatos(proveedorId, marca, modelo, r, cacheGuardadas, cacheMarcas).stream()
                         .filter(c -> !excluidos.contains(c.producto().getId())).toList());
+            }
+
+            // Transición: el artículo pudo haberse creado antes con el nombre corto (sin RAM ni disco).
+            // Si hay exactamente uno activo de este proveedor con ese nombre Y la misma RAM y disco en
+            // la ficha, es este mismo: se actualiza y se le completa el nombre, en vez de publicarlo
+            // dos veces. Si la ficha no coincide es otra variante, y la nueva se crea aparte.
+            boolean completarNombre = false;
+            if (decision.accion() == Accion.CREAR && !modelo.equals(cortos.get(i))) {
+                Optional<Producto> previo = conNombreCorto(proveedorId, marca, cortos.get(i), art.getEspecificaciones());
+                if (previo.isPresent() && !excluidos.contains(previo.get().getId())) {
+                    decision = new Decision(Accion.ACTUALIZAR, previo.get(), List.of(), List.of());
+                    completarNombre = true;
+                }
             }
 
             if (decision.accion() == Accion.REVISION) {
@@ -216,6 +244,12 @@ public class CargaJsonService {
             // primero (es con el que el admin las editó), después el de esta carga y después el de
             // otros productos con la misma identidad (el mismo artículo en otro proveedor).
             List<NombreArticulo> nombres = nombresDelArticulo(producto, marca, modelo, r);
+            if (completarNombre) {
+                // Las memorias (descripción, atributos, margen) se guardaron con el nombre corto.
+                nombres = new ArrayList<>(nombres);
+                nombres.add(new NombreArticulo(marca, cortos.get(i)));
+                producto.setModelo(modelo);
+            }
 
             Optional<String> recordada = reemplazo ? Optional.empty() : imagenManualService.buscar(nombres);
             // La memoria no se validaba al reusarla, y una URL inventada que alguna vez entró se
@@ -645,6 +679,70 @@ public class CargaJsonService {
         if (art.getEspecificaciones() != null) m.putAll(art.getEspecificaciones());
         m.put("modelo_exacto", exacto);
         return m;
+    }
+
+    private static final Pattern CAPACIDAD = Pattern.compile("(\\d+)\\s*(GB|TB)\\b");
+
+    /**
+     * RAM y almacenamiento de la ficha que el nombre no dice, listos para agregarle ("16GB 1TB").
+     * Cuenta como dicho "16GB", "16 GB" y la forma "16/512" de los listados; "MacBook Pro 16" no
+     * dice 16GB de RAM (es la pantalla).
+     */
+    static String capacidadesFaltantes(String modelo, Map<String, ?> especificaciones) {
+        if (modelo == null || especificaciones == null) return "";
+        String nombre = modelo.toUpperCase(Locale.ROOT);
+        List<String> faltan = new ArrayList<>();
+        for (String campo : List.of("ram", "almacenamiento")) {
+            String cap = capacidad(especificaciones.get(campo));
+            if (cap == null) continue;
+            java.util.regex.Matcher m = CAPACIDAD.matcher(cap);
+            m.find();
+            String num = m.group(1);
+            boolean dicho = Pattern.compile("(?<![\\d.])" + num + "\\s*" + m.group(2) + "\\b").matcher(nombre).find()
+                    || Pattern.compile("(?<![\\d.])" + num + "\\s*/\\s*\\d|\\d\\s*/\\s*" + num + "(?!\\d)").matcher(nombre).find();
+            if (!dicho) faltan.add(cap);
+        }
+        return String.join(" ", faltan);
+    }
+
+    /** "16GB DDR5" → "16GB"; "1 TB SSD" → "1TB"; null si el valor no trae una capacidad. */
+    static String capacidad(Object valor) {
+        if (valor == null) return null;
+        java.util.regex.Matcher m = CAPACIDAD.matcher(String.valueOf(valor).toUpperCase(Locale.ROOT));
+        return m.find() ? m.group(1) + m.group(2) : null;
+    }
+
+    /** ¿La ficha guardada ("Intel Core i7 · 16GB · 1TB · 15.6”") trae exactamente esa RAM y ese disco? */
+    static boolean fichaConCapacidades(String ficha, Map<String, ?> especificaciones) {
+        if (ficha == null || especificaciones == null) return false;
+        java.util.Set<String> tramos = new java.util.HashSet<>();
+        for (String t : ficha.split("·")) {
+            String c = capacidad(t);
+            if (c != null && t.trim().toUpperCase(Locale.ROOT).replaceAll("\\s+", "").startsWith(c)) tramos.add(c);
+        }
+        boolean alguna = false;
+        for (String campo : List.of("ram", "almacenamiento")) {
+            String cap = capacidad(especificaciones.get(campo));
+            if (cap == null) continue;
+            alguna = true;
+            if (!tramos.contains(cap)) return false;
+        }
+        return alguna;
+    }
+
+    /** El producto activo de este proveedor con el nombre corto y la misma RAM y disco, si es uno solo. */
+    private Optional<Producto> conNombreCorto(Long proveedorId, String marca, String corto, Map<String, ?> especificaciones) {
+        List<Long> ids = jdbc.queryForList("""
+                SELECT id FROM productos
+                WHERE proveedor_id = ? AND activo
+                  AND lower(regexp_replace(trim(marca), '\\s+', ' ', 'g')) = ?
+                  AND lower(regexp_replace(trim(modelo), '\\s+', ' ', 'g')) = ?
+                """, Long.class, proveedorId, ImagenManualService.normalizar(marca), ImagenManualService.normalizar(corto));
+        List<Long> iguales = ids.stream()
+                .filter(id -> varianteRepository.findByProductoIdAndActivo(id, true).stream()
+                        .anyMatch(v -> fichaConCapacidades(v.getEspecificaciones(), especificaciones)))
+                .toList();
+        return iguales.size() == 1 ? productoRepository.findById(iguales.get(0)) : Optional.empty();
     }
 
     /**

@@ -353,6 +353,38 @@ class CargaJsonIdentidadPostgresTest {
     }
 
     @Test
+    void lasVariantesDeUnaNotebookConLaRamYElDiscoSoloEnLaFichaSonProductosDistintos() {
+        CargaJsonResponse r = carga.cargar(prov, List.of(
+                art("HP", "250 G10 CORE i7-1355U", "1035", esp("256GB", "8GB")),
+                art("HP", "250 G10 CORE i7-1355U", "1360", esp("1TB", "16GB"))));
+        assertEquals(2, r.getCreados());
+        assertEquals(0, r.getRevision());
+        assertEquals("250 G10 CORE i7-1355U 8GB 256GB", productos.findById(r.getItems().get(0).getProductoId()).orElseThrow().getModelo());
+        assertEquals("250 G10 CORE i7-1355U 16GB 1TB", productos.findById(r.getItems().get(1).getProductoId()).orElseThrow().getModelo());
+        assertEquals(0, new BigDecimal("1360.00").compareTo(costo(r.getItems().get(1).getProductoId())));
+    }
+
+    @Test
+    void laNotebookPublicadaConElNombreCortoSeCompletaEnVezDeDuplicarse() {
+        Long viejo = productoViejo(prov, "HP", "250 G10 CORE i7-1355U", "Intel Core i7-1355U · 8GB · 256GB · 15.6”", "1000");
+        CargaJsonResponse r = carga.cargar(prov, List.of(
+                art("HP", "250 G10 CORE i7-1355U", "1035", esp("256GB", "8GB")),
+                art("HP", "250 G10 CORE i7-1355U", "1360", esp("1TB", "16GB"))));
+        assertEquals(1, r.getActualizados());
+        assertEquals(1, r.getCreados());
+        assertEquals(viejo, r.getItems().get(0).getProductoId());
+        assertEquals("250 G10 CORE i7-1355U 8GB 256GB", productos.findById(viejo).orElseThrow().getModelo());
+        assertEquals(0, new BigDecimal("1035.00").compareTo(costo(viejo)));
+        assertEquals(2, productosDelProveedor(prov));
+        // Recargar no crea nada: ahora los dos se encuentran por su nombre completo.
+        CargaJsonResponse otra = carga.cargar(prov, List.of(
+                art("HP", "250 G10 CORE i7-1355U", "1040", esp("256GB", "8GB")),
+                art("HP", "250 G10 CORE i7-1355U", "1365", esp("1TB", "16GB"))));
+        assertEquals(2, otra.getActualizados());
+        assertEquals(2, productosDelProveedor(prov));
+    }
+
+    @Test
     void unProductoDeMayoristaNoSeToca() {
         // Un producto de Elit (codigo_externo) en otro proveedor, mismo nombre.
         Long elit = nuevoProveedor();
