@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { IconDownload, IconCheck } from '../../components/icons'
 
 const formatFecha = (iso) =>
   iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
@@ -54,7 +55,7 @@ function UsuariosPage() {
           <strong>{usuarios.length}</strong> cliente(s) registrado(s).
           {usuarios.length > 0 && (
             <button onClick={exportarCSV} className="btn btn-secondary" style={{ marginLeft: '12px', padding: '4px 12px', fontSize: '12px' }}>
-              ⬇ Exportar CSV
+              <IconDownload /> Exportar CSV
             </button>
           )}
         </p>
@@ -91,10 +92,10 @@ function UsuariosPage() {
                   <td>{u.dni || '—'}</td>
                   <td>{formatFecha(u.fechaNacimiento)}</td>
                   <td>{u.celular || '—'}</td>
-                  <td>{u.whatsappVerificado ? <span style={{ color: 'var(--color-success)' }}>✓ Validado</span> : u.whatsappAgendado ? <button className="btn btn-primary" style={{ padding: '4px 9px', fontSize: '12px' }} onClick={() => validarWhatsapp(u.id)}>Validar</button> : <span style={{ color: 'var(--color-text-muted)' }}>Pendiente</span>}</td>
+                  <td>{u.whatsappVerificado ? <span style={{ color: 'var(--color-success)' }}><IconCheck /> Validado</span> : u.whatsappAgendado ? <button className="btn btn-primary" style={{ padding: '4px 9px', fontSize: '12px' }} onClick={() => validarWhatsapp(u.id)}>Validar</button> : <span style={{ color: 'var(--color-text-muted)' }}>Pendiente</span>}</td>
                   <td><code>{u.whatsappVerificacionCodigo || '—'}</code></td>
                   <td>{u.instagramUsuario || '—'}</td>
-                  <td>{u.instagramVerificado ? <span style={{ color: 'var(--color-success)' }}>✓ Validado</span> : u.instagramCompletado ? <button className="btn btn-primary" style={{ padding: '4px 9px', fontSize: '12px' }} onClick={() => validarInstagram(u.id)}>Validar</button> : <span style={{ color: 'var(--color-text-muted)' }}>Pendiente</span>}</td>
+                  <td>{u.instagramVerificado ? <span style={{ color: 'var(--color-success)' }}><IconCheck /> Validado</span> : u.instagramCompletado ? <button className="btn btn-primary" style={{ padding: '4px 9px', fontSize: '12px' }} onClick={() => validarInstagram(u.id)}>Validar</button> : <span style={{ color: 'var(--color-text-muted)' }}>Pendiente</span>}</td>
                   <td><code>{u.codigoSorteo || '—'}</code></td>
                   <td>{u.chancesSorteo > 1 ? <strong style={{ color: 'var(--color-accent)' }}>2 · Doble</strong> : '1'}</td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{formatFecha(u.fechaRegistro)}</td>

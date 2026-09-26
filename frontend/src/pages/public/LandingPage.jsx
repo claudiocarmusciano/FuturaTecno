@@ -75,7 +75,9 @@ const IconWhatsApp = () => (
 )
 
 function LandingPage() {
-  const [productos, setProductos] = useState([])
+  // Resumen del catálogo para la home (GET /api/productos/portada): total, cantidades por
+  // categoría, destacados y hero. Antes se bajaba el catálogo entero para elegir estos pocos.
+  const [portada, setPortada] = useState(null)
   const [arbol, setArbol] = useState([])
   const [menuAbierto, setMenuAbierto] = useState(false)
   const { user, isAdmin, logout } = useAuth()
@@ -101,53 +103,34 @@ function LandingPage() {
   const inscripcionSorteoAbierta = Date.now() < new Date('2026-10-31T00:00:00-03:00').getTime()
 
   useEffect(() => {
-    axios.get('/api/productos').then(r => setProductos(r.data)).catch(() => {})
+    axios.get('/api/productos/portada').then(r => setPortada(r.data)).catch(() => {})
     axios.get('/api/categorias').then(r => setArbol(r.data)).catch(() => {})
   }, [])
 
-  // id de cualquier nodo (hoja incluida) -> id de su categoría de primer nivel.
-  const topDe = useMemo(() => {
-    const map = {}
-    const marcar = (n, topId) => { map[n.id] = topId; (n.hijos || []).forEach(h => marcar(h, topId)) }
-    arbol.forEach(top => marcar(top, top.id))
-    return map
-  }, [arbol])
-
-  const conImagen = useMemo(
-    () => productos.filter(p => p.imagenUrl && precioDesde(p)),
-    [productos]
-  )
-
   // Chips: solo las categorías con productos, ordenadas por cantidad.
   const categorias = useMemo(() => {
-    if (!arbol.length || !productos.length) return CATS_FALLBACK
-    const cuenta = {}
-    productos.forEach(p => {
-      const t = topDe[p.categoriaId]
-      if (t) cuenta[t] = (cuenta[t] || 0) + 1
-    })
+    const cuenta = portada?.cantidadPorCategoriaRaiz || {}
+    if (!arbol.length || !Object.keys(cuenta).length) return CATS_FALLBACK
     const conProd = arbol.filter(c => cuenta[c.id])
     return conProd.length ? [...conProd].sort((a, b) => cuenta[b.id] - cuenta[a.id]) : CATS_FALLBACK
-  }, [arbol, productos, topDe])
+  }, [arbol, portada])
 
-  // Hero: un producto real de cada categoría, elegido por id del árbol (no por nombre).
+  // Hero: un producto real de cada categoría, elegido por id del árbol (no por nombre). El
+  // servidor ya sortea uno con foto y precio por categoría raíz.
   const heroCards = useMemo(() => {
-    if (!arbol.length || !conImagen.length) return HERO_FALLBACK
+    const porRaiz = portada?.heroPorCategoriaRaiz || {}
+    if (!arbol.length) return HERO_FALLBACK
     return ['Notebooks', 'Placas de video', 'Monitores'].map((nombreCat, i) => {
       const cat = arbol.find(c => c.nombre === nombreCat)
-      const deLaCat = cat ? conImagen.filter(p => topDe[p.categoriaId] === cat.id) : []
-      if (!deLaCat.length) return HERO_FALLBACK[i]
-      const p = deLaCat[Math.floor(Math.random() * deLaCat.length)]
+      const p = cat ? porRaiz[cat.id] : null
+      if (!p) return HERO_FALLBACK[i]
       return { chip: nombreCat, nombre: cortar(nombreDe(p), 34), usd: precioDesde(p), id: p.id, img: p.imagenUrl }
     })
-  }, [arbol, conImagen, topDe])
+  }, [arbol, portada])
 
-  const destacados = useMemo(() => {
-    if (!conImagen.length) return []
-    return [...conImagen].sort(() => Math.random() - 0.5).slice(0, 8)
-  }, [conImagen])
+  const destacados = portada?.destacados || []
 
-  const totalProductos = productos.length ? `+${Math.floor(productos.length / 10) * 10}` : '+600'
+  const totalProductos = portada?.totalCatalogo ? `+${Math.floor(portada.totalCatalogo / 10) * 10}` : '+600'
 
   const cerrarMenu = () => setMenuAbierto(false)
 

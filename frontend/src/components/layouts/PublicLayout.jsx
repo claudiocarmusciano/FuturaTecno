@@ -1,8 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { useCart } from '../../cart/CartContext'
 import CartBadge from '../CartBadge'
-import { IconInfo } from '../../components/icons'
+import { IconInfo, IconMenu, IconX } from '../../components/icons'
 import './PublicLayout.css'
 
 function PublicLayout() {
@@ -11,6 +12,10 @@ function PublicLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const esVistaCatalogo = location.pathname === '/catalogo' || location.pathname.startsWith('/producto/')
+  const [menuAbierto, setMenuAbierto] = useState(false)
+
+  // Al navegar (link del menú, atrás del navegador) el menú mobile se cierra.
+  useEffect(() => { setMenuAbierto(false) }, [location.pathname, location.hash])
 
   const handleLogout = () => {
     logout()
@@ -22,7 +27,7 @@ function PublicLayout() {
       <header className="public-header">
         <div className="header-container">
           <Link to="/" className="logo"><img src="/logo.png?v=2" alt="FuturaTecno" className="header-logo" /></Link>
-          <nav className="public-nav">
+          <nav id="public-nav" className={`public-nav${menuAbierto ? ' abierto' : ''}`}>
             {/* Mismo orden que la barra de la home. */}
             <Link to="/catalogo">Productos</Link>
             <Link to="/#categorias">Categorías</Link>
@@ -33,7 +38,7 @@ function PublicLayout() {
               <>
                 <Link to="/mis-puntos">Mis puntos</Link>
                 <Link to="/mis-pedidos">Mis pedidos</Link>
-                <span style={{ color: '#9a9d92', fontSize: '14px' }}>Hola, {user.nombre || user.email}</span>
+                <span className="public-nav-saludo" title={user.nombre || user.email}>Hola, {user.nombre || user.email}</span>
                 <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>
               </>
             ) : (
@@ -42,8 +47,15 @@ function PublicLayout() {
                 <Link to="/registro" className="public-nav-cta">Registrarse</Link>
               </>
             )}
-            <CartBadge cantidad={cantidadTotal} />
           </nav>
+          {/* El carrito queda fuera del menú: en mobile tiene que verse sin abrirlo. */}
+          <div className="public-header-acciones">
+            <CartBadge cantidad={cantidadTotal} />
+            <button type="button" className="public-nav-toggle" aria-controls="public-nav" aria-expanded={menuAbierto}
+              aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'} onClick={() => setMenuAbierto(v => !v)}>
+              {menuAbierto ? <IconX size="26px" /> : <IconMenu size="26px" />}
+            </button>
+          </div>
         </div>
       </header>
       <main className="public-main">

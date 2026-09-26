@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
-import { IconTrash } from '../../components/icons'
+import { IconTrash, IconAlert, IconCheck } from '../../components/icons'
 
 const formatFecha = (iso) =>
   iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
@@ -71,7 +71,7 @@ function DepurarPage() {
     setMensaje('')
     try {
       const res = await axios.post('/api/admin/productos/dar-de-baja', { ids: [...seleccionados] })
-      setMensaje(res.data?.mensaje || `${cantidad} producto(s) dados de baja ✓`)
+      setMensaje(res.data?.mensaje || `${cantidad} producto(s) dados de baja`)
       setSeleccionados(new Set())
       await buscar()
     } catch (e) {
@@ -125,7 +125,7 @@ function DepurarPage() {
 
       {productos !== null && productos.length === 0 && (
         <div className="card">
-          <p>No hay ningún producto sin actualizarse hace más de {diasBuscados} días. El catálogo está al día ✓</p>
+          <p>No hay ningún producto sin actualizarse hace más de {diasBuscados} días. El catálogo está al día.</p>
         </div>
       )}
 
@@ -142,14 +142,14 @@ function DepurarPage() {
                   style={{ fontSize: '13px' }} disabled={purgando}
                 >
                   {nombre}: {lista.length}
-                  {lista.every((p) => seleccionados.has(p.id)) ? ' ✓' : ''}
+                  {lista.every((p) => seleccionados.has(p.id)) && <> <IconCheck /></>}
                 </button>
               ))}
             </div>
 
             {hayMayoristas && (
               <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                ⚠️ Hay productos de Elit o Invid en la lista. Para ellos la fecha es la última vez que
+                <IconAlert /> Hay productos de Elit o Invid en la lista. Para ellos la fecha es la última vez que
                 aparecieron <strong>en el feed del mayorista</strong>, no la última vez que cambiaron de
                 precio, así que estar acá significa que el proveedor dejó de listarlos. La excepción es
                 que la sincronización esté fallando: si son muchos y de golpe, revisá los logs antes de

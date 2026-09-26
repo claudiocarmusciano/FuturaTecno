@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import { IconMenu } from '../icons'
 import './AdminLayout.css'
 
 function AdminLayout() {
@@ -23,7 +24,7 @@ function AdminLayout() {
       {/* Barra superior (solo mobile) */}
       <div className="admin-topbar">
         <Link to="/admin" onClick={cerrarMenu}><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>
-        <button className="hamburger" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú">☰</button>
+        <button className="hamburger" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú"><IconMenu /></button>
       </div>
 
       {menuAbierto && <div className="sidebar-backdrop" onClick={cerrarMenu} />}

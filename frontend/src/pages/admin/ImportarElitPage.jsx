@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { ordenarPor } from '../../utils/orden'
+import { IconRefresh, IconCheckCircle } from '../../components/icons'
 
 function ImportarElitPage() {
   const [configurado, setConfigurado] = useState(null)   // null = cargando
@@ -131,7 +132,7 @@ ELIT_TOKEN=tu_token_de_api`}
             Importar solo productos con stock
           </label>
           <button onClick={cargarFiltros} className="btn btn-secondary" disabled={cargandoFiltros} style={{ fontSize: '13px' }}>
-            {cargandoFiltros ? 'Cargando opciones...' : (filtros ? '↻ Recargar categorías/marcas' : 'Ver categorías/marcas disponibles')}
+            {cargandoFiltros ? 'Cargando opciones...' : (filtros ? <><IconRefresh /> Recargar categorías/marcas</> : 'Ver categorías/marcas disponibles')}
           </button>
         </div>
 
@@ -145,7 +146,7 @@ ELIT_TOKEN=tu_token_de_api`}
         </div>
 
         <p style={{ marginTop: '14px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
-          🔄 <strong>Sincronización automática:</strong> todos los días a las 06:30 se actualizan solos los precios y stock
+          <IconRefresh /> <strong>Sincronización automática:</strong> todos los días a las 06:30 se actualizan solos los precios y stock
           de lo ya importado. También podés forzarla ahora:
           <button onClick={sincronizar} className="btn btn-secondary" disabled={sincronizando || importando}
                   style={{ marginLeft: '10px', fontSize: '13px', padding: '6px 12px' }}>
@@ -169,7 +170,7 @@ ELIT_TOKEN=tu_token_de_api`}
 
       {resultado && (
         <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
-          <h2 style={{ marginBottom: '8px' }}>✅ Importación lista</h2>
+          <h2 style={{ marginBottom: '8px' }}><IconCheckCircle /> Importación lista</h2>
           <p style={{ marginBottom: '10px' }}>{resultado.mensaje}</p>
           <p>
             <strong>{resultado.creados}</strong> nuevos · <strong>{resultado.actualizados}</strong> actualizados

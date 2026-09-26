@@ -117,3 +117,20 @@ export const IconSearchLine = (p) => (
 export const IconRefresh = (p) => (
   <Icono {...p}><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 16h5v5" /></Icono>
 )
+
+// Admin.
+export const IconDownload = (p) => (
+  <Icono {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /><path d="M12 15V3" /></Icono>
+)
+export const IconDatabase = (p) => (
+  <Icono {...p}><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" /><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" /></Icono>
+)
+export const IconImage = (p) => (
+  <Icono {...p}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21" /></Icono>
+)
+export const IconTag = (p) => (
+  <Icono {...p}><path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z" /><circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></Icono>
+)
+export const IconSkip = (p) => (
+  <Icono {...p}><path d="m5 4 10 8-10 8V4z" /><path d="M19 5v14" /></Icono>
+)

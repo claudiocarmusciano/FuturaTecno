@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import GenerarListadoPanel from '../../components/admin/GenerarListadoPanel'
 import { ordenarPor } from '../../utils/orden'
+import { IconCheckCircle, IconRefresh, IconSkip, IconTag, IconSearchLine } from '../../components/icons'
 
 const inputStyle = {
   padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)',
@@ -166,11 +167,11 @@ function CargarJsonPage() {
           <p>{resultado.creados + resultado.actualizados > 0 ? 'Los artículos creados o actualizados ya se guardaron en el catálogo.' : 'No se crearon ni actualizaron artículos. Revisá el detalle de esta carga.'}</p>
           <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '10px' }}>{resultado.mensaje}</div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '14px', fontSize: '13px' }}>
-            <span>✅ Creados: <strong>{resultado.creados}</strong></span>
-            <span>♻️ Actualizados: <strong>{resultado.actualizados}</strong></span>
-            <span>⏭️ Omitidos: <strong>{resultado.omitidos}</strong></span>
-            <span>🏷️ Sin categoría: <strong>{resultado.sinCategoria}</strong></span>
-            {resultado.revision > 0 && <span style={{ color: '#f0c05a' }}>🔎 Para revisar: <strong>{resultado.revision}</strong></span>}
+            <span><IconCheckCircle /> Creados: <strong>{resultado.creados}</strong></span>
+            <span><IconRefresh /> Actualizados: <strong>{resultado.actualizados}</strong></span>
+            <span><IconSkip /> Omitidos: <strong>{resultado.omitidos}</strong></span>
+            <span><IconTag /> Sin categoría: <strong>{resultado.sinCategoria}</strong></span>
+            {resultado.revision > 0 && <span style={{ color: '#f0c05a' }}><IconSearchLine /> Para revisar: <strong>{resultado.revision}</strong></span>}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="table" style={{ fontSize: '13px' }}>
