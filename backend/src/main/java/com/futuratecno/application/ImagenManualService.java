@@ -157,8 +157,12 @@ public class ImagenManualService {
 
     /**
      * Lo que NO cambia la foto de un artículo: capacidad y RAM ("256GB", "12/512GB"), teclado,
-     * conectividad (+Cell, WiFi, LTE) y núcleos ("10C-10C"). Un iMac M4 de 256GB y uno de 1TB se
-     * ven igual; un iPhone 17 Pro y un 17 Pro Max no, y eso queda en la clave.
+     * conectividad (+Cell, WiFi, LTE), núcleos ("10C-10C") y todo lo interno que no se ve: el
+     * procesador (Core i7-1355U, Ryzen 7 7735HS, Core Ultra 9 285H, Snapdragon X, chips M de
+     * Apple), la placa de video (RTX 5060), el panel (OLED, IPS, 144Hz, WUXGA), el disco y el
+     * sistema operativo. Pedido del usuario el 2026-09-26: en la base importan marca y modelo.
+     * Un iMac M4 de 256GB y uno de 1TB se ven igual; un iPhone 17 Pro y un 17 Pro Max no, y eso
+     * queda en la clave, igual que el tamaño de pantalla (MacBook Pro 14 ≠ 16).
      */
     private static final Pattern NO_CAMBIA_LA_FOTO = Pattern.compile(
             "\\b\\d+\\s*/\\s*\\d+\\s*(?:GB|TB)?\\b"
@@ -166,7 +170,22 @@ public class ImagenManualService {
             + "|\\bRAM\\b|\\bUNIFIED\\s+MEMORY\\b"
             + "|\\bTECLADO\\s+(?:EN\\s+)?(?:ESPANOLA?|INGLES|LATINO|US)\\b"
             + "|\\+\\s*CELL(?:ULAR)?\\b|\\bCELL(?:ULAR)?\\b|\\bWI-?FI\\b|\\bLTE\\b"
-            + "|\\b\\d+C\\s*-\\s*\\d+C\\b");
+            + "|\\b\\d+C\\s*-\\s*\\d+C\\b"
+            // Procesadores
+            + "|\\b(?:INTEL\\s+)?CORE\\s+(?:ULTRA\\s+)?(?:I\\d|X?\\d)(?:[-\\s]+[A-Z]?\\d{3,5}[A-Z]{0,3})?\\b"
+            + "|\\bRYZEN\\s+(?:AI\\s+)?\\d(?:\\s+(?:PRO\\s+)?(?:HX\\s+)?\\d{2,5}[A-Z0-9]{0,4})?\\b"
+            + "|\\b(?:INTEL\\s+)?(?:PENTIUM(?:\\s+(?:SILVER|GOLD))?|CELERON)\\s+[A-Z]?\\d{3,5}\\b|\\bINTEL\\s+N\\d{2,4}\\b"
+            + "|\\bSNAPDRAGON\\s+X\\d?(?:\\s+(?:PLUS|ELITE))?(?:\\s+X\\d-\\d+(?:-\\d+)?)?\\b"
+            + "|\\bM[1-5](?:\\s+(?:PRO|MAX|ULTRA))?\\b"
+            // Placa de video
+            + "|\\b(?:RTX|GTX)\\s*\\d{4}(?:\\s*TI)?\\b|\\bRX\\s*\\d{4}[A-Z]{0,2}\\b|\\bINTEL\\s+ARC\\s+[A-Z]?\\d{3}[A-Z]?\\b"
+            // Pantalla, disco y sistema operativo. El tamaño con decimales ("15.6”") es siempre
+            // una especificación; el entero ("MacBook Pro 14", "Dell 15") suele ser el modelo y queda.
+            + "|\\b\\d{2}[.,]\\d\\s*(?:\"|”|''|PULGADAS\\b)?"
+            + "|\\b\\d{2,3}\\s*HZ\\b|\\b(?:DYNAMIC\\s+)?A?MOLED\\b|\\bOLED\\b|\\bIPS\\b|\\bTOUCH\\b(?!\\s+ID)"
+            + "|\\b(?:FHD|QHD|UHD|WUXGA|WQXGA|2\\.8K|[23]K)\\b"
+            + "|\\b(?:SSD|NVME|LP)?DDR\\dX?\\b|\\bSSD\\b|\\bNVME\\b"
+            + "|\\bWIN(?:DOWS)?\\s*1[01](?:\\s+(?:PRO|HOME))?\\b");
 
     /** Colores que sirven de foto "genérica" cuando el artículo no dice el suyo, del más neutro al menos. */
     private static final List<Set<String>> NEUTROS = List.of(
