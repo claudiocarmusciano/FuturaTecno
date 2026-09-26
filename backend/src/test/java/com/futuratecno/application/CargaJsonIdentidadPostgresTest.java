@@ -385,6 +385,29 @@ class CargaJsonIdentidadPostgresTest {
     }
 
     @Test
+    void lasNotebooksQueSoloCambianEnLaPlacaSonProductosDistintosYLaYaCargadaSeCompleta() {
+        // Así quedó cargada el 26/9: nombre con RAM y disco pero sin la placa (era la RTX 5070 Ti).
+        Long viejo = productoViejo(prov, "MSI", "RAIDER 16 MAX HX 32GB 1TB", "Core Ultra 9 290HX · 32GB · 1TB · RTX 5070 Ti 12GB", "3245");
+        java.util.function.Function<String, Map<String, Object>> conPlaca = g -> {
+            Map<String, Object> m = esp("1TB", "32GB");
+            m.put("gpu", g);
+            return m;
+        };
+        CargaJsonResponse r = carga.cargar(prov, List.of(
+                art("MSI", "RAIDER 16 MAX HX", "3245", conPlaca.apply("RTX 5070 Ti 12GB")),
+                art("MSI", "RAIDER 16 MAX HX", "3645", conPlaca.apply("RTX 5080 16GB")),
+                art("MSI", "RAIDER 16 MAX HX", "4380", conPlaca.apply("RTX 5090 24GB"))));
+        assertEquals(0, r.getRevision());
+        assertEquals(1, r.getActualizados());
+        assertEquals(2, r.getCreados());
+        assertEquals(viejo, r.getItems().get(0).getProductoId());
+        assertEquals("RAIDER 16 MAX HX 32GB 1TB RTX 5070 Ti", productos.findById(viejo).orElseThrow().getModelo());
+        assertEquals("RAIDER 16 MAX HX 32GB 1TB RTX 5090", productos.findById(r.getItems().get(2).getProductoId()).orElseThrow().getModelo());
+        assertEquals(0, new BigDecimal("4380.00").compareTo(costo(r.getItems().get(2).getProductoId())));
+        assertEquals(3, productosDelProveedor(prov));
+    }
+
+    @Test
     void unProductoDeMayoristaNoSeToca() {
         // Un producto de Elit (codigo_externo) en otro proveedor, mismo nombre.
         Long elit = nuevoProveedor();

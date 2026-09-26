@@ -120,24 +120,36 @@ public class CargaJsonService {
 
         // 1) Resolver la identidad de todo el lote antes de tocar la base.
         List<Resolucion> resoluciones = new ArrayList<>();
-        List<String> modelos = new ArrayList<>(), cortos = new ArrayList<>();
+        List<String> modelos = new ArrayList<>();
+        List<List<String>> nombresPrevios = new ArrayList<>();
         for (ArticuloJsonDTO art : lista) {
             String marca = limpiar(art.getMarca());
             String corto = derivarModelo(art, marca), modelo = corto;
+            List<String> previos = new ArrayList<>();
             Resolucion r = null;
             if (marca != null && modelo != null) {
                 r = identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria()));
                 // Lo que no es teléfono se identifica por el NOMBRE, y la IA suele dejar la RAM y el
                 // disco solo en la ficha: "HP 250 G10 i7-1355U" de 8/256 y de 16/1TB eran el mismo
                 // artículo, y del segundo en adelante iban a revisión (70 notebooks el 2026-09-26).
-                String faltan = r.esTelefono() ? "" : capacidadesFaltantes(modelo, art.getEspecificaciones());
-                if (!faltan.isEmpty()) {
-                    modelo = modelo + " " + faltan;
-                    r = identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria()));
+                // Lo mismo con la placa de video: la MSI Raider 16 Max 32GB/1TB viene con RTX 5070 Ti,
+                // 5080 y 5090 a precios distintos, y sin la placa en el nombre eran un solo artículo.
+                if (!r.esTelefono()) {
+                    String conCapacidades = (modelo + " " + capacidadesFaltantes(modelo, art.getEspecificaciones())).strip();
+                    String gpu = gpuFaltante(conCapacidades, art.getEspecificaciones());
+                    String completo = (conCapacidades + " " + gpu).strip();
+                    if (!completo.equals(modelo)) {
+                        // Nombres con los que este artículo pudo haberse creado antes: sin nada
+                        // agregado, o con RAM y disco pero sin la placa (así se cargó hasta el 26/9).
+                        previos.add(corto);
+                        if (!conCapacidades.equals(corto) && !conCapacidades.equals(completo)) previos.add(conCapacidades);
+                        modelo = completo;
+                        r = identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria()));
+                    }
                 }
             }
             modelos.add(modelo);
-            cortos.add(corto);
+            nombresPrevios.add(previos);
             resoluciones.add(r);
         }
 
@@ -206,8 +218,8 @@ public class CargaJsonService {
             // la ficha, es este mismo: se actualiza y se le completa el nombre, en vez de publicarlo
             // dos veces. Si la ficha no coincide es otra variante, y la nueva se crea aparte.
             boolean completarNombre = false;
-            if (decision.accion() == Accion.CREAR && !modelo.equals(cortos.get(i))) {
-                Optional<Producto> previo = conNombreCorto(proveedorId, marca, cortos.get(i), art.getEspecificaciones());
+            if (decision.accion() == Accion.CREAR && !nombresPrevios.get(i).isEmpty()) {
+                Optional<Producto> previo = conNombreCorto(proveedorId, marca, nombresPrevios.get(i), art.getEspecificaciones());
                 if (previo.isPresent() && !excluidos.contains(previo.get().getId())) {
                     decision = new Decision(Accion.ACTUALIZAR, previo.get(), List.of(), List.of());
                     completarNombre = true;
@@ -247,7 +259,7 @@ public class CargaJsonService {
             if (completarNombre) {
                 // Las memorias (descripción, atributos, margen) se guardaron con el nombre corto.
                 nombres = new ArrayList<>(nombres);
-                nombres.add(new NombreArticulo(marca, cortos.get(i)));
+                for (String previo : nombresPrevios.get(i)) nombres.add(new NombreArticulo(marca, previo));
                 producto.setModelo(modelo);
             }
 
@@ -705,6 +717,23 @@ public class CargaJsonService {
         return String.join(" ", faltan);
     }
 
+    private static final Pattern GPU = Pattern.compile("\\b(RTX|GTX)\\s*(\\d{4})(\\s*TI)?\\b|\\b(RX)\\s*(\\d{4}[A-Z]{0,2})\\b");
+
+    /** "NVIDIA GeForce RTX 5070 Ti 12GB" → "RTX 5070 Ti"; null si no es una placa dedicada reconocible. */
+    static String gpu(Object valor) {
+        if (valor == null) return null;
+        java.util.regex.Matcher m = GPU.matcher(String.valueOf(valor).toUpperCase(Locale.ROOT));
+        if (!m.find()) return null;
+        return m.group(1) != null ? m.group(1) + " " + m.group(2) + (m.group(3) != null ? " Ti" : "") : m.group(4) + " " + m.group(5);
+    }
+
+    /** La placa de video de la ficha si el nombre no la dice ("RTX 5080"); vacío si no hay o ya está. */
+    static String gpuFaltante(String modelo, Map<String, ?> especificaciones) {
+        if (modelo == null || especificaciones == null) return "";
+        String g = gpu(especificaciones.get("gpu"));
+        return g == null || g.equals(gpu(modelo)) ? "" : g;
+    }
+
     /** "16GB DDR5" → "16GB"; "1 TB SSD" → "1TB"; null si el valor no trae una capacidad. */
     static String capacidad(Object valor) {
         if (valor == null) return null;
@@ -712,7 +741,7 @@ public class CargaJsonService {
         return m.find() ? m.group(1) + m.group(2) : null;
     }
 
-    /** ¿La ficha guardada ("Intel Core i7 · 16GB · 1TB · 15.6”") trae exactamente esa RAM y ese disco? */
+    /** ¿La ficha guardada ("Intel Core i7 · 16GB · 1TB · RTX 5060") trae exactamente esa RAM, ese disco y esa placa? */
     static boolean fichaConCapacidades(String ficha, Map<String, ?> especificaciones) {
         if (ficha == null || especificaciones == null) return false;
         java.util.Set<String> tramos = new java.util.HashSet<>();
@@ -727,17 +756,24 @@ public class CargaJsonService {
             alguna = true;
             if (!tramos.contains(cap)) return false;
         }
+        // Si la carga dice la placa, la ficha guardada tiene que decir la misma: una RTX 5070 Ti
+        // no es la RTX 5080 aunque compartan RAM y disco.
+        String g = gpu(especificaciones.get("gpu"));
+        if (g != null && !g.equals(gpu(ficha))) return false;
         return alguna;
     }
 
-    /** El producto activo de este proveedor con el nombre corto y la misma RAM y disco, si es uno solo. */
-    private Optional<Producto> conNombreCorto(Long proveedorId, String marca, String corto, Map<String, ?> especificaciones) {
-        List<Long> ids = jdbc.queryForList("""
-                SELECT id FROM productos
-                WHERE proveedor_id = ? AND activo
-                  AND lower(regexp_replace(trim(marca), '\\s+', ' ', 'g')) = ?
-                  AND lower(regexp_replace(trim(modelo), '\\s+', ' ', 'g')) = ?
-                """, Long.class, proveedorId, ImagenManualService.normalizar(marca), ImagenManualService.normalizar(corto));
+    /** El producto activo de este proveedor con alguno de esos nombres y la misma RAM, disco y placa, si es uno solo. */
+    private Optional<Producto> conNombreCorto(Long proveedorId, String marca, List<String> nombres, Map<String, ?> especificaciones) {
+        List<Long> ids = new ArrayList<>();
+        for (String nombre : nombres) {
+            ids.addAll(jdbc.queryForList("""
+                    SELECT id FROM productos
+                    WHERE proveedor_id = ? AND activo
+                      AND lower(regexp_replace(trim(marca), '\\s+', ' ', 'g')) = ?
+                      AND lower(regexp_replace(trim(modelo), '\\s+', ' ', 'g')) = ?
+                    """, Long.class, proveedorId, ImagenManualService.normalizar(marca), ImagenManualService.normalizar(nombre)));
+        }
         List<Long> iguales = ids.stream()
                 .filter(id -> varianteRepository.findByProductoIdAndActivo(id, true).stream()
                         .anyMatch(v -> fichaConCapacidades(v.getEspecificaciones(), especificaciones)))

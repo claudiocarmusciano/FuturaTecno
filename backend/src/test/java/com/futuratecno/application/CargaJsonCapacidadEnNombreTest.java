@@ -33,12 +33,30 @@ class CargaJsonCapacidadEnNombreTest {
     }
 
     @Test
+    void laPlacaDeVideoDedicadaTambienVaAlNombre() {
+        assertEquals("RTX 5070 Ti", CargaJsonService.gpu("NVIDIA GeForce RTX 5070 Ti 12GB"));
+        assertEquals("RTX 5080", CargaJsonService.gpu("RTX 5080 16GB"));
+        assertEquals("RX 7600S", CargaJsonService.gpu("AMD Radeon RX 7600S"));
+        // Integradas no: no distinguen y alargan el nombre.
+        assertEquals(null, CargaJsonService.gpu("Intel Iris Xe Graphics"));
+        assertEquals("RTX 5080", CargaJsonService.gpuFaltante("Raider 16 Max 32GB 1TB", Map.of("gpu", "RTX 5080 16GB")));
+        assertEquals("", CargaJsonService.gpuFaltante("Raider 16 Max RTX 5080", Map.of("gpu", "NVIDIA RTX 5080")));
+        // Una 5070 Ti en el nombre no dice 5070 ni al revés.
+        assertEquals("RTX 5070", CargaJsonService.gpuFaltante("Katana 15 RTX 5070 Ti", Map.of("gpu", "RTX 5070")));
+    }
+
+    @Test
     void laFichaGuardadaTieneQueTraerLaMismaRamYElMismoDisco() {
         String ficha = "Intel Core i7-1355U · 8GB · 256GB · 15.6”";
         assertTrue(CargaJsonService.fichaConCapacidades(ficha, Map.of("ram", "8GB", "almacenamiento", "256GB")));
         assertFalse(CargaJsonService.fichaConCapacidades(ficha, Map.of("ram", "16GB", "almacenamiento", "1TB")));
         // "128GB" no es "8GB" aunque lo contenga.
         assertFalse(CargaJsonService.fichaConCapacidades("Octa-core · 128GB", Map.of("ram", "8GB")));
+        // Y la misma placa, si la carga la dice.
+        String gamer = "Core Ultra 9 · 32GB · 1TB · NVIDIA RTX 5070 Ti 12GB";
+        assertTrue(CargaJsonService.fichaConCapacidades(gamer, Map.of("ram", "32GB", "almacenamiento", "1TB", "gpu", "RTX 5070 Ti")));
+        assertFalse(CargaJsonService.fichaConCapacidades(gamer, Map.of("ram", "32GB", "almacenamiento", "1TB", "gpu", "RTX 5080")));
+        assertFalse(CargaJsonService.fichaConCapacidades(gamer, Map.of("ram", "32GB", "almacenamiento", "1TB", "gpu", "RTX 5070")));
         // Sin capacidades para comparar no se afirma nada.
         assertFalse(CargaJsonService.fichaConCapacidades(ficha, Map.of("procesador", "i7")));
     }
