@@ -256,4 +256,57 @@ class GenerarListadoServiceTest {
         assertEquals("iPhone 17 Pro 256GB Blue", a.get("modelo_exacto"));
         assertEquals("Azul", ((java.util.Map<?, ?>) a.get("especificaciones")).get("color"));
     }
+
+    @Test
+    void unaListaCortaVaEnUnaSolaTanda() {
+        assertEquals(1, GenerarListadoService.tandas("ASUS\nVivobook 15 Core 7 150U 16GB, 512GB USD 1.020").size());
+    }
+
+    @Test
+    void lasTandasNuncaSeparanUnArticuloDeSusColoresYArrastranElEncabezado() {
+        StringBuilder t = new StringBuilder("RELOJES\n");
+        for (int i = 1; i <= 60; i++) {
+            t.append("⌚ WATCH MODELO ").append(i).append(" $").append(50 + i).append("\n");
+            t.append("- GRAPHITE Black/Black METAL+BROWN LEATHER\n- ROSE Gold/Gold METAL+WHITE\n");
+        }
+        var partes = GenerarListadoService.tandas(t.toString());
+        assertTrue(partes.size() > 1, "una lista de 60 relojes con colores tiene que partirse");
+        int relojes = 0;
+        for (String p : partes) {
+            // Cada tanda arranca con el encabezado de sección o con un reloj, nunca con un color suelto.
+            assertFalse(p.startsWith("-"), p.substring(0, 30));
+            assertTrue(p.startsWith("RELOJES") || p.startsWith("⌚"), p.substring(0, 30));
+            // Cada reloj lleva sus dos colores en la misma tanda.
+            for (String linea : p.split("\n")) if (linea.startsWith("⌚")) relojes++;
+            assertEquals(p.split("⌚").length - 1, p.split("- GRAPHITE").length - 1);
+        }
+        assertEquals(60, relojes, "ningún artículo se pierde ni se repite");
+    }
+
+    @Test
+    void enListasConElModeloComoEncabezadoCadaTandaLoArrastra() {
+        StringBuilder t = new StringBuilder();
+        for (int m = 1; m <= 12; m++) {
+            t.append("🔥 iPhone ").append(m).append(" Pro\n");
+            for (int c = 0; c < 4; c++) t.append("* 256GB - (Black - Blue) US$").append(1000 + m * 10 + c).append("\n");
+        }
+        for (String p : GenerarListadoService.tandas(t.toString())) {
+            assertTrue(p.startsWith("🔥 iPhone"), "la tanda empieza sin su modelo: " + p.substring(0, 20));
+        }
+    }
+
+    @Test
+    void alUnirLasTandasUnDuplicadoConservaElPrecioMasAlto() {
+        java.util.function.BiFunction<String, String, java.util.Map<String, Object>> art = (modelo, precio) -> {
+            var m = new java.util.LinkedHashMap<String, Object>();
+            m.put("marca", "HP"); m.put("modelo", modelo); m.put("precio_usd", new java.math.BigDecimal(precio));
+            return m;
+        };
+        var r = GenerarListadoService.unir(List.of(
+                new GenerarListadoService.Borrador(List.of(art.apply("Victus 15 16GB 512GB", "1105")), List.of()),
+                new GenerarListadoService.Borrador(List.of(art.apply("Victus 15 16GB 512GB", "1190"), art.apply("Omen 16", "1890")), List.of("x"))));
+        assertEquals(2, r.articulos().size());
+        assertEquals(new java.math.BigDecimal("1190"), r.articulos().get(0).get("precio_usd"));
+        assertTrue(r.avisos().contains("Parte 2: x"));
+    }
 }

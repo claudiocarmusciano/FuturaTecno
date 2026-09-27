@@ -123,39 +123,113 @@ public class GenerarListadoService {
         // se rinde primero, el servidor sigue trabajando y no escribe nada. Sin esta línea, en los
         // logs no queda rastro de que alguien lo intentó y el problema parece no existir.
         long inicio = System.currentTimeMillis();
-        logger.info("Generar listado: {} caracteres con {}", texto.length(), proveedorIa);
-        // Tope duro, en un hilo aparte. Los timeouts del cliente HTTP no alcanzan: cubren la
+        // Las listas largas se parten en tandas que van a la IA EN PARALELO. Una sola llamada tiene
+        // un tope de respuesta (~100-120 artículos, contando cada color como uno): la lista de Cozzo
+        // de 6.847 caracteres, con relojes de tres o cuatro colores, lo pasaba y la IA cortaba.
+        List<String> partes = tandas(texto);
+        logger.info("Generar listado: {} caracteres en {} parte(s) con {}", texto.length(), partes.size(), proveedorIa);
+        // Tope duro, en hilos aparte. Los timeouts del cliente HTTP no alcanzan: cubren la
         // conexión y la lectura, pero NO la resolución DNS, que en Java no tiene límite. El
         // 2026-09-14 una llamada a DeepSeek se quedó colgada más de siete minutos sin que saltara
         // el read timeout de 180 s ni se escribiera un solo error. Esto garantiza que la request
         // siempre termine y el admin siempre reciba un motivo, pase lo que pase del otro lado.
-        Future<Borrador> tarea = ejecutor.submit(() -> generarCon(texto));
+        List<Future<Borrador>> tareas = new ArrayList<>();
+        for (String parte : partes) tareas.add(ejecutor.submit(() -> generarCon(parte)));
+        long limite = System.nanoTime() + TimeUnit.SECONDS.toNanos(PRESUPUESTO_SEGUNDOS);
+        List<Borrador> hechos = new ArrayList<>();
+        int actual = 0;
         try {
-            Borrador borrador = tarea.get(PRESUPUESTO_SEGUNDOS, TimeUnit.SECONDS);
-            logger.info("Generar listado: {} artículo(s) en {} s", borrador.articulos().size(),
-                    (System.currentTimeMillis() - inicio) / 1000);
-            return borrador;
+            for (; actual < tareas.size(); actual++) {
+                long resta = Math.max(1, limite - System.nanoTime());
+                hechos.add(tareas.get(actual).get(resta, TimeUnit.NANOSECONDS));
+            }
         } catch (TimeoutException e) {
             // cancel(true) interrumpe, pero un hilo trabado en DNS o en un socket no atiende la
             // interrupción: puede quedar colgado hasta que el sistema operativo lo suelte. Se
             // abandona a propósito — mejor perder un hilo del pool que la pantalla del admin.
-            tarea.cancel(true);
+            tareas.forEach(t -> t.cancel(true));
             logger.warn("Generar listado: {} no respondió en {} s. Se abandona la llamada.",
                     proveedorIa, PRESUPUESTO_SEGUNDOS);
             throw new IllegalStateException(mensajeDemora(nombreProveedor()));
         } catch (ExecutionException e) {
+            tareas.forEach(t -> t.cancel(true));
             Throwable causa = e.getCause() == null ? e : e.getCause();
             // El tipo de excepción es lo que dice DÓNDE se rompió. Sin esto vuelve a pasar lo de
             // ayer: un fallo real llegando como un mensaje genérico imposible de diagnosticar.
-            logger.warn("Generar listado: falló después de {} s — {}: {}",
+            logger.warn("Generar listado: la parte {} de {} falló después de {} s — {}: {}", actual + 1, partes.size(),
                     (System.currentTimeMillis() - inicio) / 1000,
                     causa.getClass().getSimpleName(), causa.getMessage());
-            if (causa instanceof RuntimeException re) throw re;
-            throw new IllegalStateException(mensajeDemora(nombreProveedor()));
+            String parte = partes.size() > 1 ? "Parte " + (actual + 1) + " de " + partes.size() + ": " : "";
+            if (causa instanceof IllegalArgumentException iae) throw new IllegalArgumentException(parte + iae.getMessage());
+            if (causa instanceof RuntimeException re) throw new IllegalStateException(parte + re.getMessage());
+            throw new IllegalStateException(parte + mensajeDemora(nombreProveedor()));
         } catch (InterruptedException e) {
+            tareas.forEach(t -> t.cancel(true));
             Thread.currentThread().interrupt();
             throw new IllegalStateException("La generación se interrumpió. Volvé a intentar.");
         }
+        Borrador borrador = unir(hechos);
+        logger.info("Generar listado: {} artículo(s) en {} s", borrador.articulos().size(),
+                (System.currentTimeMillis() - inicio) / 1000);
+        return borrador;
+    }
+
+    /** Líneas con precio: "US$1275", "USD 1.505", "usd 805", "$70". */
+    private static final java.util.regex.Pattern LINEA_CON_PRECIO =
+            java.util.regex.Pattern.compile("(?i)(?:US\\$|U\\$[SD]|USD|\\$)\\s*\\d");
+    /** Continuación de un artículo (colores, detalles): "- GRAPHITE Black/Black…", "• …". */
+    private static final java.util.regex.Pattern CONTINUACION = java.util.regex.Pattern.compile("^\\s*[-–•▪·]");
+    static final int MAX_CARACTERES_TANDA = 1800;
+    static final int MAX_PRECIOS_TANDA = 25;
+
+    /**
+     * Parte el listado en tandas que la IA pueda contestar enteras. Solo se corta ANTES de una
+     * línea con precio, así un artículo nunca queda separado de sus líneas de colores; y cada tanda
+     * nueva arrastra el último encabezado (la marca, o el modelo en listas tipo "🔥 iPhone 17 Pro"),
+     * que es donde vive el nombre del producto en muchos listados.
+     */
+    static List<String> tandas(String texto) {
+        List<String> out = new ArrayList<>();
+        List<String> actual = new ArrayList<>();
+        int caracteres = 0, precios = 0;
+        String encabezado = null;
+        for (String linea : texto.split("\n", -1)) {
+            boolean precio = LINEA_CON_PRECIO.matcher(linea).find();
+            if (precio && precios > 0 && (precios >= MAX_PRECIOS_TANDA || caracteres >= MAX_CARACTERES_TANDA)) {
+                out.add(String.join("\n", actual).strip());
+                actual = new ArrayList<>();
+                caracteres = 0;
+                precios = 0;
+                if (encabezado != null) { actual.add(encabezado); caracteres += encabezado.length() + 1; }
+            }
+            actual.add(linea);
+            caracteres += linea.length() + 1;
+            if (precio) precios++;
+            else if (!linea.isBlank() && !CONTINUACION.matcher(linea).find()) encabezado = linea;
+        }
+        String resto = String.join("\n", actual).strip();
+        if (!resto.isEmpty()) out.add(resto);
+        return out.isEmpty() ? List.of(texto) : out;
+    }
+
+    /** Junta los borradores de las tandas: mismo criterio de duplicados que dentro de una tanda (queda el precio más alto). */
+    static Borrador unir(List<Borrador> partes) {
+        if (partes.size() == 1) return partes.get(0);
+        Map<String, Map<String, Object>> vistos = new LinkedHashMap<>();
+        List<String> avisos = new ArrayList<>();
+        for (int i = 0; i < partes.size(); i++) {
+            for (String aviso : partes.get(i).avisos()) avisos.add("Parte " + (i + 1) + ": " + aviso);
+            for (Map<String, Object> a : partes.get(i).articulos()) {
+                String clave = ImagenManualService.normalizar(String.valueOf(a.get("marca"))) + "|"
+                        + ImagenManualService.normalizar(String.valueOf(a.get("modelo")));
+                Map<String, Object> anterior = vistos.get(clave);
+                if (anterior == null) { vistos.put(clave, a); continue; }
+                if (((BigDecimal) anterior.get("precio_usd")).compareTo((BigDecimal) a.get("precio_usd")) < 0) vistos.put(clave, a);
+                avisos.add("Duplicado unificado entre partes: " + a.get("marca") + " " + a.get("modelo")
+                        + ". Se conserva el precio más alto: USD " + vistos.get(clave).get("precio_usd") + ".");
+            }
+        }
+        return new Borrador(new ArrayList<>(vistos.values()), avisos);
     }
 
     private String nombreProveedor() {
