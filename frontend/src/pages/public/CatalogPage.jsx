@@ -4,6 +4,7 @@ import axios from 'axios'
 import { indexarArbol } from '../../utils/categorias'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import EditarComoAdmin from '../../components/EditarComoAdmin'
 import { IconArrowUpRight, IconBanknote, IconCart, IconCheck, IconGrid, IconMenu, IconSearchLine, IconX } from '../../components/icons'
 import './CatalogPage.css'
 
@@ -446,7 +447,10 @@ function CatalogPage() {
           ) : (
             <div className="catalog-product-grid" aria-busy={actualizando} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '20px', opacity: actualizando ? 0.55 : 1, transition: 'opacity .15s' }}>
               {visibles.map(p => (
-                <Link key={p.id} to={`/producto/${p.id}`} className="producto-card">
+                // El botón del admin va FUERA del Link: un enlace dentro de otro no es HTML válido.
+                <div key={p.id} className="producto-card-wrap">
+                <EditarComoAdmin productoId={p.id} />
+                <Link to={`/producto/${p.id}`} className="producto-card">
                   {/* Tile blanco a propósito: las fotos de los mayoristas vienen recortadas sobre
                       blanco o en PNG transparente, y sobre el fondo oscuro un producto negro
                       desaparecería. */}
@@ -520,6 +524,7 @@ function CatalogPage() {
                     )}
                   </div>
                 </Link>
+                </div>
               ))}
             </div>
           )}

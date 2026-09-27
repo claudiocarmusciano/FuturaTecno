@@ -69,7 +69,11 @@ function ProductosPage() {
     : origen === 'imagenes' ? `/admin/imagenes?${new URLSearchParams({
       busqueda: searchParams.get('busqueda') || '',
       filtro: searchParams.get('filtro') || 'sin-imagen'
-    })}` : null
+    })}`
+    // Desde la tienda (botón "Editar" del catálogo o del detalle): se vuelve a la misma página.
+    // Solo rutas internas, para que el parámetro no pueda mandar a otro sitio.
+    : origen === 'tienda' && /^\/(?![\/\\])/.test(searchParams.get('volver') || '') ? searchParams.get('volver')
+    : null
 
   const { padreDe, nodoDe } = indexarArbol(arbol)
 

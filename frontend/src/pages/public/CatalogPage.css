@@ -84,6 +84,18 @@
   background: #5865f2;
   pointer-events: none;
 }
+.catalog-product-grid .producto-card-wrap { position: relative; display: flex; }
+.catalog-product-grid .producto-card-wrap > .producto-card { flex: 1; min-width: 0; }
+/* Acceso del admin a la edición: arriba a la derecha, sobre la foto. */
+.editar-como-admin {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: var(--color-lime); color: #16181d; text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.editar-como-admin:hover { background: var(--color-lime-dark); color: #16181d; }
+.editar-como-admin svg { width: 13px; height: 13px; }
+.catalog-product-grid .producto-card-wrap > .editar-como-admin { position: absolute; top: 10px; right: 10px; z-index: 2; }
 .catalog-product-grid .producto-card {
   border-color: rgba(255,255,255,.10);
   border-radius: 12px;

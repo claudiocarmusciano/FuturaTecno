@@ -4,6 +4,8 @@ import axios from 'axios'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import EditarComoAdmin from '../../components/EditarComoAdmin'
+import './CatalogPage.css'
 import { IconCart, IconChat, IconCheck, IconTruck } from '../../components/icons'
 
 const formatNumber = (n) =>
@@ -123,6 +125,7 @@ function ProductDetailPage() {
             <span className="chip-categoria" style={{ marginBottom: '12px' }}>{producto.categoria}</span>
           )}
           <h1 style={{ margin: '8px 0 4px', fontSize: '30px' }}>{producto.marca} {producto.modelo}</h1>
+          <EditarComoAdmin productoId={producto.id} style={{ margin: '6px 0 10px' }} />
           {producto.sku && <p style={{ margin: '0 0 20px', fontSize: '12px', color: 'var(--color-text-muted)' }}>Cód. {producto.sku}</p>}
 
           {producto.variantes.map(v => (
