@@ -131,7 +131,7 @@
 .lp-brands { background: #242831; color: #f2f3f5; padding: 42px 0 46px; }
 .lp-brands-kicker { font-family: 'Sora', sans-serif; font-size: 12px; letter-spacing: 1.8px; text-transform: uppercase; text-align: center; color: #b4bac3; font-weight: 700; margin-bottom: 25px !important; }
 .lp-brand-marquee { overflow: hidden; margin: 0 -22px; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-.lp-brand-track { display: flex; width: max-content; animation: lp-marcas 34s linear infinite; }
+.lp-brand-track { display: flex; width: max-content; animation: lp-marcas 44s linear infinite; } /* 44 s con 17 marcas: la misma velocidad que tenía con 13 */
 .lp-brand-marquee:hover .lp-brand-track { animation-play-state: paused; }
 .lp-brand { width: 148px; min-height: 62px; display: flex; flex: 0 0 148px; align-items: center; justify-content: center; color: #f2f3f5; font-family: Arial, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -.04em; transition: transform .16s, filter .16s; }
 .lp-brand-track:hover .lp-brand { filter: saturate(.65); }
@@ -153,6 +153,11 @@
 .lp-brand-logitech { font-size: 17px; font-weight: 700; letter-spacing: -.09em; }
 .lp-brand-tplink { font-size: 18px; font-weight: 500; letter-spacing: -.07em; }
 .lp-brand-tplink::first-letter { color: #21b7bc; font-weight: 800; }
+.lp-brand-apple svg { width: 30px; height: 37px; fill: #f2f3f5; }
+/* La elipse azul con la palabra en blanco, como el logo clásico de Samsung. */
+.lp-brand-samsung { flex-basis: 128px; min-height: 40px; margin: 0 10px; border-radius: 50%; background: #1428a0; color: #fff; font-size: 15px; font-weight: 800; letter-spacing: .12em; }
+.lp-brand-motorola { font-size: 21px; font-weight: 700; letter-spacing: -.03em; }
+.lp-brand-sony { font-family: Georgia, 'Times New Roman', serif; font-size: 23px; font-weight: 700; letter-spacing: .16em; }
 
 /* ===== secciones ===== */
 .lp-block { padding: 78px 0; position: relative; }
