@@ -230,6 +230,15 @@ public class CargaJsonService {
                 }
             }
 
+            // El mismo artículo publicado con el color en castellano ("MacBook Air … Plateado") y que
+            // ahora llega en inglés ("… Silver"): lo que no es teléfono se reconoce por el nombre, así
+            // que sin esto nacía un duplicado. Se adopta si es uno solo, y abajo se le pasa el nombre.
+            if (decision.accion() == Accion.CREAR && !reemplazo) {
+                Optional<Producto> mismo = mismoConElColorEnOtroIdioma(proveedorId, marca, modelo);
+                if (mismo.isPresent() && !excluidos.contains(mismo.get().getId()))
+                    decision = new Decision(Accion.ACTUALIZAR, mismo.get(), List.of(), List.of());
+            }
+
             if (decision.accion() == Accion.REVISION) {
                 revision++;
                 CargaJsonResponse.Item item = new CargaJsonResponse.Item(marca + " " + modelo, "revision", null,
@@ -245,7 +254,7 @@ public class CargaJsonService {
             if (nuevo) {
                 producto.setProveedor(proveedor);
                 producto.setMarca(marca);
-                producto.setModelo(nombreAlCrear(modelo, r));
+                producto.setModelo(nombreAlCrear(modelo, r, art.getEspecificaciones() == null ? null : art.getEspecificaciones().get("color")));
                 producto.setFuente(FUENTE);
             }
             // El nombre visible de un producto existente NO se pisa con la redacción de esta carga:
@@ -260,6 +269,16 @@ public class CargaJsonService {
             // primero (es con el que el admin las editó), después el de esta carga y después el de
             // otros productos con la misma identidad (el mismo artículo en otro proveedor).
             List<NombreArticulo> nombres = nombresDelArticulo(producto, marca, modelo, r);
+            // Colores en inglés, con el nombre del fabricante (pedido del usuario): si el guardado lo
+            // tiene en castellano y lo que llega es el mismo artículo con el color en inglés, se renombra.
+            // Solo en esa dirección, así una lista vieja en castellano no lo vuelve a traducir.
+            if (!nuevo && !completarNombre && IdentidadProductoService.soloCambiaElIdiomaDelColor(producto.getModelo(), modelo)
+                    && IdentidadProductoService.tieneColorEnCastellano(producto.getModelo())
+                    && !IdentidadProductoService.tieneColorEnCastellano(modelo)) {
+                nombres = new ArrayList<>(nombres);
+                nombres.add(new NombreArticulo(marca, producto.getModelo()));
+                producto.setModelo(modelo);
+            }
             if (completarNombre) {
                 // Las memorias (descripción, atributos, margen) se guardaron con el nombre corto.
                 nombres = new ArrayList<>(nombres);
@@ -799,10 +818,27 @@ public class CargaJsonService {
      * por {@code modelo_exacto} pero no está en el modelo, se agrega: dos colores del mismo
      * teléfono son dos productos, y en la tienda no pueden verse con el mismo nombre.
      */
-    static String nombreAlCrear(String modelo, Resolucion r) {
+    static String nombreAlCrear(String modelo, Resolucion r, Object colorDeLaFicha) {
         if (!r.esTelefono() || !"especificaciones".equals(r.atributos().get("fuente.color"))) return modelo;
-        String color = IdentidadProductoService.nombreVisibleColor(r.atributos().get("color"));
+        // El color tal como vino (en inglés, el nombre del fabricante); si no vino escrito, el
+        // reconocido pasado al inglés. Nunca se traduce al castellano.
+        String crudo = colorDeLaFicha instanceof String c && !c.isBlank() && !IdentidadProductoService.tieneColorEnCastellano(c) ? c.strip() : null;
+        String color = crudo != null ? crudo : IdentidadProductoService.nombreColorIngles(r.atributos().get("color"));
         return color == null ? modelo : modelo + " " + color;
+    }
+
+    /** El producto activo de este proveedor que es este mismo con el color escrito en otro idioma, si es uno solo. */
+    private Optional<Producto> mismoConElColorEnOtroIdioma(Long proveedorId, String marca, String modelo) {
+        if (IdentidadProductoService.coloresDe(modelo).isEmpty()) return Optional.empty();
+        List<Long> ids = new ArrayList<>();
+        jdbc.query("""
+                SELECT id, modelo FROM productos
+                WHERE proveedor_id = ? AND activo
+                  AND lower(regexp_replace(trim(marca), '\\s+', ' ', 'g')) = ?
+                """, rs -> {
+                    if (IdentidadProductoService.soloCambiaElIdiomaDelColor(rs.getString("modelo"), modelo)) ids.add(rs.getLong("id"));
+                }, proveedorId, ImagenManualService.normalizar(marca));
+        return ids.size() == 1 ? productoRepository.findById(ids.get(0)) : Optional.empty();
     }
 
     /** Texto de especificaciones (≤500) a partir del objeto `especificaciones`, en orden legible. */

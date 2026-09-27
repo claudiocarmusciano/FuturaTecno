@@ -471,10 +471,50 @@ public class IdentidadProductoService {
     public static List<String> coloresVisibles(String texto) {
         List<String> out = new ArrayList<>();
         for (String c : coloresDe(texto)) {
-            String v = nombreVisibleColor(c);
+            // En inglés, como lo llama el fabricante ("Orange", no "Naranja").
+            String v = nombreColorIngles(c);
             if (v != null) out.add(v);
         }
         return out;
+    }
+
+    /** Nombre del color en inglés, que es como lo llama el fabricante (pedido del usuario, 2026-09-26). */
+    private static final Map<String, String> COLOR_EN_INGLES = Map.ofEntries(
+            Map.entry("negro", "Black"), Map.entry("blanco", "White"), Map.entry("azul", "Blue"),
+            Map.entry("verde", "Green"), Map.entry("rojo", "Red"), Map.entry("rosa", "Pink"),
+            Map.entry("violeta", "Purple"), Map.entry("gris", "Gray"), Map.entry("plata", "Silver"),
+            Map.entry("dorado", "Gold"), Map.entry("amarillo", "Yellow"), Map.entry("naranja", "Orange"),
+            Map.entry("crema", "Cream"), Map.entry("celeste", "Sky Blue"), Map.entry("medianoche", "Midnight"),
+            Map.entry("blanco-estelar", "Starlight"), Map.entry("sage", "Sage"), Map.entry("titanio", "Titanium"),
+            Map.entry("titanio-natural", "Natural Titanium"), Map.entry("titanio-negro", "Black Titanium"),
+            Map.entry("titanio-blanco", "White Titanium"), Map.entry("titanio-azul", "Blue Titanium"),
+            Map.entry("titanio-desierto", "Desert Titanium"));
+
+    /** "negro" → "Black"; si no está en la tabla, el nombre visible de siempre. */
+    public static String nombreColorIngles(String canonico) {
+        if (canonico == null || canonico.isBlank()) return null;
+        String en = COLOR_EN_INGLES.get(canonico);
+        return en != null ? en : nombreVisibleColor(canonico);
+    }
+
+    private static final Pattern COLOR_EN_CASTELLANO = Pattern.compile(
+            "\\b(NEGR[OA]S?|BLANC[OA]S?|AZUL|VERDE|ROJ[OA]|ROSA(?:D[OA])?|VIOLETA|LILA|LAVANDA|MORAD[OA]|PURPURA|GRIS|GRAFITO"
+            + "|PLATA|PLATEAD[OA]|DORAD[OA]|AMARILL[OA]|NARANJA|CREMA|CELESTE|MEDIANOCHE|ESTELAR|TITANIO|MENTA|AZUL CIELO)\\b");
+
+    /** ¿El texto nombra un color en castellano ("MacBook Air Plateado")? */
+    public static boolean tieneColorEnCastellano(String texto) {
+        return texto != null && COLOR_EN_CASTELLANO.matcher(norm(texto)).find();
+    }
+
+    /**
+     * ¿Los dos nombres son el mismo artículo y solo cambia cómo está escrito el color
+     * ("… 256GB Plateado" / "… 256GB Silver")? Tiene que haber al menos un color, y el mismo.
+     */
+    public static boolean soloCambiaElIdiomaDelColor(String a, String b) {
+        if (a == null || b == null || a.equalsIgnoreCase(b)) return false;
+        java.util.Set<String> ca = coloresDe(a);
+        return !ca.isEmpty() && ca.equals(coloresDe(b))
+                && ImagenManualService.claveSuelta(sinColores(a)).equals(ImagenManualService.claveSuelta(sinColores(b)));
     }
 
     /**
