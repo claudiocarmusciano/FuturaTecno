@@ -408,6 +408,18 @@ class CargaJsonIdentidadPostgresTest {
     }
 
     @Test
+    void siLaIaYaEscribeLaPlacaEnElNombreSeAdoptaLaNotebookCargadaSinPlaca() {
+        Long viejo = productoViejo(prov, "Lenovo", "LOQ ESSENTIAL CORE i7-13650HX 16GB 512GB", "Intel i7-13650HX · 16GB · 512GB · RTX 5060", "1655");
+        Map<String, Object> m = esp("512GB", "16GB");
+        m.put("gpu", "RTX 5060");
+        CargaJsonResponse.Item i = cargarUno(prov, art("Lenovo", "Lenovo LOQ Essential Core i7-13650HX 16GB 512GB RTX 5060", "1655", m));
+        assertEquals("actualizado", i.getEstado());
+        assertEquals(viejo, i.getProductoId());
+        assertEquals("LOQ Essential Core i7-13650HX 16GB 512GB RTX 5060", productos.findById(viejo).orElseThrow().getModelo());
+        assertEquals(1, productosDelProveedor(prov));
+    }
+
+    @Test
     void unProductoDeMayoristaNoSeToca() {
         // Un producto de Elit (codigo_externo) en otro proveedor, mismo nombre.
         Long elit = nuevoProveedor();

@@ -138,11 +138,15 @@ public class CargaJsonService {
                     String conCapacidades = (modelo + " " + capacidadesFaltantes(modelo, art.getEspecificaciones())).strip();
                     String gpu = gpuFaltante(conCapacidades, art.getEspecificaciones());
                     String completo = (conCapacidades + " " + gpu).strip();
+                    // La IA a veces ya escribe la placa en el nombre ("… 16GB 512GB RTX 5060") y
+                    // antes no la escribía: el mismo artículo pudo crearse con el nombre sin la placa.
+                    String sinPlaca = antesDeLaPlaca(completo);
+                    if (sinPlaca != null && !sinPlaca.equals(completo)) previos.add(sinPlaca);
                     if (!completo.equals(modelo)) {
                         // Nombres con los que este artículo pudo haberse creado antes: sin nada
                         // agregado, o con RAM y disco pero sin la placa (así se cargó hasta el 26/9).
-                        previos.add(corto);
-                        if (!conCapacidades.equals(corto) && !conCapacidades.equals(completo)) previos.add(conCapacidades);
+                        if (!previos.contains(corto)) previos.add(corto);
+                        if (!conCapacidades.equals(corto) && !conCapacidades.equals(completo) && !previos.contains(conCapacidades)) previos.add(conCapacidades);
                         modelo = completo;
                         r = identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria()));
                     }
@@ -725,6 +729,15 @@ public class CargaJsonService {
         java.util.regex.Matcher m = GPU.matcher(String.valueOf(valor).toUpperCase(Locale.ROOT));
         if (!m.find()) return null;
         return m.group(1) != null ? m.group(1) + " " + m.group(2) + (m.group(3) != null ? " Ti" : "") : m.group(4) + " " + m.group(5);
+    }
+
+    /** "LOQ Essential i7 16GB 512GB RTX 5060" → "LOQ Essential i7 16GB 512GB"; null si el nombre no tiene placa. */
+    static String antesDeLaPlaca(String modelo) {
+        if (modelo == null) return null;
+        java.util.regex.Matcher m = GPU.matcher(modelo.toUpperCase(Locale.ROOT));
+        if (!m.find() || m.start() == 0) return null;
+        String antes = modelo.substring(0, m.start()).replaceAll("[\\s,\\-–/]+$", "").strip();
+        return antes.isEmpty() ? null : antes;
     }
 
     /** La placa de video de la ficha si el nombre no la dice ("RTX 5080"); vacío si no hay o ya está. */
