@@ -58,6 +58,16 @@ public class CategoriaClasificadorService {
         this.clasificadorPorNombre = clasificadorPorNombre;
     }
 
+    public static final String PATH_TARJETAS = "Almacenamiento > Tarjetas de memoria";
+    private static final java.util.regex.Pattern TARJETA = java.util.regex.Pattern.compile(
+            "^\\s*(?:tarjeta\\s+(?:de\\s+)?memoria|memoria\\s+micro\\s*sd|micro\\s*sd(?:hc|xc)?\\b|sd(?:hc|xc)\\b)",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /** ¿El nombre arranca diciendo que es una tarjeta de memoria ("Tarjeta de Memoria …", "MicroSD …")? */
+    public static boolean esTarjetaDeMemoria(String modelo) {
+        return modelo != null && TARJETA.matcher(modelo).find();
+    }
+
     /** Clasifica sin categoría padre sugerida (mayoristas que no mandan jerarquía, ej. Elit). */
     public Long clasificar(Producto producto, String categoriaCruda) {
         return clasificar(producto, categoriaCruda, null);
@@ -75,6 +85,13 @@ public class CategoriaClasificadorService {
         // de Apple fuera de su árbol al 2026-09-26). La regla de Apple nunca devuelve null.
         // Lo mismo con las Nintendo Switch: "switch" también es un equipo de red, y una pista
         // o una categoría vieja las dejaba en "Switches No Administrables".
+        // Tarjetas de memoria: Elit las informa como "Memoria DDR4" y esa pista las mandaba a
+        // Memorias RAM (34 al 2026-09-26). Se decide por cómo EMPIEZA el nombre, así no atrapa un
+        // parlante "con MicroSD" ni un adaptador "USB a SD".
+        if (esTarjetaDeMemoria(producto.getModelo())) {
+            Long id = categoriaService.idPorPath(PATH_TARJETAS);
+            if (id != null) return id;
+        }
         String texto = ((producto.getMarca() == null ? "" : producto.getMarca()) + " "
                 + (producto.getModelo() == null ? "" : producto.getModelo())).toLowerCase(java.util.Locale.ROOT);
         boolean nintendoSwitch = texto.contains("nintendo") && texto.contains("switch");
