@@ -131,7 +131,7 @@
 .lp-brands { background: #242831; color: #f2f3f5; padding: 42px 0 46px; }
 .lp-brands-kicker { font-family: 'Sora', sans-serif; font-size: 12px; letter-spacing: 1.8px; text-transform: uppercase; text-align: center; color: #b4bac3; font-weight: 700; margin-bottom: 25px !important; }
 .lp-brand-marquee { overflow: hidden; margin: 0 -22px; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-.lp-brand-track { display: flex; width: max-content; animation: lp-marcas 44s linear infinite; } /* 44 s con 17 marcas: la misma velocidad que tenía con 13 */
+.lp-brand-track { display: flex; width: max-content; animation: lp-marcas 36s linear infinite; } /* ~70 px/s: una tanda = 17 marcas × 148 px = 2.516 px ÷ 36 s. Al sumar o quitar marcas, recalcular para mantenerla */
 .lp-brand-marquee:hover .lp-brand-track { animation-play-state: paused; }
 .lp-brand { width: 148px; min-height: 62px; display: flex; flex: 0 0 148px; align-items: center; justify-content: center; color: #f2f3f5; font-family: Arial, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -.04em; transition: transform .16s, filter .16s; }
 .lp-brand-track:hover .lp-brand { filter: saturate(.65); }
