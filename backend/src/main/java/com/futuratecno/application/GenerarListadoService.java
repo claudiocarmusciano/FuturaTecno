@@ -68,9 +68,7 @@ public class GenerarListadoService {
         3. modelo (obligatorio) y modelo_exacto (opcional):
            - modelo: limpio, SIN la marca adelante y sin emojis. Tiene que incluir TODO lo que distingue la
              variante: RAM y almacenamiento como "16GB 512GB" (en iPhone/iPad solo el almacenamiento),
-             placa de video dedicada ("RTX 5060", "RTX 5070 Ti"), color en castellano (Negro, Blanco, Azul,
-             Celeste, Plateado, Gris, Dorado, Rosa, Verde, Violeta, Naranja, Medianoche, Blanco Estelar;
-             "Star" = Blanco Estelar, "Mid" = Medianoche), tamaño cuando cambia el producto (MacBook Air
+             placa de video dedicada ("RTX 5060", "RTX 5070 Ti"), el color (ver COLOR), tamaño cuando cambia el producto (MacBook Air
              13 vs 15, iPad Pro 11 vs 13, Watch 42mm vs 46mm), conectividad ("5G", "+Cell", "eSIM", "WiFi"),
              "Teclado Español" y combos ("+ Mario Kart"). Mantené el código del fabricante ("LOQ 15ARP10E",
              "250 G10"). No confundas "4G" (red) con "4GB" (memoria). No completes códigos por suposición.
@@ -82,6 +80,13 @@ public class GenerarListadoService {
            "procesador", "ram", "almacenamiento", "pantalla", "gpu", "sistema_operativo", "color", "otros".
            RAM con unidad y sin la virtual ("8GB+8GB" → "8GB"); en Android "4/128" = ram "4GB",
            almacenamiento "128GB". "gpu" solo si es dedicada. "color" igual al del modelo. No infieras datos.
+           COLOR: SIEMPRE en inglés, con el nombre original que usa el fabricante para ese producto: Citrus,
+           Indigo, Blush, Sky Blue, Starlight, Midnight, Space Black, Space Gray, Silver, Graphite, Titanium,
+           Natural Titanium, Sage, Cherry, Black, White, Blue, Green, Pink, Orange, etc. NUNCA lo traduzcas
+           al castellano (Citrus NO es "Naranja", Sky Blue NO es "Celeste"). Si el listado lo trae en
+           castellano, pasalo al nombre original en inglés del fabricante (Negro → Black, Plateado → Silver,
+           Azul → Blue). Si ya viene en inglés, dejalo exactamente como viene. "Star" = Starlight, "Mid" = Midnight.
+           El mismo color, igual escrito, en el modelo y en especificaciones.color.
         5. imagenes: siempre []. La tienda asigna después la imagen de su propia base de datos (la del
            mismo modelo) y, si no hay, la busca aparte. Nunca inventes URLs.
         6. categoria (opcional): solo si es segura, EXACTAMENTE una de estas rutas; si no, omitila:
@@ -102,8 +107,8 @@ public class GenerarListadoService {
         Entrada: "🔥 iPhone 17 Pro * 256GB - (Silver - Blue) US$1190" y
         "💻 HP 250 G10 CORE i7-1355U 16GB, 1TB $1.360"
         Salida: {"articulos": [
-          {"marca":"Apple","modelo":"iPhone 17 Pro 256GB Plateado","modelo_exacto":"iPhone 17 Pro 256GB Silver","especificaciones":{"almacenamiento":"256GB","color":"Plateado"},"precio_usd":1190,"imagenes":[],"categoria":"Apple > iPhone"},
-          {"marca":"Apple","modelo":"iPhone 17 Pro 256GB Azul","modelo_exacto":"iPhone 17 Pro 256GB Blue","especificaciones":{"almacenamiento":"256GB","color":"Azul"},"precio_usd":1190,"imagenes":[],"categoria":"Apple > iPhone"},
+          {"marca":"Apple","modelo":"iPhone 17 Pro 256GB Silver","modelo_exacto":"iPhone 17 Pro 256GB Silver","especificaciones":{"almacenamiento":"256GB","color":"Silver"},"precio_usd":1190,"imagenes":[],"categoria":"Apple > iPhone"},
+          {"marca":"Apple","modelo":"iPhone 17 Pro 256GB Blue","modelo_exacto":"iPhone 17 Pro 256GB Blue","especificaciones":{"almacenamiento":"256GB","color":"Blue"},"precio_usd":1190,"imagenes":[],"categoria":"Apple > iPhone"},
           {"marca":"HP","modelo":"250 G10 Core i7-1355U 16GB 1TB","modelo_exacto":"HP 250 G10 CORE i7-1355U 16GB, 1TB $1.360","especificaciones":{"procesador":"Intel Core i7-1355U","ram":"16GB","almacenamiento":"1TB"},"precio_usd":1360,"imagenes":[],"categoria":"Notebooks > Consumo"}
         ], "avisos": []}
         """;

@@ -191,7 +191,8 @@ class CargaJsonIdentidadPostgresTest {
         a.setModeloExacto("Motorola G04 4G 64GB / 4GB RAM (Green)");
         CargaJsonResponse.Item creado = cargarUno(prov, a);
         assertEquals("creado", creado.getEstado());
-        assertEquals("G04 4G 64GB Verde", productos.findById(creado.getProductoId()).orElseThrow().getModelo());
+        // El color se agrega en inglés, con el nombre del fabricante: nunca se traduce al castellano.
+        assertEquals("G04 4G 64GB Green", productos.findById(creado.getProductoId()).orElseThrow().getModelo());
 
         // Recargarlo, o cargarlo con el color ya en el nombre, actualiza el mismo producto.
         assertEquals(creado.getProductoId(), cargarUno(prov, a).getProductoId());
@@ -417,6 +418,28 @@ class CargaJsonIdentidadPostgresTest {
         assertEquals(viejo, i.getProductoId());
         assertEquals("LOQ Essential Core i7-13650HX 16GB 512GB RTX 5060", productos.findById(viejo).orElseThrow().getModelo());
         assertEquals(1, productosDelProveedor(prov));
+    }
+
+    @Test
+    void loPublicadoConElColorEnCastellanoSeReconoceYPasaAlIngles() {
+        // No teléfono (se identifica por el nombre): sin esto, "Silver" duplicaba al "Plateado".
+        Long mac = productoViejo(prov, "Apple", "MacBook Neo 13.6 8GB 512GB Plateado", "Apple M5 · 8GB · 512GB", "910");
+        CargaJsonResponse.Item i = cargarUno(prov, art("Apple", "MacBook Neo 13.6 8GB 512GB Silver", "905",
+                new LinkedHashMap<>(Map.of("ram", "8GB", "almacenamiento", "512GB", "color", "Silver"))));
+        assertEquals("actualizado", i.getEstado());
+        assertEquals(mac, i.getProductoId());
+        assertEquals("MacBook Neo 13.6 8GB 512GB Silver", productos.findById(mac).orElseThrow().getModelo());
+
+        // Teléfono: la identidad ya lo encontraba; ahora además el nombre pasa al inglés.
+        Long iphone = cargarUno(prov, art("Apple", "iPhone 17 256GB Negro", "975", Map.of("almacenamiento", "256GB"))).getProductoId();
+        CargaJsonResponse.Item j = cargarUno(prov, art("Apple", "iPhone 17 256GB Black", "980", Map.of("almacenamiento", "256GB")));
+        assertEquals(iphone, j.getProductoId());
+        assertEquals("iPhone 17 256GB Black", productos.findById(iphone).orElseThrow().getModelo());
+
+        // Una lista vieja en castellano no lo vuelve a traducir.
+        cargarUno(prov, art("Apple", "iPhone 17 256GB Negro", "981", Map.of("almacenamiento", "256GB")));
+        assertEquals("iPhone 17 256GB Black", productos.findById(iphone).orElseThrow().getModelo());
+        assertEquals(2, productosDelProveedor(prov));
     }
 
     @Test
