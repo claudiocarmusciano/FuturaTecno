@@ -244,4 +244,16 @@ class GenerarListadoServiceTest {
         assertFalse(ImageUrlValidatorService.esFirmaImagen("<html>not an image</html>".getBytes()));
         assertTrue(ImageUrlValidatorService.esFirmaImagen(new byte[]{(byte)255,(byte)216,(byte)255,0,0,0,0,0,0,0,0,0}));
     }
+
+    @Test
+    void aceptaUnArrayDirectoYConservaColorYModeloExacto() throws Exception {
+        var r = service.normalizar(mapper.readTree("""
+          [{"marca":"Apple","modelo":"iPhone 17 Pro 256GB Azul","modelo_exacto":"iPhone 17 Pro 256GB Blue",
+            "especificaciones":{"almacenamiento":"256GB","color":"Azul"},"precio_usd":1190,"imagenes":[]}]
+          """));
+        assertEquals(1, r.articulos().size());
+        var a = r.articulos().get(0);
+        assertEquals("iPhone 17 Pro 256GB Blue", a.get("modelo_exacto"));
+        assertEquals("Azul", ((java.util.Map<?, ?>) a.get("especificaciones")).get("color"));
+    }
 }
