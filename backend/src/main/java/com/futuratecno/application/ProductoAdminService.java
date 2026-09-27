@@ -677,7 +677,12 @@ public class ProductoAdminService {
         return (base + " " + variante).trim();
     }
 
-    private boolean nintendoFueraDeConsolas(Producto p) {
+    private boolean tarjetaFueraDeSuLugar(Producto p) {
+        return CategoriaClasificadorService.esTarjetaDeMemoria(p.getModelo())
+                && !categoriaService.estaBajo(p.getCategoriaId(), "Almacenamiento");
+    }
+
+        private boolean nintendoFueraDeConsolas(Producto p) {
         String texto = ((p.getMarca() == null ? "" : p.getMarca()) + " " + (p.getModelo() == null ? "" : p.getModelo())).toLowerCase(java.util.Locale.ROOT);
         return texto.contains("nintendo") && texto.contains("switch") && !categoriaService.estaBajo(p.getCategoriaId(), "Consolas");
     }
@@ -697,7 +702,7 @@ public class ProductoAdminService {
         // Incluye los dados de baja, así un alta futura no hereda la categoría equivocada.
         List<Producto> sinCategoria = productoRepository.findAll().stream()
                 .filter(p -> (Boolean.TRUE.equals(p.getActivo()) && p.getCategoriaId() == null)
-                        || appleFueraDeSuArbol(p) || nintendoFueraDeConsolas(p))
+                        || appleFueraDeSuArbol(p) || nintendoFueraDeConsolas(p) || tarjetaFueraDeSuLugar(p))
                 .collect(Collectors.toList());
 
         int clasificados = 0;

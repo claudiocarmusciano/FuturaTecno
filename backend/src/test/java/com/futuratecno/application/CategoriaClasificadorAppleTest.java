@@ -42,6 +42,22 @@ class CategoriaClasificadorAppleTest {
     }
 
     @Test
+    void lasTarjetasDeMemoriaVanAAlmacenamientoAunqueLaPistaDigaDdr4() {
+        when(categorias.idPorPath("Almacenamiento > Tarjetas de memoria")).thenReturn(400L);
+        when(categorias.idPorPath("Memoria DDR4")).thenReturn(500L);
+        assertEquals(400L, servicio.clasificar(producto("KINGSTON", "Tarjeta de Memoria KINGSTON Canvas Select Plus MicroSDXC 256GB"), "Memoria DDR4"));
+        assertEquals(400L, servicio.clasificar(producto("Hiksemi", "MicroSD HIKSEMI 64Gb NEO c/Adap"), "Memoria DDR4"));
+    }
+
+    @Test
+    void unParlanteOUnAdaptadorQueMencionanMicroSdNoSonTarjetas() {
+        org.junit.jupiter.api.Assertions.assertFalse(CategoriaClasificadorService.esTarjetaDeMemoria("Parlante Kelyx Bluetooth 1 altavoz 5W MicroSD / USB"));
+        org.junit.jupiter.api.Assertions.assertFalse(CategoriaClasificadorService.esTarjetaDeMemoria("UA430 Adaptador TP-Link USB-A a SD / Micro SD"));
+        org.junit.jupiter.api.Assertions.assertFalse(CategoriaClasificadorService.esTarjetaDeMemoria("Memoria Ram UDIMM KINGSTON Fury Beast 16GB DDR4"));
+        org.junit.jupiter.api.Assertions.assertTrue(CategoriaClasificadorService.esTarjetaDeMemoria("Tarjeta de Memoria Sandisk MicroSDXC 128GB for Nintendo Switch"));
+    }
+
+    @Test
     void otraMarcaSigueUsandoLaPista() {
         Producto galaxy = producto("Samsung", "Galaxy S26 Ultra 12/256GB");
         when(categorias.idPorPath("Celulares")).thenReturn(107L);
