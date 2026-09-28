@@ -12,7 +12,7 @@ class CategoriaClasificadorAppleTest {
 
     private final CategoriaService categorias = mock(CategoriaService.class, withSettings().mockMaker(org.mockito.MockMakers.SUBCLASS));
     private final ClasificadorPorNombre porNombre = mock(ClasificadorPorNombre.class, withSettings().mockMaker(org.mockito.MockMakers.SUBCLASS));
-    private final CategoriaClasificadorService servicio = new CategoriaClasificadorService(new RestTemplate(), categorias, porNombre);
+    private final CategoriaClasificadorService servicio = new CategoriaClasificadorService(new RestTemplate(), categorias, porNombre, new JevClient());
 
     private static Producto producto(String marca, String modelo) {
         Producto p = new Producto();
