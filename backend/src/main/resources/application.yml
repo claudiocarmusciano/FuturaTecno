@@ -41,6 +41,12 @@ anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
   model: ${ANTHROPIC_MODEL:claude-haiku-4-5-20251001}
 
+# Jev (TypeSafe AI) para clasificar categorías. Si está, reemplaza a Claude en ese paso.
+typesafe:
+  api-key: ${TYPESAFE_API_KEY:}
+  model: ${TYPESAFE_MODEL:jev-latest}
+  confianza-minima: ${TYPESAFE_CONFIANZA_MINIMA:0.6}
+
 icecat:
   username: ${ICECAT_USERNAME:}
   api-token: ${ICECAT_API_TOKEN:}

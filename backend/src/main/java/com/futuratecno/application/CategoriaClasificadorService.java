@@ -44,6 +44,7 @@ public class CategoriaClasificadorService {
     private final RestTemplate restTemplate;
     private final CategoriaService categoriaService;
     private final ClasificadorPorNombre clasificadorPorNombre;
+    private final JevClient jev;
 
     @Value("${anthropic.api-key:}")
     private String apiKey;
@@ -51,11 +52,16 @@ public class CategoriaClasificadorService {
     @Value("${anthropic.model:claude-haiku-4-5-20251001}")
     private String model;
 
+    /** Por debajo de esta confianza, la categoría de Jev se descarta y el producto queda en null. */
+    @Value("${typesafe.confianza-minima:0.6}")
+    private double confianzaMinimaJev;
+
     public CategoriaClasificadorService(RestTemplate restTemplate, CategoriaService categoriaService,
-                                        ClasificadorPorNombre clasificadorPorNombre) {
+                                        ClasificadorPorNombre clasificadorPorNombre, JevClient jev) {
         this.restTemplate = restTemplate;
         this.categoriaService = categoriaService;
         this.clasificadorPorNombre = clasificadorPorNombre;
+        this.jev = jev;
     }
 
     public static final String PATH_TARJETAS = "Almacenamiento > Tarjetas de memoria";
@@ -151,6 +157,9 @@ public class CategoriaClasificadorService {
     }
 
     private Long clasificarConIa(Producto producto, String categoriaCruda) {
+        // Con Jev configurado se usa SOLO Jev, sin caer a Claude cuando duda: su confianza baja es
+        // justamente el "ante la duda, null" de este clasificador, y un fallback pagaría dos veces.
+        if (jev.configurado()) return clasificarConJev(producto, categoriaCruda);
         if (apiKey == null || apiKey.isBlank()) return null;
         List<String> paths = categoriaService.pathsDeHoja();
         String contexto = String.join(" ", List.of(
@@ -158,11 +167,7 @@ public class CategoriaClasificadorService {
                 producto.getMarca() != null ? producto.getMarca() : "",
                 producto.getModelo() != null ? producto.getModelo() : ""));
 
-        String prompt = "Elegí la subcategoría más adecuada para este producto de una tienda de tecnología argentina.\n\n"
-                + "Producto: " + contexto.trim() + "\n\n"
-                + "Lista CERRADA de subcategorías válidas (elegí EXACTAMENTE una, copiada tal cual):\n"
-                + String.join("\n", paths) + "\n\n"
-                + "Respondé SOLO con el path exacto elegido, sin ningún otro texto ni explicación.";
+        String prompt = promptClaude(contexto, paths);
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -199,6 +204,52 @@ public class CategoriaClasificadorService {
             logger.warn("Clasificación por IA falló para '{}': {}", categoriaCruda, e.toString());
             return null;
         }
+    }
+
+    static String promptClaude(String contexto, List<String> paths) {
+        return "Elegí la subcategoría más adecuada para este producto de una tienda de tecnología argentina.\n\n"
+                + "Producto: " + contexto.trim() + "\n\n"
+                + "Lista CERRADA de subcategorías válidas (elegí EXACTAMENTE una, copiada tal cual):\n"
+                + String.join("\n", paths) + "\n\n"
+                + "Respondé SOLO con el path exacto elegido, sin ningún otro texto ni explicación.";
+    }
+
+    static final String INSTRUCCION_JEV = "This is a product sold by an Argentine electronics store (names may be in Spanish). "
+            + "Which store category does the product itself belong to? An accessory for a device "
+            + "goes to the accessory's category, not the device's.";
+
+    // "Destacados" es una vidriera, no un tipo de producto: nunca es la respuesta correcta.
+    static List<String> opcionesJev(List<String> paths) {
+        return paths.stream().filter(p -> !p.equalsIgnoreCase("DESTACADOS")).toList();
+    }
+
+    static Map<String, String> estadoJev(Producto producto, String categoriaCruda) {
+        Map<String, String> estado = new java.util.LinkedHashMap<>();
+        estado.put("marca", producto.getMarca() == null ? "" : producto.getMarca());
+        estado.put("modelo", producto.getModelo() == null ? "" : producto.getModelo());
+        if (categoriaCruda != null && !categoriaCruda.isBlank()) estado.put("categoria_del_proveedor", categoriaCruda);
+        return estado;
+    }
+
+    /** Paso 5 con Jev: elige la hoja de la lista cerrada y devuelve la categoría solo si está seguro. */
+    Long clasificarConJev(Producto producto, String categoriaCruda) {
+        ResultadoJev r = consultarJev(producto, categoriaCruda);
+        if (r == null) return null;
+        if (r.eleccion().confianza() < confianzaMinimaJev) {
+            logger.info("Jev dudó con '{} {}': {} (confianza {})", producto.getMarca(), producto.getModelo(),
+                    r.eleccion().opcion(), String.format(java.util.Locale.ROOT, "%.2f", r.eleccion().confianza()));
+            return null;
+        }
+        return r.id();
+    }
+
+    public record ResultadoJev(JevClient.Eleccion eleccion, Long id) {}
+
+    /** La elección de Jev sin aplicar el umbral, para medirlo. Null si no respondió. */
+    public ResultadoJev consultarJev(Producto producto, String categoriaCruda) {
+        JevClient.Eleccion e = jev.elegir(estadoJev(producto, categoriaCruda), INSTRUCCION_JEV,
+                opcionesJev(categoriaService.pathsDeHoja()));
+        return e == null ? null : new ResultadoJev(e, categoriaService.idPorPath(e.opcion()));
     }
 
     private String normalizar(String s) {
