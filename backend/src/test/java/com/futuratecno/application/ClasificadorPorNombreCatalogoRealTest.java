@@ -29,6 +29,8 @@ class ClasificadorPorNombreCatalogoRealTest {
         int sinCatTotal = 0, sinCatResueltos = 0;
         int conCatTotal = 0, aciertos = 0, errores = 0, noDispara = 0;
         Map<String, Integer> discrepancias = new HashMap<>();
+        // -Dsalida=/ruta.tsv: cada desacuerdo con su id, para revisar la categoría cargada.
+        StringBuilder salida = new StringBuilder("id\tmarca\tmodelo\tactual\tpor_nombre\n");
 
         for (JsonNode n : catalogo) {
             Producto p = new Producto();
@@ -42,15 +44,24 @@ class ClasificadorPorNombreCatalogoRealTest {
             } else {
                 conCatTotal++;
                 String actual = n.path("actual").asText(null);
-                if (predicho == null) noDispara++;
+                if (predicho == null) {
+                    noDispara++;
+                    salida.append(n.path("id").asText()).append('\t').append(p.getMarca()).append('\t')
+                            .append(p.getModelo()).append('\t').append(actual).append('\t').append("-").append('\n');
+                }
                 else if (predicho.equals(actual)) aciertos++;
                 else {
                     errores++;
                     discrepancias.merge(actual + "  →  " + predicho, 1, Integer::sum);
+                    salida.append(n.path("id").asText()).append('\t').append(p.getMarca()).append('\t')
+                            .append(p.getModelo()).append('\t').append(actual).append('\t').append(predicho).append('\n');
                 }
             }
         }
 
+        if (System.getProperty("salida") != null) {
+            java.nio.file.Files.writeString(java.nio.file.Path.of(System.getProperty("salida")), salida);
+        }
         int precision = (aciertos + errores) == 0 ? 0 : aciertos * 100 / (aciertos + errores);
         System.out.printf("%nOBJETIVO (sin categoría): resuelve %d/%d (%d%%)%n",
                 sinCatResueltos, sinCatTotal, sinCatTotal == 0 ? 0 : sinCatResueltos * 100 / sinCatTotal);
