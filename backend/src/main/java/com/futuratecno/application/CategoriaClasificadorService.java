@@ -53,7 +53,7 @@ public class CategoriaClasificadorService {
     private String model;
 
     /** Por debajo de esta confianza, la categoría de Jev se descarta y el producto queda en null. */
-    @Value("${typesafe.confianza-minima:0.6}")
+    @Value("${typesafe.confianza-minima:0.7}")
     private double confianzaMinimaJev;
 
     public CategoriaClasificadorService(RestTemplate restTemplate, CategoriaService categoriaService,

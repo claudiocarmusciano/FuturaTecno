@@ -45,7 +45,7 @@ anthropic:
 typesafe:
   api-key: ${TYPESAFE_API_KEY:}
   model: ${TYPESAFE_MODEL:jev-latest}
-  confianza-minima: ${TYPESAFE_CONFIANZA_MINIMA:0.6}
+  confianza-minima: ${TYPESAFE_CONFIANZA_MINIMA:0.7}
 
 icecat:
   username: ${ICECAT_USERNAME:}

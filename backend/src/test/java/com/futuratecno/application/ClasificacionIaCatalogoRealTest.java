@@ -43,12 +43,18 @@ class ClasificacionIaCatalogoRealTest {
         List<Producto> muestra = new ArrayList<>();
         List<String> esperados = new ArrayList<>();
         int max = Integer.getInteger("muestra", 60);
+        // -Dvariada: hasta 3 por categoría e incluye los que el clasificador por nombre ya resuelve,
+        // para no medir solo lo fácil (en la base local, lo que no resuelve son casi todos procesadores).
+        boolean variada = Boolean.getBoolean("variada");
+        Map<String, Integer> porCategoria = new java.util.HashMap<>();
         for (JsonNode n : mapper.readTree(new File(System.getProperty("catalogo")))) {
             if (!n.path("tieneCat").asBoolean() || muestra.size() >= max) continue;
             Producto p = new Producto();
             p.setMarca(n.path("marca").asText(null));
             p.setModelo(n.path("modelo").asText(null));
-            if (porNombre.clasificar(p) != null) continue;   // no llegaría a la IA
+            if (variada) {
+                if (porCategoria.merge(n.path("actual").asText(), 1, Integer::sum) > 3) continue;
+            } else if (porNombre.clasificar(p) != null) continue;   // no llegaría a la IA
             muestra.add(p);
             esperados.add(norm(n.path("actual").asText()));
         }
@@ -77,11 +83,11 @@ class ClasificacionIaCatalogoRealTest {
                 msClaude += System.currentTimeMillis() - t;
                 if (c != null) { claudeResp++; if (esperados.get(i).equals(c)) claudeOk++; }
             }
-            System.out.printf("%-45.45s | real %-32.32s | jev %-32.32s %.2f | claude %s%n", p.getMarca() + " " + p.getModelo(),
+            System.out.printf("%-45.45s | real %s | jev %s %.2f | claude %s%n", p.getMarca() + " " + p.getModelo(),
                     esperados.get(i), j, e == null ? 0 : e.confianza(), c);
         }
 
-        System.out.printf("%nMuestra: %d productos que el clasificador por nombre no resuelve%n", muestra.size());
+        System.out.printf("%nMuestra: %d productos (%s)%n", muestra.size(), variada ? "hasta 3 por categoría" : "los que el clasificador por nombre no resuelve");
         System.out.printf("Claude: %d/%d aciertos (%d respondió), %d ms promedio%n", claudeOk, muestra.size(), claudeResp,
                 muestra.isEmpty() ? 0 : msClaude / muestra.size());
         System.out.printf("Jev:    %d respondió, %d ms promedio%n", jevRes.size(), muestra.isEmpty() ? 0 : msJev / muestra.size());
