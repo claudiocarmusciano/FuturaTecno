@@ -15,6 +15,13 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
   const [pagina, setPagina] = useState(0)
   const controller = useRef(null)
   useEffect(() => () => controller.current?.abort(), [])
+  // La tabla y "Confirmar e importar" quedan varias pantallas debajo del texto: sin llevar al
+  // admin hasta ahí, el borrador parecía no haber hecho nada y se perdía al salir de la página.
+  const revisarRef = useRef(null)
+  const [generaciones, setGeneraciones] = useState(0)
+  useEffect(() => {
+    if (generaciones > 0) revisarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [generaciones])
 
   // Identidad de cada fila según las mismas reglas que la importación (el backend no toca la base
   // para calcularla). Dos filas con el mismo nombre pero otra RAM no son duplicado; dos redacciones
@@ -50,6 +57,7 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
       const { data } = await axios.post('/api/admin/carga-json/generar', { texto: entrada }, { signal: abort.signal, timeout: 240000 })
       const lista = data.articulos
       setArticulos(lista); setAvisos(data.avisos || [])
+      if (lista.length > 0) setGeneraciones(n => n + 1)
       setEtapa('imagenes')
       const solicitudes = new Map()
       for (let inicio = 0; inicio < lista.length && !abort.signal.aborted; inicio += 3) {
@@ -91,6 +99,8 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
   const filasInvalidas = articulos.flatMap((a, i) => ( !a.marca.trim() || !a.modelo.trim() || a.modelo.length > 255 || a.marca.length > 255 || !Number.isFinite(Number(a.precio_usd)) || Number(a.precio_usd) <= 0 || Object.values(a.especificaciones || {}).join(' · ').length >= 500 || a.imagenes.some(u => !/^https?:\/\/\S+$/i.test(u) || u.length > 1000)) ? [i + 1] : [])
   const invalidos = filasInvalidas.length > 0
   const ocupado = Boolean(etapa) || importando
+  const importable = !ocupado && !invalidos && duplicados.size === 0 && Boolean(proveedorId)
+  const botonImportar = <button className="btn btn-primary" disabled={!importable} onClick={() => onImportar(articulos.map(a => ({ ...a, precio_usd: Number(a.precio_usd) })))}>{importando ? 'Importando…' : 'Confirmar e importar'}</button>
   const descargar = () => {
     const contenido = articulos.map(a => ({ ...a, precio_usd: Number(a.precio_usd) }))
     const url = URL.createObjectURL(new Blob([JSON.stringify(contenido, null, 2)], { type: 'application/json' }))
@@ -113,7 +123,10 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
     {error && <p role="alert" style={{ color: 'var(--color-danger)' }}>{error}</p>}
     {avisos.length > 0 && <details style={{ marginTop: 16 }}><summary>Avisos del listado ({avisos.length})</summary><ul>{avisos.map((a, i) => <li key={i}>{a}</li>)}</ul></details>}
     {articulos.length > 0 && <>
-      <h3>Revisar {articulos.length} artículos</h3>
+      <div ref={revisarRef} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', scrollMarginTop: 16 }}>
+        <h3>Revisar {articulos.length} artículos</h3>
+        {botonImportar}
+      </div>
       <p style={{ color: 'var(--color-text-muted)' }}>Podés corregir cada campo o quitar artículos. Las filas sin imagen también pueden importarse.</p>
       {duplicados.size > 0 && <p role="alert" style={{ color: 'var(--color-danger)' }}>Hay filas que son el mismo artículo (misma marca, modelo y características, aunque estén escritas distinto). Eliminá las repetidas o diferenciá las variantes antes de importar.</p>}
       {enRevision.length > 0 && <details style={{ color: '#f0c05a', marginBottom: 8 }}><summary>{enRevision.length === 1 ? 'La fila' : 'Las filas'} {enRevision.join(', ')} {enRevision.length === 1 ? 'quedará' : 'quedarán'} para revisión: no se van a crear ni actualizar hasta completar los datos.</summary>
@@ -155,7 +168,7 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
       </div>
       {errorImportacion && <p role="alert" style={{ color: 'var(--color-danger)' }}>No se pudo importar: {typeof errorImportacion === 'string' ? errorImportacion : 'Revisá los datos e intentá nuevamente.'}</p>}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 16 }}>
-        <button className="btn btn-primary" disabled={ocupado || invalidos || duplicados.size > 0 || !proveedorId} onClick={() => onImportar(articulos.map(a => ({ ...a, precio_usd: Number(a.precio_usd) })))}>{importando ? 'Importando…' : 'Confirmar e importar'}</button>
+        {botonImportar}
         <button className="btn btn-secondary" disabled={ocupado || invalidos || duplicados.size > 0} onClick={descargar}>Descargar JSON</button>
         {!proveedorId && <span>Elegí un proveedor para importar.</span>}
       </div>
