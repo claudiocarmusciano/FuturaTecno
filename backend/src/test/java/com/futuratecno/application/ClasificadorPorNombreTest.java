@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
@@ -54,10 +55,24 @@ class ClasificadorPorNombreTest {
                 clasificar("TP-LINK", "Switch Gigabit 48P TL-SG1048"));
         assertEquals("Conectividad > Switches Administrables",
                 clasificar("TP-LINK", "Switch SG3428X 24P L2 Gigabit Omada Administrable"));
-        // Un accesorio de Switch no es la consola, pero tampoco un switch de red: sigue de largo
-        // hasta las reglas genéricas. Sin el guard en la regla de red volvía a caer ahí.
-        assertEquals("Accesorios",
+        // Un control de Switch no es la consola, pero tampoco un switch de red: va a Joysticks.
+        assertEquals("Consolas > Joysticks",
                 clasificar("NINTENDO", "Joystick Joy-Con Nintendo Switch Par"));
+    }
+
+    @Test
+    @DisplayName("Controles y volantes van a su hoja de Consolas, no a la consola que nombran")
+    void controlesYVolantesASuHoja() {
+        assertEquals("Consolas > Joysticks", clasificar("Sony", "DualSense Wireless Controller PS5 Black"));
+        assertEquals("Consolas > Joysticks", clasificar("Microsoft", "JOYSTICK XBOX SERIES X/S WIRELESS BLACK"));
+        assertEquals("Consolas > Joysticks", clasificar("Logitech", "Game Pad Logitech F710 Wireless 940-000117"));
+        assertEquals("Consolas > Joysticks", clasificar("MSI", "Control MSI FORCE GC30 V2 Wireless p/Windows/Android"));
+        assertEquals("Consolas > Volantes", clasificar("Logitech", "G29 Driving Force PS5 / PS4 / PC"));
+        assertEquals("Consolas > Volantes", clasificar("Logitech", "Pedales Logitech RS"));
+        // La consola sigue yendo a su categoría, y el control de un dron no es un joystick.
+        assertEquals("Consolas > Playstation 5", clasificar("Sony", "PS5 Pro 2TB"));
+        assertEquals("Consolas > X-Box", clasificar("Microsoft", "Xbox Series X 1TB Digital Black"));
+        assertNotEquals("Consolas > Joysticks", clasificar("DJI", "CONTROL RC W/SCREEN"));
     }
 
     @Test
@@ -111,7 +126,7 @@ class ClasificadorPorNombreTest {
     @Test
     @DisplayName("\\bpad\\b no le pisa la regla a 'gamepad'/'mousepad': van pegados, sin espacio")
     void padNoPisaPalabrasCompuestas() {
-        assertEquals("Accesorios", clasificar("Redragon", "Gamepad Redragon Jupiter"));
+        assertEquals("Consolas > Joysticks", clasificar("Redragon", "Gamepad Redragon Jupiter"));
         assertEquals("Periféricos > Mousepads", clasificar("Xtech", "Mousepad Xtech Colonist"));
     }
 

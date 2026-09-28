@@ -104,7 +104,7 @@ public class ClasificadorPorNombre {
         r.add(new Regla("silla", "Sillas y escritorios > Sillas"));
         r.add(new Regla("escritorio", "Sillas y escritorios > Escritorios"));
         // Accesorios varios: cierra la cola de cosas que no son de ningún rubro técnico.
-        r.add(new Regla("joystick|volantes?\\b|gamepad|mochila|morral|maleta|pedales|consola"
+        r.add(new Regla("mochila|morral|maleta|consola"
                 + "|tripode|soporte|presentador|lampara|luz led|destructora", "Accesorios"));
         return r;
     }
@@ -170,6 +170,14 @@ public class ClasificadorPorNombre {
      * especificaciones (que están en el resto del nombre).
      */
     private String resolverSubtipo(String cab, String full) {
+        // Controles y volantes van a su hoja de Consolas ANTES que la regla de cada consola:
+        // "DualSense Wireless Controller PS5" y "JOYSTICK XBOX" nombran la consola a la que
+        // acompañan, y así terminaron 12 controles en Playstation 5 y X-Box (2026-09-28).
+        if (contiene(cab, "joystick|game ?pad|dual ?sense|dual ?shock|joy-?con|\\bmando\\b|controller|\\bcontrol\\b(?! remoto)")
+                && !contiene(full, "\\bdji\\b|drone")) {   // el control de un dron es de Drones
+            return "Consolas > Joysticks";
+        }
+        if (contiene(cab, "volantes?\\b|racing wheel|driving force|pedales")) return "Consolas > Volantes";
         if (contiene(cab, "motherboard|\\bmother\\b|placa madre")) {
             return contiene(full, "\\bamd\\b|\\bam[45]\\b|\\bb[456]50\\b|\\bx[456]70\\b|\\ba520\\b")
                     ? "Mothers > Plataforma AMD" : "Mothers > Plataforma Intel";
