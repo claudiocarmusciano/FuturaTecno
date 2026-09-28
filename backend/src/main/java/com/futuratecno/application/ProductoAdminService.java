@@ -682,7 +682,11 @@ public class ProductoAdminService {
                 && !categoriaService.estaBajo(p.getCategoriaId(), "Almacenamiento");
     }
 
-        private boolean nintendoFueraDeConsolas(Producto p) {
+    private boolean nintendoFueraDeConsolas(Producto p) {
+        // Una tarjeta "for Nintendo Switch" va a Tarjetas de memoria: en el clasificador esa regla
+        // corre antes que la de consolas. Sin esta excepción, el botón las reprocesaba cada vez y
+        // las contaba como "sin resultado" (6 SanDisk al 2026-09-28).
+        if (CategoriaClasificadorService.esTarjetaDeMemoria(p.getModelo())) return false;
         String texto = ((p.getMarca() == null ? "" : p.getMarca()) + " " + (p.getModelo() == null ? "" : p.getModelo())).toLowerCase(java.util.Locale.ROOT);
         return texto.contains("nintendo") && texto.contains("switch") && !categoriaService.estaBajo(p.getCategoriaId(), "Consolas");
     }
