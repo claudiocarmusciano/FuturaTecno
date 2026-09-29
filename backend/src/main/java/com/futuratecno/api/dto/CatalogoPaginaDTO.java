@@ -19,6 +19,14 @@ public class CatalogoPaginaDTO {
     private List<Long> categoriaIds;
     private BigDecimal precioMinUsd;
     private BigDecimal precioMaxUsd;
+    /** Filtros de la categoría elegida (iPhone, Celulares…); vacío si la categoría no tiene. */
+    private List<FiltroDTO> filtros = List.of();
+
+    public record OpcionDTO(String valor, int cantidad, boolean seleccionada) {}
+    public record FiltroDTO(String clave, String nombre, List<OpcionDTO> opciones) {}
+
+    public List<FiltroDTO> getFiltros() { return filtros; }
+    public void setFiltros(List<FiltroDTO> filtros) { this.filtros = filtros; }
 
     public List<ProductoCatalogoDTO> getItems() { return items; }
     public void setItems(List<ProductoCatalogoDTO> items) { this.items = items; }

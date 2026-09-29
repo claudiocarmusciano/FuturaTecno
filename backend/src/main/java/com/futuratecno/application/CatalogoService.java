@@ -81,12 +81,24 @@ public class CatalogoService {
     @Transactional(readOnly = true)
     public CatalogoPaginaDTO buscar(Long categoriaId, String marca, String texto, BigDecimal precioMin,
                                     BigDecimal precioMax, String orden, int pagina, int porPagina) {
+        return buscar(categoriaId, marca, texto, precioMin, precioMax, orden, pagina, porPagina, Map.of());
+    }
+
+    /** {@code filtros}: clave del atributo → valores elegidos (ver {@link FiltrosCategoria}). */
+    @Transactional(readOnly = true)
+    public CatalogoPaginaDTO buscar(Long categoriaId, String marca, String texto, BigDecimal precioMin,
+                                    BigDecimal precioMax, String orden, int pagina, int porPagina,
+                                    Map<String, List<String>> filtros) {
         // Una categoría que ya no existe (link viejo) se ignora, como hacía el navegador, en vez
         // de dejar el catálogo vacío sin explicación.
         Set<Long> ids = categoriaId == null ? null : categoriaService.idsDeLaRama(categoriaId);
         if (ids != null && ids.isEmpty()) ids = null;
+        // Los filtros por atributo solo existen si la categoría elegida es una hoja con grupo.
+        FiltrosCategoria.Grupo grupo = categoriaId == null ? null
+                : FiltrosCategoria.grupoDe(rutaDe(categoriaService.resolverNombres(categoriaId)));
         return BusquedaCatalogo.buscar(listarCatalogo(), new BusquedaCatalogo.Filtro(
-                ids, marca, texto, precioMin, precioMax, orden, pagina, porPagina));
+                ids, marca, texto, precioMin, precioMax, orden, pagina, porPagina,
+                grupo, grupo == null ? Map.of() : filtros));
     }
 
     /** Lo que la home necesita del catálogo, sin mandarlo entero; ver {@link PortadaCatalogoDTO}. */
@@ -165,12 +177,23 @@ public class CatalogoService {
         dto.setSku(producto.skuCamuflado());
         dto.setImagenes(imagenesDe(producto, imagenes));
         dto.setUltimaActualizacion(ultimaAct);
+        FiltrosCategoria.Grupo grupo = FiltrosCategoria.grupoDe(rutaDe(nombresCategoria));
+        if (grupo != null) {
+            String especificaciones = variantes.stream().map(Variante::getEspecificaciones)
+                    .filter(e -> e != null && !e.isBlank()).collect(java.util.stream.Collectors.joining(" · "));
+            dto.setFiltros(FiltrosCategoria.atributos(grupo, producto.getMarca(), producto.getModelo(), especificaciones));
+        }
         // La demora sale del proveedor, pero el catálogo público nunca lo nombra: solo los días.
         if (proveedor != null && proveedor.getDemoraEntregaMinDias() != null) {
             dto.setDemoraEntregaMinDias(proveedor.getDemoraEntregaMinDias());
             dto.setDemoraEntregaMaxDias(proveedor.getDemoraEntregaMaxDias());
         }
         return dto;
+    }
+
+    private static String rutaDe(com.futuratecno.api.dto.CategoriaNombresDTO n) {
+        if (n == null || n.getSubcategoria() == null) return null;
+        return n.getCategoriaPadre() != null ? n.getCategoriaPadre() + " > " + n.getSubcategoria() : n.getSubcategoria();
     }
 
     /** Imagen principal + galería (2ª/3ª) traída automáticamente por el importador (hoy solo Elit). */

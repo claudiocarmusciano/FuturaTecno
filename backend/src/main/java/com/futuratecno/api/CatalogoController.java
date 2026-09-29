@@ -4,6 +4,7 @@ import com.futuratecno.api.dto.CatalogoPaginaDTO;
 import com.futuratecno.api.dto.PortadaCatalogoDTO;
 import com.futuratecno.api.dto.ProductoCatalogoDTO;
 import com.futuratecno.application.CatalogoService;
+import com.futuratecno.application.FiltrosCategoria;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -44,8 +47,16 @@ public class CatalogoController {
             @RequestParam(required = false) BigDecimal max,
             @RequestParam(required = false) String orden,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "24") int size) {
-        return ResponseEntity.ok(catalogoService.buscar(cat, marca, q, min, max, orden, page, size));
+            @RequestParam(defaultValue = "24") int size,
+            @RequestParam Map<String, String> todos) {
+        // Filtros por atributo de la categoría: ?capacidad=256GB,512GB&color=Black. Solo se toman
+        // las claves que existen; el servicio ignora las que no son del grupo de la categoría.
+        Map<String, List<String>> filtros = new HashMap<>();
+        for (String clave : FiltrosCategoria.CLAVES) {
+            String v = todos.get(clave);
+            if (v != null && !v.isBlank()) filtros.put(clave, List.of(v.split(",")));
+        }
+        return ResponseEntity.ok(catalogoService.buscar(cat, marca, q, min, max, orden, page, size, filtros));
     }
 
     @GetMapping("/portada")
