@@ -33,7 +33,7 @@ const PRECIO_MINIMO_PREDETERMINADO_USD = '50'
 const POR_PAGINA = 24
 
 // Claves de los filtros por características que puede traer la URL (las define el servidor).
-const CLAVES_ATRIBUTO = ['generacion', 'version', 'capacidad', 'ram', 'red', 'color', 'pulgadas', 'hz', 'resolucion', 'pantalla', 'serie', 'chip', 'vram', 'ddr', 'formato', 'modulos', 'mhz', 'rgb', 'procesador', 'almacenamiento', 'gpu']
+const CLAVES_ATRIBUTO = ['generacion', 'version', 'capacidad', 'ram', 'red', 'color', 'pulgadas', 'hz', 'resolucion', 'pantalla', 'serie', 'chip', 'vram', 'ddr', 'formato', 'modulos', 'mhz', 'rgb', 'procesador', 'almacenamiento', 'gpu', 'panel', 'socket', 'video', 'cooler', 'chipset', 'tipo', 'interfaz', 'potencia', 'certificacion']
 const atributosDe = (searchParams) => {
   const out = {}
   for (const k of CLAVES_ATRIBUTO) {
