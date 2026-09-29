@@ -19,27 +19,36 @@ import java.util.regex.Pattern;
 public final class FiltrosCategoria {
 
     /** Grupo de filtros; se decide por la categoría del producto. */
-    public enum Grupo { IPHONE, CELULAR, MONITOR, PLACA_DE_VIDEO, MEMORIA, NOTEBOOK }
+    public enum Grupo { IPHONE, CELULAR, MONITOR, PLACA_DE_VIDEO, MEMORIA, NOTEBOOK, TV, PROCESADOR, MOTHER, DISCO, FUENTE }
 
     public record Definicion(String clave, String nombre) {}
 
     public static final String COLOR_A_CONSULTAR = "Color a consultar";
 
-    public static final Map<Grupo, List<Definicion>> DEFINICIONES = Map.of(
-            Grupo.IPHONE, List.of(new Definicion("generacion", "Modelo"), new Definicion("version", "Versión"),
-                    new Definicion("capacidad", "Capacidad"), new Definicion("color", "Color")),
-            Grupo.CELULAR, List.of(new Definicion("capacidad", "Capacidad"), new Definicion("ram", "Memoria RAM"),
-                    new Definicion("red", "Red"), new Definicion("color", "Color")),
-            Grupo.MONITOR, List.of(new Definicion("pulgadas", "Pulgadas"), new Definicion("hz", "Frecuencia"),
-                    new Definicion("resolucion", "Resolución"), new Definicion("pantalla", "Pantalla")),
-            Grupo.PLACA_DE_VIDEO, List.of(new Definicion("serie", "Serie"), new Definicion("chip", "Chip"),
-                    new Definicion("vram", "Memoria")),
-            Grupo.MEMORIA, List.of(new Definicion("ddr", "Tipo"), new Definicion("formato", "Formato"),
+    public static final Map<Grupo, List<Definicion>> DEFINICIONES = Map.ofEntries(
+            Map.entry(Grupo.IPHONE, List.of(new Definicion("generacion", "Modelo"), new Definicion("version", "Versión"),
+                    new Definicion("capacidad", "Capacidad"), new Definicion("color", "Color"))),
+            Map.entry(Grupo.CELULAR, List.of(new Definicion("capacidad", "Capacidad"), new Definicion("ram", "Memoria RAM"),
+                    new Definicion("red", "Red"), new Definicion("color", "Color"))),
+            Map.entry(Grupo.MONITOR, List.of(new Definicion("pulgadas", "Pulgadas"), new Definicion("hz", "Frecuencia"),
+                    new Definicion("resolucion", "Resolución"), new Definicion("pantalla", "Pantalla"))),
+            Map.entry(Grupo.PLACA_DE_VIDEO, List.of(new Definicion("serie", "Serie"), new Definicion("chip", "Chip"),
+                    new Definicion("vram", "Memoria"))),
+            Map.entry(Grupo.MEMORIA, List.of(new Definicion("ddr", "Tipo"), new Definicion("formato", "Formato"),
                     new Definicion("capacidad", "Capacidad"), new Definicion("modulos", "Módulos"),
-                    new Definicion("mhz", "Velocidad"), new Definicion("rgb", "Iluminación")),
-            Grupo.NOTEBOOK, List.of(new Definicion("procesador", "Procesador"), new Definicion("ram", "Memoria RAM"),
+                    new Definicion("mhz", "Velocidad"), new Definicion("rgb", "Iluminación"))),
+            Map.entry(Grupo.NOTEBOOK, List.of(new Definicion("procesador", "Procesador"), new Definicion("ram", "Memoria RAM"),
                     new Definicion("almacenamiento", "Almacenamiento"), new Definicion("pulgadas", "Pantalla"),
-                    new Definicion("gpu", "Placa de video")));
+                    new Definicion("gpu", "Placa de video"))),
+            Map.entry(Grupo.TV, List.of(new Definicion("pulgadas", "Pulgadas"), new Definicion("resolucion", "Resolución"),
+                    new Definicion("panel", "Panel"))),
+            Map.entry(Grupo.PROCESADOR, List.of(new Definicion("procesador", "Línea"), new Definicion("socket", "Socket"),
+                    new Definicion("video", "Video integrado"), new Definicion("cooler", "Cooler"))),
+            Map.entry(Grupo.MOTHER, List.of(new Definicion("socket", "Socket"), new Definicion("chipset", "Chipset"),
+                    new Definicion("ddr", "Memoria"), new Definicion("formato", "Formato"))),
+            Map.entry(Grupo.DISCO, List.of(new Definicion("tipo", "Tipo"), new Definicion("capacidad", "Capacidad"),
+                    new Definicion("interfaz", "Conexión"))),
+            Map.entry(Grupo.FUENTE, List.of(new Definicion("potencia", "Potencia"), new Definicion("certificacion", "Certificación"))));
 
     /** Todas las claves de filtro de todos los grupos (las que acepta la URL). */
     public static final Set<String> CLAVES = DEFINICIONES.values().stream().flatMap(List::stream)
@@ -60,6 +69,11 @@ public final class FiltrosCategoria {
         if (r.equals("placas de video") || r.startsWith("placas de video >")) return Grupo.PLACA_DE_VIDEO;
         if (r.equals("memorias ram") || r.startsWith("memorias ram >")) return Grupo.MEMORIA;
         if (r.equals("notebooks") || r.startsWith("notebooks >")) return Grupo.NOTEBOOK;
+        if (r.equals("tvs") || r.startsWith("tvs >")) return Grupo.TV;
+        if (r.equals("microprocesadores") || r.startsWith("microprocesadores >")) return Grupo.PROCESADOR;
+        if (r.equals("mothers") || r.startsWith("mothers >")) return Grupo.MOTHER;
+        if (r.equals("discos rígidos / ssd") || r.startsWith("discos rígidos / ssd >")) return Grupo.DISCO;
+        if (r.equals("gabinetes y fuentes > fuentes de alimentación")) return Grupo.FUENTE;
         return null;
     }
 
@@ -72,6 +86,11 @@ public final class FiltrosCategoria {
         if (grupo == Grupo.PLACA_DE_VIDEO) return placaDeVideo(m, especificaciones);
         if (grupo == Grupo.MEMORIA) return memoria(m, especificaciones);
         if (grupo == Grupo.NOTEBOOK) return notebook(m, especificaciones);
+        if (grupo == Grupo.TV) return tv(m, especificaciones);
+        if (grupo == Grupo.PROCESADOR) return procesadorPc(m, especificaciones);
+        if (grupo == Grupo.MOTHER) return mother(m, especificaciones);
+        if (grupo == Grupo.DISCO) return disco(m, especificaciones);
+        if (grupo == Grupo.FUENTE) return fuente(m, especificaciones);
         if (grupo == Grupo.IPHONE) {
             Matcher g = GENERACION.matcher(m);
             if (g.find()) {
@@ -153,6 +172,132 @@ public final class FiltrosCategoria {
         if (t.matches("(?s).*(\\b(FHD|FULL\\s?HD|1080P)\\b|1920\\s?X\\s?1080).*")) return "Full HD";
         if (t.matches("(?s).*(\\bHD\\b|1366\\s?X\\s?768|1600\\s?X\\s?900|720P).*")) return "HD";
         return null;
+    }
+
+    // ------------------------------------------------------------------ TVs
+
+    private static Map<String, String> tv(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        String texto = modelo + " " + (especificaciones == null ? "" : especificaciones);
+        for (Pattern patron : List.of(PULGADAS, PULGADAS_SUELTAS)) {
+            Matcher p = patron.matcher(patron == PULGADAS ? texto : modelo);
+            while (p.find() && !at.containsKey("pulgadas")) {
+                double v = Double.parseDouble(p.group(1).replace(',', '.'));
+                if (v >= 19 && v <= 100) at.put("pulgadas", formatoPulgadas(v));
+            }
+            if (at.containsKey("pulgadas")) break;
+        }
+        String t = texto.toUpperCase(Locale.ROOT);
+        String res = t.matches("(?s).*\\b8K\\b.*") ? "8K" : resolucion(texto);
+        if (res != null) at.put("resolucion", res);
+        at.put("panel", panelTv(t));
+        return at;
+    }
+
+    /**
+     * El más específico primero: "Neo QLED" antes que "QLED", "OLED" antes que "LED". Sin mención
+     * es LED (acordado 2026-09-29, mismo criterio que la placa integrada de las notebooks): un
+     * panel QLED u OLED es lo que vende la TV y siempre se anuncia; Samsung "U8000" o "DU9000"
+     * son LED y no lo dicen.
+     */
+    private static String panelTv(String t) {
+        if (t.matches("(?s).*\\bOLED\\b.*")) return "OLED";
+        if (t.matches("(?s).*MINI[\\s-]?LED.*")) return "Mini LED";
+        if (t.matches("(?s).*\\bNEO\\s?QLED\\b.*")) return "Neo QLED";
+        if (t.matches("(?s).*\\bQNED\\b.*")) return "QNED";
+        if (t.matches("(?s).*\\bQLED\\b.*")) return "QLED";
+        if (t.matches("(?s).*\\bNANOCELL\\b.*")) return "NanoCell";
+        return "LED";
+    }
+
+    // ------------------------------------------------------------------ Componentes de PC
+
+    /** Micros: la línea (misma lectura que en notebooks), socket, video integrado y cooler en caja. */
+    private static Map<String, String> procesadorPc(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        var tipo = ComponentePcExtractor.Tipo.PROCESADOR;
+        String cpu = procesador(modelo + " " + (especificaciones == null ? "" : especificaciones));
+        if (cpu != null) at.put("procesador", cpu);
+        String socket = ComponentePcExtractor.socket(tipo, modelo, especificaciones);
+        if (socket != null) at.put("socket", socket);
+        Boolean video = ComponentePcExtractor.videoIntegrado(modelo, especificaciones);
+        if (video != null) at.put("video", video ? "Con video" : "Sin video");
+        Boolean cooler = ComponentePcExtractor.incluyeCooler(modelo, especificaciones);
+        if (cooler != null) at.put("cooler", cooler ? "Con cooler" : "Sin cooler");
+        return at;
+    }
+
+    /** "B550M-K" → B550; "X870E" es otro chipset que X870 y se respeta. */
+    private static final Pattern CHIPSET = Pattern.compile("(?i)(?<![A-Z0-9])([ABHXZ]\\d{3}E?)(?:[A-Z]{0,3})(?![A-Z0-9])");
+
+    private static Map<String, String> mother(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        var tipo = ComponentePcExtractor.Tipo.MOTHER;
+        String socket = ComponentePcExtractor.socket(tipo, modelo, especificaciones);
+        if (socket != null) at.put("socket", socket);
+        for (String t : new String[]{modelo, especificaciones}) {
+            if (t == null || at.containsKey("chipset")) continue;
+            Matcher c = CHIPSET.matcher(t);
+            if (c.find()) at.put("chipset", c.group(1).toUpperCase(Locale.ROOT));
+        }
+        String ddr = ComponentePcExtractor.tipoRam(tipo, modelo, especificaciones, null, socket);
+        if (ddr != null) at.put("ddr", ddr);
+        String f = ComponentePcExtractor.formato(tipo, modelo, especificaciones);
+        if (f != null) at.put("formato", switch (f) { case "ITX" -> "Mini-ITX"; case "MATX" -> "Micro-ATX"; case "EATX" -> "E-ATX"; default -> f; });
+        return at;
+    }
+
+    /** "480GB", "480G", "1TB", "1.92TB", "960 GB"; el caché ("64MB") no cuenta. */
+    private static final Pattern CAPACIDAD_DISCO = Pattern.compile("(?i)\\b(\\d{1,4}(?:[.,]\\d{1,2})?)\\s?(GB?|TB?)\\b");
+
+    private static Map<String, String> disco(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        String ficha = especificaciones == null ? "" : especificaciones;
+        String nombre = modelo.toUpperCase(Locale.ROOT);
+        String texto = (modelo + " " + ficha).toUpperCase(Locale.ROOT);
+        String tipo = tipoDisco(nombre);
+        if (tipo == null) tipo = tipoDisco(texto);
+        if (tipo != null) at.put("tipo", tipo);
+        for (String t : new String[]{modelo, ficha}) {
+            Matcher c = CAPACIDAD_DISCO.matcher(t);
+            while (c.find() && !at.containsKey("capacidad")) {
+                double n = Double.parseDouble(c.group(1).replace(',', '.'));
+                if (c.group(2).toUpperCase(Locale.ROOT).startsWith("T")) at.put("capacidad", teras(n));
+                else if (n >= 1000) at.put("capacidad", teras(n % 1024 == 0 ? n / 1024 : n / 1000));   // 1000GB = 1024GB = 1TB
+                else if (n >= 100) at.put("capacidad", (int) n + "GB");
+            }
+        }
+        // Externo antes que la interfaz interna: la ficha de un externo suele nombrar el SATA de adentro.
+        if (texto.matches("(?s).*(\\bEXTERNO\\b|\\bPORT[AÁ]TIL\\b|\\bUSB\\b|CARRY).*")) at.put("interfaz", "USB (externo)");
+        else if (texto.matches("(?s).*(NVME|PCIE|PCI-E).*")) at.put("interfaz", "NVMe");
+        else if (texto.matches("(?s).*\\bSATA.*")) at.put("interfaz", "SATA");
+        return at;
+    }
+
+    private static String teras(double n) {
+        return (n == Math.floor(n) ? String.valueOf((int) n) : String.valueOf(n)) + "TB";
+    }
+
+    private static String tipoDisco(String t) {
+        if (t.matches("(?s).*(\\bSSD\\b|ESTADO S[OÓ]LIDO|NVME).*")) return "SSD";
+        if (t.matches("(?s)(HD\\b.*|.*(\\bHDD\\b|DISCO DURO|R[IÍ]GIDO|\\bRPM\\b).*)")) return "HDD";   // "HD Seagate Externo"
+        return null;
+    }
+
+    private static Map<String, String> fuente(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        Integer w = ComponentePcExtractor.potenciaW(modelo, especificaciones);
+        if (w != null) at.put("potencia", w + "W");
+        String t = (modelo + " " + (especificaciones == null ? "" : especificaciones)).toUpperCase(Locale.ROOT);
+        // Cybenetics y 80 Plus usan los mismos niveles; al que compra le importa el nivel.
+        for (String nivel : List.of("TITANIUM", "PLATINUM", "GOLD", "SILVER", "BRONZE")) {
+            if (t.contains(nivel)) { at.put("certificacion", nivel.charAt(0) + nivel.substring(1).toLowerCase(Locale.ROOT)); break; }
+        }
+        if (!at.containsKey("certificacion")) {
+            if (t.matches("(?s).*80\\s?\\+?\\s?PLUS.*|.*\\bWHITE\\b.*80.*")) at.put("certificacion", "80 Plus");
+            else if (t.matches("(?s).*CERTIFICACI[OÓ]N:\\s*(EST[AÁ]NDAR|NO|SIN|NINGUNA).*")) at.put("certificacion", "Sin certificación");
+        }
+        return at;
     }
 
     // ------------------------------------------------------------------ Placas de video

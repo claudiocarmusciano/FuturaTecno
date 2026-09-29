@@ -153,6 +153,38 @@ class FiltrosCategoriaTest {
     }
 
     @Test
+    void tvsComponentesDiscosYFuentes() {
+        assertEquals(Map.of("pulgadas", "85\"", "resolucion", "4K", "panel", "QLED"),
+                at(FiltrosCategoria.Grupo.TV, "TCL", "Smart TV 85\" QLED 4K UHD P8K Google TV"));
+        assertEquals("Neo QLED", at(FiltrosCategoria.Grupo.TV, "Samsung", "Smart TV 65\" Neo QLED 4K QN65QN70H").get("panel"));
+        assertEquals("LED", at(FiltrosCategoria.Grupo.TV, "Samsung", "U8000 65\"").get("panel"));   // sin mención = LED
+
+        assertEquals(Map.of("procesador", "Intel Core i9", "socket", "LGA1700", "video", "Sin video", "cooler", "Sin cooler"),
+                at(FiltrosCategoria.Grupo.PROCESADOR, "Intel", "Proces. Intel Core I9-14900KF Raptorlake R S/Video S/Cooler S1700 (8546)"));
+        assertEquals("AM4", at(FiltrosCategoria.Grupo.PROCESADOR, "AMD", "Proces. AMD Ryzen 5 5500 AM4 CON COOLER SIN VIDEO (4121)").get("socket"));
+
+        assertEquals(Map.of("socket", "AM4", "chipset", "B550", "ddr", "DDR4", "formato", "Micro-ATX"),
+                at(FiltrosCategoria.Grupo.MOTHER, "ASUS", "Motherboard ASUS PRIME B550M-K ARGB AM4 DDR4"));
+        assertEquals("A620", at(FiltrosCategoria.Grupo.MOTHER, "MSI", "Motherboard MSI PRO A620AM-B EVO AM5 DDR5").get("chipset"));
+        assertEquals("X870E", at(FiltrosCategoria.Grupo.MOTHER, "ASUS", "Motherboard ASUS ROG STRIX X870E-E AM5").get("chipset"));
+
+        assertEquals(Map.of("tipo", "SSD", "capacidad", "500GB", "interfaz", "NVMe"),
+                at(FiltrosCategoria.Grupo.DISCO, "SANDISK", "Disco Interno SSD Sandisk Optimus 5100 500GB M.2 2280 NVMe PCIe 4.0 6600MB/s"));
+        assertEquals(Map.of("tipo", "HDD", "capacidad", "2TB", "interfaz", "USB (externo)"),
+                at(FiltrosCategoria.Grupo.DISCO, "Seagate", "HD Seagate Externo 2Tb USB 3.0 Expansion Black (7308)"));
+        assertEquals("1TB", at(FiltrosCategoria.Grupo.DISCO, "X", "SSD 1024GB SATA").get("capacidad"));
+        assertEquals("1.92TB", at(FiltrosCategoria.Grupo.DISCO, "X", "SSD DC600M 1920GB SATA").get("capacidad"));
+        assertEquals("480GB", at(FiltrosCategoria.Grupo.DISCO, "Kingston", "Disco SSD KINGSTON 480G SSD DC600M 2.5\" SATA").get("capacidad"));
+
+        assertEquals(Map.of("potencia", "750W", "certificacion", "Bronze"), at(FiltrosCategoria.Grupo.FUENTE, "CORSAIR",
+                "Fuente CORSAIR CX-M Series CX750M 750W ATX 3.1 Cybenetics Bronze Semi-Modular"));
+
+        assertEquals(FiltrosCategoria.Grupo.FUENTE, FiltrosCategoria.grupoDe("Gabinetes y Fuentes > Fuentes de Alimentación"));
+        assertNull(FiltrosCategoria.grupoDe("Gabinetes y Fuentes > Gabinetes sin Fuente"));
+        assertEquals(FiltrosCategoria.Grupo.DISCO, FiltrosCategoria.grupoDe("Discos Rígidos / SSD > Disco SSD M2"));
+    }
+
+    @Test
     void grupoPorRutaDeCategoria() {
         assertEquals(FiltrosCategoria.Grupo.MONITOR, FiltrosCategoria.grupoDe("Monitores"));
         assertEquals(FiltrosCategoria.Grupo.MONITOR, FiltrosCategoria.grupoDe("Monitores > Monitor Gamer"));

@@ -172,7 +172,17 @@ public final class BusquedaCatalogo {
             // Procesadores agrupados por marca y línea, de menor a mayor gama.
             case "procesador" -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> familiaCpu(o.valor()))
                     .thenComparing(o -> numero(o.valor()));
-            case "formato" -> Comparator.comparing(o -> !"PC".equals(o.valor()));
+            case "formato" -> Comparator.comparing(o -> {
+                int i = ORDEN_FORMATO.indexOf(o.valor());
+                return i < 0 ? 99 : i;
+            });
+            case "potencia" -> Comparator.comparing(o -> numero(o.valor()));
+            case "certificacion" -> Comparator.comparing(o -> {
+                int i = ORDEN_CERTIFICACION.indexOf(o.valor());
+                return i < 0 ? 99 : i;
+            });
+            case "socket", "chipset" -> Comparator.comparing(CatalogoPaginaDTO.OpcionDTO::valor);
+            case "video", "cooler" -> Comparator.comparing(o -> !o.valor().startsWith("Con"));
             case "rgb" -> Comparator.comparing(o -> !"Con RGB".equals(o.valor()));
             case "pulgadas" -> Comparator.comparing(o -> Double.parseDouble(o.valor().replaceAll("[^0-9.]", "")));
             case "resolucion" -> Comparator.comparing(o -> {
@@ -193,7 +203,12 @@ public final class BusquedaCatalogo {
     }
 
     private static final List<String> ORDEN_RESOLUCION = List.of(
-            "HD", "Full HD", "UltraWide Full HD", "2K (QHD)", "UltraWide QHD", "Dual QHD", "4K");
+            "HD", "Full HD", "UltraWide Full HD", "2K (QHD)", "UltraWide QHD", "Dual QHD", "4K", "8K");
+
+    private static final List<String> ORDEN_FORMATO = List.of("PC", "Notebook (SODIMM)", "Mini-ITX", "Micro-ATX", "ATX", "E-ATX");
+
+    private static final List<String> ORDEN_CERTIFICACION = List.of(
+            "Titanium", "Platinum", "Gold", "Silver", "Bronze", "80 Plus", "Sin certificación");
 
     private static int familiaGpu(String v) {
         String s = v.toUpperCase(Locale.ROOT);
@@ -229,8 +244,9 @@ public final class BusquedaCatalogo {
 
     /** "512GB" → 512, "1TB" → 1024, "5G" → 5. */
     private static int gigas(String s) {
-        int n = numero(s);
-        return s.toUpperCase(Locale.ROOT).endsWith("TB") ? n * 1024 : n;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+(?:\\.\\d+)?").matcher(s);
+        double n = m.find() ? Double.parseDouble(m.group()) : 0;   // "1.92TB": el decimal cuenta
+        return (int) Math.round(s.toUpperCase(Locale.ROOT).endsWith("TB") ? n * 1024 : n);
     }
 
     /** Clave de comparación: minúsculas, sin tildes ni espacios ("Ice Blue" = "Iceblue", "Estándar" = "estandar"). */
