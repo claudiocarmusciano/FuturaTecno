@@ -91,11 +91,26 @@ class FiltrosCategoriaTest {
     }
 
     @Test
+    void memoriaTipoFormatoCapacidadModulosVelocidadYRgb() {
+        var kit = at(FiltrosCategoria.Grupo.MEMORIA, "CORSAIR", "Memoria Ram UDIMM CORSAIR VENGEANCE 32GB DDR5 6000MHz CL30 1.35V (2x16GB) RGB");
+        assertEquals(Map.of("ddr", "DDR5", "formato", "PC", "capacidad", "32GB", "modulos", "Kit de 2",
+                "mhz", "6000 MHz", "rgb", "Con RGB"), kit);
+        var sodimm = at(FiltrosCategoria.Grupo.MEMORIA, "Kingston", "Memoria SODIMM DDR4 Kingston 32Gb 3200 MHz (0924)");
+        assertEquals("Notebook (SODIMM)", sodimm.get("formato"));
+        assertEquals("32GB", sodimm.get("capacidad"));
+        assertEquals("1 módulo", sodimm.get("modulos"));
+        // "16Gbit" es la densidad del chip, no la capacidad; DDR3L es DDR3.
+        assertEquals("8GB", at(FiltrosCategoria.Grupo.MEMORIA, "Kingston", "Memoria DDR4 Kingston 8Gb 3200 MHz 16Gbit (1266)").get("capacidad"));
+        assertEquals("DDR3", at(FiltrosCategoria.Grupo.MEMORIA, "ADATA", "Memoria Ram UDIMM ADATA 8GB DDR3L 1600MHz CL11").get("ddr"));
+    }
+
+    @Test
     void grupoPorRutaDeCategoria() {
         assertEquals(FiltrosCategoria.Grupo.MONITOR, FiltrosCategoria.grupoDe("Monitores"));
         assertEquals(FiltrosCategoria.Grupo.MONITOR, FiltrosCategoria.grupoDe("Monitores > Monitor Gamer"));
         assertNull(FiltrosCategoria.grupoDe("Apple > Monitores"));   // los de Apple van en su árbol, sin estos filtros
         assertEquals(FiltrosCategoria.Grupo.PLACA_DE_VIDEO, FiltrosCategoria.grupoDe("Placas de video > Línea NVIDIA GEFORCE"));
+        assertEquals(FiltrosCategoria.Grupo.MEMORIA, FiltrosCategoria.grupoDe("Memorias RAM > Memoria Sodimm"));
     }
 
     // ------------------------------------------------------------------ catálogo
