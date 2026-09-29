@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public final class FiltrosCategoria {
 
     /** Grupo de filtros; se decide por la categoría del producto. */
-    public enum Grupo { IPHONE, CELULAR, MONITOR, PLACA_DE_VIDEO }
+    public enum Grupo { IPHONE, CELULAR, MONITOR, PLACA_DE_VIDEO, MEMORIA }
 
     public record Definicion(String clave, String nombre) {}
 
@@ -33,7 +33,10 @@ public final class FiltrosCategoria {
             Grupo.MONITOR, List.of(new Definicion("pulgadas", "Pulgadas"), new Definicion("hz", "Frecuencia"),
                     new Definicion("resolucion", "Resolución"), new Definicion("pantalla", "Pantalla")),
             Grupo.PLACA_DE_VIDEO, List.of(new Definicion("serie", "Serie"), new Definicion("chip", "Chip"),
-                    new Definicion("vram", "Memoria")));
+                    new Definicion("vram", "Memoria")),
+            Grupo.MEMORIA, List.of(new Definicion("ddr", "Tipo"), new Definicion("formato", "Formato"),
+                    new Definicion("capacidad", "Capacidad"), new Definicion("modulos", "Módulos"),
+                    new Definicion("mhz", "Velocidad"), new Definicion("rgb", "Iluminación")));
 
     /** Todas las claves de filtro de todos los grupos (las que acepta la URL). */
     public static final Set<String> CLAVES = DEFINICIONES.values().stream().flatMap(List::stream)
@@ -52,6 +55,7 @@ public final class FiltrosCategoria {
         // Monitores y placas: la categoría entera y cada subcategoría. "Apple > Monitores" no entra.
         if (r.equals("monitores") || r.startsWith("monitores >")) return Grupo.MONITOR;
         if (r.equals("placas de video") || r.startsWith("placas de video >")) return Grupo.PLACA_DE_VIDEO;
+        if (r.equals("memorias ram") || r.startsWith("memorias ram >")) return Grupo.MEMORIA;
         return null;
     }
 
@@ -62,6 +66,7 @@ public final class FiltrosCategoria {
         String m = modelo.trim();
         if (grupo == Grupo.MONITOR) return monitor(m, especificaciones);
         if (grupo == Grupo.PLACA_DE_VIDEO) return placaDeVideo(m, especificaciones);
+        if (grupo == Grupo.MEMORIA) return memoria(m, especificaciones);
         if (grupo == Grupo.IPHONE) {
             Matcher g = GENERACION.matcher(m);
             if (g.find()) {
@@ -186,6 +191,46 @@ public final class FiltrosCategoria {
             int gb = Integer.parseInt(v.group(1));
             if (VRAM_VALIDAS.contains(gb)) { at.put("vram", gb + "GB"); break; }
         }
+        return at;
+    }
+
+    // ------------------------------------------------------------------ Memorias RAM
+
+    private static final Pattern DDR = Pattern.compile("(?i)\\bDDR\\s?([2-5])L?\\b");
+    /** "2x16GB", "(2 x 8GB)", "Kit 2x8". */
+    private static final Pattern KIT = Pattern.compile("(?i)\\b(\\d)\\s?x\\s?(\\d{1,3})\\s?G(?:B)?\\b");
+    /** "16GB", "16 Gb"; no "16Gbit", que es la densidad del chip. */
+    private static final Pattern GB_MODULO = Pattern.compile("(?i)\\b(\\d{1,3})\\s?GB?\\b(?!it)");
+    private static final Pattern MHZ = Pattern.compile("(?i)\\b(\\d{4})\\s?(?:MHZ|MT/?S)?\\b");
+
+    private static Map<String, String> memoria(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        String texto = modelo + " " + (especificaciones == null ? "" : especificaciones);
+        Matcher d = DDR.matcher(texto);
+        if (d.find()) at.put("ddr", "DDR" + d.group(1));
+        at.put("formato", texto.toUpperCase(Locale.ROOT).matches("(?s).*(SO-?DIMM|NOTEBOOK|LAPTOP).*") ? "Notebook (SODIMM)" : "PC");
+        Matcher k = KIT.matcher(texto);
+        int modulos = 1, porModulo = 0;
+        if (k.find()) {
+            modulos = Integer.parseInt(k.group(1));
+            porModulo = Integer.parseInt(k.group(2));
+        } else {
+            Matcher g = GB_MODULO.matcher(modelo);   // del nombre: la ficha repite datos del chip
+            while (g.find()) {
+                int v = Integer.parseInt(g.group(1));
+                if (v >= 2 && v <= 256 && Integer.bitCount(v) <= 2) { porModulo = v; break; }
+            }
+            if (texto.toUpperCase(Locale.ROOT).matches("(?s).*\\b(KIT|DUAL\\s?CHANNEL)\\b.*")) modulos = 0;   // kit sin detalle
+        }
+        if (porModulo > 0 && modulos > 0) at.put("capacidad", (porModulo * modulos) + "GB");
+        if (modulos == 1) at.put("modulos", "1 módulo");
+        else if (modulos > 1) at.put("modulos", "Kit de " + modulos);
+        Matcher m = MHZ.matcher(texto);
+        while (m.find()) {
+            int v = Integer.parseInt(m.group(1));
+            if (v >= 1066 && v <= 9600) { at.put("mhz", v + " MHz"); break; }
+        }
+        at.put("rgb", texto.toUpperCase(Locale.ROOT).matches("(?s).*\\bRGB\\b.*") ? "Con RGB" : "Sin RGB");
         return at;
     }
 

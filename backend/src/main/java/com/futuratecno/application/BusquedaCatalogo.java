@@ -164,7 +164,9 @@ public final class BusquedaCatalogo {
                 int i = ORDEN_VERSION.indexOf(clave(o.valor()));
                 return i < 0 ? 99 : i;
             });
-            case "capacidad", "ram", "red", "hz", "vram" -> Comparator.comparing(o -> gigas(o.valor()));
+            case "capacidad", "ram", "red", "hz", "vram", "mhz", "ddr", "modulos" -> Comparator.comparing(o -> gigas(o.valor()));
+            case "formato" -> Comparator.comparing(o -> !"PC".equals(o.valor()));
+            case "rgb" -> Comparator.comparing(o -> !"Con RGB".equals(o.valor()));
             case "pulgadas" -> Comparator.comparing(o -> Double.parseDouble(o.valor().replaceAll("[^0-9.]", "")));
             case "resolucion" -> Comparator.comparing(o -> {
                 int i = ORDEN_RESOLUCION.indexOf(o.valor());
@@ -174,6 +176,7 @@ public final class BusquedaCatalogo {
             // Placas: por marca de chip y lo más nuevo primero (RTX 5070 antes que RTX 3060).
             case "serie", "chip" -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> familiaGpu(o.valor()))
                     .thenComparing(o -> -numero(o.valor().replaceAll("(?i)ti|super|xtx|xt|gre", "")))
+                    .thenComparing(o -> -sufijoGpu(o.valor()))   // RTX 5070 Ti antes que RTX 5070
                     .thenComparing(CatalogoPaginaDTO.OpcionDTO::valor);
             // Colores por cantidad; "Color a consultar" siempre al final.
             default -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> FiltrosCategoria.COLOR_A_CONSULTAR.equals(o.valor()))
@@ -195,7 +198,16 @@ public final class BusquedaCatalogo {
         return 4;   // GT
     }
 
-    private static int numero(String s) {
+    /** Cuánto suma el sufijo del chip: XTX > XT / Ti SUPER > Ti / SUPER / GRE > nada. */
+    private static int sufijoGpu(String v) {
+        String s = v.toUpperCase(Locale.ROOT);
+        if (s.endsWith("XTX")) return 3;
+        if (s.endsWith(" XT") || s.endsWith("TI SUPER")) return 2;
+        if (s.endsWith(" TI") || s.endsWith("SUPER") || s.endsWith("GRE")) return 1;
+        return 0;
+    }
+
+        private static int numero(String s) {
         String d = s.replaceAll("\\D", "");
         return d.isEmpty() ? 0 : Integer.parseInt(d);
     }
