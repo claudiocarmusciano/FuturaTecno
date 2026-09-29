@@ -7,6 +7,7 @@ import PaymentPrices from '../../components/PaymentPrices'
 import EditarComoAdmin from '../../components/EditarComoAdmin'
 import { IconArrowUpRight, IconBanknote, IconCart, IconCheck, IconGrid, IconMenu, IconSearchLine, IconX } from '../../components/icons'
 import './CatalogPage.css'
+import { textoDemora } from '../../utils/demora'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -482,7 +483,9 @@ function CatalogPage() {
                   ))}
 
                   <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
-                    <p style={{ fontSize: '11px', color: 'var(--color-price)' }}>● Stock sujeto a disponibilidad</p>
+                    {textoDemora(p)
+                      ? <p style={{ fontSize: '11px', color: '#f0c05a', fontWeight: 600 }}>● Entrega en {textoDemora(p)}</p>
+                      : <p style={{ fontSize: '11px', color: 'var(--color-price)' }}>● Stock sujeto a disponibilidad</p>}
                     {p.ultimaActualizacion && (
                       <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                         Actualizado: {formatFecha(p.ultimaActualizacion)}

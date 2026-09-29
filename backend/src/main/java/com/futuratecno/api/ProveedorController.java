@@ -72,6 +72,8 @@ public class ProveedorController {
 
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody ProveedorDTO dto) {
+        String demoraInvalida = errorDemora(dto);
+        if (demoraInvalida != null) return ResponseEntity.badRequest().body(Map.of("error", demoraInvalida));
         // Si ya existe un proveedor con ese nombre: si está activo, es duplicado;
         // si está borrado (inactivo), lo reactivamos con los nuevos valores.
         var existente = proveedorRepository.findByNombreIgnoreCase(dto.getNombre().trim());
@@ -89,6 +91,12 @@ public class ProveedorController {
             p.setCodigo(codigo);
             p.setMargenPorcentaje(dto.getMargenPorcentaje());
             p.setFletePorcentaje(dto.getFletePorcentaje());
+            // Al reactivar se conserva la demora que tenía, salvo que venga una nueva: "Nuevo
+            // proveedor" de Cargar por JSON no manda estos campos y no tiene que borrarla.
+            if (dto.getDemoraEntregaMinDias() != null) {
+                p.setDemoraEntregaMinDias(dto.getDemoraEntregaMinDias());
+                p.setDemoraEntregaMaxDias(dto.getDemoraEntregaMaxDias());
+            }
             return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(proveedorRepository.save(p)));
         }
 
@@ -97,6 +105,8 @@ public class ProveedorController {
         proveedor.setCodigo(codigo);
         proveedor.setMargenPorcentaje(dto.getMargenPorcentaje());
         proveedor.setFletePorcentaje(dto.getFletePorcentaje());
+        proveedor.setDemoraEntregaMinDias(dto.getDemoraEntregaMinDias());
+        proveedor.setDemoraEntregaMaxDias(dto.getDemoraEntregaMaxDias());
         proveedor.setActivo(true);
 
         Proveedor guardado = proveedorRepository.save(proveedor);
@@ -105,6 +115,8 @@ public class ProveedorController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ProveedorDTO dto) {
+        String demoraInvalida = errorDemora(dto);
+        if (demoraInvalida != null) return ResponseEntity.badRequest().body(Map.of("error", demoraInvalida));
         String codigo = normalizarCodigo(dto.getCodigo(), dto.getNombre());
         ResponseEntity<?> conflicto = validarCodigoUnico(codigo, id);
         if (conflicto != null) return conflicto;
@@ -115,6 +127,8 @@ public class ProveedorController {
                 proveedor.setCodigo(codigo);
                 proveedor.setMargenPorcentaje(dto.getMargenPorcentaje());
                 proveedor.setFletePorcentaje(dto.getFletePorcentaje());
+                proveedor.setDemoraEntregaMinDias(dto.getDemoraEntregaMinDias());
+                proveedor.setDemoraEntregaMaxDias(dto.getDemoraEntregaMaxDias());
                 Proveedor actualizado = proveedorRepository.save(proveedor);
                 return ResponseEntity.ok(toDTO(actualizado));
             })
@@ -159,7 +173,7 @@ public class ProveedorController {
     }
 
     private ProveedorDTO toDTO(Proveedor proveedor) {
-        return new ProveedorDTO(
+        ProveedorDTO dto = new ProveedorDTO(
             proveedor.getId(),
             proveedor.getNombre(),
             proveedor.getCodigo(),
@@ -169,5 +183,17 @@ public class ProveedorController {
             proveedor.getCreatedAt(),
             proveedor.getUpdatedAt()
         );
+        dto.setDemoraEntregaMinDias(proveedor.getDemoraEntregaMinDias());
+        dto.setDemoraEntregaMaxDias(proveedor.getDemoraEntregaMaxDias());
+        return dto;
+    }
+
+    /** Los dos vacíos (entrega normal) o 1 <= mínimo <= máximo <= 180. Null si es válida. */
+    private static String errorDemora(ProveedorDTO dto) {
+        Integer min = dto.getDemoraEntregaMinDias(), max = dto.getDemoraEntregaMaxDias();
+        if (min == null && max == null) return null;
+        if (min == null || max == null) return "Completá los dos días de la demora de entrega, o dejá los dos vacíos.";
+        if (min < 1 || max < min || max > 180) return "La demora de entrega tiene que ir de 1 a 180 días, con el mínimo menor o igual al máximo.";
+        return null;
     }
 }

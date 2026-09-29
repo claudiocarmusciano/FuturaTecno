@@ -25,6 +25,18 @@ public class Proveedor extends BaseEntity {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    /** Demora de entrega en días (V43). Los dos null = la entrega normal de la tienda. */
+    @Column(name = "demora_entrega_min_dias")
+    private Integer demoraEntregaMinDias;
+
+    @Column(name = "demora_entrega_max_dias")
+    private Integer demoraEntregaMaxDias;
+
+    public Integer getDemoraEntregaMinDias() { return demoraEntregaMinDias; }
+    public void setDemoraEntregaMinDias(Integer demoraEntregaMinDias) { this.demoraEntregaMinDias = demoraEntregaMinDias; }
+    public Integer getDemoraEntregaMaxDias() { return demoraEntregaMaxDias; }
+    public void setDemoraEntregaMaxDias(Integer demoraEntregaMaxDias) { this.demoraEntregaMaxDias = demoraEntregaMaxDias; }
+
     public String getNombre() {
         return nombre;
     }

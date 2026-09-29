@@ -165,6 +165,11 @@ public class CatalogoService {
         dto.setSku(producto.skuCamuflado());
         dto.setImagenes(imagenesDe(producto, imagenes));
         dto.setUltimaActualizacion(ultimaAct);
+        // La demora sale del proveedor, pero el catálogo público nunca lo nombra: solo los días.
+        if (proveedor != null && proveedor.getDemoraEntregaMinDias() != null) {
+            dto.setDemoraEntregaMinDias(proveedor.getDemoraEntregaMinDias());
+            dto.setDemoraEntregaMaxDias(proveedor.getDemoraEntregaMaxDias());
+        }
         return dto;
     }
 

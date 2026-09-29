@@ -7,6 +7,7 @@ import PaymentPrices from '../../components/PaymentPrices'
 import EditarComoAdmin from '../../components/EditarComoAdmin'
 import './CatalogPage.css'
 import { IconCart, IconChat, IconCheck, IconTruck } from '../../components/icons'
+import { textoDemora } from '../../utils/demora'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -167,7 +168,17 @@ function ProductDetailPage() {
           <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 16px' }}><strong>Imágenes meramente ilustrativas.</strong> Confirmá características, color y disponibilidad de la variante antes de comprar.</p>
 
           {/* Estimación de entrega (ETA) */}
-          {eta?.fechaEntrega && (
+          {textoDemora(producto) ? (
+            <div style={{
+              background: 'rgba(240, 192, 90, .12)', border: '1px solid rgba(240, 192, 90, .45)', borderRadius: '12px',
+              padding: '14px 16px', marginBottom: '20px', fontSize: '14px', color: 'var(--color-text)'
+            }}>
+              <IconTruck /> <strong>Entrega estimada: {textoDemora(producto)}</strong>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                Este producto tiene una demora de entrega de {textoDemora(producto)}.
+              </div>
+            </div>
+          ) : eta?.fechaEntrega && (
             <div style={{
               background: 'var(--color-accent-light)', border: '1px solid var(--color-border)', borderRadius: '12px',
               padding: '14px 16px', marginBottom: '20px', fontSize: '14px', color: 'var(--color-text-muted)'

@@ -16,6 +16,14 @@ public class ProductoCatalogoDTO {
     private List<String> imagenes;
     private LocalDateTime ultimaActualizacion;
     private List<VarianteCatalogoDTO> variantes;
+    /** Demora de entrega en días cuando no es la normal de la tienda; null = entrega normal. */
+    private Integer demoraEntregaMinDias;
+    private Integer demoraEntregaMaxDias;
+
+    public Integer getDemoraEntregaMinDias() { return demoraEntregaMinDias; }
+    public void setDemoraEntregaMinDias(Integer demoraEntregaMinDias) { this.demoraEntregaMinDias = demoraEntregaMinDias; }
+    public Integer getDemoraEntregaMaxDias() { return demoraEntregaMaxDias; }
+    public void setDemoraEntregaMaxDias(Integer demoraEntregaMaxDias) { this.demoraEntregaMaxDias = demoraEntregaMaxDias; }
 
     public ProductoCatalogoDTO() {}
 

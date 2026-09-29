@@ -7,6 +7,7 @@ import { NOMBRE_NEGOCIO } from '../../config'
 import PaymentPrices from '../../components/PaymentPrices'
 import { CASH_DISCOUNT_PERCENTAGE, cashPrice, mpImmediatePrice } from '../../utils/paymentPricing'
 import { etiquetaEnvio } from '../../utils/envio'
+import { textoDemora } from '../../utils/demora'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -189,11 +190,17 @@ function CheckoutPage() {
 
       <div className="card">
         <h2 style={{ fontSize: '17px', marginTop: 0 }}>Resumen</h2>
+        {items.some(textoDemora) && (
+          <p role="note" style={{ background: 'rgba(240, 192, 90, .12)', border: '1px solid rgba(240, 192, 90, .45)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', margin: '0 0 10px' }}>
+            Algunos productos de tu pedido tienen una demora de entrega mayor a la habitual: la indicamos en cada uno.
+          </p>
+        )}
         {items.map(i => (
           <div key={i.varianteId} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 0', borderBottom: '1px solid var(--color-border)' }}>
             <span>
               {i.cantidad}× {i.nombre}
               {i.especificaciones && <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}> · {i.especificaciones}</span>}
+              {textoDemora(i) && <span style={{ color: '#f0c05a', fontSize: '13px', fontWeight: 600 }}> · Entrega en {textoDemora(i)}</span>}
             </span>
             <span style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>US$ {formatNumber(i.precioUsd * i.cantidad)}</span>
           </div>

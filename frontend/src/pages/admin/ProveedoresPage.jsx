@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { IconEdit, IconTrash } from '../../components/icons'
 
-const formVacio = { nombre: '', codigo: '', margenPorcentaje: '', fletePorcentaje: '' }
+const formVacio = { nombre: '', codigo: '', margenPorcentaje: '', fletePorcentaje: '', demoraEntregaMinDias: '', demoraEntregaMaxDias: '' }
+
+// Vacío = la entrega normal de la tienda. El catálogo muestra la demora sin nombrar al proveedor.
+const diasONull = v => (v === '' || v == null ? null : Number(v))
+const textoDemora = p => p.demoraEntregaMinDias ? `${p.demoraEntregaMinDias} a ${p.demoraEntregaMaxDias} días` : 'Normal'
 
 function ProveedoresPage() {
   const [proveedores, setProveedores] = useState([])
@@ -31,19 +35,20 @@ function ProveedoresPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setMensaje('')
+    const datos = { ...formData, demoraEntregaMinDias: diasONull(formData.demoraEntregaMinDias), demoraEntregaMaxDias: diasONull(formData.demoraEntregaMaxDias) }
     try {
       if (editId) {
-        await axios.put(`/api/admin/proveedores/${editId}`, formData)
+        await axios.put(`/api/admin/proveedores/${editId}`, datos)
         setMensaje('Proveedor actualizado')
       } else {
-        await axios.post('/api/admin/proveedores', formData)
+        await axios.post('/api/admin/proveedores', datos)
         setMensaje('Proveedor creado')
       }
       cancelarEdicion()
       cargarProveedores()
     } catch (error) {
       console.error('Error al guardar proveedor:', error)
-      const detalle = typeof error.response?.data === 'string' ? error.response.data : null
+      const detalle = typeof error.response?.data === 'string' ? error.response.data : error.response?.data?.error || null
       setMensaje(detalle || 'Error al guardar el proveedor.')
     }
   }
@@ -54,7 +59,9 @@ function ProveedoresPage() {
       nombre: p.nombre ?? '',
       codigo: p.codigo ?? '',
       margenPorcentaje: p.margenPorcentaje ?? '',
-      fletePorcentaje: p.fletePorcentaje ?? ''
+      fletePorcentaje: p.fletePorcentaje ?? '',
+      demoraEntregaMinDias: p.demoraEntregaMinDias ?? '',
+      demoraEntregaMaxDias: p.demoraEntregaMaxDias ?? ''
     })
     setMensaje('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -130,6 +137,15 @@ function ProveedoresPage() {
             <label>Flete (%)</label>
             <input type="number" name="fletePorcentaje" step="0.01" value={formData.fletePorcentaje} onChange={handleChange} required />
           </div>
+          <div className="form-group">
+            <label>Demora de entrega (días)</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input type="number" name="demoraEntregaMinDias" min="1" max="180" value={formData.demoraEntregaMinDias} onChange={handleChange} placeholder="desde" aria-label="Demora mínima en días" />
+              <span>a</span>
+              <input type="number" name="demoraEntregaMaxDias" min="1" max="180" value={formData.demoraEntregaMaxDias} onChange={handleChange} placeholder="hasta" aria-label="Demora máxima en días" />
+            </div>
+            <small style={{ color: 'var(--color-text-muted)' }}>Vacío = entrega normal. El catálogo lo muestra sin nombrar al proveedor.</small>
+          </div>
           <button type="submit" className="btn btn-primary" style={{ marginRight: '10px' }}>
             {editId ? 'Guardar cambios' : 'Crear'}
           </button>
@@ -152,6 +168,7 @@ function ProveedoresPage() {
                 <th>Código</th>
                 <th>Margen %</th>
                 <th>Flete %</th>
+                <th>Entrega</th>
                 <th>Productos</th>
                 <th>Acciones</th>
               </tr>
@@ -164,6 +181,7 @@ function ProveedoresPage() {
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>{p.codigo}</td>
                   <td>{p.margenPorcentaje}%</td>
                   <td>{p.fletePorcentaje}%</td>
+                  <td>{textoDemora(p)}</td>
                   <td>{p.cantidadProductos ?? 0}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <button onClick={() => handleEditar(p)} className="btn-accion"><IconEdit /> Editar</button>

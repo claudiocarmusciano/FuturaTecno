@@ -50,6 +50,8 @@ export function CartProvider({ children }) {
         imagenUrl: producto.imagenUrl || (producto.imagenes && producto.imagenes[0]) || null,
         precioUsd: Number(variante.precioUsd),
         precioArs: Number(variante.precioArs),
+        demoraEntregaMinDias: producto.demoraEntregaMinDias ?? null,
+        demoraEntregaMaxDias: producto.demoraEntregaMaxDias ?? null,
         cantidad
       }]
     })
@@ -111,7 +113,9 @@ export function CartProvider({ children }) {
         especificaciones: encontrado.variante.especificaciones || null,
         imagenUrl: encontrado.producto.imagenUrl || (encontrado.producto.imagenes || [])[0] || null,
         precioUsd: nuevoUsd,
-        precioArs: Number(encontrado.variante.precioArs)
+        precioArs: Number(encontrado.variante.precioArs),
+        demoraEntregaMinDias: encontrado.producto.demoraEntregaMinDias ?? null,
+        demoraEntregaMaxDias: encontrado.producto.demoraEntregaMaxDias ?? null
       })
     }
 
