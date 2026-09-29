@@ -64,6 +64,40 @@ class FiltrosCategoriaTest {
         assertEquals("Green", redmi.get("color"));
     }
 
+    @Test
+    void monitorPulgadasHzResolucionYPantalla() {
+        var lg = at(FiltrosCategoria.Grupo.MONITOR, "LG", "MONITOR LG 45 ULTRAGEAR 45GR75DC CURVO ULTRAWIDE DQHD 200 Hz (II) (1755)");
+        assertEquals(Map.of("pulgadas", "45\"", "hz", "200 Hz", "resolucion", "Dual QHD", "pantalla", "Curva"), lg);
+        var teros = at(FiltrosCategoria.Grupo.MONITOR, "TEROS", "Monitor Teros TE-2415S Gaming 23.8” Plano IPS FHD (1920 x 1080) 120Hz 1ms");
+        assertEquals("23.8\"", teros.get("pulgadas"));
+        assertEquals("Full HD", teros.get("resolucion"));
+        // Sin la palabra "curvo" es plano (acordado); el código de modelo "27GS60F" no son pulgadas.
+        var sinComillas = at(FiltrosCategoria.Grupo.MONITOR, "LG", "MONITOR LG 27 ULTRAGEAR 27GS60F FULL HD 180 Hz");
+        assertEquals("27\"", sinComillas.get("pulgadas"));
+        assertEquals("Plana", sinComillas.get("pantalla"));
+    }
+
+    @Test
+    void placaSerieChipYMemoria() {
+        var asus = at(FiltrosCategoria.Grupo.PLACA_DE_VIDEO, "ASUS", "Placa de Video ASUS AMD Radeon PRIME RX9070 GRE O12G EVO");
+        assertEquals(Map.of("serie", "RX 9000", "chip", "RX 9070 GRE", "vram", "12GB"), asus);
+        var msi = at(FiltrosCategoria.Grupo.PLACA_DE_VIDEO, "MSI", "VGA MSI GeForce RTX 5060 Ti 16G VENTUS 2X OC");
+        assertEquals("RTX 50", msi.get("serie"));
+        assertEquals("RTX 5060 Ti", msi.get("chip"));
+        assertEquals("16GB", msi.get("vram"));
+        assertEquals("GT 710", at(FiltrosCategoria.Grupo.PLACA_DE_VIDEO, "MSI", "VGA MSI GeForce GT 710 2G LP DDR3").get("chip"));
+        assertEquals("Profesional", at(FiltrosCategoria.Grupo.PLACA_DE_VIDEO, "PNY",
+                "VGA PNY QUADRO RTX PRO 4000 Blackwell 24Gb GDDR7").get("serie"));
+    }
+
+    @Test
+    void grupoPorRutaDeCategoria() {
+        assertEquals(FiltrosCategoria.Grupo.MONITOR, FiltrosCategoria.grupoDe("Monitores"));
+        assertEquals(FiltrosCategoria.Grupo.MONITOR, FiltrosCategoria.grupoDe("Monitores > Monitor Gamer"));
+        assertNull(FiltrosCategoria.grupoDe("Apple > Monitores"));   // los de Apple van en su árbol, sin estos filtros
+        assertEquals(FiltrosCategoria.Grupo.PLACA_DE_VIDEO, FiltrosCategoria.grupoDe("Placas de video > Línea NVIDIA GEFORCE"));
+    }
+
     // ------------------------------------------------------------------ catálogo
 
     private static ProductoCatalogoDTO iphone(long id, String modelo) {

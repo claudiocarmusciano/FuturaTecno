@@ -164,12 +164,35 @@ public final class BusquedaCatalogo {
                 int i = ORDEN_VERSION.indexOf(clave(o.valor()));
                 return i < 0 ? 99 : i;
             });
-            case "capacidad", "ram", "red" -> Comparator.comparing(o -> gigas(o.valor()));
+            case "capacidad", "ram", "red", "hz", "vram" -> Comparator.comparing(o -> gigas(o.valor()));
+            case "pulgadas" -> Comparator.comparing(o -> Double.parseDouble(o.valor().replaceAll("[^0-9.]", "")));
+            case "resolucion" -> Comparator.comparing(o -> {
+                int i = ORDEN_RESOLUCION.indexOf(o.valor());
+                return i < 0 ? 99 : i;
+            });
+            case "pantalla" -> Comparator.comparing(o -> !"Plana".equals(o.valor()));
+            // Placas: por marca de chip y lo más nuevo primero (RTX 5070 antes que RTX 3060).
+            case "serie", "chip" -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> familiaGpu(o.valor()))
+                    .thenComparing(o -> -numero(o.valor().replaceAll("(?i)ti|super|xtx|xt|gre", "")))
+                    .thenComparing(CatalogoPaginaDTO.OpcionDTO::valor);
             // Colores por cantidad; "Color a consultar" siempre al final.
             default -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> FiltrosCategoria.COLOR_A_CONSULTAR.equals(o.valor()))
                     .thenComparing(Comparator.comparingInt(CatalogoPaginaDTO.OpcionDTO::cantidad).reversed())
                     .thenComparing(CatalogoPaginaDTO.OpcionDTO::valor);
         };
+    }
+
+    private static final List<String> ORDEN_RESOLUCION = List.of(
+            "HD", "Full HD", "UltraWide Full HD", "2K (QHD)", "UltraWide QHD", "Dual QHD", "4K");
+
+    private static int familiaGpu(String v) {
+        String s = v.toUpperCase(Locale.ROOT);
+        if (s.startsWith("PROFESIONAL") || s.startsWith("RTX PRO") || s.matches("RTX A\\d+.*")) return 5;
+        if (s.startsWith("RTX")) return 0;
+        if (s.startsWith("RX")) return 1;
+        if (s.startsWith("ARC")) return 2;
+        if (s.startsWith("GTX")) return 3;
+        return 4;   // GT
     }
 
     private static int numero(String s) {
