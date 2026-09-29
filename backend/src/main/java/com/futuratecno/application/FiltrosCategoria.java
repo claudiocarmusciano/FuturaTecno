@@ -253,10 +253,14 @@ public final class FiltrosCategoria {
     private static final Pattern CPU_CORE_I = Pattern.compile("(?i)\\b(?:core\\s?)?i([3579])[-\\s]?(?:\\d|n\\d)");
     private static final Pattern CPU_CORE_N = Pattern.compile("(?i)\\bcore\\s?([3579])\\b");
     private static final Pattern CPU_RYZEN = Pattern.compile("(?i)\\bryzen\\s?(ai\\s?(?:max\\+?\\s?)?)?([3579])\\b");
-    /** Nombres de línea que dicen el tamaño: "ThinkBook 16", "ThinkPad E14", "V15", "Vivobook 15". */
-    private static final Pattern LINEA_CON_TAMANO = Pattern.compile("(?i)\\b(?:thinkbook|thinkpad\\s?[etlx]?|vivobook(?:\\s?[sx])?"
-            + "|zenbook(?:\\s?s)?|ideapad(?:\\s?slim)?(?:\\s?\\d)?|v|victus|omen(?:\\s?transcend)?|pavilion|inspiron|vostro"
-            + "|aspire(?:\\s?\\d)?|nitro(?:\\s?v)?|loq|galaxy\\s?book\\d?(?:\\s?(?:pro|360))?|omnibook(?:\\s?\\d)?|swift(?:\\s?go)?|plus"
+    /**
+     * Nombres de línea que dicen el tamaño: "ThinkBook 16", "ThinkPad E14", "V15", "Vivobook 15".
+     * Los mayoristas abrevian ThinkPad como "TP" ("TP E16", "TP T14 G6") y la workstation como
+     * "WS P16s"; Dell escribe "Pro 16" y "Alienware Aurora 16".
+     */
+    private static final Pattern LINEA_CON_TAMANO = Pattern.compile("(?i)\\b(?:thinkbook|(?:thinkpad|tp)\\s?(?:ws\\s?)?(?:x9[-\\s]?|[etlpx])?|vivobook(?:\\s?[sx])?"
+            + "|zenbook(?:\\s?s)?|ideapad(?:\\s?slim)?(?:\\s?\\d)?|v|victus|omen(?:\\s?transcend)?|pavilion|inspiron|vostro|pro"
+            + "|alienware(?:\\s?aurora)?|aspire(?:\\s?\\d)?|nitro(?:\\s?v)?|loq|galaxy\\s?book\\d?(?:\\s?(?:pro|360))?|omnibook(?:\\s?(?:\\d|x))?|swift(?:\\s?go)?|plus"
             + "|katana|sword|cyborg|thin|bravo|stealth|raider|vector|crosshair|pulse|titan|helios(?:\\s?neo)?|triton)"
             + "\\s?(1[3-8])s?\\b");
     /** Códigos de modelo con el tamaño adelante: Lenovo "15ARP10E", HP "15-FD2050WM", ASUS "X1504VA". */

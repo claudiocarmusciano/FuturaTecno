@@ -132,6 +132,22 @@ class FiltrosCategoriaTest {
         assertEquals("16\"", at(FiltrosCategoria.Grupo.NOTEBOOK, "ASUS", "ROG Strix G16 Core Ultra 9 275HX 32GB 2TB RTX 5070 Ti").get("pulgadas"));
         assertEquals("15.6\"", at(FiltrosCategoria.Grupo.NOTEBOOK, "ASUS", "TUF Gaming A15 Ryzen 7 7445HS 16GB 512GB RTX 4050").get("pulgadas"));
         assertEquals("AMD Ryzen AI 9", at(FiltrosCategoria.Grupo.NOTEBOOK, "ASUS", "Zenbook S 16 Ryzen AI 9 365 32GB 1TB").get("procesador"));
+        // Abreviaturas y líneas de mayoristas (medido el 2026-09-29 contra las 69 sin pantalla).
+        for (var c : List.of(List.of("Notebook Lenovo TP E14 G7 U5 16G 512G FREEDOS 3YOS", "14\""),
+                List.of("Notebook  Lenovo TP T14 G6 U5 16G 512G WIN11P 3OS", "14\""),
+                List.of("Notebook Lenovo TP E16 R5 16G 512G FREEDOS 3YOS", "16\""),
+                List.of("Notebook Lenovo Thinkpad WS P16s G4 U7 16G 1T WIN11P 3YOS 1BAT", "16\""),
+                List.of("ThinkPad X9 14 Aura Core Ultra 7 258V 32GB 1TB OLED Touchscreen", "14\""),
+                List.of("ThinkPad X9-15 Aura Core Ultra 7 258V 32GB 512GB 2.8K OLED", "15.6\""),
+                List.of("Pro 16 Core Ultra 5 235U vPro 32GB 512GB IPS Win11 Pro", "16\""),
+                List.of("ALIENWARE AURORA 16 CORE 7 240H 16GB, 1TB RTX 5050", "16\""),
+                List.of("Alienware 18 Area-51 Core Ultra 9 275HX 32GB 2TB RTX 5070 Ti 12GB", "17\" o más"),
+                List.of("OmniBook X 17 Core Ultra 9 386H 32GB 1TB Touchscreen", "17\" o más"))) {
+            assertEquals(c.get(1), at(FiltrosCategoria.Grupo.NOTEBOOK, "X", c.get(0)).get("pulgadas"), c.get(0));
+        }
+        // Sin número de tamaño no se deduce nada: "Legion Pro 7" no es de 7 pulgadas.
+        assertNull(at(FiltrosCategoria.Grupo.NOTEBOOK, "Lenovo", "Legion Pro 7 Core Ultra 9 290HX Plus 64GB, 2TB RTX 5080").get("pulgadas"));
+        assertNull(at(FiltrosCategoria.Grupo.NOTEBOOK, "Samsung", "Galaxy Book 5 Pro 360 Core Ultra 7 258V 32GB 1TB").get("pulgadas"));
         // "IdeaPad Slim 3" sale en 14, 15 y 16 pulgadas: sin el dato no se adivina.
         assertNull(at(FiltrosCategoria.Grupo.NOTEBOOK, "Lenovo", "IdeaPad Slim 3 Ryzen 7 8840HS 16GB 512GB").get("pulgadas"));
     }
