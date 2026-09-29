@@ -43,6 +43,11 @@ class FiltrosCategoriaTest {
         assertEquals("Desert", at(IPHONE, "Apple", "iPhone 16 Pro 256GB Esim Desert (ACR) Desert").get("color"));
         assertEquals("Black", at(CELULAR, "Samsung", "Galaxy S25 FE 8+512 5G Negro").get("color"));   // castellano → inglés
         assertEquals(COLOR_A_CONSULTAR, at(CELULAR, "Motorola", "Moto G04").get("color"));
+        assertEquals("Glacier", at(IPHONE, "Apple", "iPhone 18 Pro 256GB Glaciar Glaciar").get("color"));
+        var s26 = at(CELULAR, "Samsung", "Galaxy S26 FE 8/256 Blueberry blueberry");
+        assertEquals("Blueberry", s26.get("color"));
+        assertEquals("256GB", s26.get("capacidad"));
+        assertEquals("8GB", s26.get("ram"));
         assertEquals(COLOR_A_CONSULTAR, at(IPHONE, "Apple", "iPhone 17 256GB - (Blue - Black - Sage)").get("color"));
     }
 

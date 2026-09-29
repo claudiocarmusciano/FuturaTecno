@@ -106,8 +106,8 @@ public final class FiltrosCategoria {
     }
 
     private static final Pattern CAPACIDAD = Pattern.compile("(?i)\\b(\\d{1,4})\\s?(GB|TB)\\b");
-    /** "8+256", "12+512", "16+1TB": RAM + almacenamiento. */
-    private static final Pattern RAM_MAS_ALMACENAMIENTO = Pattern.compile("(?i)\\b(\\d{1,2})\\s?\\+\\s?(\\d{1,4})(?:\\s?(?:GB|TB))?\\b");
+    /** "8+256", "8/256", "12+512", "16+1TB": RAM + almacenamiento. */
+    private static final Pattern RAM_MAS_ALMACENAMIENTO = Pattern.compile("(?i)\\b(\\d{1,2})\\s?[+/]\\s?(\\d{1,4})(?:\\s?(?:GB|TB))?\\b");
 
     /** En un iPhone la capacidad es la única cifra en GB/TB del nombre (no se vende por RAM). */
     private static String capacidadIphone(String modelo) {
@@ -153,7 +153,7 @@ public final class FiltrosCategoria {
                 if (vocab.size() == 1 && IdentidadProductoService.sinColores(limpio).isBlank()) {
                     return IdentidadProductoService.nombreColorIngles(vocab.iterator().next());
                 }
-                return titulo(limpio);
+                return nombreFabricante(titulo(limpio));
             }
         }
         Set<String> vocab = IdentidadProductoService.coloresDe(modelo + " " + (especificaciones == null ? "" : especificaciones));
@@ -181,6 +181,13 @@ public final class FiltrosCategoria {
             }
         }
         return s;
+    }
+
+    /** Nombres de fabricante que a veces llegan traducidos: se muestran como los llama la marca. */
+    private static final Map<String, String> EN_INGLES = Map.of("Glaciar", "Glacier");
+
+    private static String nombreFabricante(String color) {
+        return EN_INGLES.getOrDefault(color, color);
     }
 
     private static String titulo(String s) {
