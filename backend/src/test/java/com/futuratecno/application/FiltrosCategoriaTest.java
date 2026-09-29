@@ -117,6 +117,26 @@ class FiltrosCategoriaTest {
     }
 
     @Test
+    void notebookProcesadorRamDiscoPantallaYPlaca() {
+        var katana = at(FiltrosCategoria.Grupo.NOTEBOOK, "MSI", "KATANA 15 i7-14650HX 16GB 1TB RTX 5070 8GB QHD 165HZ");
+        assertEquals(Map.of("procesador", "Intel Core i7", "ram", "16GB", "almacenamiento", "1TB",
+                "pulgadas", "15.6\"", "gpu", "RTX 5070"), katana);
+        var thinkbook = at(FiltrosCategoria.Grupo.NOTEBOOK, "Lenovo", "ThinkBook 16 Core 5 210H 64GB 1TB");
+        assertEquals("Intel Core 5", thinkbook.get("procesador"));
+        assertEquals("16\"", thinkbook.get("pulgadas"));   // del nombre de la línea
+        assertEquals("Integrada", thinkbook.get("gpu"));     // sin placa mencionada
+        assertEquals("15.6\"", at(FiltrosCategoria.Grupo.NOTEBOOK, "Lenovo", "LOQ 15ARP10E Ryzen 7 170 16GB 512GB RTX 4050").get("pulgadas"));
+        assertEquals("15.6\"", at(FiltrosCategoria.Grupo.NOTEBOOK, "HP", "15-FD2050WM Core Ultra 5 225U 16GB 512GB").get("pulgadas"));
+        assertEquals("14\"", at(FiltrosCategoria.Grupo.NOTEBOOK, "HP", "14 Intel N150 4GB 128GB").get("pulgadas"));
+        assertEquals("Intel Core Ultra 9", at(FiltrosCategoria.Grupo.NOTEBOOK, "HP", "Omen Core Ultra 9 285H 32GB, 1TB RTX 5070").get("procesador"));
+        assertEquals("16\"", at(FiltrosCategoria.Grupo.NOTEBOOK, "ASUS", "ROG Strix G16 Core Ultra 9 275HX 32GB 2TB RTX 5070 Ti").get("pulgadas"));
+        assertEquals("15.6\"", at(FiltrosCategoria.Grupo.NOTEBOOK, "ASUS", "TUF Gaming A15 Ryzen 7 7445HS 16GB 512GB RTX 4050").get("pulgadas"));
+        assertEquals("AMD Ryzen AI 9", at(FiltrosCategoria.Grupo.NOTEBOOK, "ASUS", "Zenbook S 16 Ryzen AI 9 365 32GB 1TB").get("procesador"));
+        // "IdeaPad Slim 3" sale en 14, 15 y 16 pulgadas: sin el dato no se adivina.
+        assertNull(at(FiltrosCategoria.Grupo.NOTEBOOK, "Lenovo", "IdeaPad Slim 3 Ryzen 7 8840HS 16GB 512GB").get("pulgadas"));
+    }
+
+    @Test
     void grupoPorRutaDeCategoria() {
         assertEquals(FiltrosCategoria.Grupo.MONITOR, FiltrosCategoria.grupoDe("Monitores"));
         assertEquals(FiltrosCategoria.Grupo.MONITOR, FiltrosCategoria.grupoDe("Monitores > Monitor Gamer"));

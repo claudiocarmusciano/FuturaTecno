@@ -164,7 +164,14 @@ public final class BusquedaCatalogo {
                 int i = ORDEN_VERSION.indexOf(clave(o.valor()));
                 return i < 0 ? 99 : i;
             });
-            case "capacidad", "ram", "red", "hz", "vram", "mhz", "ddr", "modulos" -> Comparator.comparing(o -> gigas(o.valor()));
+            case "capacidad", "ram", "red", "hz", "vram", "mhz", "ddr", "modulos", "almacenamiento" -> Comparator.comparing(o -> gigas(o.valor()));
+            // Notebooks: "Integrada" primero y después las dedicadas de la más potente a la menos.
+            case "gpu" -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> !"Integrada".equals(o.valor()))
+                    .thenComparing(o -> -numero(o.valor().replaceAll("(?i)ti|super", "")))
+                    .thenComparing(o -> -sufijoGpu(o.valor()));
+            // Procesadores agrupados por marca y línea, de menor a mayor gama.
+            case "procesador" -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> familiaCpu(o.valor()))
+                    .thenComparing(o -> numero(o.valor()));
             case "formato" -> Comparator.comparing(o -> !"PC".equals(o.valor()));
             case "rgb" -> Comparator.comparing(o -> !"Con RGB".equals(o.valor()));
             case "pulgadas" -> Comparator.comparing(o -> Double.parseDouble(o.valor().replaceAll("[^0-9.]", "")));
@@ -196,6 +203,14 @@ public final class BusquedaCatalogo {
         if (s.startsWith("ARC")) return 2;
         if (s.startsWith("GTX")) return 3;
         return 4;   // GT
+    }
+
+    private static final List<String> FAMILIAS_CPU = List.of(
+            "Intel Core Ultra", "Intel Core i", "Intel Core", "Intel N", "AMD Ryzen AI", "AMD Ryzen", "AMD Athlon", "Snapdragon");
+
+    private static int familiaCpu(String v) {
+        for (int i = 0; i < FAMILIAS_CPU.size(); i++) if (v.startsWith(FAMILIAS_CPU.get(i))) return i;
+        return 99;
     }
 
     /** Cuánto suma el sufijo del chip: XTX > XT / Ti SUPER > Ti / SUPER / GRE > nada. */

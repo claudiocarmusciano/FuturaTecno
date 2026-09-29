@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public final class FiltrosCategoria {
 
     /** Grupo de filtros; se decide por la categoría del producto. */
-    public enum Grupo { IPHONE, CELULAR, MONITOR, PLACA_DE_VIDEO, MEMORIA }
+    public enum Grupo { IPHONE, CELULAR, MONITOR, PLACA_DE_VIDEO, MEMORIA, NOTEBOOK }
 
     public record Definicion(String clave, String nombre) {}
 
@@ -36,7 +36,10 @@ public final class FiltrosCategoria {
                     new Definicion("vram", "Memoria")),
             Grupo.MEMORIA, List.of(new Definicion("ddr", "Tipo"), new Definicion("formato", "Formato"),
                     new Definicion("capacidad", "Capacidad"), new Definicion("modulos", "Módulos"),
-                    new Definicion("mhz", "Velocidad"), new Definicion("rgb", "Iluminación")));
+                    new Definicion("mhz", "Velocidad"), new Definicion("rgb", "Iluminación")),
+            Grupo.NOTEBOOK, List.of(new Definicion("procesador", "Procesador"), new Definicion("ram", "Memoria RAM"),
+                    new Definicion("almacenamiento", "Almacenamiento"), new Definicion("pulgadas", "Pantalla"),
+                    new Definicion("gpu", "Placa de video")));
 
     /** Todas las claves de filtro de todos los grupos (las que acepta la URL). */
     public static final Set<String> CLAVES = DEFINICIONES.values().stream().flatMap(List::stream)
@@ -56,6 +59,7 @@ public final class FiltrosCategoria {
         if (r.equals("monitores") || r.startsWith("monitores >")) return Grupo.MONITOR;
         if (r.equals("placas de video") || r.startsWith("placas de video >")) return Grupo.PLACA_DE_VIDEO;
         if (r.equals("memorias ram") || r.startsWith("memorias ram >")) return Grupo.MEMORIA;
+        if (r.equals("notebooks") || r.startsWith("notebooks >")) return Grupo.NOTEBOOK;
         return null;
     }
 
@@ -67,6 +71,7 @@ public final class FiltrosCategoria {
         if (grupo == Grupo.MONITOR) return monitor(m, especificaciones);
         if (grupo == Grupo.PLACA_DE_VIDEO) return placaDeVideo(m, especificaciones);
         if (grupo == Grupo.MEMORIA) return memoria(m, especificaciones);
+        if (grupo == Grupo.NOTEBOOK) return notebook(m, especificaciones);
         if (grupo == Grupo.IPHONE) {
             Matcher g = GENERACION.matcher(m);
             if (g.find()) {
@@ -240,6 +245,120 @@ public final class FiltrosCategoria {
         boolean rgb = texto.toUpperCase(Locale.ROOT).matches("(?s).*(\\bRGB\\b|ILUMINACI[OÓ]N:\\s*S[IÍ]\\b).*");
         at.put("rgb", rgb ? "Con RGB" : "Sin RGB");
         return at;
+    }
+
+    // ------------------------------------------------------------------ Notebooks
+
+    private static final Pattern CPU_ULTRA = Pattern.compile("(?i)\\bcore\\s?ultra\\s?([3579])\\b|\\bultra\\s?([579])\\s?\\d{3}");
+    private static final Pattern CPU_CORE_I = Pattern.compile("(?i)\\b(?:core\\s?)?i([3579])[-\\s]?(?:\\d|n\\d)");
+    private static final Pattern CPU_CORE_N = Pattern.compile("(?i)\\bcore\\s?([3579])\\b");
+    private static final Pattern CPU_RYZEN = Pattern.compile("(?i)\\bryzen\\s?(ai\\s?(?:max\\+?\\s?)?)?([3579])\\b");
+    /** Nombres de línea que dicen el tamaño: "ThinkBook 16", "ThinkPad E14", "V15", "Vivobook 15". */
+    private static final Pattern LINEA_CON_TAMANO = Pattern.compile("(?i)\\b(?:thinkbook|thinkpad\\s?[etlx]?|vivobook(?:\\s?[sx])?"
+            + "|zenbook(?:\\s?s)?|ideapad(?:\\s?slim)?(?:\\s?\\d)?|v|victus|omen(?:\\s?transcend)?|pavilion|inspiron|vostro"
+            + "|aspire(?:\\s?\\d)?|nitro(?:\\s?v)?|loq|galaxy\\s?book\\d?(?:\\s?(?:pro|360))?|omnibook(?:\\s?\\d)?|swift(?:\\s?go)?|plus"
+            + "|katana|sword|cyborg|thin|bravo|stealth|raider|vector|crosshair|pulse|titan|helios(?:\\s?neo)?|triton)"
+            + "\\s?(1[3-8])s?\\b");
+    /** Códigos de modelo con el tamaño adelante: Lenovo "15ARP10E", HP "15-FD2050WM", ASUS "X1504VA". */
+    private static final Pattern CODIGO_CON_TAMANO = Pattern.compile(
+            "(?i)\\b(1[3-8])[A-Z]{2,4}\\d{1,2}[A-Z]?\\b|\\b(1[4-7])-[A-Z]{2}\\d|\\b[XMKE]1([3-7])0\\d");
+    private static final Pattern HP_SERIE_200 = Pattern.compile("(?i)\\b2([45])[05]\\s?R?G\\d");   // 240/245 G = 14", 250/255 G = 15.6"
+    /** ASUS: letra + tamaño ("Strix G16", "TUF A15", "Zephyrus G14"). */
+    private static final Pattern LETRA_Y_TAMANO = Pattern.compile("(?i)\\b(?:strix|tuf(?:\\s?gaming)?|zephyrus)\\s?[gfah](1[3-8])\\b");
+    /** HP nombra líneas por el tamaño: "14 Intel N150", "16 Core 7 150U". */
+    private static final Pattern TAMANO_AL_INICIO = Pattern.compile("^\\s*(1[3-7])\\s");
+
+    private static Map<String, String> notebook(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        String ficha = especificaciones == null ? "" : especificaciones;
+        String texto = modelo + " " + ficha;
+        String cpu = procesador(texto);
+        if (cpu != null) at.put("procesador", cpu);
+        // RAM y disco: del nombre (la IA los pone ahí) y, si faltan, de la ficha.
+        int[] rd = ramYDisco(modelo);
+        if (rd[0] == 0 || rd[1] == 0) {
+            int[] f = ramYDisco(ficha);
+            if (rd[0] == 0) rd[0] = f[0];
+            if (rd[1] == 0) rd[1] = f[1];
+        }
+        if (rd[0] > 0) at.put("ram", rd[0] + "GB");
+        if (rd[1] > 0) at.put("almacenamiento", rd[1] >= 1024 ? (rd[1] / 1024) + "TB" : rd[1] + "GB");
+        Double pulgadas = pulgadasNotebook(modelo, texto);
+        if (pulgadas != null) at.put("pulgadas", rangoPantalla(pulgadas));
+        Map<String, String> gpu = placaDeVideo(modelo, null);
+        // Una notebook con placa dedicada siempre lo dice: es lo que la vende. Sin mención, integrada.
+        at.put("gpu", gpu.containsKey("chip") && !gpu.get("chip").startsWith("GT ") ? gpu.get("chip") : "Integrada");
+        return at;
+    }
+
+    static String procesador(String t) {
+        Matcher m = CPU_ULTRA.matcher(t);
+        if (m.find()) return "Intel Core Ultra " + (m.group(1) != null ? m.group(1) : m.group(2));
+        m = CPU_RYZEN.matcher(t);
+        if (m.find()) return "AMD Ryzen " + (m.group(1) != null ? "AI " : "") + m.group(2);
+        m = CPU_CORE_I.matcher(t);
+        if (m.find()) return "Intel Core i" + m.group(1);
+        m = CPU_CORE_N.matcher(t);
+        if (m.find()) return "Intel Core " + m.group(1);
+        String u = t.toUpperCase(Locale.ROOT);
+        if (u.contains("SNAPDRAGON")) return "Snapdragon X";
+        if (u.matches("(?s).*\\b(CELERON|PENTIUM|N\\d{3,4})\\b.*")) return "Intel N / Celeron";
+        if (u.contains("ATHLON")) return "AMD Athlon";
+        return null;
+    }
+
+    /** {RAM, almacenamiento} en GB; 0 si no se sabe. La RAM va antes que el disco en los nombres. */
+    private static int[] ramYDisco(String s) {
+        int ram = 0, disco = 0;
+        Matcher barra = RAM_MAS_ALMACENAMIENTO.matcher(s);   // "16/512"
+        if (barra.find()) {
+            ram = Integer.parseInt(barra.group(1));
+            disco = Integer.parseInt(barra.group(2));
+            if (disco <= 4) disco *= 1024;   // "16/1" = 1TB
+        }
+        Matcher c = CAPACIDAD.matcher(s);
+        while (c.find()) {
+            int n = Integer.parseInt(c.group(1));
+            int gb = c.group(2).equalsIgnoreCase("TB") ? n * 1024 : n;
+            if (gb >= 128 && disco == 0) disco = gb;
+            else if (gb >= 4 && gb <= 128 && ram == 0 && !c.group(2).equalsIgnoreCase("TB") && gb < 128) ram = gb;
+        }
+        return new int[]{ram, disco};
+    }
+
+    private static Double pulgadasNotebook(String modelo, String texto) {
+        Matcher p = PULGADAS.matcher(texto);
+        while (p.find()) {
+            double v = Double.parseDouble(p.group(1).replace(',', '.'));
+            if (v >= 10 && v <= 18.5) return v;
+        }
+        Matcher l = LINEA_CON_TAMANO.matcher(modelo);
+        if (l.find()) return nominal(Integer.parseInt(l.group(1)));
+        Matcher lt = LETRA_Y_TAMANO.matcher(modelo);
+        if (lt.find()) return nominal(Integer.parseInt(lt.group(1)));
+        Matcher c = CODIGO_CON_TAMANO.matcher(modelo);
+        if (c.find()) {
+            String g = c.group(1) != null ? c.group(1) : c.group(2) != null ? c.group(2) : "1" + c.group(3);
+            return nominal(Integer.parseInt(g));
+        }
+        Matcher inicio = TAMANO_AL_INICIO.matcher(modelo);
+        if (inicio.find()) return nominal(Integer.parseInt(inicio.group(1)));
+        Matcher hp = HP_SERIE_200.matcher(modelo);
+        if (hp.find()) return hp.group(1).equals("4") ? 14.0 : 15.6;
+        return null;
+    }
+
+    private static double nominal(int n) {
+        return switch (n) { case 13 -> 13.3; case 15 -> 15.6; case 17 -> 17.3; default -> n; };
+    }
+
+    /** Los tamaños como se eligen en la tienda: 13", 14", 15.6", 16", 17" o más. */
+    private static String rangoPantalla(double v) {
+        if (v < 13.8) return "13\"";
+        if (v < 15) return "14\"";
+        if (v < 16) return "15.6\"";
+        if (v < 17) return "16\"";
+        return "17\" o más";
     }
 
     // ------------------------------------------------------------------ iPhone
