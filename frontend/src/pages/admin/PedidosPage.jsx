@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
 import axios from 'axios'
+import { textoDemora } from '../../utils/demora'
 import { ESTADOS, ESTADO_LABEL, EstadoChip } from '../../components/EstadoPedido'
 
 const formatNumber = (n) =>
@@ -147,6 +148,7 @@ function PedidosPage() {
                               <span>
                                 {i.cantidad}× {i.productoNombre}
                                 {i.especificaciones && <span style={{ color: 'var(--color-text-muted)' }}> · {i.especificaciones}</span>}
+                                {textoDemora(i) && <strong> · Entrega en {textoDemora(i)}</strong>}
                                 {i.sku && <span style={{ color: 'var(--color-text-muted)' }}> · {i.sku}</span>}
                               </span>
                               <span style={{ fontWeight: 600 }}>US$ {formatNumber(i.subtotalUsd)}</span>

@@ -121,6 +121,11 @@ public class PedidoEmailService {
                 sb.append("<br><span style=\"color:#888;font-size:12px\">")
                   .append(escapar(i.getEspecificaciones())).append("</span>");
             }
+            if (i.getDemoraEntregaMinDias() != null) {
+                sb.append("<br><span style=\"color:#5D6B14;font-size:12px;font-weight:bold\">Entrega en ")
+                  .append(i.getDemoraEntregaMinDias()).append(" a ").append(i.getDemoraEntregaMaxDias())
+                  .append(" días</span>");
+            }
             sb.append("</td>");
             sb.append("<td style=\"padding:8px;text-align:center\">").append(i.getCantidad()).append("</td>");
             sb.append("<td style=\"padding:8px;text-align:right\">US$ ").append(fmt(i.subtotalUsd())).append("</td>");

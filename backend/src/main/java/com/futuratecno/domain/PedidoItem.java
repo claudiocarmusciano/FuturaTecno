@@ -48,6 +48,13 @@ public class PedidoItem extends BaseEntity {
     @Column(name = "precio_unitario_ars", nullable = false)
     private BigDecimal precioUnitarioArs;
 
+    /** Demora de entrega del proveedor al confirmar (V44). Los dos null = la entrega normal. */
+    @Column(name = "demora_entrega_min_dias")
+    private Integer demoraEntregaMinDias;
+
+    @Column(name = "demora_entrega_max_dias")
+    private Integer demoraEntregaMaxDias;
+
     public Pedido getPedido() {
         return pedido;
     }
@@ -136,5 +143,21 @@ public class PedidoItem extends BaseEntity {
     /** Subtotal en ARS del renglón (precio unitario × cantidad). */
     public BigDecimal subtotalArs() {
         return precioUnitarioArs.multiply(BigDecimal.valueOf(cantidad));
+    }
+
+    public Integer getDemoraEntregaMinDias() {
+        return demoraEntregaMinDias;
+    }
+
+    public void setDemoraEntregaMinDias(Integer demoraEntregaMinDias) {
+        this.demoraEntregaMinDias = demoraEntregaMinDias;
+    }
+
+    public Integer getDemoraEntregaMaxDias() {
+        return demoraEntregaMaxDias;
+    }
+
+    public void setDemoraEntregaMaxDias(Integer demoraEntregaMaxDias) {
+        this.demoraEntregaMaxDias = demoraEntregaMaxDias;
     }
 }
