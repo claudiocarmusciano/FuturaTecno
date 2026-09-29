@@ -15,6 +15,13 @@ public class ProveedorDTO {
 
     /** Productos activos del proveedor. Solo se completa en el listado, para el panel. */
     private Long cantidadProductos;
+    private Integer demoraEntregaMinDias;
+    private Integer demoraEntregaMaxDias;
+
+    public Integer getDemoraEntregaMinDias() { return demoraEntregaMinDias; }
+    public void setDemoraEntregaMinDias(Integer demoraEntregaMinDias) { this.demoraEntregaMinDias = demoraEntregaMinDias; }
+    public Integer getDemoraEntregaMaxDias() { return demoraEntregaMaxDias; }
+    public void setDemoraEntregaMaxDias(Integer demoraEntregaMaxDias) { this.demoraEntregaMaxDias = demoraEntregaMaxDias; }
 
     public ProveedorDTO() {}
 

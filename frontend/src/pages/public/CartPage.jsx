@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
 import { IconCart, IconX } from '../../components/icons'
+import { textoDemora } from '../../utils/demora'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -96,6 +97,9 @@ function CartPage() {
                         <Link to={`/producto/${i.productoId}`} style={{ fontWeight: 600, color: 'var(--color-text)', textDecoration: 'none' }}>
                           {i.nombre}
                         </Link>
+                        {textoDemora(i) && (
+                          <div style={{ fontSize: '12px', color: '#f0c05a', fontWeight: 600 }}>Entrega en {textoDemora(i)}</div>
+                        )}
                         {i.especificaciones && (
                           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{i.especificaciones}</div>
                         )}
