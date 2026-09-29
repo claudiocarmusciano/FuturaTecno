@@ -102,6 +102,18 @@ class FiltrosCategoriaTest {
         // "16Gbit" es la densidad del chip, no la capacidad; DDR3L es DDR3.
         assertEquals("8GB", at(FiltrosCategoria.Grupo.MEMORIA, "Kingston", "Memoria DDR4 Kingston 8Gb 3200 MHz 16Gbit (1266)").get("capacidad"));
         assertEquals("DDR3", at(FiltrosCategoria.Grupo.MEMORIA, "ADATA", "Memoria Ram UDIMM ADATA 8GB DDR3L 1600MHz CL11").get("ddr"));
+        // La palabra "kit" en la ficha no borra la capacidad (fichas reales de Elit y de Hiksemi).
+        var elit = FiltrosCategoria.atributos(FiltrosCategoria.Grupo.MEMORIA, "LEXAR", "Memoria LEXAR UDIMM DDR4 8GB 3200MHz",
+                "Factor de forma: UDIMM. Tipo de memoria RAM: DDR4. Tamaño de memoria RAM: 8GB. Unidades x kit: 1. Iluminación: No.");
+        assertEquals("8GB", elit.get("capacidad"));
+        assertEquals("1 módulo", elit.get("modulos"));
+        assertEquals("Sin RGB", elit.get("rgb"));
+        var hiksemi = FiltrosCategoria.atributos(FiltrosCategoria.Grupo.MEMORIA, "Hiksemi", "Memoria DDR4 HIKSEMI 8Gb 3200 MHz Future RGB",
+                "Potente RGB · RAM individual y en kit disponibles para elegir");
+        assertEquals("8GB", hiksemi.get("capacidad"));
+        assertEquals("1 módulo", hiksemi.get("modulos"));
+        assertEquals("Kit de 2", FiltrosCategoria.atributos(FiltrosCategoria.Grupo.MEMORIA, "X", "Memoria DDR5 32GB 6000MHz",
+                "Unidades x kit: 2. Iluminación: Sí").get("modulos"));
     }
 
     @Test
