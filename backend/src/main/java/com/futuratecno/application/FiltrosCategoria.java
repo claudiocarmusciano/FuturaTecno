@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public final class FiltrosCategoria {
 
     /** Grupo de filtros; se decide por la categoría del producto. */
-    public enum Grupo { IPHONE, CELULAR }
+    public enum Grupo { IPHONE, CELULAR, MONITOR, PLACA_DE_VIDEO }
 
     public record Definicion(String clave, String nombre) {}
 
@@ -29,7 +29,11 @@ public final class FiltrosCategoria {
             Grupo.IPHONE, List.of(new Definicion("generacion", "Modelo"), new Definicion("version", "Versión"),
                     new Definicion("capacidad", "Capacidad"), new Definicion("color", "Color")),
             Grupo.CELULAR, List.of(new Definicion("capacidad", "Capacidad"), new Definicion("ram", "Memoria RAM"),
-                    new Definicion("red", "Red"), new Definicion("color", "Color")));
+                    new Definicion("red", "Red"), new Definicion("color", "Color")),
+            Grupo.MONITOR, List.of(new Definicion("pulgadas", "Pulgadas"), new Definicion("hz", "Frecuencia"),
+                    new Definicion("resolucion", "Resolución"), new Definicion("pantalla", "Pantalla")),
+            Grupo.PLACA_DE_VIDEO, List.of(new Definicion("serie", "Serie"), new Definicion("chip", "Chip"),
+                    new Definicion("vram", "Memoria")));
 
     /** Todas las claves de filtro de todos los grupos (las que acepta la URL). */
     public static final Set<String> CLAVES = DEFINICIONES.values().stream().flatMap(List::stream)
@@ -45,6 +49,9 @@ public final class FiltrosCategoria {
         String r = rutaCategoria.trim().toLowerCase(Locale.ROOT);
         if (r.equals("apple > iphone")) return Grupo.IPHONE;
         if (r.equals("celulares")) return Grupo.CELULAR;
+        // Monitores y placas: la categoría entera y cada subcategoría. "Apple > Monitores" no entra.
+        if (r.equals("monitores") || r.startsWith("monitores >")) return Grupo.MONITOR;
+        if (r.equals("placas de video") || r.startsWith("placas de video >")) return Grupo.PLACA_DE_VIDEO;
         return null;
     }
 
@@ -53,6 +60,8 @@ public final class FiltrosCategoria {
         Map<String, String> at = new LinkedHashMap<>();
         if (grupo == null || modelo == null) return at;
         String m = modelo.trim();
+        if (grupo == Grupo.MONITOR) return monitor(m, especificaciones);
+        if (grupo == Grupo.PLACA_DE_VIDEO) return placaDeVideo(m, especificaciones);
         if (grupo == Grupo.IPHONE) {
             Matcher g = GENERACION.matcher(m);
             if (g.find()) {
@@ -82,6 +91,101 @@ public final class FiltrosCategoria {
             else if (CUATRO_G.matcher(texto).find()) at.put("red", "4G");
         }
         at.put("color", color(m, especificaciones));
+        return at;
+    }
+
+    // ------------------------------------------------------------------ Monitores
+
+    /** 23.8", 27'', 24 pulgadas, 27 inch. */
+    private static final Pattern PULGADAS = Pattern.compile(
+            "(?i)\\b(\\d{2}(?:[.,]\\d{1,2})?)\\s*(?:\"|”|''|'|´|pulg(?:adas)?\\b|inch(?:es)?\\b|in\\b)");
+    /**
+     * LG y Raptor escriben el tamaño sin comillas ("MONITOR LG 27 ULTRAGEAR", "Hawk Eye 24"): una
+     * cifra suelta de 15 a 65, que no esté pegada a letras (así "27GS60F" no cuenta) ni sea Hz/ms.
+     */
+    private static final Pattern PULGADAS_SUELTAS = Pattern.compile(
+            "(?i)(?<![\\w.-])(\\d{2}(?:[.,]\\d)?)(?![\\w.,]|\\s?(?:hz|ms|gb|%))");
+    private static final Pattern HZ = Pattern.compile("(?i)\\b(\\d{2,3})\\s?hz\\b");
+
+    private static Map<String, String> monitor(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        String texto = modelo + " " + (especificaciones == null ? "" : especificaciones);
+        for (Pattern patron : List.of(PULGADAS, PULGADAS_SUELTAS)) {
+            Matcher p = patron.matcher(patron == PULGADAS ? texto : modelo);
+            while (p.find() && !at.containsKey("pulgadas")) {
+                double v = Double.parseDouble(p.group(1).replace(',', '.'));
+                if (v >= 15 && v <= 65) at.put("pulgadas", formatoPulgadas(v));
+            }
+            if (at.containsKey("pulgadas")) break;
+        }
+        Matcher h = HZ.matcher(texto);
+        int hz = 0;
+        while (h.find()) hz = Math.max(hz, Integer.parseInt(h.group(1)));   // "60Hz / 75Hz": el máximo
+        if (hz >= 50) at.put("hz", hz + " Hz");
+        String res = resolucion(texto);
+        if (res != null) at.put("resolucion", res);
+        // Acordado con el usuario: si no dice "curvo", es plano.
+        at.put("pantalla", texto.toLowerCase(Locale.ROOT).matches("(?s).*\\bcurv.*") ? "Curva" : "Plana");
+        return at;
+    }
+
+    private static String formatoPulgadas(double v) {
+        return (v == Math.floor(v) ? String.valueOf((int) v) : String.valueOf(v)) + "\"";
+    }
+
+    private static String resolucion(String texto) {
+        String t = texto.toUpperCase(Locale.ROOT);
+        if (t.matches("(?s).*(\\b(4K|UHD|2160P)\\b|3840\\s?X\\s?2160).*")) return "4K";
+        if (t.matches("(?s).*(5120\\s?X\\s?1440|\\bDQHD\\b).*")) return "Dual QHD";
+        if (t.matches("(?s).*(3440\\s?X\\s?1440|\\bUWQHD\\b|\\bWQHD\\+?\\s?ULTRA).*")) return "UltraWide QHD";
+        if (t.matches("(?s).*(\\b(QHD|WQHD|2K|1440P)\\b|2560\\s?X\\s?1440).*")) return "2K (QHD)";
+        if (t.matches("(?s).*(\\bWFHD\\b|2560\\s?X\\s?1080).*")) return "UltraWide Full HD";
+        if (t.matches("(?s).*(\\b(FHD|FULL\\s?HD|1080P)\\b|1920\\s?X\\s?1080).*")) return "Full HD";
+        if (t.matches("(?s).*(\\bHD\\b|1366\\s?X\\s?768|1600\\s?X\\s?900|720P).*")) return "HD";
+        return null;
+    }
+
+    // ------------------------------------------------------------------ Placas de video
+
+    private static final Pattern NVIDIA = Pattern.compile(
+            "(?i)\\b(RTX|GTX|GT)\\s?-?\\s?(\\d{3,4})\\s?(TI\\s?SUPER|TI|SUPER)?\\b");
+    private static final Pattern RTX_PRO = Pattern.compile("(?i)\\bRTX\\s?(PRO\\s?\\d{4}|A\\d{3,4})\\b");
+    private static final Pattern AMD = Pattern.compile("(?i)\\bRX\\s?-?\\s?(\\d{3,4})\\s?(XTX|XT|GRE)?\\b");
+    private static final Pattern ARC = Pattern.compile("(?i)\\bARC\\s?([AB]\\d{3})\\b");
+    /** 8GB, 8G, 2GD3 (MSI), 24Gb GDDR7. */
+    private static final Pattern VRAM = Pattern.compile("(?i)\\bO?(\\d{1,2})\\s?G(?:B)?(?=\\s|D\\d|DDR|\\b)");   // "O8GB": ASUS antepone la O de OC
+    private static final Set<Integer> VRAM_VALIDAS = Set.of(1, 2, 3, 4, 6, 8, 10, 11, 12, 16, 20, 24, 32, 48);
+
+    private static Map<String, String> placaDeVideo(String modelo, String especificaciones) {
+        Map<String, String> at = new LinkedHashMap<>();
+        Matcher pro = RTX_PRO.matcher(modelo);
+        Matcher n = NVIDIA.matcher(modelo);
+        Matcher a = AMD.matcher(modelo);
+        Matcher arc = ARC.matcher(modelo);
+        if (pro.find()) {
+            at.put("serie", "Profesional");
+            at.put("chip", "RTX " + pro.group(1).toUpperCase(Locale.ROOT).replaceAll("\\s+", " "));
+        } else if (modelo.toUpperCase(Locale.ROOT).contains("QUADRO") || modelo.toUpperCase(Locale.ROOT).contains("RADEON PRO")) {
+            at.put("serie", "Profesional");
+        } else if (n.find()) {
+            String linea = n.group(1).toUpperCase(Locale.ROOT);
+            String num = n.group(2);
+            String suf = n.group(3) == null ? "" : " " + titulo(n.group(3).replaceAll("\\s+", " "));
+            at.put("serie", linea.equals("GT") ? "GT" : linea + " " + num.substring(0, num.length() - 2));
+            at.put("chip", linea + " " + num + suf.replace("Ti Super", "Ti SUPER").replace("Super", "SUPER"));
+        } else if (a.find()) {
+            String num = a.group(1);
+            at.put("serie", "RX " + num.charAt(0) + "000".substring(0, num.length() - 1));
+            at.put("chip", "RX " + num + (a.group(2) == null ? "" : " " + a.group(2).toUpperCase(Locale.ROOT)));
+        } else if (arc.find()) {
+            at.put("serie", "Arc " + arc.group(1).toUpperCase(Locale.ROOT).charAt(0));
+            at.put("chip", "Arc " + arc.group(1).toUpperCase(Locale.ROOT));
+        }
+        Matcher v = VRAM.matcher(modelo + " " + (especificaciones == null ? "" : especificaciones));
+        while (v.find()) {
+            int gb = Integer.parseInt(v.group(1));
+            if (VRAM_VALIDAS.contains(gb)) { at.put("vram", gb + "GB"); break; }
+        }
         return at;
     }
 
