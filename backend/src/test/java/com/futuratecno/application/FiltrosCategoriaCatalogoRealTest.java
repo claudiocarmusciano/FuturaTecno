@@ -28,7 +28,7 @@ class FiltrosCategoriaCatalogoRealTest {
             for (JsonNode n : catalogo) {
                 if (FiltrosCategoria.grupoDe(n.path("actual").asText(null)) != g) continue;
                 total++;
-                var at = FiltrosCategoria.atributos(g, n.path("marca").asText(""), n.path("modelo").asText(""), null);
+                var at = FiltrosCategoria.atributos(g, n.path("marca").asText(""), n.path("modelo").asText(""), n.path("especificaciones").asText(null));
                 at.forEach((k, v) -> {
                     if (!FiltrosCategoria.COLOR_A_CONSULTAR.equals(v)) conDato.merge(k, 1, Integer::sum);
                     valores.computeIfAbsent(k, x -> new TreeMap<>()).merge(v, 1, Integer::sum);

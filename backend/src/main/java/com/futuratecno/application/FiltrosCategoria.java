@@ -201,6 +201,8 @@ public final class FiltrosCategoria {
     private static final Pattern KIT = Pattern.compile("(?i)\\b(\\d)\\s?x\\s?(\\d{1,3})\\s?G(?:B)?\\b");
     /** "16GB", "16 Gb"; no "16Gbit", que es la densidad del chip. */
     private static final Pattern GB_MODULO = Pattern.compile("(?i)\\b(\\d{1,3})\\s?GB?\\b(?!it)");
+    /** Ficha de Elit: "Unidades x kit: 2". */
+    private static final Pattern UNIDADES_KIT = Pattern.compile("(?i)unidades\\s*x\\s*kit\\s*:\\s*(\\d)");
     private static final Pattern MHZ = Pattern.compile("(?i)\\b(\\d{4})\\s?(?:MHZ|MT/?S)?\\b");
 
     private static Map<String, String> memoria(String modelo, String especificaciones) {
@@ -210,19 +212,24 @@ public final class FiltrosCategoria {
         if (d.find()) at.put("ddr", "DDR" + d.group(1));
         at.put("formato", texto.toUpperCase(Locale.ROOT).matches("(?s).*(SO-?DIMM|NOTEBOOK|LAPTOP).*") ? "Notebook (SODIMM)" : "PC");
         Matcher k = KIT.matcher(texto);
-        int modulos = 1, porModulo = 0;
-        if (k.find()) {
+        Matcher u = UNIDADES_KIT.matcher(texto);
+        int modulos, capacidad = 0;
+        if (k.find()) {   // "(2x16GB)": lo más preciso
             modulos = Integer.parseInt(k.group(1));
-            porModulo = Integer.parseInt(k.group(2));
+            capacidad = modulos * Integer.parseInt(k.group(2));
         } else {
+            // Sin "NxM", la cifra del nombre es el TOTAL (así se vende: "32GB" en un kit de 2x16).
             Matcher g = GB_MODULO.matcher(modelo);   // del nombre: la ficha repite datos del chip
             while (g.find()) {
                 int v = Integer.parseInt(g.group(1));
-                if (v >= 2 && v <= 256 && Integer.bitCount(v) <= 2) { porModulo = v; break; }
+                if (v >= 2 && v <= 256 && Integer.bitCount(v) <= 2) { capacidad = v; break; }
             }
-            if (texto.toUpperCase(Locale.ROOT).matches("(?s).*\\b(KIT|DUAL\\s?CHANNEL)\\b.*")) modulos = 0;   // kit sin detalle
+            if (u.find()) modulos = Integer.parseInt(u.group(1));
+            // "Kit" en el NOMBRE sin detalle: no se sabe de cuántos. En la ficha no cuenta: Hiksemi
+            // dice "RAM individual y en kit disponibles" en todas.
+            else modulos = modelo.toUpperCase(Locale.ROOT).matches("(?s).*\\b(KIT|DUAL\\s?CHANNEL)\\b.*") ? 0 : 1;
         }
-        if (porModulo > 0 && modulos > 0) at.put("capacidad", (porModulo * modulos) + "GB");
+        if (capacidad > 0) at.put("capacidad", capacidad + "GB");
         if (modulos == 1) at.put("modulos", "1 módulo");
         else if (modulos > 1) at.put("modulos", "Kit de " + modulos);
         Matcher m = MHZ.matcher(texto);
@@ -230,7 +237,8 @@ public final class FiltrosCategoria {
             int v = Integer.parseInt(m.group(1));
             if (v >= 1066 && v <= 9600) { at.put("mhz", v + " MHz"); break; }
         }
-        at.put("rgb", texto.toUpperCase(Locale.ROOT).matches("(?s).*\\bRGB\\b.*") ? "Con RGB" : "Sin RGB");
+        boolean rgb = texto.toUpperCase(Locale.ROOT).matches("(?s).*(\\bRGB\\b|ILUMINACI[OÓ]N:\\s*S[IÍ]\\b).*");
+        at.put("rgb", rgb ? "Con RGB" : "Sin RGB");
         return at;
     }
 
