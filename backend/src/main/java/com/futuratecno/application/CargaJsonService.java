@@ -824,7 +824,15 @@ public class CargaJsonService {
         // reconocido pasado al inglés. Nunca se traduce al castellano.
         String crudo = colorDeLaFicha instanceof String c && !c.isBlank() && !IdentidadProductoService.tieneColorEnCastellano(c) ? c.strip() : null;
         String color = crudo != null ? crudo : IdentidadProductoService.nombreColorIngles(r.atributos().get("color"));
-        return color == null ? modelo : modelo + " " + color;
+        // Un color que el vocabulario no reconoce ("Glacier", "Blueberry") puede estar ya en el
+        // nombre: agregarlo otra vez dejaba "… 256GB Glacier Glacier" (46 productos al 2026-09-29).
+        return color == null || yaDice(modelo, color) ? modelo : modelo + " " + color;
+    }
+
+    /** ¿El nombre ya dice ese color, como palabra/s completa/s y sin importar mayúsculas? */
+    static boolean yaDice(String modelo, String color) {
+        return java.util.regex.Pattern.compile("(?i)(^|[^\\p{L}\\p{N}])" + java.util.regex.Pattern.quote(color.strip()) + "($|[^\\p{L}\\p{N}])")
+                .matcher(modelo).find();
     }
 
     /** El producto activo de este proveedor que es este mismo con el color escrito en otro idioma, si es uno solo. */
