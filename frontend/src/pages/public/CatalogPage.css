@@ -114,3 +114,31 @@
   .catalog-eta { align-items: flex-start; font-size: 13px; }
   .catalog-minimum { align-items: flex-start; font-size: 13px; }
 }
+
+/* Filtros por características (iPhone, Celulares…): pastillas táctiles con la cantidad al lado. */
+.filtros-atributos { border-top: 1px solid var(--color-border); padding-top: 14px; margin-bottom: 14px; display: grid; gap: 14px; }
+.filtros-atributos-encabezado { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: var(--color-text); }
+.filtro-titulo { font-size: 12px; color: var(--color-text-muted); margin-bottom: 7px; font-weight: 600; }
+.filtro-opciones { display: flex; flex-wrap: wrap; gap: 7px; }
+.filtro-opcion {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 36px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16); background: var(--color-surface-2);
+  color: var(--color-text); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.filtro-opcion:hover { border-color: var(--color-lime); }
+.filtro-opcion:focus-visible { outline: 2px solid var(--color-lime); outline-offset: 2px; }
+.filtro-opcion.activa { background: var(--color-lime); border-color: var(--color-lime); color: #16181d; }
+.filtro-opcion.consultar:not(.activa) { font-style: italic; color: var(--color-text-muted); }
+.filtro-cantidad { font-size: 11px; font-weight: 700; opacity: .65; }
+.filtro-opcion.activa .filtro-cantidad { opacity: .8; }
+.filtro-muestra { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35); flex: 0 0 auto; }
+.filtro-opcion.activa .filtro-muestra { border-color: rgba(22,24,29,.45); }
+.filtro-ver-mas {
+  background: none; border: none; padding: 6px 4px; cursor: pointer;
+  color: var(--color-lime); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .filtro-opcion { min-height: 40px; padding: 8px 13px; }   /* objetivo táctil más cómodo en el teléfono */
+}

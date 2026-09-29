@@ -8,7 +8,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -29,7 +32,13 @@ public final class BusquedaCatalogo {
     /** Parámetros tal como llegan del catálogo público (?cat=&marca=&q=&min=&max=&orden=&page=&size=). */
     public record Filtro(Set<Long> idsCategoria, String marca, String texto,
                          BigDecimal precioMin, BigDecimal precioMax, String orden,
-                         int pagina, int porPagina) {}
+                         int pagina, int porPagina,
+                         FiltrosCategoria.Grupo grupo, Map<String, List<String>> atributos) {
+        public Filtro(Set<Long> idsCategoria, String marca, String texto, BigDecimal precioMin,
+                      BigDecimal precioMax, String orden, int pagina, int porPagina) {
+            this(idsCategoria, marca, texto, precioMin, precioMax, orden, pagina, porPagina, null, Map.of());
+        }
+    }
 
     private BusquedaCatalogo() {}
 
@@ -37,7 +46,9 @@ public final class BusquedaCatalogo {
         String q = f.texto() == null ? "" : f.texto().trim().toLowerCase(Locale.ROOT);
         String marca = f.marca() == null || f.marca().isBlank() ? null : f.marca();
 
-        List<ProductoCatalogoDTO> filtrados = new ArrayList<>();
+        // Filtros por atributo de la categoría (iPhone, Celulares…): valores normalizados por clave.
+        Map<String, Map<String, String>> elegidos = elegidos(f);
+        List<ProductoCatalogoDTO> base = new ArrayList<>();   // todo menos los filtros por atributo
         for (ProductoCatalogoDTO p : catalogo) {
             if (f.idsCategoria() != null && !f.idsCategoria().contains(p.getCategoriaId())) continue;
             if (marca != null && !marca.equals(p.getMarca())) continue;
@@ -47,8 +58,10 @@ public final class BusquedaCatalogo {
             // lo trataba como Infinity, que pasa un mínimo pero no un máximo. Se conserva eso.
             if (f.precioMin() != null && precio != null && precio.compareTo(f.precioMin()) < 0) continue;
             if (f.precioMax() != null && (precio == null || precio.compareTo(f.precioMax()) > 0)) continue;
-            filtrados.add(p);
+            base.add(p);
         }
+        List<ProductoCatalogoDTO> filtrados = new ArrayList<>();
+        for (ProductoCatalogoDTO p : base) if (cumple(p, elegidos, null)) filtrados.add(p);
 
         Comparator<ProductoCatalogoDTO> porPrecio = Comparator.comparing(
                 BusquedaCatalogo::precioDesde, Comparator.nullsLast(Comparator.naturalOrder()));
@@ -74,7 +87,106 @@ public final class BusquedaCatalogo {
         out.setPorPagina(porPagina);
         out.setTotalPaginas(totalPaginas);
         facetas(catalogo, out);
+        if (f.grupo() != null) out.setFiltros(opciones(base, f.grupo(), elegidos));
         return out;
+    }
+
+    // ------------------------------------------------------------------ Filtros por atributo
+
+    /** Por atributo: clave normalizada del valor elegido → el texto tal como vino (para mostrarlo). */
+    private static Map<String, Map<String, String>> elegidos(Filtro f) {
+        Map<String, Map<String, String>> out = new LinkedHashMap<>();
+        if (f.grupo() == null || f.atributos() == null) return out;
+        for (var d : FiltrosCategoria.DEFINICIONES.get(f.grupo())) {
+            List<String> valores = f.atributos().get(d.clave());
+            if (valores == null) continue;
+            Map<String, String> norm = new LinkedHashMap<>();
+            for (String v : valores) if (v != null && !v.isBlank()) norm.putIfAbsent(clave(v), v.trim());
+            if (!norm.isEmpty()) out.put(d.clave(), norm);
+        }
+        return out;
+    }
+
+    /**
+     * ¿El producto pasa los filtros elegidos, salvo {@code ignorar}? Dentro de un atributo alcanza
+     * con uno de los valores (256GB o 512GB); entre atributos tienen que cumplirse todos. Sin el
+     * dato no pasa: no se puede afirmar que sea lo que se pidió (regla acordada, 2026-09-29).
+     */
+    private static boolean cumple(ProductoCatalogoDTO p, Map<String, Map<String, String>> elegidos, String ignorar) {
+        for (var e : elegidos.entrySet()) {
+            if (e.getKey().equals(ignorar)) continue;
+            String v = p.getFiltros().get(e.getKey());
+            if (v == null || !e.getValue().containsKey(clave(v))) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Las opciones de cada filtro con su cantidad. Cada atributo se cuenta aplicando los OTROS
+     * filtros y no el propio, así con "256GB" elegido se sigue viendo cuántos hay de 512GB.
+     */
+    private static List<CatalogoPaginaDTO.FiltroDTO> opciones(List<ProductoCatalogoDTO> base,
+                                                           FiltrosCategoria.Grupo grupo, Map<String, Map<String, String>> elegidos) {
+        List<CatalogoPaginaDTO.FiltroDTO> out = new ArrayList<>();
+        for (var d : FiltrosCategoria.DEFINICIONES.get(grupo)) {
+            Map<String, Integer> cantidad = new HashMap<>();
+            Map<String, Map<String, Integer>> formas = new HashMap<>();   // "Ice Blue" / "Iceblue": se muestra la más usada
+            for (ProductoCatalogoDTO p : base) {
+                if (!cumple(p, elegidos, d.clave())) continue;
+                String v = p.getFiltros().get(d.clave());
+                if (v == null) continue;
+                cantidad.merge(clave(v), 1, Integer::sum);
+                formas.computeIfAbsent(clave(v), k -> new HashMap<>()).merge(v, 1, Integer::sum);
+            }
+            Map<String, String> sel = elegidos.getOrDefault(d.clave(), Map.of());
+            // Un valor elegido que se quedó sin productos se sigue mostrando, para poder sacarlo.
+            sel.keySet().forEach(k -> cantidad.putIfAbsent(k, 0));
+            List<CatalogoPaginaDTO.OpcionDTO> ops = new ArrayList<>();
+            for (var e : cantidad.entrySet()) {
+                String visible = formas.containsKey(e.getKey())
+                        ? formas.get(e.getKey()).entrySet().stream().max(Map.Entry.comparingByValue()).get().getKey()
+                        : sel.get(e.getKey());
+                ops.add(new CatalogoPaginaDTO.OpcionDTO(visible, e.getValue(), sel.containsKey(e.getKey())));
+            }
+            ops.sort(orden(d.clave()));
+            if (!ops.isEmpty()) out.add(new CatalogoPaginaDTO.FiltroDTO(d.clave(), d.nombre(), ops));
+        }
+        return out;
+    }
+
+    private static final List<String> ORDEN_VERSION = List.of("estandar", "e", "mini", "plus", "air", "pro", "promax");
+
+    private static Comparator<CatalogoPaginaDTO.OpcionDTO> orden(String clave) {
+        return switch (clave) {
+            // Lo más nuevo primero: es lo que más se busca.
+            case "generacion" -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> numero(o.valor())).reversed();
+            case "version" -> Comparator.comparing(o -> {
+                int i = ORDEN_VERSION.indexOf(clave(o.valor()));
+                return i < 0 ? 99 : i;
+            });
+            case "capacidad", "ram", "red" -> Comparator.comparing(o -> gigas(o.valor()));
+            // Colores por cantidad; "Color a consultar" siempre al final.
+            default -> Comparator.comparing((CatalogoPaginaDTO.OpcionDTO o) -> FiltrosCategoria.COLOR_A_CONSULTAR.equals(o.valor()))
+                    .thenComparing(Comparator.comparingInt(CatalogoPaginaDTO.OpcionDTO::cantidad).reversed())
+                    .thenComparing(CatalogoPaginaDTO.OpcionDTO::valor);
+        };
+    }
+
+    private static int numero(String s) {
+        String d = s.replaceAll("\\D", "");
+        return d.isEmpty() ? 0 : Integer.parseInt(d);
+    }
+
+    /** "512GB" → 512, "1TB" → 1024, "5G" → 5. */
+    private static int gigas(String s) {
+        int n = numero(s);
+        return s.toUpperCase(Locale.ROOT).endsWith("TB") ? n * 1024 : n;
+    }
+
+    /** Clave de comparación: minúsculas, sin tildes ni espacios ("Ice Blue" = "Iceblue", "Estándar" = "estandar"). */
+    static String clave(String v) {
+        String sinTildes = java.text.Normalizer.normalize(v, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return sinTildes.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
     }
 
     /**

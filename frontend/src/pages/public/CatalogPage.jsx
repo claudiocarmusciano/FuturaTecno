@@ -8,6 +8,7 @@ import EditarComoAdmin from '../../components/EditarComoAdmin'
 import { IconArrowUpRight, IconBanknote, IconCart, IconCheck, IconGrid, IconMenu, IconSearchLine, IconX } from '../../components/icons'
 import './CatalogPage.css'
 import { textoDemora } from '../../utils/demora'
+import FiltrosAtributos from '../../components/FiltrosAtributos'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -30,6 +31,17 @@ const PRECIO_MINIMO_PREDETERMINADO_USD = '50'
 // queda completa en cualquiera de los anchos de la grilla (auto-fill de 260px).
 // La paginación y los filtros los resuelve el servidor (GET /api/productos/buscar).
 const POR_PAGINA = 24
+
+// Claves de los filtros por características que puede traer la URL (las define el servidor).
+const CLAVES_ATRIBUTO = ['generacion', 'version', 'capacidad', 'ram', 'red', 'color']
+const atributosDe = (searchParams) => {
+  const out = {}
+  for (const k of CLAVES_ATRIBUTO) {
+    const v = searchParams.get(k)
+    if (v) out[k] = v.split(',').filter(Boolean)
+  }
+  return out
+}
 // Espera antes de consultar mientras se escribe (búsqueda y precios): sin esto, cada tecla es un request.
 const ESPERA_TECLEO_MS = 300
 
@@ -191,6 +203,15 @@ function CatalogPage() {
   const { agregar } = useCart()
   const [agregado, setAgregado] = useState(null)   // id del producto recién agregado (feedback)
   const [pagina, setPagina] = useState(() => Math.max(1, Number(searchParams.get('pag')) || 1))
+  // Filtros por características: { capacidad: ['256GB', '512GB'], color: ['Black'] }
+  const [atributos, setAtributos] = useState(() => atributosDe(searchParams))
+  const toggleAtributo = (clave, valor) => setAtributos(prev => {
+    const actuales = prev[clave] || []
+    const nuevos = actuales.includes(valor) ? actuales.filter(v => v !== valor) : [...actuales, valor]
+    const next = { ...prev }
+    if (nuevos.length) next[clave] = nuevos; else delete next[clave]
+    return next
+  })
 
   // Refleja los filtros actuales en la URL (replace: no ensucia el historial en cada tecla).
   useEffect(() => {
@@ -202,8 +223,9 @@ function CatalogPage() {
     if (precioMin) params.min = precioMin
     if (precioMax) params.max = precioMax
     if (pagina > 1) params.pag = String(pagina)   // al volver del detalle, se vuelve a la misma página
+    for (const [k, v] of Object.entries(atributos)) params[k] = v.join(',')
     setSearchParams(params, { replace: true })
-  }, [categoriaId, marca, busqueda, orden, precioMin, precioMax, pagina, setSearchParams])
+  }, [categoriaId, marca, busqueda, orden, precioMin, precioMax, pagina, atributos, setSearchParams])
 
   const busquedaDemorada = useDemorado(busqueda.trim(), ESPERA_TECLEO_MS)
   const minDemorado = useDemorado(precioMin, ESPERA_TECLEO_MS)
@@ -213,7 +235,7 @@ function CatalogPage() {
   // deja 3 resultados, quedarías mirando una página vacía. Se compara contra los filtros previos
   // (y no con un "primer render") para respetar la página que vino en la URL también cuando
   // React corre los efectos dos veces en desarrollo.
-  const claveFiltros = JSON.stringify([categoriaId, marca, busquedaDemorada, orden, minDemorado, maxDemorado])
+  const claveFiltros = JSON.stringify([categoriaId, marca, busquedaDemorada, orden, minDemorado, maxDemorado, atributos])
   const filtrosPrevios = useRef(claveFiltros)
   useEffect(() => {
     if (filtrosPrevios.current === claveFiltros) return
@@ -228,6 +250,7 @@ function CatalogPage() {
     if (busquedaDemorada) params.q = busquedaDemorada
     if (minDemorado !== '' && Number.isFinite(Number(minDemorado))) params.min = minDemorado
     if (maxDemorado !== '' && Number.isFinite(Number(maxDemorado))) params.max = maxDemorado
+    for (const [k, v] of Object.entries(atributos)) params[k] = v.join(',')
 
     // Si el usuario cambia de filtro antes de que llegue la respuesta anterior, esa se descarta:
     // sin esto, una respuesta lenta podía pisar a una más nueva y mostrar resultados de otro filtro.
@@ -246,7 +269,7 @@ function CatalogPage() {
         setActualizando(false)
       })
     return () => control.abort()
-  }, [pagina, categoriaId, marca, busquedaDemorada, orden, minDemorado, maxDemorado])
+  }, [pagina, categoriaId, marca, busquedaDemorada, orden, minDemorado, maxDemorado, atributos])
 
   useEffect(() => {
     axios.get('/api/categorias').then(res => setArbol(res.data)).catch(err => console.error('Categorías:', err))
@@ -287,6 +310,7 @@ function CatalogPage() {
   })
   const seleccionarCategoria = (id) => {
     setCategoriaId(prev => prev === id ? '' : id)
+    setAtributos({})   // los filtros por características son de cada categoría
     setMenuAbierto(false)   // en mobile, elegir una subcategoría cierra el drawer solo
   }
 
@@ -308,9 +332,9 @@ function CatalogPage() {
   }
 
   const limpiarTodo = () => {
-    setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(ORDEN_POR_DEFECTO); setPrecioMin(PRECIO_MINIMO_PREDETERMINADO_USD); setPrecioMax('')
+    setCategoriaId(''); setMarca(''); setBusqueda(''); setOrden(ORDEN_POR_DEFECTO); setPrecioMin(PRECIO_MINIMO_PREDETERMINADO_USD); setPrecioMax(''); setAtributos({})
   }
-  const hayFiltros = categoriaId || marca || busqueda || orden !== ORDEN_POR_DEFECTO || precioMin !== PRECIO_MINIMO_PREDETERMINADO_USD || precioMax
+  const hayFiltros = Object.keys(atributos).length > 0 || categoriaId || marca || busqueda || orden !== ORDEN_POR_DEFECTO || precioMin !== PRECIO_MINIMO_PREDETERMINADO_USD || precioMax
 
   if (cargando) return (<div><h1>Catálogo</h1><div className="card"><p>Cargando productos...</p></div></div>)
   if (error && !resultado) return (<div><h1>Catálogo</h1><div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div></div>)
@@ -357,7 +381,7 @@ function CatalogPage() {
           </div>
           <div style={{ marginTop: '10px' }}>
             <button
-              onClick={() => { setCategoriaId(''); setMenuAbierto(false) }}
+              onClick={() => { setCategoriaId(''); setAtributos({}); setMenuAbierto(false) }}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '5px 0',
                 fontSize: '14px', fontWeight: categoriaId === '' ? 700 : 600,
@@ -398,6 +422,8 @@ function CatalogPage() {
                 <MarcaDropdown marca={marca} marcas={marcas} onChange={setMarca} />
               </div>
             )}
+
+            <FiltrosAtributos filtros={resultado?.filtros} onToggle={toggleAtributo} onLimpiar={() => setAtributos({})} />
 
             {/* Orden + rango de precio */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'flex-end', borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>

@@ -16,6 +16,13 @@ public class ProductoCatalogoDTO {
     private List<String> imagenes;
     private LocalDateTime ultimaActualizacion;
     private List<VarianteCatalogoDTO> variantes;
+    /** Atributos filtrables ({@link com.futuratecno.application.FiltrosCategoria}); uso interno del buscador. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private java.util.Map<String, String> filtros = java.util.Map.of();
+
+    public java.util.Map<String, String> getFiltros() { return filtros; }
+    public void setFiltros(java.util.Map<String, String> filtros) { this.filtros = filtros; }
+
     /** Demora de entrega en días cuando no es la normal de la tienda; null = entrega normal. */
     private Integer demoraEntregaMinDias;
     private Integer demoraEntregaMaxDias;
