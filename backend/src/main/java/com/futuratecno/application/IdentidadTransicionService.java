@@ -211,6 +211,32 @@ public class IdentidadTransicionService {
         return ResultadoEdicion.ASIGNADA;
     }
 
+    /**
+     * Consolida duplicados históricos: el admin elige cuál de las copias ES el artículo y ese se
+     * queda con la identidad. Las demás no se tocan (siguen como estaban, activas o no), pero la
+     * carga por JSON deja de mandar el artículo a revisión: con un dueño asignado, actualiza ese.
+     * Es la herramienta a la que apunta el aviso "Consolidalos" de la carga.
+     *
+     * @throws IllegalArgumentException si el producto no existe, viene de un mayorista con código
+     *         propio o su nombre no alcanza para resolver una identidad
+     * @throws IdentidadEnUsoException si otro producto del proveedor ya es el dueño
+     */
+    @Transactional
+    public Producto elegirComoDuenio(Long productoId) {
+        Producto p = productoRepository.findById(productoId)
+                .orElseThrow(() -> new IllegalArgumentException("No existe el producto " + productoId + "."));
+        String specs = varianteRepository.findByProductoIdIn(List.of(p.getId())).stream()
+                .sorted(Comparator.comparing(Variante::getActivo).thenComparing(Variante::getUpdatedAt,
+                        Comparator.nullsFirst(Comparator.naturalOrder())))
+                .reduce((a, b) -> b).map(Variante::getEspecificaciones).orElse(null);
+        ResultadoEdicion r = recalcularTrasEdicion(p, specs);
+        if (r == ResultadoEdicion.NO_APLICA) {
+            throw new IllegalArgumentException("El producto " + productoId + " no admite identidad: viene de un "
+                    + "mayorista con código propio o sus datos no alcanzan para resolverla.");
+        }
+        return p;
+    }
+
     /** ¿La guardada conocía algún atributo del teléfono que la nueva ya no conoce? */
     static boolean pierdeAtributos(Resolucion nueva, Map<String, String> guardados) {
         if (!nueva.esTelefono()) return false;

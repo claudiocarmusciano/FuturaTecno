@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -482,6 +483,27 @@ class CargaJsonIdentidadPostgresTest {
         }
         // Y la carga no elige sola entre duplicados: los manda a revisión.
         assertEquals("revision", cargarUno(prov, art("Samsung", "Galaxy A16 128GB", "160", esp("128GB", "4GB"))).getEstado());
+    }
+
+    @Test
+    void elegirUnDuenioConsolidaDuplicadosInactivosYLaCargaActualizaEse() {
+        // El caso de las Switch 2 (5060 y 5155): dos copias dadas de baja con el mismo nombre.
+        Long a = productoViejo(prov, "Nintendo", "Switch 2 256GB", "", "625");
+        Long b = productoViejo(prov, "Nintendo", "Switch 2 256GB", "", "660");
+        jdbc.update("UPDATE productos SET activo = false WHERE id IN (?, ?)", a, b);
+        ArticuloJsonDTO sw = art("Nintendo", "Switch 2 256GB", "640", new java.util.HashMap<>());
+        assertEquals("revision", cargarUno(prov, sw).getEstado());
+
+        transicion.elegirComoDuenio(b);
+
+        assertNotNull(productos.findById(b).orElseThrow().getIdentidadClave());
+        assertNull(productos.findById(a).orElseThrow().getIdentidadClave());
+        assertFalse(productos.findById(a).orElseThrow().getActivo(), "la otra copia no se toca");
+        CargaJsonResponse.Item item = cargarUno(prov, sw);
+        assertEquals("actualizado", item.getEstado());
+        assertEquals(b, item.getProductoId());
+        // Elegir el otro después choca con el dueño ya elegido: no quedan dos.
+        assertThrows(IdentidadTransicionService.IdentidadEnUsoException.class, () -> transicion.elegirComoDuenio(a));
     }
 
     // ------------------------------------------------------------------ edición manual en el admin
