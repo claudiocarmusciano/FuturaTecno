@@ -152,6 +152,10 @@ public class PedidoService {
             item.setCantidad(cantidad);
             item.setPrecioUnitarioUsd(precioUsd);
             item.setPrecioUnitarioArs(precioArs);
+            if (producto.getProveedor() != null) {
+                item.setDemoraEntregaMinDias(producto.getProveedor().getDemoraEntregaMinDias());
+                item.setDemoraEntregaMaxDias(producto.getProveedor().getDemoraEntregaMaxDias());
+            }
             pedido.getItems().add(item);
 
             totalUsd = totalUsd.add(item.subtotalUsd());
@@ -358,6 +362,8 @@ public class PedidoService {
             idto.setPrecioUnitarioArs(i.getPrecioUnitarioArs());
             idto.setSubtotalUsd(i.subtotalUsd());
             idto.setSubtotalArs(i.subtotalArs());
+            idto.setDemoraEntregaMinDias(i.getDemoraEntregaMinDias());
+            idto.setDemoraEntregaMaxDias(i.getDemoraEntregaMaxDias());
             items.add(idto);
         }
         dto.setItems(items);

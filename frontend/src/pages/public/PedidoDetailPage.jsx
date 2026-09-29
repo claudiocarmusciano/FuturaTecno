@@ -4,6 +4,7 @@ import axios from 'axios'
 import { EstadoChip } from '../../components/EstadoPedido'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 import { IconChat } from '../../components/icons'
+import { textoDemora } from '../../utils/demora'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -144,6 +145,7 @@ function PedidoDetailPage() {
               : <div style={{ width: '52px', height: '52px', borderRadius: '6px', background: 'var(--color-accent-light)' }} />}
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 600 }}>{i.productoNombre}</div>
+              {textoDemora(i) && <div style={{ fontSize: '12px', color: '#f0c05a', fontWeight: 600 }}>Entrega en {textoDemora(i)}</div>}
               {i.especificaciones && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{i.especificaciones}</div>}
               <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                 {i.sku && <>Cód. {i.sku} · </>}{i.cantidad} × US$ {formatNumber(i.precioUnitarioUsd)}
