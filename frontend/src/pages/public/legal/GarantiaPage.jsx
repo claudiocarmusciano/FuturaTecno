@@ -16,7 +16,7 @@ export default function GarantiaPage() {
         <ol>
           <li>Escribinos por WhatsApp (+{WHATSAPP_NUMBER}) o a {CONTACTO_EMAIL} con tu número de pedido o comprobante de compra, una descripción de la falla y, si podés, fotos o un video.</li>
           <li>Te indicamos si la gestión se hace con nosotros o con el servicio técnico oficial de la marca, que en muchos casos resuelve más rápido.</li>
-          <li>Si corresponde, el producto se repara, se cambia por otro igual o, si no fuera posible, se reintegra lo pagado. Los costos de envío de un producto en garantía corren por nuestra cuenta.</li>
+          <li>Si corresponde, el producto se repara, se cambia por otro igual o, si no fuera posible, se reintegra lo pagado. Los costos de envío para llevar y traer un producto en garantía corren por cuenta del cliente.</li>
         </ol>
       </section>
 
