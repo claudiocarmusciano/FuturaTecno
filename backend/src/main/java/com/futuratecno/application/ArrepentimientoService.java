@@ -12,10 +12,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -50,16 +46,18 @@ public class ArrepentimientoService {
     private final EmailService emailService;
     private final String adminTo;
     private final Clock clock;
+    private final LimitadorIntentos limitador;
     private final SecureRandom random = new SecureRandom();
-    private final Map<String, Deque<Instant>> recientes = new ConcurrentHashMap<>();
 
     @Autowired   // hay un segundo constructor (con reloj) para los tests: Spring tiene que saber cuál usar
-    public ArrepentimientoService(EmailService emailService, @Value("${app.mail.admin-to:}") String adminTo) {
-        this(emailService, adminTo, Clock.systemUTC());
+    public ArrepentimientoService(EmailService emailService, LimitadorIntentos limitador,
+                                  @Value("${app.mail.admin-to:}") String adminTo) {
+        this(emailService, limitador, adminTo, Clock.systemUTC());
     }
 
-    ArrepentimientoService(EmailService emailService, String adminTo, Clock clock) {
+    ArrepentimientoService(EmailService emailService, LimitadorIntentos limitador, String adminTo, Clock clock) {
         this.emailService = emailService;
+        this.limitador = limitador;
         this.adminTo = adminTo;
         this.clock = clock;
     }
@@ -75,7 +73,9 @@ public class ArrepentimientoService {
         String detalle = limpio(s.detalle(), 1000);
 
         Instant ahora = clock.instant();
-        if (!admitir("ip:" + ip, ahora) | !admitir("email:" + email.toLowerCase(), ahora)) {
+        // "|" y no "||": el intento se anota en las dos claves aunque la primera ya esté llena.
+        if (!limitador.permitir("arrepentimiento-ip:" + ip, MAXIMO_POR_HORA, VENTANA)
+                | !limitador.permitir("arrepentimiento-email:" + email.toLowerCase(), MAXIMO_POR_HORA, VENTANA)) {
             throw new DemasiadasSolicitudesException();
         }
 
@@ -91,17 +91,6 @@ public class ArrepentimientoService {
         emailService.enviarHtmlAsync(email, "Recibimos tu solicitud de arrepentimiento " + codigo + " — FuturaTecno",
                 htmlCliente(codigo, nombre, pedido, ahora));
         return codigo;
-    }
-
-    /** Ventana deslizante en memoria. Una sola instancia en Railway: alcanza sin guardar nada. */
-    private boolean admitir(String clave, Instant ahora) {
-        Deque<Instant> marcas = recientes.computeIfAbsent(clave, k -> new ArrayDeque<>());
-        synchronized (marcas) {
-            while (!marcas.isEmpty() && marcas.peekFirst().isBefore(ahora.minus(VENTANA))) marcas.pollFirst();
-            if (marcas.size() >= MAXIMO_POR_HORA) return false;
-            marcas.addLast(ahora);
-            return true;
-        }
     }
 
     private String sufijo() {

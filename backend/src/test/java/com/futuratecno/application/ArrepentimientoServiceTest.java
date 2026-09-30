@@ -26,7 +26,7 @@ class ArrepentimientoServiceTest {
 
     private final EmailService email = mock(EmailService.class);
     private final Reloj reloj = new Reloj();
-    private final ArrepentimientoService svc = new ArrepentimientoService(email, "admin@example.com", reloj);
+    private final ArrepentimientoService svc = new ArrepentimientoService(email, new LimitadorIntentos(reloj), "admin@example.com", reloj);
 
     private static ArrepentimientoService.Solicitud sol(String mail) {
         return new ArrepentimientoService.Solicitud("Ana Pérez", mail, "2284 123456", "FT-12", "No era lo que esperaba <b>");
