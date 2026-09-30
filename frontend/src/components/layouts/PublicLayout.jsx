@@ -5,6 +5,7 @@ import { useCart } from '../../cart/CartContext'
 import CartBadge from '../CartBadge'
 import { IconInfo, IconMenu, IconX } from '../../components/icons'
 import './PublicLayout.css'
+import PieLegal, { BarraArrepentimiento } from '../PieLegal'
 
 function PublicLayout() {
   const { user, isAdmin, logout } = useAuth()
@@ -24,6 +25,7 @@ function PublicLayout() {
 
   return (
     <div className={`public-layout${esVistaCatalogo ? ' public-layout-catalogo' : ''}`}>
+      <BarraArrepentimiento />
       <header className="public-header">
         <div className="header-container">
           <Link to="/" className="logo"><img src="/logo.png?v=2" alt="FuturaTecno" className="header-logo" /></Link>
@@ -65,6 +67,7 @@ function PublicLayout() {
         </div>
         <Outlet />
       </main>
+      <PieLegal />
     </div>
   )
 }

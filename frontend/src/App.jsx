@@ -27,6 +27,10 @@ import PedidoDetailPage from './pages/public/PedidoDetailPage'
 import PagoResultadoPage from './pages/public/PagoResultadoPage'
 import RutaPrivada from './auth/RutaPrivada'
 import Analitica from './components/Analitica'
+import TerminosPage from './pages/public/legal/TerminosPage'
+import GarantiaPage from './pages/public/legal/GarantiaPage'
+import PrivacidadPage from './pages/public/legal/PrivacidadPage'
+import ArrepentimientoPage from './pages/public/legal/ArrepentimientoPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
@@ -48,6 +52,10 @@ function App() {
         {/* /inicio apuntaba al sorteo cuando era la home: se respeta ese destino. */}
         <Route path="/inicio" element={<Navigate to="/sorteo" replace />} />
         <Route path="/bases-y-condiciones" element={<BasesSorteoPage />} />
+        <Route path="/terminos" element={<TerminosPage />} />
+        <Route path="/garantia" element={<GarantiaPage />} />
+        <Route path="/privacidad" element={<PrivacidadPage />} />
+        <Route path="/arrepentimiento" element={<ArrepentimientoPage />} />
 
         <Route element={<PublicLayout />}>
           <Route path="/catalogo" element={<CatalogPage />} />

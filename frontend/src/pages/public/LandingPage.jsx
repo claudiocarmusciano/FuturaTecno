@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
+import PieLegal, { BarraArrepentimiento } from '../../components/PieLegal'
 import './Landing.css'
 import PromotionsCarousel from '../../components/PromotionsCarousel'
 
@@ -176,6 +177,7 @@ function LandingPage() {
 
   return (
     <div className="lp">
+      <BarraArrepentimiento />
       {/* NAV */}
       <header className="lp-header">
         <div className="lp-wrap lp-nav">
@@ -393,17 +395,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="lp-footer">
-        <div className="lp-wrap lp-foot">
-          <div>© {new Date().getFullYear()} FuturaTecno · Tu tecnología. Tu futuro.</div>
-          <div className="lp-foot-links">
-            <Link to="/catalogo">Catálogo</Link>
-            <a href={waLink} target="_blank" rel="noreferrer">WhatsApp</a>
-            {user ? <Link to="/mis-pedidos">Mis pedidos</Link> : <Link to="/login">Ingresar</Link>}
-          </div>
-        </div>
-      </footer>
+      <PieLegal />
     </div>
   )
 }
