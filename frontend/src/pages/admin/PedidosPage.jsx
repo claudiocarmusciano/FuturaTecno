@@ -155,7 +155,7 @@ function PedidosPage() {
                       <td style={{ padding: '12px 8px' }}><EstadoChip estado={p.estado} /></td>
                       <td style={{ padding: '12px 8px', fontSize: '13px', fontWeight: 700, color: p.estadoPago === 'APROBADO' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
                         <div>{p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : p.estadoPago === 'RECHAZADO' ? 'Rechazado' : p.estadoPago === 'SIN_INICIAR' ? 'Sin iniciar' : 'Pendiente'}</div>
-                        {p.estadoPago !== 'APROBADO' && (p.medioPago !== 'MERCADO_PAGO' || p.origen === 'MANUAL') && (
+                        {p.estadoPago !== 'APROBADO' && p.estado !== 'CANCELADO' && p.estado !== 'VENCIDO' && (p.medioPago !== 'MERCADO_PAGO' || p.origen === 'MANUAL') && (
                           <button type="button" onClick={() => marcarCobrado(p.id)} style={{ marginTop: '6px', padding: '5px 8px', border: '1px solid var(--color-lime)', borderRadius: '6px', background: 'transparent', color: 'var(--color-lime)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Marcar cobrado</button>
                         )}
                       </td>
