@@ -1,4 +1,5 @@
-.comp-pagina { min-height: 100vh; background: #eceef1; padding: 24px 16px 48px; color: #16181d; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+/* La hoja es clara: el tema del sitio es oscuro y pinta div/span/p con --color-text, así que acá se redefine. */
+.comp-pagina { --color-text: #16181d; min-height: 100vh; background: #eceef1; padding: 24px 16px 48px; color: #16181d; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 .comp-acciones { max-width: 820px; margin: 0 auto 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .comp-acciones a { color: #5D6B14; font-weight: 700; }
 .comp-acciones div { display: flex; gap: 8px; flex-wrap: wrap; }
