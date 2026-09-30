@@ -7,13 +7,14 @@ export default function GarantiaPage() {
     <LegalLayout titulo="Garantía y devoluciones" actualizado="30 de septiembre de 2026"
       intro="Qué cubre la garantía, cómo hacer un reclamo y cómo devolver un producto.">
       <section><h2>1. Garantía</h2>
-        <p>Todos los productos nuevos tienen garantía por defectos de fabricación de <strong>al menos 6 meses</strong> desde la entrega, como establece la Ley 24.240 de Defensa del Consumidor. Si el fabricante ofrece una garantía oficial más larga (por ejemplo, 12 meses), rige la del fabricante, y te lo indicamos en la publicación o al confirmar tu pedido.</p>
+        <p>Todos los productos tienen garantía por defectos de fabricación de <strong>al menos 3 meses</strong> desde la entrega. Si el fabricante ofrece una garantía oficial más larga (por ejemplo, 12 meses), rige la del fabricante. Vale para todos los productos, también los importados.</p>
+        <p>Para la garantía vale el comprobante de compra que te entregamos con el producto (factura o remito): guardalo.</p>
         <p>La garantía cubre fallas de fabricación. No cubre daños por golpes, caídas, líquidos, sobretensión, mal uso, instalación incorrecta, apertura o reparación por terceros, ni el desgaste normal por el uso (por ejemplo, baterías fuera de los parámetros del fabricante).</p>
       </section>
 
       <section><h2>2. Cómo hacer un reclamo de garantía</h2>
         <ol>
-          <li>Escribinos por WhatsApp (+{WHATSAPP_NUMBER}) o a {CONTACTO_EMAIL} con tu número de pedido, una descripción de la falla y, si podés, fotos o un video.</li>
+          <li>Escribinos por WhatsApp (+{WHATSAPP_NUMBER}) o a {CONTACTO_EMAIL} con tu número de pedido o comprobante de compra, una descripción de la falla y, si podés, fotos o un video.</li>
           <li>Te indicamos si la gestión se hace con nosotros o con el servicio técnico oficial de la marca, que en muchos casos resuelve más rápido.</li>
           <li>Si corresponde, el producto se repara, se cambia por otro igual o, si no fuera posible, se reintegra lo pagado. Los costos de envío de un producto en garantía corren por nuestra cuenta.</li>
         </ol>

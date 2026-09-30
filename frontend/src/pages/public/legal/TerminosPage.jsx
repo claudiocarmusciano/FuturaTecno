@@ -41,23 +41,20 @@ export default function TerminosPage() {
         <p>Al recibir el paquete revisá que esté cerrado y sin daños. Si no lo está, dejalo asentado ante el transportista y avisanos dentro de las 48 h.</p>
       </section>
 
-      <section><h2>7. Factura</h2>
-        <p>Emitimos factura electrónica por cada venta, a nombre de quien figura en el pedido. Si necesitás factura A, indicá los datos fiscales en las notas del pedido.</p>
-      </section>
 
-      <section><h2>8. Arrepentimiento, garantía y cambios</h2>
+      <section><h2>7. Arrepentimiento, garantía y cambios</h2>
         <p>Podés revocar la compra dentro de los 10 días corridos desde que recibiste el producto, sin dar explicaciones, con el <Link to="/arrepentimiento">Botón de arrepentimiento</Link>. Las condiciones de garantía y cambios están en <Link to="/garantia">Garantía y devoluciones</Link>.</p>
       </section>
 
-      <section><h2>9. Puntos y promociones</h2>
+      <section><h2>8. Puntos y promociones</h2>
         <p>Los puntos del Club FuturaTecno y las promociones tienen las condiciones que se informan en cada caso. Los puntos no son canjeables por dinero.</p>
       </section>
 
-      <section><h2>10. Datos personales</h2>
+      <section><h2>9. Datos personales</h2>
         <p>Usamos tus datos para gestionar tus pedidos, como se explica en la <Link to="/privacidad">Política de privacidad</Link>.</p>
       </section>
 
-      <section><h2>11. Reclamos</h2>
+      <section><h2>10. Reclamos</h2>
         <p>Ante cualquier problema escribinos a {CONTACTO_EMAIL} o por WhatsApp: lo resolvemos directamente. También podés hacer tu reclamo ante <a href={DEFENSA_CONSUMIDOR_URL} target="_blank" rel="noreferrer">Defensa del Consumidor</a>. Rige la ley argentina y, en particular, la Ley 24.240 de Defensa del Consumidor.</p>
       </section>
     </LegalLayout>
