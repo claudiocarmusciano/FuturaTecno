@@ -2,6 +2,7 @@ package com.futuratecno.application;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,7 @@ public class ArrepentimientoService {
     private final SecureRandom random = new SecureRandom();
     private final Map<String, Deque<Instant>> recientes = new ConcurrentHashMap<>();
 
+    @Autowired   // hay un segundo constructor (con reloj) para los tests: Spring tiene que saber cuál usar
     public ArrepentimientoService(EmailService emailService, @Value("${app.mail.admin-to:}") String adminTo) {
         this(emailService, adminTo, Clock.systemUTC());
     }
