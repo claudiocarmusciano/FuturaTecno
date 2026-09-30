@@ -28,7 +28,7 @@
 
 .header-container {
   position: relative;
-  max-width: 1120px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 16px 24px;
   display: flex;
@@ -78,7 +78,7 @@
 
 .public-main {
   flex: 1;
-  max-width: 1120px;
+  max-width: 1320px;
   margin: 0 auto;
   width: 100%;
   padding: 44px 24px;

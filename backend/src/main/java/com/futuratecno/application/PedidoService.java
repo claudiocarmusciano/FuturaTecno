@@ -118,45 +118,7 @@ public class PedidoService {
         BigDecimal totalArs = BigDecimal.ZERO;
 
         for (ItemPedidoRequest itemReq : req.getItems()) {
-            if (itemReq.getVarianteId() == null) {
-                throw new IllegalArgumentException("Hay un artículo sin identificar en el pedido.");
-            }
-            int cantidad = itemReq.getCantidad() != null ? itemReq.getCantidad() : 0;
-            if (cantidad <= 0) {
-                throw new IllegalArgumentException("La cantidad de cada artículo debe ser mayor a cero.");
-            }
-
-            Variante variante = varianteRepository.findById(itemReq.getVarianteId())
-                    .filter(v -> Boolean.TRUE.equals(v.getActivo()))
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Un artículo del pedido ya no está disponible. Revisá el carrito."));
-
-            Producto producto = variante.getProducto();
-            if (producto == null || !Boolean.TRUE.equals(producto.getActivo())) {
-                throw new IllegalArgumentException(
-                        "Un artículo del pedido ya no está disponible. Revisá el carrito.");
-            }
-
-            // Precio recalculado acá, ignorando cualquier importe que venga del cliente.
-            BigDecimal precioUsd = precioService.precioVentaUsd(variante, producto, producto.getProveedor());
-            BigDecimal precioArs = precioService.aArs(precioUsd, cotizacion);
-
-            PedidoItem item = new PedidoItem();
-            item.setPedido(pedido);
-            item.setProducto(producto);
-            item.setVariante(variante);
-            item.setProductoNombre(nombreDe(producto));
-            item.setEspecificaciones(limpiar(variante.getEspecificaciones(), 500));
-            item.setSku(producto.skuCamuflado());
-            item.setImagenUrl(producto.getImagenUrl());
-            item.setCantidad(cantidad);
-            item.setPrecioUnitarioUsd(precioUsd);
-            item.setPrecioUnitarioArs(precioArs);
-            if (producto.getProveedor() != null) {
-                item.setDemoraEntregaMinDias(producto.getProveedor().getDemoraEntregaMinDias());
-                item.setDemoraEntregaMaxDias(producto.getProveedor().getDemoraEntregaMaxDias());
-            }
-            pedido.getItems().add(item);
+            PedidoItem item = armarItem(pedido, itemReq.getVarianteId(), itemReq.getCantidad(), cotizacion, null);
 
             totalUsd = totalUsd.add(item.subtotalUsd());
             totalArs = totalArs.add(item.subtotalArs());
@@ -205,6 +167,138 @@ public class PedidoService {
         return toDTO(guardado, false);
     }
 
+    /**
+     * Arma y agrega un renglón con los datos del artículo CONGELADOS. El precio es el del catálogo
+     * (PrecioService); solo una orden manual puede pasar {@code precioAcordadoUsd}, y en ese caso
+     * se guarda también el del catálogo para dejar registro del cambio.
+     */
+    private PedidoItem armarItem(Pedido pedido, Long varianteId, Integer cantidadPedida, BigDecimal cotizacion,
+                                 BigDecimal precioAcordadoUsd) {
+        if (varianteId == null) {
+            throw new IllegalArgumentException("Hay un artículo sin identificar en el pedido.");
+        }
+        int cantidad = cantidadPedida != null ? cantidadPedida : 0;
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad de cada artículo debe ser mayor a cero.");
+        }
+        Variante variante = varianteRepository.findById(varianteId)
+                .filter(v -> Boolean.TRUE.equals(v.getActivo()))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Un artículo del pedido ya no está disponible. Revisá el carrito."));
+        Producto producto = variante.getProducto();
+        if (producto == null || !Boolean.TRUE.equals(producto.getActivo())) {
+            throw new IllegalArgumentException(
+                    "Un artículo del pedido ya no está disponible. Revisá el carrito.");
+        }
+
+        BigDecimal precioCatalogoUsd = precioService.precioVentaUsd(variante, producto, producto.getProveedor());
+        BigDecimal precioUsd = precioCatalogoUsd;
+        if (precioAcordadoUsd != null) {
+            if (precioAcordadoUsd.signum() <= 0) throw new IllegalArgumentException("El precio de cada artículo tiene que ser mayor a cero.");
+            precioUsd = precioAcordadoUsd.setScale(2, java.math.RoundingMode.HALF_UP);
+        }
+
+        PedidoItem item = new PedidoItem();
+        item.setPedido(pedido);
+        item.setProducto(producto);
+        item.setVariante(variante);
+        item.setProductoNombre(nombreDe(producto));
+        item.setEspecificaciones(limpiar(variante.getEspecificaciones(), 500));
+        item.setSku(producto.skuCamuflado());
+        item.setImagenUrl(producto.getImagenUrl());
+        item.setCantidad(cantidad);
+        item.setPrecioUnitarioUsd(precioUsd);
+        item.setPrecioUnitarioArs(precioService.aArs(precioUsd, cotizacion));
+        if (precioCatalogoUsd != null && precioUsd.compareTo(precioCatalogoUsd) != 0) item.setPrecioCatalogoUsd(precioCatalogoUsd);
+        if (producto.getProveedor() != null) {
+            item.setDemoraEntregaMinDias(producto.getProveedor().getDemoraEntregaMinDias());
+            item.setDemoraEntregaMaxDias(producto.getProveedor().getDemoraEntregaMaxDias());
+        }
+        pedido.getItems().add(item);
+        return item;
+    }
+
+    /**
+     * Orden de venta cargada por el admin. Diferencias con la web, todas a propósito: puede no
+     * tener cuenta (quedan nombre, teléfono y email), el precio de cada artículo se puede cambiar,
+     * no exige la compra mínima (es para ventas en el local o acordadas por WhatsApp) y no vence a
+     * las 06:30 (el precio lo acordó una persona). No se le manda mail a nadie: el comprobante lo
+     * comparte el admin.
+     */
+    @Transactional
+    public PedidoDTO crearManual(com.futuratecno.api.dto.CrearPedidoManualRequest req, String emailAdmin) {
+        if (req.getItems() == null || req.getItems().isEmpty()) {
+            throw new IllegalArgumentException("La orden no tiene artículos.");
+        }
+        String nombre = limpiar(req.getNombre(), 150);
+        if (nombre == null) throw new IllegalArgumentException("Completá el nombre del cliente.");
+        String email = limpiar(req.getEmail(), 190);
+        if (email != null && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$")) {
+            throw new IllegalArgumentException("El email del cliente no es válido.");
+        }
+        String medioPago = limpiar(req.getMedioPago(), 30);
+        if (medioPago == null) medioPago = "TRANSFERENCIA";
+        if (!medioPago.equals("MERCADO_PAGO") && !medioPago.equals("TRANSFERENCIA") && !medioPago.equals("EFECTIVO")) {
+            throw new IllegalArgumentException("La forma de pago elegida no es válida.");
+        }
+
+        BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
+        Pedido pedido = new Pedido();
+        pedido.setOrigen("MANUAL");
+        if (email != null) {
+            usuarioRepository.findByEmailIgnoreCase(email).filter(u -> Boolean.TRUE.equals(u.getActivo()))
+                    .ifPresent(pedido::setUsuario);
+        }
+        pedido.setEmailContacto(email);
+        pedido.setNombreContacto(nombre);
+        pedido.setTelefonoContacto(limpiar(req.getTelefono(), 50));
+        pedido.setNotas(limpiar(req.getNotas(), 1000));
+        pedido.setMedioPago(medioPago);
+        pedido.setEstado(EstadoPedido.PENDIENTE);
+        pedido.setCotizacionUsada(cotizacion);
+        pedido.setVenceEn(null);
+
+        BigDecimal totalUsd = BigDecimal.ZERO;
+        BigDecimal totalArs = BigDecimal.ZERO;
+        List<ItemPedidoRequest> paraEnvio = new ArrayList<>();
+        for (var it : req.getItems()) {
+            PedidoItem item = armarItem(pedido, it.getVarianteId(), it.getCantidad(), cotizacion, it.getPrecioUnitarioUsd());
+            totalUsd = totalUsd.add(item.subtotalUsd());
+            totalArs = totalArs.add(item.subtotalArs());
+            ItemPedidoRequest ir = new ItemPedidoRequest();
+            ir.setVarianteId(it.getVarianteId());
+            ir.setCantidad(it.getCantidad());
+            paraEnvio.add(ir);
+        }
+        pedido.setTotalUsd(totalUsd);
+        pedido.setTotalArs(totalArs);
+
+        String modoEnvio = limpiar(req.getModoEnvio(), 30);
+        String cpDestino = limpiar(req.getCpDestino(), 10);
+        if (modoEnvio != null) {
+            pedido.setModoEnvio(modoEnvio);
+            pedido.setCpDestino(cpDestino);
+            if (req.getCostoEnvioArs() != null) {
+                if (req.getCostoEnvioArs().signum() < 0) throw new IllegalArgumentException("El costo de envío no puede ser negativo.");
+                pedido.setCostoEnvioArs(req.getCostoEnvioArs().setScale(2, java.math.RoundingMode.HALF_UP));
+            } else if (cpDestino != null) {
+                pedido.setCostoEnvioArs(envioService.costoDeModalidad(cpDestino, modoEnvio, paraEnvio));
+            }
+        }
+        pedido.setNumero(generarNumero());
+        Pedido guardado = pedidoRepository.save(pedido);
+        logger.info("Orden manual {} cargada por {} ({} ítems, US$ {}, cliente {})", guardado.getNumero(), emailAdmin,
+                guardado.getItems().size(), guardado.getTotalUsd(), guardado.getUsuario() != null ? "con cuenta" : "sin cuenta");
+        return toDTO(guardado, true);
+    }
+
+    /** Un pedido por número, para el admin (comprobante). */
+    @Transactional(readOnly = true)
+    public PedidoDTO obtenerParaAdmin(String numero) {
+        return toDTO(pedidoRepository.findByNumero(numero)
+                .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado.")), true);
+    }
+
     @Transactional(readOnly = true)
     public List<PedidoDTO> misPedidos(String emailUsuario) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario)
@@ -231,14 +325,52 @@ public class PedidoService {
 
     @Transactional(readOnly = true)
     public List<PedidoDTO> listarParaAdmin(EstadoPedido estado) {
+        return listarParaAdmin(estado, null, null, null, null, null);
+    }
+
+    /**
+     * Bandeja del admin con búsqueda. Filtra en memoria: son pocos pedidos y así el texto libre
+     * busca también en los renglones (nombre del artículo, SKU) sin armar una consulta aparte.
+     *
+     * @param texto número, nombre, teléfono, email o artículo; sin distinguir mayúsculas ni tildes
+     * @param desde / hasta fechas de creación, inclusive (hora argentina)
+     */
+    @Transactional(readOnly = true)
+    public List<PedidoDTO> listarParaAdmin(EstadoPedido estado, String texto, java.time.LocalDate desde,
+                                           java.time.LocalDate hasta, String medioPago, String origen) {
         List<Pedido> pedidos = (estado == null)
                 ? pedidoRepository.findAllByOrderByCreatedAtDesc()
                 : pedidoRepository.findByEstadoOrderByCreatedAtDesc(estado);
+        String q = texto == null || texto.isBlank() ? null : sinTildes(texto);
         List<PedidoDTO> out = new ArrayList<>();
         for (Pedido p : pedidos) {
+            if (medioPago != null && !medioPago.isBlank() && !medioPago.equalsIgnoreCase(p.getMedioPago())) continue;
+            if (origen != null && !origen.isBlank() && !origen.equalsIgnoreCase(p.getOrigen())) continue;
+            if (desde != null || hasta != null) {
+                if (p.getCreatedAt() == null) continue;
+                java.time.LocalDate dia = p.getCreatedAt().atZone(ZoneId.systemDefault()).withZoneSameInstant(ZONA_AR).toLocalDate();
+                if (desde != null && dia.isBefore(desde)) continue;
+                if (hasta != null && dia.isAfter(hasta)) continue;
+            }
+            if (q != null && !sinTildes(textoBuscable(p)).contains(q)) continue;
             out.add(toDTO(p, true));
         }
         return out;
+    }
+
+    private static String textoBuscable(Pedido p) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : new String[]{p.getNumero(), p.getNombreContacto(), p.getTelefonoContacto(), p.getEmailContacto(),
+                p.getUsuario() != null ? p.getUsuario().getEmail() : null, p.getNotas()}) {
+            if (s != null) sb.append(s).append(' ');
+        }
+        for (PedidoItem i : p.getItems()) sb.append(i.getProductoNombre()).append(' ').append(i.getSku() != null ? i.getSku() : "").append(' ');
+        // El teléfono se busca también sin espacios ni guiones: "2284 381111" = "2284381111".
+        return sb + " " + sb.toString().replaceAll("[\\s-]", "");
+    }
+
+    private static String sinTildes(String s) {
+        return java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).trim();
     }
 
     @Transactional
@@ -253,7 +385,9 @@ public class PedidoService {
     @Transactional
     public PedidoDTO cambiarEstadoPagoManual(Long id, EstadoPago nuevoEstado) {
         Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado."));
-        if ("MERCADO_PAGO".equals(pedido.getMedioPago())) {
+        // En la web el pago de Mercado Pago lo confirma el webhook. En una orden manual el cliente
+        // paga por un link o QR que armó el admin, así que el cobro se marca a mano.
+        if ("MERCADO_PAGO".equals(pedido.getMedioPago()) && !pedido.esManual()) {
             throw new IllegalArgumentException("Los pagos de Mercado Pago se actualizan automáticamente.");
         }
         pedido.setEstadoPago(nuevoEstado);
@@ -346,6 +480,8 @@ public class PedidoService {
         if (paraAdmin && p.getUsuario() != null) {
             dto.setUsuarioEmail(p.getUsuario().getEmail());
         }
+        dto.setOrigen(p.getOrigen());
+        if (paraAdmin) dto.setEmailContacto(p.getEmailContacto());
 
         List<PedidoItemDTO> items = new ArrayList<>();
         for (PedidoItem i : p.getItems()) {
@@ -364,6 +500,7 @@ public class PedidoService {
             idto.setSubtotalArs(i.subtotalArs());
             idto.setDemoraEntregaMinDias(i.getDemoraEntregaMinDias());
             idto.setDemoraEntregaMaxDias(i.getDemoraEntregaMaxDias());
+            if (paraAdmin) idto.setPrecioCatalogoUsd(i.getPrecioCatalogoUsd());
             items.add(idto);
         }
         dto.setItems(items);

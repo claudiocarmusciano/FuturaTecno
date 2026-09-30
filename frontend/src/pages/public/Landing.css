@@ -33,7 +33,7 @@
 .lp a { color: inherit; text-decoration: none; }
 .lp *, .lp *::before, .lp *::after { box-sizing: border-box; }
 
-.lp-wrap { max-width: 1140px; margin: 0 auto; padding: 0 22px; }
+.lp-wrap { max-width: 1320px; margin: 0 auto; padding: 0 22px; }
 
 .lp-glow { position: absolute; border-radius: 50%; filter: blur(120px); opacity: .32; z-index: 0; pointer-events: none; }
 

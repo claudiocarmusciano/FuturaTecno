@@ -48,6 +48,10 @@ public class PedidoItem extends BaseEntity {
     @Column(name = "precio_unitario_ars", nullable = false)
     private BigDecimal precioUnitarioArs;
 
+    /** Precio del catálogo cuando el admin lo cambió en una orden manual (V45); null = sin cambio. */
+    @Column(name = "precio_catalogo_usd")
+    private BigDecimal precioCatalogoUsd;
+
     /** Demora de entrega del proveedor al confirmar (V44). Los dos null = la entrega normal. */
     @Column(name = "demora_entrega_min_dias")
     private Integer demoraEntregaMinDias;
@@ -159,5 +163,13 @@ public class PedidoItem extends BaseEntity {
 
     public void setDemoraEntregaMaxDias(Integer demoraEntregaMaxDias) {
         this.demoraEntregaMaxDias = demoraEntregaMaxDias;
+    }
+
+    public BigDecimal getPrecioCatalogoUsd() {
+        return precioCatalogoUsd;
+    }
+
+    public void setPrecioCatalogoUsd(BigDecimal precioCatalogoUsd) {
+        this.precioCatalogoUsd = precioCatalogoUsd;
     }
 }

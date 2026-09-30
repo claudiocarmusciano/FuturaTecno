@@ -95,6 +95,7 @@ public class PuntosService {
             if (c.getEstado() == EstadoCanjePuntos.RESERVADO) c.setEstado(EstadoCanjePuntos.APLICADO);
         });
         if (creditoRepository.findByPedidoId(pedido.getId()).isPresent()) return;
+        if (pedido.getUsuario() == null) return;   // orden manual sin cuenta: no hay a quién acreditar
         int puntos = pedido.getTotalUsd().divide(new BigDecimal("100"), 0, RoundingMode.DOWN).intValue();
         if (puntos <= 0) return;
         LocalDateTime acreditado = pedido.getPagadoEn() != null ? pedido.getPagadoEn() : LocalDateTime.now();

@@ -28,6 +28,8 @@ import PagoResultadoPage from './pages/public/PagoResultadoPage'
 import RutaPrivada from './auth/RutaPrivada'
 import Analitica from './components/Analitica'
 import TerminosPage from './pages/public/legal/TerminosPage'
+import NuevaOrdenPage from './pages/admin/NuevaOrdenPage'
+import ComprobantePage from './pages/admin/ComprobantePage'
 import GarantiaPage from './pages/public/legal/GarantiaPage'
 import PrivacidadPage from './pages/public/legal/PrivacidadPage'
 import ArrepentimientoPage from './pages/public/legal/ArrepentimientoPage'
@@ -76,6 +78,8 @@ function App() {
         <Route path="/restablecer" element={<ResetPasswordPage />} />
         <Route path="/activar-cuenta" element={<ActivateAccountPage />} />
 
+        {/* Fuera del layout del admin: es una hoja para imprimir o guardar en PDF. */}
+        <Route path="/admin/pedidos/:numero/comprobante" element={<ProtectedRoute><ComprobantePage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="proveedores" element={<ProveedoresPage />} />
@@ -83,6 +87,7 @@ function App() {
           <Route path="importar-invid" element={<ImportarInvidPage />} />
           <Route path="cargar-json" element={<CargarJsonPage />} />
           <Route path="pedidos" element={<PedidosPage />} />
+          <Route path="pedidos/nuevo" element={<NuevaOrdenPage />} />
           <Route path="productos" element={<ProductosPage />} />
           <Route path="categorias" element={<CategoriasPage />} />
           <Route path="depurar" element={<DepurarPage />} />

@@ -1,0 +1,33 @@
+.comp-pagina { min-height: 100vh; background: #eceef1; padding: 24px 16px 48px; color: #16181d; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+.comp-acciones { max-width: 820px; margin: 0 auto 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.comp-acciones a { color: #5D6B14; font-weight: 700; }
+.comp-acciones div { display: flex; gap: 8px; flex-wrap: wrap; }
+.comp-acciones button, .comp-acciones .comp-wa { padding: 9px 16px; border-radius: 999px; border: 0; font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none; }
+.comp-acciones button { background: #16181d; color: #fff; }
+.comp-acciones .comp-wa { background: #25D366; color: #fff; }
+.comp-hoja { max-width: 820px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 36px 40px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
+.comp-cabecera { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 18px; border-bottom: 2px solid #16181d; flex-wrap: wrap; }
+.comp-logo { height: 46px; background: #16181d; padding: 8px 12px; border-radius: 8px; }
+.comp-titular { margin-top: 10px; font-size: 12.5px; color: #4a5260; line-height: 1.5; }
+.comp-numero { text-align: right; font-size: 13px; }
+.comp-tipo { font-weight: 800; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; color: #5D6B14; }
+.comp-nro { font-size: 24px; font-weight: 800; margin: 2px 0; }
+.comp-no-factura { margin-top: 6px; font-size: 11px; font-weight: 700; color: #b42318; }
+.comp-cliente { margin: 18px 0; font-size: 14px; }
+.comp-tabla { width: 100%; border-collapse: collapse; font-size: 14px; }
+.comp-tabla th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #5f6570; border-bottom: 1px solid #d9dce1; padding: 8px 6px; }
+.comp-tabla td { padding: 10px 6px; border-bottom: 1px solid #eef0f2; vertical-align: top; }
+.comp-tabla .num { text-align: right; white-space: nowrap; }
+.comp-detalle { font-size: 12px; color: #6f7580; }
+.comp-totales { margin: 16px 0 0 auto; max-width: 380px; display: grid; gap: 6px; font-size: 14px; }
+.comp-totales > div { display: flex; justify-content: space-between; gap: 16px; }
+.comp-total { border-top: 2px solid #16181d; padding-top: 8px; font-size: 17px; }
+.comp-notas { margin-top: 18px; font-size: 13px; }
+.comp-pie { margin-top: 26px; padding-top: 14px; border-top: 1px solid #d9dce1; font-size: 11.5px; color: #6f7580; line-height: 1.5; }
+@media print {
+  .no-print { display: none !important; }
+  .comp-pagina { background: #fff; padding: 0; }
+  .comp-hoja { box-shadow: none; border-radius: 0; padding: 0; max-width: none; }
+  .comp-logo { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media (max-width: 560px) { .comp-hoja { padding: 22px 16px; } .comp-numero { text-align: left; } }

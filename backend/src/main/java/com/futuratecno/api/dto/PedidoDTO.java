@@ -35,6 +35,8 @@ public class PedidoDTO {
 
     /** Email del cliente. Solo se completa para el admin; en el historial propio sobra. */
     private String usuarioEmail;
+    private String origen;
+    private String emailContacto;
 
     public PedidoDTO() {}
 
@@ -109,4 +111,9 @@ public class PedidoDTO {
 
     public BigDecimal getDescuentoPuntosArs() { return descuentoPuntosArs; }
     public void setDescuentoPuntosArs(BigDecimal descuentoPuntosArs) { this.descuentoPuntosArs = descuentoPuntosArs; }
+
+    public String getOrigen() { return origen; }
+    public void setOrigen(String origen) { this.origen = origen; }
+    public String getEmailContacto() { return emailContacto; }
+    public void setEmailContacto(String emailContacto) { this.emailContacto = emailContacto; }
 }

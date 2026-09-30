@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
 import axios from 'axios'
+import { Link } from 'react-router-dom'
 import { textoDemora } from '../../utils/demora'
 import { ESTADOS, ESTADO_LABEL, EstadoChip } from '../../components/EstadoPedido'
 
@@ -15,15 +16,30 @@ function PedidosPage() {
   const [cargando, setCargando] = useState(true)
   const [expandido, setExpandido] = useState(null)
   const [error, setError] = useState('')
+  const [busqueda, setBusqueda] = useState('')
+  const [q, setQ] = useState('')   // la búsqueda aplicada (espera a que se deje de tipear)
+  const [desde, setDesde] = useState('')
+  const [hasta, setHasta] = useState('')
+  const [medio, setMedio] = useState('')
+  const [origen, setOrigen] = useState('')
+
+  useEffect(() => {
+    const t = setTimeout(() => setQ(busqueda.trim()), 350)
+    return () => clearTimeout(t)
+  }, [busqueda])
 
   const cargar = useCallback(() => {
     setCargando(true)
-    const url = filtro ? `/api/admin/pedidos?estado=${filtro}` : '/api/admin/pedidos'
-    axios.get(url)
-      .then(res => setPedidos(res.data))
+    const params = { estado: filtro || undefined, q: q || undefined, desde: desde || undefined, hasta: hasta || undefined, medio: medio || undefined, origen: origen || undefined }
+    axios.get('/api/admin/pedidos', { params })
+      .then(res => { setPedidos(res.data); setError('') })
       .catch(() => setError('No se pudieron cargar los pedidos.'))
       .finally(() => setCargando(false))
-  }, [filtro])
+  }, [filtro, q, desde, hasta, medio, origen])
+
+  const hayFiltrosExtra = busqueda || desde || hasta || medio || origen
+  const limpiarFiltros = () => { setBusqueda(''); setQ(''); setDesde(''); setHasta(''); setMedio(''); setOrigen('') }
+  const campo = { padding: '8px 10px', fontSize: '13px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-2)', color: 'var(--color-text)' }
 
   useEffect(() => { cargar() }, [cargar])
 
@@ -63,7 +79,29 @@ function PedidosPage() {
 
   return (
     <div>
-      <h1>Pedidos</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+        <h1 style={{ margin: 0 }}>Pedidos</h1>
+        <Link to="/admin/pedidos/nuevo" className="btn btn-primary" style={{ textDecoration: 'none' }}>+ Nueva orden manual</Link>
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '16px 0 12px', alignItems: 'center' }}>
+        <input type="search" placeholder="Buscar por número, cliente, teléfono, email o artículo" value={busqueda}
+          onChange={e => setBusqueda(e.target.value)} style={{ ...campo, flex: '1 1 280px', minWidth: '220px' }} />
+        <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Desde <input type="date" value={desde} onChange={e => setDesde(e.target.value)} style={campo} /></label>
+        <label style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Hasta <input type="date" value={hasta} onChange={e => setHasta(e.target.value)} style={campo} /></label>
+        <select value={medio} onChange={e => setMedio(e.target.value)} style={campo} aria-label="Medio de pago">
+          <option value="">Todos los pagos</option>
+          <option value="MERCADO_PAGO">Mercado Pago</option>
+          <option value="TRANSFERENCIA">Transferencia</option>
+          <option value="EFECTIVO">Efectivo</option>
+        </select>
+        <select value={origen} onChange={e => setOrigen(e.target.value)} style={campo} aria-label="Origen">
+          <option value="">Web y manuales</option>
+          <option value="WEB">Solo web</option>
+          <option value="MANUAL">Solo manuales</option>
+        </select>
+        {hayFiltrosExtra && <button type="button" onClick={limpiarFiltros} style={{ ...campo, cursor: 'pointer' }}>Limpiar</button>}
+      </div>
 
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
         {botonFiltro('', 'Todos')}
@@ -105,17 +143,19 @@ function PedidosPage() {
                         </button>
                         <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                           {p.items.length} art.
+                          {p.origen === 'MANUAL' && <span style={{ marginLeft: '6px', padding: '1px 6px', borderRadius: '6px', background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontWeight: 700 }}>Manual</span>}
                         </div>
+                        <Link to={`/admin/pedidos/${p.numero}/comprobante`} style={{ fontSize: '12px' }}>Comprobante</Link>
                       </td>
                       <td style={{ padding: '12px 8px', fontSize: '14px' }}>
                         <div>{p.nombreContacto || '—'}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{p.telefonoContacto || p.usuarioEmail}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{p.telefonoContacto || p.usuarioEmail || p.emailContacto}</div>
                       </td>
                       <td style={{ padding: '12px 8px', fontSize: '13px' }}>{formatFechaHora(p.createdAt)}</td>
                       <td style={{ padding: '12px 8px' }}><EstadoChip estado={p.estado} /></td>
                       <td style={{ padding: '12px 8px', fontSize: '13px', fontWeight: 700, color: p.estadoPago === 'APROBADO' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
                         <div>{p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : p.estadoPago === 'RECHAZADO' ? 'Rechazado' : p.estadoPago === 'SIN_INICIAR' ? 'Sin iniciar' : 'Pendiente'}</div>
-                        {p.estadoPago !== 'APROBADO' && p.medioPago !== 'MERCADO_PAGO' && (
+                        {p.estadoPago !== 'APROBADO' && (p.medioPago !== 'MERCADO_PAGO' || p.origen === 'MANUAL') && (
                           <button type="button" onClick={() => marcarCobrado(p.id)} style={{ marginTop: '6px', padding: '5px 8px', border: '1px solid var(--color-lime)', borderRadius: '6px', background: 'transparent', color: 'var(--color-lime)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Marcar cobrado</button>
                         )}
                       </td>
@@ -151,7 +191,14 @@ function PedidosPage() {
                                 {textoDemora(i) && <strong> · Entrega en {textoDemora(i)}</strong>}
                                 {i.sku && <span style={{ color: 'var(--color-text-muted)' }}> · {i.sku}</span>}
                               </span>
-                              <span style={{ fontWeight: 600 }}>US$ {formatNumber(i.subtotalUsd)}</span>
+                              <span style={{ fontWeight: 600, textAlign: 'right' }}>
+                                US$ {formatNumber(i.subtotalUsd)}
+                                {i.precioCatalogoUsd != null && (
+                                  <div style={{ fontSize: '11px', fontWeight: 500, color: 'var(--color-text-muted)' }}>
+                                    precio acordado · catálogo US$ {formatNumber(i.precioCatalogoUsd)} c/u
+                                  </div>
+                                )}
+                              </span>
                             </div>
                           ))}
                           {p.notas && (
@@ -160,7 +207,7 @@ function PedidosPage() {
                             </p>
                           )}
                           <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                            Email: {p.usuarioEmail} · Dólar usado: ${formatNumber(p.cotizacionUsada)}
+                            Email: {p.usuarioEmail || p.emailContacto || '—'}{p.origen === 'MANUAL' && !p.usuarioEmail && ' (sin cuenta)'} · {p.medioPago === 'EFECTIVO' ? 'Efectivo' : p.medioPago === 'TRANSFERENCIA' ? 'Transferencia' : 'Mercado Pago'} · Dólar usado: ${formatNumber(p.cotizacionUsada)}
                             {p.mercadoPagoPaymentId && <> · ID de pago: {p.mercadoPagoPaymentId}</>}
                             {p.puntosCanjeados > 0 && <> · Canjeó {p.puntosCanjeados} punto(s)</>}
                           </p>

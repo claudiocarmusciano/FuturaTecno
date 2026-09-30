@@ -18,6 +18,7 @@ public class PedidoItemDTO {
     private BigDecimal subtotalArs;
     private Integer demoraEntregaMinDias;
     private Integer demoraEntregaMaxDias;
+    private BigDecimal precioCatalogoUsd;
 
     public PedidoItemDTO() {}
 
@@ -61,4 +62,6 @@ public class PedidoItemDTO {
     public void setDemoraEntregaMinDias(Integer demoraEntregaMinDias) { this.demoraEntregaMinDias = demoraEntregaMinDias; }
     public Integer getDemoraEntregaMaxDias() { return demoraEntregaMaxDias; }
     public void setDemoraEntregaMaxDias(Integer demoraEntregaMaxDias) { this.demoraEntregaMaxDias = demoraEntregaMaxDias; }
+    public BigDecimal getPrecioCatalogoUsd() { return precioCatalogoUsd; }
+    public void setPrecioCatalogoUsd(BigDecimal precioCatalogoUsd) { this.precioCatalogoUsd = precioCatalogoUsd; }
 }

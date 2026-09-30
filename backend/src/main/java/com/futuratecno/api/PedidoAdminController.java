@@ -24,7 +24,12 @@ public class PedidoAdminController {
     }
 
     @GetMapping
-    public ResponseEntity<?> listar(@RequestParam(required = false) String estado) {
+    public ResponseEntity<?> listar(@RequestParam(required = false) String estado,
+                                    @RequestParam(required = false) String q,
+                                    @RequestParam(required = false) String desde,
+                                    @RequestParam(required = false) String hasta,
+                                    @RequestParam(required = false) String medio,
+                                    @RequestParam(required = false) String origen) {
         EstadoPedido filtro = null;
         if (estado != null && !estado.isBlank()) {
             try {
@@ -33,8 +38,36 @@ public class PedidoAdminController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Estado desconocido: " + estado));
             }
         }
-        List<PedidoDTO> pedidos = pedidoService.listarParaAdmin(filtro);
+        java.time.LocalDate d, h;
+        try {
+            d = desde == null || desde.isBlank() ? null : java.time.LocalDate.parse(desde);
+            h = hasta == null || hasta.isBlank() ? null : java.time.LocalDate.parse(hasta);
+        } catch (java.time.format.DateTimeParseException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Fecha inválida (usá AAAA-MM-DD)."));
+        }
+        List<PedidoDTO> pedidos = pedidoService.listarParaAdmin(filtro, q, d, h, medio, origen);
         return ResponseEntity.ok(pedidos);
+    }
+
+    /** Orden de venta manual (cliente que no compra por la web). */
+    @PostMapping
+    public ResponseEntity<?> crearManual(@RequestBody com.futuratecno.api.dto.CrearPedidoManualRequest req,
+                                         org.springframework.security.core.Authentication auth) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.crearManual(req, auth != null ? auth.getName() : null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /** Detalle por número (comprobante). */
+    @GetMapping("/numero/{numero}")
+    public ResponseEntity<?> porNumero(@PathVariable String numero) {
+        try {
+            return ResponseEntity.ok(pedidoService.obtenerParaAdmin(numero));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}/estado")

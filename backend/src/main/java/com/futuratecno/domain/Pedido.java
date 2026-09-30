@@ -22,7 +22,7 @@ public class Pedido extends BaseEntity {
     private String numero;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
     @Enumerated(EnumType.STRING)
@@ -39,6 +39,14 @@ public class Pedido extends BaseEntity {
     @Column(name = "cotizacion_usada", nullable = false)
     private BigDecimal cotizacionUsada;
 
+    /** WEB = lo confirmó el cliente en la tienda; MANUAL = lo cargó el admin (V45). */
+    @Column(nullable = false, length = 10)
+    private String origen = "WEB";
+
+    /** Email de contacto de una orden manual sin cuenta. Con cuenta, vale el del usuario. */
+    @Column(name = "email_contacto", length = 190)
+    private String emailContacto;
+
     @Column(name = "nombre_contacto", length = 150)
     private String nombreContacto;
 
@@ -49,7 +57,7 @@ public class Pedido extends BaseEntity {
     private String notas;
 
     /** Próximo corte de las 06:30 AR. Pasado ese momento el pedido se marca VENCIDO. */
-    @Column(name = "vence_en", nullable = false)
+    @Column(name = "vence_en")
     private LocalDateTime venceEn;
 
     // Envío elegido en el checkout (V15). Todo nullable: null = retiro / a coordinar. El costo
@@ -243,4 +251,10 @@ public class Pedido extends BaseEntity {
     public void setItems(List<PedidoItem> items) {
         this.items = items;
     }
+
+    public String getOrigen() { return origen; }
+    public void setOrigen(String origen) { this.origen = origen; }
+    public boolean esManual() { return "MANUAL".equals(origen); }
+    public String getEmailContacto() { return emailContacto; }
+    public void setEmailContacto(String emailContacto) { this.emailContacto = emailContacto; }
 }
