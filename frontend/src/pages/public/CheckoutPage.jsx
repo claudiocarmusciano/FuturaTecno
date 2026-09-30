@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../auth/AuthContext'
@@ -8,6 +8,7 @@ import PaymentPrices from '../../components/PaymentPrices'
 import { CASH_DISCOUNT_PERCENTAGE, cashPrice, mpImmediatePrice } from '../../utils/paymentPricing'
 import { etiquetaEnvio } from '../../utils/envio'
 import { textoDemora } from '../../utils/demora'
+import { checkoutIniciado, pedidoConfirmado } from '../../utils/analitica'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -48,6 +49,14 @@ function CheckoutPage() {
     axios.get('/api/puntos/mis-puntos').then(r => setMisPuntos(r.data)).catch(() => setMisPuntos(null))
     axios.get('/api/cotizacion').then(r => setCotizacionActual(Number(r.data.valor))).catch(() => setCotizacionActual(null))
   }, [isAuth])
+
+  // Una sola vez por visita al checkout, con el carrito tal como llegó.
+  const checkoutMedido = useRef(false)
+  useEffect(() => {
+    if (!listo || vacio || checkoutMedido.current) return
+    checkoutMedido.current = true
+    checkoutIniciado(items, totalUsd)
+  }, [listo, vacio, items, totalUsd])
 
   if (!listo) return null
 
@@ -165,6 +174,7 @@ function CheckoutPage() {
         modoEnvio: modoEnvio || null
       })
       vaciar()
+      pedidoConfirmado(pedido, medioPago)
       if (medioPago === 'TRANSFERENCIA' || medioPago === 'EFECTIVO') {
         navigate(`/pedido/${pedido.numero}`, { replace: true })
         return

@@ -8,6 +8,7 @@ import EditarComoAdmin from '../../components/EditarComoAdmin'
 import './CatalogPage.css'
 import { IconCart, IconChat, IconCheck, IconTruck } from '../../components/icons'
 import { textoDemora } from '../../utils/demora'
+import { productoVisto } from '../../utils/analitica'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -41,7 +42,14 @@ function ProductDetailPage() {
     setCargando(true)
     setImagenActiva(0)
     axios.get(`/api/productos/${id}`)
-      .then(res => setProducto(res.data))
+      .then(res => {
+        setProducto(res.data)
+        productoVisto({
+          id: res.data.id,
+          nombre: [res.data.marca, res.data.modelo].filter(Boolean).join(' '),
+          precioUsd: res.data.variantes?.[0]?.precioUsd
+        })
+      })
       .catch(err => {
         console.error(err)
         setError('No se encontró el producto.')

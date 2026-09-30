@@ -142,6 +142,7 @@ mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test -Dtest=CargaJsonId
 | `ELIT_USER_ID` / `ELIT_TOKEN` | Credenciales mayorista Elit |
 | `INVID_BASE_URL` | Host de Invid/TornadoStore |
 | `GOOGLE_CLIENT_ID` | Client ID de "Sign in with Google" (OAuth Web, no secreto). Vacío = botón oculto. Lo sirve `GET /api/config` al frontend y lo usa `GoogleTokenVerifier` para validar el ID token. |
+| `GA4_MEASUREMENT_ID` / `META_PIXEL_ID` | Analítica (GA4 `G-…` y Pixel de Meta, solo dígitos). Públicos: los sirve `GET /api/config` y el front carga los scripts (`utils/analitica.js`). Vacíos o con formato inválido = no se mide nada. No se mide `/admin` ni la sesión ADMIN. `Purchase` sale solo con el pago APROBADO por Mercado Pago, una vez por pedido (id = número de pedido); transferencia/efectivo van como `PedidoConfirmado`. |
 | `RESEND_API_KEY` | API key de Resend (`re_...`) para mandar mails. Vacío = no se manda nada (el flujo responde igual, queda en el log). |
 | `MAIL_FROM` / `MAIL_FROM_NAME` | Remitente. **Tiene que ser del dominio verificado en Resend** (`no-responder@futuratecno.com.ar`); un Gmail se rechaza por dominio no verificado. |
 | `ADMIN_NOTIFY_EMAIL` | Destinatario de avisos internos. Si no está, usa `ADMIN_EMAIL`. |

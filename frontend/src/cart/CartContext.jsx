@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import axios from 'axios'
+import { agregadoAlCarrito } from '../utils/analitica'
 
 const CartContext = createContext(null)
 
@@ -34,6 +35,12 @@ export function CartProvider({ children }) {
    * Los precios que se guardan son solo para mostrar: el pedido los recalcula en el backend.
    */
   const agregar = useCallback((producto, variante, cantidad = 1) => {
+    agregadoAlCarrito({
+      productoId: producto.id,
+      nombre: [producto.marca, producto.modelo].filter(Boolean).join(' '),
+      precioUsd: Number(variante.precioUsd),
+      cantidad
+    })
     setItems(prev => {
       const i = prev.findIndex(x => x.varianteId === variante.id)
       if (i >= 0) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
+import { compraRealizada } from '../../utils/analitica'
 
 function PagoResultadoPage() {
   const [params] = useSearchParams()
@@ -20,7 +21,10 @@ function PagoResultadoPage() {
       ? axios.post(`/api/pedidos/${numero}/pago/mercadopago/confirmar-retorno`, null, { params: { paymentId } })
       : axios.get(`/api/pedidos/${numero}`)
     confirmar
-      .then(res => setPedido(res.data))
+      .then(res => {
+        setPedido(res.data)
+        if (res.data?.estadoPago === 'APROBADO') compraRealizada(res.data)
+      })
       .catch(err => setError(err.response?.data?.error || 'No pudimos comprobar el pago. Revisá el pedido en unos instantes.'))
       .finally(() => setCargando(false))
   }, [numero, paymentId])

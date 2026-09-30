@@ -57,6 +57,11 @@ google:
   # Client ID de "Sign in with Google" (OAuth 2.0, tipo Web). No es secreto.
   # Vacío = login con Google desactivado (el frontend oculta el botón).
   client-id: ${GOOGLE_CLIENT_ID:}
+
+analitica:
+  # IDs públicos (viajan en el HTML de cualquier sitio que los use). Vacíos = no se mide nada.
+  ga4-measurement-id: ${GA4_MEASUREMENT_ID:}   # "G-XXXXXXXXXX"
+  meta-pixel-id: ${META_PIXEL_ID:}             # solo dígitos
   search:
     api-key: ${GOOGLE_API_KEY:}
     cx: ${GOOGLE_CX:}

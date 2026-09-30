@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import PasswordInput from '../../components/PasswordInput'
+import { registroCompleto } from '../../utils/analitica'
 
 const celularArgentinoValido = (valor) => {
   let digitos = valor.replace(/\D/g, '')
@@ -65,6 +66,7 @@ function RegisterPage() {
     setCargando(true)
     try {
       await register(email, password, nombre, apellido, celular, dni, fechaNacimiento, instagramUsuario, aceptaBases)
+      registroCompleto('email')
       navigate(destino) // queda logueado
     } catch (err) {
       setError(err.response?.data?.error || 'No se pudo registrar.')

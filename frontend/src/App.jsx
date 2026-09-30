@@ -26,6 +26,7 @@ import MisPuntosPage from './pages/public/MisPuntosPage'
 import PedidoDetailPage from './pages/public/PedidoDetailPage'
 import PagoResultadoPage from './pages/public/PagoResultadoPage'
 import RutaPrivada from './auth/RutaPrivada'
+import Analitica from './components/Analitica'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
@@ -37,6 +38,7 @@ import './App.css'
 function App() {
   return (
     <BrowserRouter>
+      <Analitica />
       <Routes>
         {/* La home es la tienda. El sorteo tiene su propia ruta: sigue con inscripción abierta
             hasta el 30/10/2026 y completar sus pasos es condición para participar, así que se
