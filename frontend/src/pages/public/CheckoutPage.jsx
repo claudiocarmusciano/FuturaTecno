@@ -16,7 +16,7 @@ const formatNumber = (n) =>
 const MONTO_MINIMO_PEDIDO_USD = 250
 
 function CheckoutPage() {
-  const { user, isAuth, listo } = useAuth()
+  const { user, isAuth, listo, isAdmin } = useAuth()
   const { items, totalUsd, totalArs, vacio, vaciar } = useCart()
   const navigate = useNavigate()
 
@@ -38,7 +38,8 @@ function CheckoutPage() {
   const [envio, setEnvio] = useState(null)      // respuesta de /api/envio/cotizar
   const [modoEnvio, setModoEnvio] = useState('') // código elegido ('' = a coordinar)
   const faltaParaMinimo = Math.max(0, MONTO_MINIMO_PEDIDO_USD - Number(totalUsd || 0))
-  const alcanzaMinimo = faltaParaMinimo === 0
+  // El admin no tiene mínimo: así puede probar el cobro real con un producto barato.
+  const alcanzaMinimo = faltaParaMinimo === 0 || isAdmin
 
   useEffect(() => {
     if (user?.nombre) setNombre(user.nombre)

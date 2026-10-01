@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../../cart/CartContext'
+import { useAuth } from '../../auth/AuthContext'
 import PaymentPrices from '../../components/PaymentPrices'
 import { IconCart, IconX } from '../../components/icons'
 import { textoDemora } from '../../utils/demora'
@@ -16,7 +17,9 @@ function CartPage() {
   const [avisos, setAvisos] = useState({ cambios: [], removidos: [] })
   const [revisando, setRevisando] = useState(true)
   const faltaParaMinimo = Math.max(0, MONTO_MINIMO_PEDIDO_USD - Number(totalUsd || 0))
-  const alcanzaMinimo = faltaParaMinimo === 0
+  const { isAdmin } = useAuth()
+  // El admin no tiene mínimo: así puede probar el cobro real con un producto barato.
+  const alcanzaMinimo = faltaParaMinimo === 0 || isAdmin
 
   // Al abrir el carrito se re-piden los precios: el carrito puede tener días y el precio de venta
   // se recalcula con la cotización del día. Mejor que se entere acá y no al confirmar.

@@ -126,7 +126,9 @@ public class PedidoService {
 
         pedido.setTotalUsd(totalUsd);
         pedido.setTotalArs(totalArs);
-        if (totalUsd.compareTo(MONTO_MINIMO_PEDIDO_USD) < 0) {
+        // El admin queda exento: es la única forma de probar el cobro real de punta a punta con
+        // un producto barato (y devolverse la plata) sin comprar US$ 250.
+        if (totalUsd.compareTo(MONTO_MINIMO_PEDIDO_USD) < 0 && !"ADMIN".equals(usuario.getRol())) {
             throw new IllegalArgumentException("El pedido mínimo es de US$ 250. Agregá productos por US$ "
                     + MONTO_MINIMO_PEDIDO_USD.stripTrailingZeros().toPlainString() + " o más para continuar.");
         }
