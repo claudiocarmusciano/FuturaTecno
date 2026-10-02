@@ -27,3 +27,6 @@ export const DEFENSA_CONSUMIDOR_URL = 'https://www.argentina.gob.ar/produccion/d
 // Vacíos = el pie no muestra el QR.
 export const DATA_FISCAL_URL = ''
 export const DATA_FISCAL_IMG = ''
+
+// Título general de la pestaña: el mismo que el <title> de index.html.
+export const TITULO_SITIO = 'Futura Tecno — Tecnología en Olavarría | Celulares, notebooks y PC'

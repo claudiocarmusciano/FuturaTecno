@@ -1,0 +1,16 @@
+User-agent: *
+Disallow: /admin
+Disallow: /api/
+Disallow: /carrito
+Disallow: /checkout
+Disallow: /mis-pedidos
+Disallow: /mis-puntos
+Disallow: /pedido/
+Disallow: /pago/
+Disallow: /login
+Disallow: /registro
+Disallow: /recuperar
+Disallow: /restablecer
+Disallow: /activar-cuenta
+
+Sitemap: https://www.futuratecno.com.ar/sitemap.xml

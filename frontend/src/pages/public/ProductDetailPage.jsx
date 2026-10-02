@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
-import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
+import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO, TITULO_SITIO } from '../../config'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
 import EditarComoAdmin from '../../components/EditarComoAdmin'
@@ -56,6 +56,17 @@ function ProductDetailPage() {
       })
       .finally(() => setCargando(false))
   }, [id])
+
+  // Título de la pestaña al navegar dentro de la tienda (al entrar directo ya lo pone el backend).
+  useEffect(() => {
+    if (!producto) return
+    const marca = producto.marca || ''
+    const nombre = producto.modelo?.toLowerCase().startsWith(marca.toLowerCase())
+      ? producto.modelo : [marca, producto.modelo].filter(Boolean).join(' ')
+    document.title = `${nombre} | Futura Tecno`
+    // Al salir vuelve el título general (no el anterior: al entrar directo, el anterior es el del producto).
+    return () => { document.title = TITULO_SITIO }
+  }, [producto])
 
   useEffect(() => {
     axios.get('/api/eta').then(res => setEta(res.data)).catch(err => console.error('ETA:', err))
