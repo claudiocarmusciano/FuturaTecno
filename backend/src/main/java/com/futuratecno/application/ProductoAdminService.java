@@ -195,8 +195,10 @@ public class ProductoAdminService {
      * stock idénticos. Filtrar por eso habría propuesto dar de baja 1.134 productos que Invid
      * sigue ofreciendo (V40).
      *
-     * <p>Para lo cargado por JSON no hay feed, así que se cae a `ultimaActualizacion`, que ahí sí
-     * es honesta: refleja cuándo el admin recargó ese listado.
+     * <p>Lo cargado por JSON también escribe `vistoEnSync` desde el 2026-10-01: cada artículo que
+     * viene en el listado, cambie o no (antes un artículo que llegaba igual no movía la fecha y
+     * parecía discontinuado). Los productos que todavía no pasaron por una carga nueva caen a
+     * `ultimaActualizacion`.
      */
     private static LocalDateTime senalDeVigencia(ProductoAdminDTO d) {
         return d.getVistoEnSync() != null ? d.getVistoEnSync() : d.getUltimaActualizacion();

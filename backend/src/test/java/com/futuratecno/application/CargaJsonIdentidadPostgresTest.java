@@ -506,6 +506,21 @@ class CargaJsonIdentidadPostgresTest {
         assertThrows(IdentidadTransicionService.IdentidadEnUsoException.class, () -> transicion.elegirComoDuenio(a));
     }
 
+    @Test
+    void unArticuloQueVuelveIgualQuedaVistoHoySinMoverSuFechaDeActualizacion() {
+        Long id = cargarUno(prov, art("Motorola", "G15 4G 128GB", "120", esp("128GB", "4GB"))).getProductoId();
+        // Como si la carga anterior hubiera sido hace 4 días y nunca se hubiera marcado como vista.
+        jdbc.update("UPDATE productos SET updated_at = now() - interval '4 days', visto_en_sync_at = NULL WHERE id = ?", id);
+        jdbc.update("UPDATE variantes SET updated_at = now() - interval '4 days' WHERE producto_id = ?", id);
+
+        assertEquals("actualizado", cargarUno(prov, art("Motorola", "G15 4G 128GB", "120", esp("128GB", "4GB"))).getEstado());
+
+        var fila = jdbc.queryForMap("SELECT updated_at < now() - interval '3 days' AS fecha_vieja, "
+                + "visto_en_sync_at > now() - interval '1 minute' AS visto_hoy FROM productos WHERE id = ?", id);
+        assertEquals(Boolean.TRUE, fila.get("visto_hoy"), "vino en el listado: queda vigente");
+        assertEquals(Boolean.TRUE, fila.get("fecha_vieja"), "no cambió nada: la fecha de 'Actualizado' no se mueve");
+    }
+
     // ------------------------------------------------------------------ edición manual en el admin
 
     /** Edita solo las especificaciones de la variante, sin mandar precio ni stock (quedan como están). */

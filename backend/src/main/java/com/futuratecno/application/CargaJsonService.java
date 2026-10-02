@@ -407,6 +407,19 @@ public class CargaJsonService {
             res.getItems().add(item);
         }
 
+        // Señal de vigencia para Depurar catálogo: TODO artículo que vino en el listado queda
+        // "visto hoy", cambie o no. Sin esto, uno que llegaba con el mismo precio no movía la
+        // fecha (Hibernate no emite UPDATE si nada cambió) y a los días figuraba como discontinuado
+        // aunque el proveedor lo siguiera ofreciendo: el 2026-10-01 eran 554 de 1.179 de Kadabra.
+        // UPDATE masivo al final, igual que Elit/Invid: un save() por producto movería la fecha de
+        // "Actualizado" de todos (ver ProductoRepository#marcarVistos).
+        productoRepository.marcarVistos(res.getItems().stream()
+                .filter(i -> i.getProductoId() != null
+                        && ("creado".equals(i.getEstado()) || "actualizado".equals(i.getEstado())))
+                .map(CargaJsonResponse.Item::getProductoId)
+                .distinct()
+                .toList());
+
         res.setCreados(creados);
         res.setActualizados(actualizados);
         res.setOmitidos(omitidos);
