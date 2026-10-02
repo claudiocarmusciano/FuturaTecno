@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { TITULAR } from '../../../config'
-import '../BasesSorteoPage.css'
+import './LegalBase.css'
 import './legal.css'
 
-/** Marco común de las páginas legales: mismo estilo que las bases del sorteo. */
+/** Marco común de las páginas legales: tarjeta centrada sobre fondo oscuro. */
 export default function LegalLayout({ eyebrow = 'FUTURATECNO', titulo, intro, actualizado, children }) {
   useEffect(() => {
     const anterior = document.title

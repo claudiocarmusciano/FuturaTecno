@@ -140,7 +140,7 @@ export function compraRealizada(pedido) {
   })
 }
 
-/** Cuenta creada (también es la inscripción al sorteo). */
+/** Cuenta creada. */
 export function registroCompleto(metodo) {
   enviar(() => {
     if (ga4) window.gtag('event', 'sign_up', { method: metodo })

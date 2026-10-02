@@ -6,7 +6,6 @@ import com.futuratecno.api.dto.GoogleLoginRequest;
 import com.futuratecno.api.dto.LoginRequest;
 import com.futuratecno.api.dto.RegisterRequest;
 import com.futuratecno.api.dto.ResetPasswordRequest;
-import org.springframework.security.core.Authentication;
 import com.futuratecno.application.AuthService;
 import com.futuratecno.application.LimitadorIntentos;
 import jakarta.servlet.http.HttpServletRequest;
@@ -66,17 +65,6 @@ public class AuthController {
         try {
             return ResponseEntity.ok(authService.activarEmail(token));
         } catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
-    }
-
-    @GetMapping("/onboarding")
-    public ResponseEntity<?> onboarding(Authentication auth) {
-        return ResponseEntity.ok(authService.estadoOnboarding(auth.getName()));
-    }
-
-    @PostMapping("/onboarding/paso/{paso}")
-    public ResponseEntity<?> completarPaso(Authentication auth, @PathVariable int paso) {
-        try { return ResponseEntity.ok(authService.completarPaso(auth.getName(), paso)); }
-        catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     }
 
     @PostMapping("/login")

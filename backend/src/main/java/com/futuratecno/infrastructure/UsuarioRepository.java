@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.time.LocalDateTime;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
@@ -15,10 +14,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByResetToken(String resetToken);
     Optional<Usuario> findByEmailActivacionToken(String emailActivacionToken);
     boolean existsByEmailIgnoreCase(String email);
-    boolean existsByDni(String dni);
     boolean existsByCelular(String celular);
     boolean existsByCodigoSorteo(String codigoSorteo);
     List<Usuario> findByRolOrderByCreatedAtDesc(String rol);
-    List<Usuario> findByRolAndCreatedAtBeforeAndAvisoProrrogaEnviadoEnIsNull(String rol, LocalDateTime fechaLimite);
     long countByRol(String rol);
 }

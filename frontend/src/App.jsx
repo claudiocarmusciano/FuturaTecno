@@ -17,8 +17,6 @@ import CatalogPage from './pages/public/CatalogPage'
 import ArmaTuPcPage from './pages/public/ArmaTuPcPage'
 import ProductDetailPage from './pages/public/ProductDetailPage'
 import LandingPage from './pages/public/LandingPage'
-import PreLandingPage from './pages/public/PreLandingPage'
-import BasesSorteoPage from './pages/public/BasesSorteoPage'
 import CartPage from './pages/public/CartPage'
 import CheckoutPage from './pages/public/CheckoutPage'
 import MisPedidosPage from './pages/public/MisPedidosPage'
@@ -46,14 +44,12 @@ function App() {
     <BrowserRouter>
       <Analitica />
       <Routes>
-        {/* La home es la tienda. El sorteo tiene su propia ruta: sigue con inscripción abierta
-            hasta el 30/10/2026 y completar sus pasos es condición para participar, así que se
-            entra por el banner de la landing o por link directo. */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/sorteo" element={<PreLandingPage />} />
-        {/* /inicio apuntaba al sorteo cuando era la home: se respeta ese destino. */}
-        <Route path="/inicio" element={<Navigate to="/sorteo" replace />} />
-        <Route path="/bases-y-condiciones" element={<BasesSorteoPage />} />
+        {/* Direcciones del sorteo (ya no está en la web): siguen circulando en mensajes y
+            anuncios viejos, así que llevan a la tienda en lugar de a una página vacía. */}
+        <Route path="/sorteo" element={<Navigate to="/" replace />} />
+        <Route path="/inicio" element={<Navigate to="/" replace />} />
+        <Route path="/bases-y-condiciones" element={<Navigate to="/" replace />} />
         <Route path="/terminos" element={<TerminosPage />} />
         <Route path="/garantia" element={<GarantiaPage />} />
         <Route path="/privacidad" element={<PrivacidadPage />} />

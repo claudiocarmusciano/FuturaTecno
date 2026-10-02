@@ -11,7 +11,7 @@ export default function PrivacidadPage() {
 
       <section><h2>2. Qué datos guardamos</h2>
         <ul>
-          <li><strong>Al crear tu cuenta:</strong> nombre, apellido, email, celular, DNI, fecha de nacimiento y usuario de Instagram (este último, para el sorteo). Si entrás con Google, recibimos tu nombre y tu email de Google.</li>
+          <li><strong>Al crear tu cuenta:</strong> nombre, apellido, email, celular y fecha de nacimiento. Si te registraste antes de octubre de 2026, también el DNI y el usuario de Instagram que nos diste en ese momento. Si entrás con Google, recibimos tu nombre y tu email de Google.</li>
           <li><strong>Al comprar:</strong> los productos, importes, medio de pago elegido, teléfono de contacto, código postal y datos de envío. Los datos de tu tarjeta los procesa Mercado Pago: nosotros no los vemos ni los guardamos.</li>
           <li><strong>Al escribirnos</strong> por WhatsApp o por el chat del sitio: el contenido de la conversación y tu número o nombre de contacto.</li>
           <li><strong>Al navegar:</strong> datos técnicos y de uso (páginas visitadas, productos vistos, dispositivo) mediante cookies de medición.</li>
@@ -22,7 +22,7 @@ export default function PrivacidadPage() {
         <ul>
           <li>Gestionar tu cuenta, tus pedidos, pagos, envíos, facturas y reclamos.</li>
           <li>Responder tus consultas, también mediante un asistente automático (Tecnito) que puede derivar la conversación a una persona.</li>
-          <li>Gestionar sorteos y promociones en los que participes.</li>
+          <li>Gestionar las promociones en las que participes.</li>
           <li>Medir cómo se usa el sitio y la efectividad de nuestros anuncios, para mejorar la tienda.</li>
           <li>Enviarte novedades u ofertas, si nos diste tu consentimiento. Podés darte de baja en cualquier momento.</li>
         </ul>
