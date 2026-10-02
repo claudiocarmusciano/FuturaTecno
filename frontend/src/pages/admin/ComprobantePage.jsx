@@ -61,7 +61,9 @@ export default function ComprobantePage() {
     'Guardá este mensaje: es tu comprobante para la garantía. Condiciones: www.futuratecno.com.ar/garantia'
   ].filter(Boolean).join('\n')
   const tel = telefonoWhatsapp(p.telefonoContacto)
-  const linkWhatsapp = `https://wa.me/${tel || ''}?text=${encodeURIComponent(textoWhatsapp)}`
+  // Sin número, wa.me deja elegir el contacto: sirve también cuando el teléfono del pedido está mal.
+  const linkElegirContacto = `https://wa.me/?text=${encodeURIComponent(textoWhatsapp)}`
+  const linkWhatsapp = tel ? `https://wa.me/${tel}?text=${encodeURIComponent(textoWhatsapp)}` : linkElegirContacto
 
   return (
     <div className="comp-pagina">
@@ -70,8 +72,13 @@ export default function ComprobantePage() {
         <div>
           <button type="button" onClick={() => window.print()}>Imprimir o guardar PDF</button>
           <a href={linkWhatsapp} target="_blank" rel="noreferrer" className="comp-wa">
-            {tel ? 'Mandar por WhatsApp' : 'Mandar por WhatsApp (elegir contacto)'}
+            {tel ? `Mandar por WhatsApp (+${tel})` : 'Mandar por WhatsApp (elegir contacto)'}
           </a>
+          {tel && (
+            <a href={linkElegirContacto} target="_blank" rel="noreferrer" className="comp-wa comp-wa-alt">
+              Elegir otro contacto
+            </a>
+          )}
         </div>
       </div>
 
