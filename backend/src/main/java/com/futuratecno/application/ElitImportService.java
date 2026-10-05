@@ -178,12 +178,17 @@ public class ElitImportService {
         return out;
     }
 
-    /** Costo en USD del artículo de Elit: precio neto + IVA. */
-    private BigDecimal costoUsdDe(JsonNode prod) {
+    /**
+     * Costo en USD del artículo de Elit: precio neto + IVA + impuesto interno. Los dos son porcentajes
+     * sobre el neto y se SUMAN (no se encadenan): es la cuenta que da el {@code pvp_usd} de Elit,
+     * ej. 72,02 × (1 + 21% + 10,5%) = 94,71. Hasta el 2026-10-05 el impuesto interno no se sumaba y
+     * 39 monitores quedaban con el costo un 8,7% abajo.
+     */
+    static BigDecimal costoUsdDe(JsonNode prod) {
         BigDecimal precio = dec(prod, "precio");
-        BigDecimal iva = dec(prod, "iva");
+        BigDecimal tasas = dec(prod, "iva").add(dec(prod, "impuesto_interno"));
         return precio
-                .multiply(BigDecimal.ONE.add(iva.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                .multiply(BigDecimal.ONE.add(tasas.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
@@ -313,7 +318,7 @@ public class ElitImportService {
         return (v == null || v.isBlank()) ? null : v.trim();
     }
 
-    private BigDecimal dec(JsonNode node, String field) {
+    private static BigDecimal dec(JsonNode node, String field) {
         JsonNode n = node.path(field);
         return n.isNumber() ? n.decimalValue() : BigDecimal.ZERO;
     }

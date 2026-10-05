@@ -3,6 +3,9 @@ import axios from 'axios'
 import { Link, useSearchParams } from 'react-router-dom'
 import { IconTrash, IconDatabase, IconSearchLine, IconCheck } from '../../components/icons'
 
+const formatUsd = (n) => Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatArs = (n) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 })
+
 const formatFecha = (iso) =>
   iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 
@@ -230,6 +233,13 @@ function ImagesPage() {
                     {p.especificaciones && (
                       <div style={{ fontSize: '12px', color: 'var(--color-text)', marginTop: '4px', maxWidth: '420px' }}>{p.especificaciones}</div>
                     )}
+                    <div style={{ fontSize: '12px', marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '4px 14px' }}>
+                      <span><span style={{ color: 'var(--color-text-muted)' }}>Proveedor:</span> {p.proveedor || '—'}</span>
+                      <span><span style={{ color: 'var(--color-text-muted)' }}>Costo:</span> {p.costoUsd != null ? `US$ ${formatUsd(p.costoUsd)}` : '—'}</span>
+                      <span><span style={{ color: 'var(--color-text-muted)' }}>Venta:</span> {p.ventaUsd != null
+                        ? <strong style={{ color: 'var(--color-lime)' }}>US$ {formatUsd(p.ventaUsd)}{p.ventaArs != null && <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}> · $ {formatArs(p.ventaArs)}</span>}</strong>
+                        : '—'}</span>
+                    </div>
                     <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                       Última actualización: {formatFecha(p.ultimaActualizacion)}
                     </div>
