@@ -178,13 +178,12 @@ function ProductDetailPage() {
             </div>
           ))}
 
-          <p style={{ fontSize: '13px', color: 'var(--color-price)', margin: '12px 0 2px' }}>Stock sujeto a disponibilidad. Por la alta rotación, se confirma al procesar el pedido.</p>
+          <p style={{ fontSize: '13px', color: 'var(--color-price)', margin: producto.ultimaActualizacion ? '12px 0 2px' : '12px 0 16px' }}>Stock sujeto a disponibilidad: se confirma al procesar el pedido. Las fotos son de referencia.</p>
           {producto.ultimaActualizacion && (
-            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 2px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 16px' }}>
               Última actualización: {formatFecha(producto.ultimaActualizacion)}
             </p>
           )}
-          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 16px' }}><strong>Imágenes meramente ilustrativas.</strong> Confirmá características, color y disponibilidad de la variante antes de comprar.</p>
 
           {/* Estimación de entrega (ETA) */}
           {textoDemora(producto) ? (

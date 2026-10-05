@@ -9,6 +9,7 @@ import { IconArrowUpRight, IconBanknote, IconCart, IconCheck, IconGrid, IconMenu
 import './CatalogPage.css'
 import { textoDemora } from '../../utils/demora'
 import FiltrosAtributos from '../../components/FiltrosAtributos'
+import { WHATSAPP_NUMBER } from '../../config'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -362,7 +363,7 @@ function CatalogPage() {
 
       <div className="catalog-minimum" role="note">
         <span className="catalog-minimum-marker" aria-hidden="true">US$</span>
-        <span><strong>Compra mínima: US$ 250.</strong> El mínimo se calcula sobre el total de productos, antes de aplicar puntos o descuentos.</span>
+        <span><strong>Compra mínima: US$ 250</strong> en productos.</span>
       </div>
 
       {/* Botón hamburguesa: solo visible en mobile (ver CSS) */}
@@ -464,8 +465,8 @@ function CatalogPage() {
                   {totalFiltrados !== totalCatalogo && <> (filtrados de {totalCatalogo})</>}</>}
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
-            <strong>Las imágenes son meramente ilustrativas:</strong> confirmá características, color y disponibilidad antes de comprar · Por la alta rotación de stock, la disponibilidad se confirma al procesar el pedido
-            {cotizacion?.valor && <> · <IconBanknote /> Precios actualizados en USD y pesos, a ${formatNumber(cotizacion.valor)} por dólar</>}
+            {cotizacion?.valor && <><IconBanknote /> Precios en USD y pesos, a ${formatNumber(cotizacion.valor)} por dólar · </>}
+            Las fotos son de referencia: si un detalle te importa, <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)' }}>consultanos</a>.
           </p>
 
           {error && <div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div>}

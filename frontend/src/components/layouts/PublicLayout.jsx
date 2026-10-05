@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { useCart } from '../../cart/CartContext'
 import CartBadge from '../CartBadge'
-import { IconInfo, IconMenu, IconX } from '../../components/icons'
+import { IconMenu, IconX } from '../../components/icons'
 import './PublicLayout.css'
 import PieLegal, { BarraArrepentimiento } from '../PieLegal'
 
@@ -61,10 +61,6 @@ function PublicLayout() {
         </div>
       </header>
       <main className="public-main">
-        <div className="public-image-disclaimer" role="note">
-          <IconInfo />
-          <span><strong>Imágenes meramente ilustrativas.</strong> Confirmá con Futura Tecno las características, el color y la disponibilidad antes de finalizar tu compra. Debido a la alta rotación de stock, la disponibilidad se confirma al procesar el pedido.</span>
-        </div>
         <Outlet />
       </main>
       <PieLegal />

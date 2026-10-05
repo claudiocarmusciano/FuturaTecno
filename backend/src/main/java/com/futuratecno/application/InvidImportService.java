@@ -122,7 +122,7 @@ public class InvidImportService {
             BigDecimal precioOrigen = parsePrecio(txt(art, "FINAL_PRICE"));
             if (precioOrigen.signum() <= 0) { salteadosSinPrecio++; continue; }
 
-            Integer stock = art.path("STOCK").isNumber() ? art.path("STOCK").asInt() : null;
+            Integer stock = stock(art);
             if (soloConStock && stock != null && stock <= 0) { salteadosSinStock++; continue; }
 
             if (precioMinUsd != null && costoUsdInvid(art, precioOrigen, cotizacion).compareTo(precioMinUsd) < 0) {
@@ -307,5 +307,24 @@ public class InvidImportService {
         }
         if (elegida == null) elegida = categorias.get(0);
         return txt(elegida.path("PARENT"), "NAME");
+    }
+
+    /**
+     * Invid no informa cantidades: la API manda {@code STOCK_STATUS} ("Disponible", "Stock bajo",
+     * "Menos de 10 unidades"…) y ningún campo {@code STOCK}. Leer solo {@code STOCK} dejaba todo el
+     * catálogo de Invid con stock 0. El número es una aproximación para el admin (la tienda no
+     * muestra stock); si algún día mandan la cantidad, se usa esa. Estado desconocido = null.
+     */
+    static Integer stock(JsonNode art) {
+        JsonNode cantidad = art.path("STOCK");
+        if (cantidad.isNumber()) return cantidad.asInt();
+        if (cantidad.isTextual() && cantidad.asText().trim().matches("-?\\d+")) return Integer.parseInt(cantidad.asText().trim());
+        String estado = art.path("STOCK_STATUS").asText("").trim().toLowerCase(Locale.ROOT);
+        if (estado.isEmpty()) return null;
+        if (estado.contains("sin stock") || estado.contains("agotado") || estado.contains("no disponible")) return 0;
+        if (estado.contains("menos de")) return 5;
+        if (estado.contains("bajo")) return 2;
+        if (estado.contains("disponible")) return 10;
+        return null;
     }
 }
