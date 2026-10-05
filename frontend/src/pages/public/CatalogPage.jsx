@@ -27,7 +27,11 @@ const formatFechaLarga = (isoDate) => {
 // Orden por defecto del catálogo: del más barato al más caro. "relevancia" (el orden en que
 // los devuelve la API) queda como opción, pero ya no es lo primero que ve el visitante.
 const ORDEN_POR_DEFECTO = 'precio-asc'
-const PRECIO_MINIMO_PREDETERMINADO_USD = '50'
+// Sin mínimo por defecto: el catálogo arranca mostrando TODO. Antes arrancaba en US$50 y eso
+// dejaba 924 de 4.363 productos invisibles para quien no tocara el filtro — cables, adaptadores,
+// fundas y accesorios que sí están a la venta. El campo sigue ahí para que el visitante acote
+// cuando quiera.
+const PRECIO_MINIMO_PREDETERMINADO_USD = ''
 
 // Cuántas tarjetas se pintan por página. 24 es divisible por 2, 3 y 4, así que la última fila
 // queda completa en cualquiera de los anchos de la grilla (auto-fill de 260px).
@@ -196,8 +200,7 @@ function CatalogPage() {
   const [busqueda, setBusqueda] = useState(() => searchParams.get('q') || '')
   const [marca, setMarca] = useState(() => searchParams.get('marca') || '')
   const [orden, setOrden] = useState(() => searchParams.get('orden') || ORDEN_POR_DEFECTO)   // 'relevancia', 'precio-asc', 'precio-desc'
-  // El catálogo prioriza productos de US$50 o más. El campo sigue siendo editable: bajar el
-  // mínimo permite ver accesorios económicos sin ocultarlos ni quitarlos del catálogo.
+  // El catálogo muestra todos los precios salvo que el visitante acote con estos campos.
   const [precioMin, setPrecioMin] = useState(() => searchParams.get('min') || PRECIO_MINIMO_PREDETERMINADO_USD)
   const [precioMax, setPrecioMax] = useState(() => searchParams.get('max') || '')
   const [eta, setEta] = useState(null)
