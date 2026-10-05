@@ -201,6 +201,7 @@ public class InvidImportService {
             producto.setCategoriaId(categoriaClasificadorService.clasificar(producto, categoria, categoriaPadreDe(art)));
         }
         if (imagen != null) producto.setImagenUrl(imagen);
+        completarMedidas(producto, art);
         producto.setActivo(true);
         // Si el mayorista le cambió el código interno, el producto nace de nuevo: el margen que
         // se le había puesto a mano vuelve desde la memoria en vez de perderse (V41).
@@ -326,5 +327,57 @@ public class InvidImportService {
         if (estado.contains("bajo")) return 2;
         if (estado.contains("disponible")) return 10;
         return null;
+    }
+
+    /**
+     * Invid manda peso y medidas reales de cada artículo (a diferencia de Elit). Se usan para cotizar
+     * el envío en lugar del default de la categoría, pero SOLO si el producto no tiene ninguna de las
+     * cuatro cargada: lo que el admin escribió a mano en Admin → Productos nunca se pisa.
+     */
+    private void completarMedidas(Producto producto, JsonNode art) {
+        if (producto.getPesoGramos() != null || producto.getAltoCm() != null
+                || producto.getAnchoCm() != null || producto.getLargoCm() != null) return;
+        int[] m = medidas(art);
+        if (m == null) return;
+        producto.setPesoGramos(m[0]);
+        producto.setAltoCm(m[1]);
+        producto.setAnchoCm(m[2]);
+        producto.setLargoCm(m[3]);
+    }
+
+    /**
+     * {gramos, alto, ancho, largo} desde WEIGHT/HEIGHT/WIDTH/LENGTH, o null si falta alguno o no es
+     * creíble. Redondea hacia arriba: para el envío conviene pasarse un poco que quedarse corto.
+     */
+    static int[] medidas(JsonNode art) {
+        BigDecimal peso = decimal(art.path("WEIGHT"));
+        BigDecimal alto = decimal(art.path("HEIGHT"));
+        BigDecimal ancho = decimal(art.path("WIDTH"));
+        BigDecimal largo = decimal(art.path("LENGTH"));
+        if (peso == null || alto == null || ancho == null || largo == null) return null;
+
+        String unidadPeso = art.path("WEIGHT_UNIT").asText("kg").trim().toLowerCase(Locale.ROOT);
+        BigDecimal gramos = unidadPeso.startsWith("g") ? peso : peso.multiply(BigDecimal.valueOf(1000));
+        String unidadMedida = art.path("DIMENSIONS_UNIT").asText("cm").trim().toLowerCase(Locale.ROOT);
+        BigDecimal porCm = switch (unidadMedida) {
+            case "mm" -> new BigDecimal("0.1");
+            case "m" -> BigDecimal.valueOf(100);
+            default -> BigDecimal.ONE;
+        };
+        int[] m = {
+                gramos.setScale(0, RoundingMode.CEILING).intValueExact(),
+                alto.multiply(porCm).setScale(0, RoundingMode.CEILING).intValueExact(),
+                ancho.multiply(porCm).setScale(0, RoundingMode.CEILING).intValueExact(),
+                largo.multiply(porCm).setScale(0, RoundingMode.CEILING).intValueExact()};
+        if (m[0] <= 0 || m[0] > 200_000) return null;
+        for (int i = 1; i < 4; i++) if (m[i] <= 0 || m[i] > 300) return null;
+        return m;
+    }
+
+    private static BigDecimal decimal(JsonNode n) {
+        if (n.isNumber()) return n.decimalValue();
+        String t = n.asText("").trim().replace(',', '.');
+        if (t.isEmpty()) return null;
+        try { return new BigDecimal(t); } catch (NumberFormatException e) { return null; }
     }
 }
