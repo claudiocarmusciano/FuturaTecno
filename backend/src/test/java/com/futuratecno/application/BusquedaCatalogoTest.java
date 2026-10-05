@@ -95,4 +95,29 @@ class BusquedaCatalogoTest {
         assertEquals(1, r.getPagina());
         assertNull(r.getPrecioMinUsd());
     }
+
+    /**
+     * Los mayoristas escriben la misma marca de formas distintas: en el catálogo conviven "Sony"
+     * y "SONY". Filtrar por una tiene que traer las dos, o el visitante ve media góndola.
+     */
+    private static final List<ProductoCatalogoDTO> MARCAS_MEZCLADAS = List.of(
+            producto(1, 10, "Sony", "WH-1000XM5", "Negro", "300"),
+            producto(2, 10, "SONY", "WF-1000XM5", "Blanco", "250"),
+            producto(3, 10, " sony ", "SRS-XB100", "Azul", "60"),
+            producto(4, 10, "Logitech", "Mouse G203", "RGB", "25"));
+
+    @Test
+    void filtrarPorMarcaIgnoraMayusculasYEspacios() {
+        for (String comoLaPidan : List.of("Sony", "SONY", "sony", " Sony ")) {
+            var r = BusquedaCatalogo.buscar(MARCAS_MEZCLADAS,
+                    filtro(null, comoLaPidan, null, null, null, null, 1, 24));
+            assertEquals(3, r.getTotal(), "filtrando por '" + comoLaPidan + "'");
+        }
+    }
+
+    @Test
+    void elMenuDeMarcasNoRepiteLaMismaMarca() {
+        var r = BusquedaCatalogo.buscar(MARCAS_MEZCLADAS, filtro(null, null, null, null, null, null, 1, 24));
+        assertEquals(List.of("Logitech", "Sony"), r.getMarcas());
+    }
 }

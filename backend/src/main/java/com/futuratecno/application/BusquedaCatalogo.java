@@ -51,7 +51,7 @@ public final class BusquedaCatalogo {
         List<ProductoCatalogoDTO> base = new ArrayList<>();   // todo menos los filtros por atributo
         for (ProductoCatalogoDTO p : catalogo) {
             if (f.idsCategoria() != null && !f.idsCategoria().contains(p.getCategoriaId())) continue;
-            if (marca != null && !marca.equals(p.getMarca())) continue;
+            if (marca != null && !marcaNormalizada(p.getMarca()).equals(marcaNormalizada(marca))) continue;
             if (!q.isEmpty() && !textoDe(p).contains(q)) continue;
             BigDecimal precio = precioDesde(p);
             // Sin precio (todas las variantes en 0) queda afuera si hay cualquier límite: el front
@@ -262,8 +262,10 @@ public final class BusquedaCatalogo {
      */
     private static void facetas(List<ProductoCatalogoDTO> catalogo, CatalogoPaginaDTO out) {
         out.setTotalCatalogo(catalogo.size());
-        out.setMarcas(new ArrayList<>(catalogo.stream().map(ProductoCatalogoDTO::getMarca)
-                .filter(m -> m != null && !m.isBlank()).collect(Collectors.toCollection(TreeSet::new))));
+        // Una entrada por marca, aunque los mayoristas la escriban de formas distintas: en el
+        // catálogo conviven "Sony" y "SONY", "Logitech" y "LOGITECH". Antes el menú las listaba
+        // por separado y elegir una escondía los productos de la otra.
+        out.setMarcas(marcasVisibles(catalogo));
         out.setCategoriaIds(catalogo.stream().map(ProductoCatalogoDTO::getCategoriaId)
                 .filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList()));
         List<BigDecimal> precios = catalogo.stream().map(BusquedaCatalogo::precioDesde)
@@ -272,6 +274,45 @@ public final class BusquedaCatalogo {
             out.setPrecioMinUsd(precios.stream().min(Comparator.naturalOrder()).get().setScale(0, RoundingMode.FLOOR));
             out.setPrecioMaxUsd(precios.stream().max(Comparator.naturalOrder()).get().setScale(0, RoundingMode.CEILING));
         }
+    }
+
+    /**
+     * Clave para comparar marcas: sin mayúsculas, sin espacios de más. "Sony", "SONY" y " sony "
+     * son la misma marca y tienen que filtrar juntas.
+     */
+    public static String marcaNormalizada(String marca) {
+        return marca == null ? "" : marca.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * El menú de marcas: una sola entrada por marca real. Como etiqueta se elige la variante más
+     * frecuente del catálogo y, a igualdad, la que NO está toda en mayúsculas ("Sony" antes que
+     * "SONY") — se lee mejor y es como la escriben las propias marcas.
+     */
+    private static List<String> marcasVisibles(List<ProductoCatalogoDTO> catalogo) {
+        Map<String, Map<String, Long>> variantes = new HashMap<>();
+        for (ProductoCatalogoDTO p : catalogo) {
+            String m = p.getMarca();
+            if (m == null || m.isBlank()) continue;
+            variantes.computeIfAbsent(marcaNormalizada(m), k -> new HashMap<>())
+                    .merge(m.trim().replaceAll("\\s+", " "), 1L, Long::sum);
+        }
+        return variantes.values().stream()
+                .map(porEscritura -> porEscritura.entrySet().stream()
+                        .max(Comparator.<Map.Entry<String, Long>>comparingLong(Map.Entry::getValue)
+                                .thenComparingInt(e -> puntajeEstilo(e.getKey()))
+                                .thenComparing(Map.Entry::getKey, Comparator.reverseOrder()))
+                        .map(Map.Entry::getKey).orElseThrow())
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.toList());
+    }
+
+    /** Qué tan presentable es una escritura de marca: "Sony" (2) mejor que "sony" (1) que "SONY" (0). */
+    private static int puntajeEstilo(String marca) {
+        boolean todoMayusculas = marca.equals(marca.toUpperCase(Locale.ROOT));
+        boolean todoMinusculas = marca.equals(marca.toLowerCase(Locale.ROOT));
+        if (todoMayusculas) return 0;
+        return todoMinusculas ? 1 : 2;
     }
 
     /** Precio "desde": el menor precio de venta USD entre las variantes con precio; null si ninguna tiene. */
