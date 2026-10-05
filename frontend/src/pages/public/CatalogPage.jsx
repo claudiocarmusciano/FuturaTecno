@@ -5,6 +5,7 @@ import { indexarArbol } from '../../utils/categorias'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
 import EditarComoAdmin from '../../components/EditarComoAdmin'
+import CostoAdmin, { useCostosAdmin } from '../../components/CostoAdmin'
 import { IconArrowUpRight, IconBanknote, IconCart, IconCheck, IconGrid, IconMenu, IconSearchLine, IconX } from '../../components/icons'
 import './CatalogPage.css'
 import { textoDemora } from '../../utils/demora'
@@ -322,6 +323,7 @@ function CatalogPage() {
   const totalCatalogo = resultado?.totalCatalogo ?? 0
   const totalFiltrados = resultado?.total ?? 0
   const visibles = resultado?.items || []
+  const costosAdmin = useCostosAdmin(visibles.map(p => p.id))
   // La página que el servidor efectivamente devolvió (ajusta una fuera de rango a la última).
   const paginaActual = resultado?.pagina ?? pagina
   const totalPaginas = resultado?.totalPaginas ?? 1
@@ -498,6 +500,7 @@ function CatalogPage() {
                   {p.categoria && <span className="chip-categoria" style={{ marginBottom: '8px' }}>{p.categoria}</span>}
                   <h3 style={{ margin: '8px 0 4px', fontSize: '16px' }}>{p.marca} {p.modelo}</h3>
                   {p.sku && <p style={{ margin: '0 0 12px', fontSize: '11px', color: 'var(--color-text-muted)' }}>Cód. {p.sku}</p>}
+                  <CostoAdmin costo={costosAdmin[p.id]} />
 
                   {p.variantes.map(v => (
                     <div key={v.id} style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', marginTop: '10px' }}>

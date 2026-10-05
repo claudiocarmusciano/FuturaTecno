@@ -100,6 +100,19 @@ public class ProductoAdminService {
      * volvía este listado en miles de queries. Se traen las variantes de TODO el catálogo en una
      * sola consulta (con IN) y se agrupan por producto en memoria.
      */
+    /**
+     * Costo del mayorista (US$, antes de flete y margen) de cada producto, para mostrárselo al admin
+     * en la tienda. Va aparte del catálogo a propósito: la API pública nunca debe llevar el costo.
+     * Con varias variantes, el menor costo (la que el catálogo muestra como "desde").
+     */
+    @Transactional(readOnly = true)
+    public Map<Long, BigDecimal> costos(List<Long> productoIds) {
+        if (productoIds == null || productoIds.isEmpty()) return Map.of();
+        return varianteRepository.findByProductoIdInAndActivo(productoIds, true).stream()
+                .filter(v -> v.getCostoUsd() != null)
+                .collect(Collectors.toMap(v -> v.getProducto().getId(), Variante::getCostoUsd, BigDecimal::min));
+    }
+
     @Transactional(readOnly = true)
     public List<ProductoAdminDTO> listar() {
         List<Producto> productos = productoRepository.findByActivo(true);

@@ -31,6 +31,13 @@ public class ProductoAdminController {
         return ResponseEntity.ok(productoAdminService.listar());
     }
 
+    /** Costo por producto para los que se ven en la tienda con sesión de admin (tope: 200 por pedido). */
+    @GetMapping("/costos")
+    public ResponseEntity<?> costos(@RequestParam List<Long> ids) {
+        if (ids.size() > 200) return ResponseEntity.badRequest().body(Map.of("error", "Máximo 200 productos por consulta."));
+        return ResponseEntity.ok(productoAdminService.costos(ids));
+    }
+
     /** Todos los productos sin foto, solo con lo que ya hay en la base. No gasta crédito. */
     @PostMapping("/buscar-imagenes-base")
     public ResponseEntity<BuscarImagenesResponse> buscarImagenesEnBase() {

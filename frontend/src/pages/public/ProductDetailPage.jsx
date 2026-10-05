@@ -5,6 +5,7 @@ import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO, TITULO_SITIO } from '../../config'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
 import EditarComoAdmin from '../../components/EditarComoAdmin'
+import CostoAdmin, { useCostosAdmin } from '../../components/CostoAdmin'
 import './CatalogPage.css'
 import { IconCart, IconChat, IconCheck, IconTruck } from '../../components/icons'
 import { textoDemora } from '../../utils/demora'
@@ -37,6 +38,7 @@ function ProductDetailPage() {
   const [imagenActiva, setImagenActiva] = useState(0)
   const { agregar } = useCart()
   const [agregado, setAgregado] = useState(null)   // id de la variante recién agregada (feedback)
+  const costosAdmin = useCostosAdmin(producto ? [producto.id] : [])
 
   useEffect(() => {
     setCargando(true)
@@ -146,6 +148,7 @@ function ProductDetailPage() {
           )}
           <h1 style={{ margin: '8px 0 4px', fontSize: '30px' }}>{producto.marca} {producto.modelo}</h1>
           <EditarComoAdmin productoId={producto.id} style={{ margin: '6px 0 10px' }} />
+          <CostoAdmin costo={costosAdmin[producto.id]} />
           {producto.sku && <p style={{ margin: '0 0 20px', fontSize: '12px', color: 'var(--color-text-muted)' }}>Cód. {producto.sku}</p>}
 
           {producto.variantes.map(v => (
