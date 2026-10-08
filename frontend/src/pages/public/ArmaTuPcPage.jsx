@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import PromoArmado from '../../components/PromoArmado'
+import { formatPesos } from '../../utils/minimoCompra'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { useCart } from '../../cart/CartContext'
@@ -429,7 +430,7 @@ export default function ArmaTuPcPage() {
       const s = seleccion[p.clave]
       return `• ${p.titulo}: ${s.item.modelo}${s.cantidad > 1 ? ` (x${s.cantidad})` : ''}`
     }),
-    `Total: US$ ${formatNumber(totales.usd)}`,
+    `Total: $ ${formatPesos(totales.ars)} por transferencia`,
     link
   ].join('\n')
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensajeWa)}`
@@ -515,7 +516,6 @@ export default function ArmaTuPcPage() {
                   {avisos.map(a => <p key={a} className="atp-aviso"><IconAlert /> {a}</p>)}
                   {sugerencias.map(a => <p key={a} className="atp-sugerencia"><IconBulb /> {a}</p>)}
                   <div className="atp-card-precio">
-                    <strong>US$ {formatNumber(c.precioUsd)}</strong>
                     <PaymentPrices transferPrice={c.precioArs} compact />
                   </div>
                   <div className="atp-card-acciones">
@@ -546,7 +546,7 @@ export default function ArmaTuPcPage() {
         <aside className={`atp-resumen${resumenAbierto ? ' abierto' : ''}`}>
           <button className="atp-resumen-barra" onClick={() => setResumenAbierto(v => !v)}>
             <span>Tu PC · {Object.keys(seleccion).length} de {PASOS.length}</span>
-            <strong>US$ {formatNumber(totales.usd)}</strong>
+            <strong>$ {formatPesos(totales.ars)}</strong>
             <span aria-hidden="true">{resumenAbierto ? '▾' : '▴'}</span>
           </button>
           <div className="atp-resumen-cuerpo">
@@ -566,7 +566,7 @@ export default function ArmaTuPcPage() {
                               {opcionesCantidad(p.tipo, s.item).map(n => <option key={n} value={n}>{etiquetaCantidad(p.tipo, s.item, n)}</option>)}
                             </select>
                           ) : <span />}
-                          <span>US$ {formatNumber(s.item.precioUsd * s.cantidad)}</span>
+                          <span>$ {formatPesos(s.item.precioArs * s.cantidad)}</span>
                           <button className="atp-quitar" onClick={() => quitar(p.clave)} aria-label={`Quitar ${p.titulo}`}><IconX /></button>
                         </div>
                       </div>
@@ -586,7 +586,6 @@ export default function ArmaTuPcPage() {
 
             <div className="atp-total">
               <span>Total</span>
-              <strong>US$ {formatNumber(totales.usd)}</strong>
               <PaymentPrices transferPrice={totales.ars} compact />
             </div>
             <button className="btn btn-primary atp-agregar" disabled={faltantes.length > 0} onClick={agregarTodo}>

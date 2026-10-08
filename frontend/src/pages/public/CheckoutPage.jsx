@@ -8,12 +8,12 @@ import PaymentPrices from '../../components/PaymentPrices'
 import { CASH_DISCOUNT_PERCENTAGE, cashPrice, mpImmediatePrice } from '../../utils/paymentPricing'
 import { etiquetaEnvio } from '../../utils/envio'
 import { textoDemora } from '../../utils/demora'
+import { MONTO_MINIMO_PEDIDO_USD, useCotizacion, minimoArs, formatPesos } from '../../utils/minimoCompra'
 import { checkoutIniciado, pedidoConfirmado } from '../../utils/analitica'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-const MONTO_MINIMO_PEDIDO_USD = 250
 
 function CheckoutPage() {
   const { user, isAuth, listo, isAdmin } = useAuth()
@@ -30,6 +30,10 @@ function CheckoutPage() {
   const [misPuntos, setMisPuntos] = useState(null)
   const [puntosUsar, setPuntosUsar] = useState(0)
   const [cotizacionActual, setCotizacionActual] = useState(null)
+  const cotizacion = useCotizacion()
+  const minimo = minimoArs(cotizacion)
+  // Al cliente se le muestran pesos: los importes en USD (puntos, mínimo) se pasan con la cotización.
+  const enPesos = (usd) => (cotizacion ? `$ ${formatPesos(Math.round(usd * cotizacion))}` : null)
 
   // Envío: la cotización es opcional. Si no se cotiza (o Andreani no responde), el pedido
   // sale igual y el costo se coordina al contactar al cliente.
@@ -78,9 +82,10 @@ function CheckoutPage() {
       <div>
         <h1>Confirmar pedido</h1>
         <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
-          <h2 style={{ marginTop: 0, fontSize: '18px' }}>Compra mínima: US$ {formatNumber(MONTO_MINIMO_PEDIDO_USD)}</h2>
+          <h2 style={{ marginTop: 0, fontSize: '18px' }}>Compra mínima{minimo ? `: $ ${formatPesos(minimo)}` : ''}</h2>
           <p style={{ color: 'var(--color-text-muted)' }}>
-            Tu carrito suma US$ {formatNumber(totalUsd)}. Agregá US$ {formatNumber(faltaParaMinimo)} en productos para poder continuar al checkout.
+            Tu carrito suma $ {formatPesos(totalArs)}.{cotizacion && <> Agregá $ {formatPesos(Math.ceil(faltaParaMinimo * cotizacion))} en productos para poder continuar al checkout.</>}
+            {' '}Los precios publicados tienen descuento y son válidos desde la compra mínima.
           </p>
           <Link to="/carrito" className="btn-primario" style={{ display: 'inline-block', textDecoration: 'none', marginTop: '8px' }}>
             ← Volver al carrito
@@ -157,7 +162,7 @@ function CheckoutPage() {
     e.preventDefault()
     setError('')
     if (!alcanzaMinimo) {
-      setError(`El pedido mínimo es de US$ ${formatNumber(MONTO_MINIMO_PEDIDO_USD)}.`)
+      setError(minimo ? `El pedido mínimo es de $ ${formatPesos(minimo)} en productos.` : 'Tu pedido no llega a la compra mínima.')
       return
     }
     setEnviando(true)
@@ -213,13 +218,10 @@ function CheckoutPage() {
               {i.especificaciones && <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}> · {i.especificaciones}</span>}
               {textoDemora(i) && <span style={{ color: 'var(--color-warning)', fontSize: '13px', fontWeight: 600 }}> · Entrega en {textoDemora(i)}</span>}
             </span>
-            <span style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>US$ {formatNumber(i.precioUsd * i.cantidad)}</span>
+            <span style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>$ {formatPesos(i.precioArs * i.cantidad)}</span>
           </div>
         ))}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', fontSize: '19px', fontWeight: 700 }}>
-          <span>Total</span>
-          <span>US$ {formatNumber(totalUsd)}</span>
-        </div>
+        <div style={{ marginTop: '14px', fontSize: '19px', fontWeight: 700 }}>Total</div>
         {opcionElegida && <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '6px' }}>{Number(opcionElegida.totalArs) === 0 ? 'Incluye envío gratis en Olavarría.' : `Incluye envío estimado: $ ${formatNumber(opcionElegida.totalArs)}`}</div>}
         <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} cashPriceOverride={totalEfectivoConEnvio} /></div>
       </div>
@@ -229,10 +231,10 @@ function CheckoutPage() {
         {misPuntos === null ? (
           <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '14px' }}>Cargando tu saldo…</p>
         ) : saldoPuntos === 0 ? (
-          <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '14px' }}>Todavía no tenés puntos disponibles. Por cada US$ 100 en productos de una compra cobrada sumás 1 punto.</p>
+          <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '14px' }}>Todavía no tenés puntos disponibles. Por cada {enPesos(100) || 'cierto monto'} en productos de una compra cobrada sumás 1 punto.</p>
         ) : (
           <>
-            <p style={{ margin: '0 0 12px', fontSize: '14px' }}><strong>{saldoPuntos} punto{saldoPuntos === 1 ? '' : 's'} disponibles</strong> = US$ {saldoPuntos} de descuento.</p>
+            <p style={{ margin: '0 0 12px', fontSize: '14px' }}><strong>{saldoPuntos} punto{saldoPuntos === 1 ? '' : 's'} disponibles</strong>{enPesos(saldoPuntos) ? <> = {enPesos(saldoPuntos)} de descuento aprox.</> : null}</p>
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '14px' }}>
               Usar
               <input type="number" min="0" max={maximoPuntosUsables} value={puntosUsar}
@@ -243,7 +245,7 @@ function CheckoutPage() {
                 style={{ padding: '7px 10px', borderRadius: '2px', border: '1px solid var(--color-accion)', background: 'transparent', color: 'var(--color-accion)', cursor: 'pointer', fontWeight: 700 }}>Usar máximo</button>
             </label>
             <p style={{ margin: '9px 0 0', color: 'var(--color-text-muted)', fontSize: '12px' }}>
-              {puntosAplicados > 0 ? `Descuento estimado: $ ${formatNumber(descuentoPuntosArs)}. ` : ''}Los puntos se aplican sólo a productos, no al envío. La compra mínima de US$ 250 se valida antes del descuento.
+              {puntosAplicados > 0 ? `Descuento estimado: $ ${formatNumber(descuentoPuntosArs)}. ` : ''}Los puntos se aplican sólo a productos, no al envío. La compra mínima se valida antes del descuento.
             </p>
           </>
         )}

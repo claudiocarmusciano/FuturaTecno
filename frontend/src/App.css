@@ -398,3 +398,9 @@ a:hover { text-decoration: underline; }
 .icono-girando { animation: icono-girar 1s linear infinite; }
 @keyframes icono-girar { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .icono-girando { animation: none; } }
+
+/* Aviso de compra mínima (componente AvisoMinimo). */
+.aviso-minimo {
+  margin: 0; padding: 12px 16px; font-size: 14px; line-height: 1.5;
+  background: var(--color-cyan-tint); border-left: 3px solid var(--color-cyan); border-radius: var(--radius-sm);
+}

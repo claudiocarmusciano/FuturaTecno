@@ -5,11 +5,10 @@ import { useAuth } from '../../auth/AuthContext'
 import PaymentPrices from '../../components/PaymentPrices'
 import { IconCart, IconX } from '../../components/icons'
 import { textoDemora } from '../../utils/demora'
+import { MONTO_MINIMO_PEDIDO_USD, useCotizacion, minimoArs, textoMinimo } from '../../utils/minimoCompra'
 
 const formatNumber = (n) =>
-  Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
-const MONTO_MINIMO_PEDIDO_USD = 250
+  Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 })
 
 function CartPage() {
   const { items, quitar, cambiarCantidad, vaciar, revalidar, totalUsd, totalArs, vacio } = useCart()
@@ -18,6 +17,8 @@ function CartPage() {
   const [revisando, setRevisando] = useState(true)
   const faltaParaMinimo = Math.max(0, MONTO_MINIMO_PEDIDO_USD - Number(totalUsd || 0))
   const { isAdmin } = useAuth()
+  const cotizacion = useCotizacion()
+  const minimo = minimoArs(cotizacion)
   // El admin no tiene mínimo: así puede probar el cobro real con un producto barato.
   const alcanzaMinimo = faltaParaMinimo === 0 || isAdmin
 
@@ -61,7 +62,7 @@ function CartPage() {
           <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
             {avisos.cambios.map(c => (
               <li key={c.nombre}>
-                {c.nombre}: US$ {formatNumber(c.anterior)} → <strong>US$ {formatNumber(c.nuevo)}</strong>
+                {c.nombre}: $ {formatNumber(c.anterior)} → <strong>$ {formatNumber(c.nuevo)}</strong>
               </li>
             ))}
           </ul>
@@ -107,7 +108,7 @@ function CartPage() {
                           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{i.especificaciones}</div>
                         )}
                         <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                          US$ {formatNumber(i.precioUsd)} c/u
+                          $ {formatNumber(i.precioArs)} c/u
                         </div>
                       </div>
                     </div>
@@ -125,8 +126,7 @@ function CartPage() {
                     />
                   </td>
                   <td style={{ padding: '14px 8px', textAlign: 'right' }}>
-                    <div style={{ fontWeight: 600 }}>US$ {formatNumber(i.precioUsd * i.cantidad)}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--color-price)' }}>$ {formatNumber(i.precioArs * i.cantidad)}</div>
+                    <div style={{ fontWeight: 600 }}>$ {formatNumber(i.precioArs * i.cantidad)}</div>
                   </td>
                   <td style={{ padding: '14px 8px', textAlign: 'right' }}>
                     <button
@@ -154,7 +154,6 @@ function CartPage() {
           </button>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>Total de productos</div>
-            <div style={{ fontSize: '30px', fontWeight: 700, letterSpacing: '-0.02em' }}>US$ {formatNumber(totalUsd)}</div>
             <PaymentPrices transferPrice={totalArs} />
           </div>
         </div>
@@ -162,9 +161,12 @@ function CartPage() {
 
       {!alcanzaMinimo && (
         <div className="card" style={{ marginTop: '18px', borderLeft: '4px solid var(--color-accion)' }}>
-          <strong>Compra mínima: US$ {formatNumber(MONTO_MINIMO_PEDIDO_USD)}</strong>
+          <strong>Compra mínima{minimo ? `: $ ${formatNumber(minimo)}` : ''}</strong>
           <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '14px' }}>
-            Te faltan US$ {formatNumber(faltaParaMinimo)} en productos para poder confirmar el pedido.
+            {cotizacion
+              ? <>Te faltan $ {formatNumber(Math.ceil(faltaParaMinimo * cotizacion))} en productos para poder confirmar el pedido.</>
+              : <>Todavía no llegás a la compra mínima en productos para confirmar el pedido.</>}
+            {' '}{textoMinimo(cotizacion)}
           </p>
         </div>
       )}

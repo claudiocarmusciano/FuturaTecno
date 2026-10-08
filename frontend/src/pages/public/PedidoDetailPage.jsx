@@ -148,28 +148,26 @@ function PedidoDetailPage() {
               {textoDemora(i) && <div style={{ fontSize: '12px', color: 'var(--color-warning)', fontWeight: 600 }}>Entrega en {textoDemora(i)}</div>}
               {i.especificaciones && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{i.especificaciones}</div>}
               <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                {i.sku && <>Cód. {i.sku} · </>}{i.cantidad} × US$ {formatNumber(i.precioUnitarioUsd)}
+                {i.sku && <>Cód. {i.sku} · </>}{i.cantidad} unidad{i.cantidad === 1 ? '' : 'es'}
               </div>
             </div>
             <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-              <div style={{ fontWeight: 600 }}>US$ {formatNumber(i.subtotalUsd)}</div>
-              <div style={{ fontSize: '13px', color: 'var(--color-price)' }}>$ {formatNumber(i.subtotalArs)}</div>
+              <div style={{ fontWeight: 600 }}>$ {formatNumber(i.subtotalArs)}</div>
             </div>
           </div>
         ))}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', fontSize: '20px', fontWeight: 700 }}>
           <span>Total</span>
-          <span>US$ {formatNumber(pedido.totalUsd)}</span>
+          <span>$ {formatNumber(pedido.totalArs)}</span>
         </div>
-        <div style={{ textAlign: 'right', color: 'var(--color-price)' }}>$ {formatNumber(pedido.totalArs)}</div>
         {pedido.puntosCanjeados > 0 && (
           <p style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-accion)', margin: '5px 0 0' }}>
             − {pedido.puntosCanjeados} punto(s): $ {formatNumber(pedido.descuentoPuntosArs)}
           </p>
         )}
         <p style={{ textAlign: 'right', fontSize: '12px', color: 'var(--color-text-muted)', margin: '4px 0 0' }}>
-          Precios congelados a la cotización de ${formatNumber(pedido.cotizacionUsada)} por dólar del día del pedido.
+          Precios congelados al día del pedido.
         </p>
       </div>
 

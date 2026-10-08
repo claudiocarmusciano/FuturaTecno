@@ -4,15 +4,13 @@ import axios from 'axios'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO, TITULO_SITIO } from '../../config'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import AvisoMinimo from '../../components/AvisoMinimo'
 import EditarComoAdmin from '../../components/EditarComoAdmin'
 import CostoAdmin, { useCostosAdmin } from '../../components/CostoAdmin'
 import './CatalogPage.css'
 import { IconCart, IconChat, IconCheck, IconTruck } from '../../components/icons'
 import { textoDemora } from '../../utils/demora'
 import { productoVisto } from '../../utils/analitica'
-
-const formatNumber = (n) =>
-  Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const nombreProducto = (p) =>
   [p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')
@@ -156,10 +154,8 @@ function ProductDetailPage() {
               {v.especificaciones && (
                 <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>{v.especificaciones}</p>
               )}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
-                <strong style={{ fontSize: '28px', color: 'var(--color-text)', letterSpacing: '-0.02em' }}>US$ {formatNumber(v.precioUsd)}</strong>
-              </div>
               <PaymentPrices transferPrice={v.precioArs} />
+              <AvisoMinimo style={{ marginTop: '12px' }} />
               {/* El carrito es por variante: el precio vive en la variante, no en el producto. */}
               <button
                 type="button"
@@ -167,7 +163,7 @@ function ProductDetailPage() {
                 style={{
                   marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px',
                   background: agregado === v.id ? 'var(--color-accent-light)' : 'var(--color-accion)',
-                  color: 'var(--color-sobre-accion)', border: agregado === v.id ? '1px solid var(--color-accion)' : 'none',
+                  color: agregado === v.id ? 'var(--color-accion)' : 'var(--color-sobre-accion)', border: agregado === v.id ? '1px solid var(--color-accion)' : 'none',
                   padding: '11px 22px', borderRadius: '2px', fontSize: '15px', fontWeight: 600, cursor: 'pointer'
                 }}
               >

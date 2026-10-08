@@ -5,6 +5,7 @@ import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO, TITULAR, HORARIO_LOCAL } from '../../c
 import './Landing.css'
 import PromotionsCarousel from '../../components/PromotionsCarousel'
 import PromoArmado from '../../components/PromoArmado'
+import AvisoMinimo from '../../components/AvisoMinimo'
 
 const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=` +
   encodeURIComponent(`Hola ${NOMBRE_NEGOCIO}, quería hacer una consulta sobre el catálogo.`)
@@ -57,7 +58,7 @@ const IcoGarantia = () => <Ico><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 
 const VENTAJAS = [
   { ico: <IcoLocal />, t: 'Local en Olavarría', d: `Vení a vernos a ${TITULAR.domicilioComercial.split(',')[0]} o retirá tu compra en el local.` },
   { ico: <IcoEnvio />, t: 'Envíos a todo el país', d: 'Enviamos por Andreani a cualquier punto del país.' },
-  { ico: <IcoPrecio />, t: 'Precios del día', d: 'Cada producto muestra su precio en pesos y en dólares, con la cotización de hoy.' },
+  { ico: <IcoPrecio />, t: 'Precios del día', d: 'Precios en pesos, actualizados todos los días.' },
   { ico: <IcoPago />, t: 'Pagá como quieras', d: 'Mercado Pago, transferencia o efectivo, con descuento pagando en efectivo.' },
   { ico: <IcoGarantia />, t: 'Garantía oficial', d: 'Productos nuevos y con garantía. Las condiciones están en Garantía y devoluciones.' },
   { ico: <IcoChat />, t: 'Atención por WhatsApp', d: 'Te asesoramos antes y después de la compra, con una persona del otro lado.' },
@@ -66,6 +67,34 @@ const VENTAJAS = [
 // Rubros que se prefieren para la vidriera del hero (los productos los sortea el servidor).
 const VIDRIERA_PREFERIDA = ['Apple', 'Notebooks', 'Celulares', 'Consolas', 'Monitores', 'Placas de video']
 
+// Destacados de la home (pedido del usuario): dos productos con foto de cada rubro, todos por
+// encima del equivalente a US$ 300. Las categorías se buscan por NOMBRE en el árbol (en cualquier
+// nivel: "Auriculares" está dentro de Periféricos). El filtro de precio del backend es en USD.
+const DESTACADOS_RUBROS = ['Notebooks', 'Apple', 'Auriculares', 'Consolas', 'Computadoras', 'Monitores']
+const DESTACADOS_MIN_USD = 300
+const DESTACADOS_POR_RUBRO = 2
+const NO_DESTACAR = /open ?box|usad|reacondicionad/i
+
+// Búsqueda a lo ancho: gana la categoría menos profunda ("Monitores" y no "Apple > Monitores").
+const buscarEnArbol = (nodos, nombre) => {
+  let nivel = nodos || []
+  while (nivel.length) {
+    const hallado = nivel.find(n => n.nombre === nombre)
+    if (hallado) return hallado
+    nivel = nivel.flatMap(n => n.subcategorias || n.hijos || [])
+  }
+  return null
+}
+
+const mezclar = (lista) => {
+  const copia = [...lista]
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]]
+  }
+  return copia
+}
+
 const MARCAS = ['Apple', 'Samsung', 'Motorola', 'Xiaomi', 'Lenovo', 'HP', 'ASUS', 'MSI', 'LG', 'Logitech', 'HyperX', 'Epson', 'AMD', 'Intel', 'Sony', 'JBL', 'TP-Link', 'Corsair']
 
 const IconWhatsApp = () => (
@@ -73,7 +102,7 @@ const IconWhatsApp = () => (
 )
 
 function TarjetaProducto({ p }) {
-  const usd = precioDesde(p), ars = precioArsDesde(p)
+  const ars = precioArsDesde(p)
   return (
     <Link className="lp-prod" to={`/producto/${p.id}`}>
       <div className="lp-prod-img">
@@ -83,8 +112,7 @@ function TarjetaProducto({ p }) {
         {p.categoria && <span className="lp-prod-cat">{p.categoria}</span>}
         <h3 className="lp-prod-name">{nombreDe(p)}</h3>
         <div className="lp-prod-price">
-          {ars ? <strong>$ {fmt(ars)}</strong> : null}
-          {usd ? <span>US$ {fmt(usd)}</span> : null}
+          {ars ? <><strong>$ {fmt(ars)}</strong><span>por transferencia</span></> : null}
         </div>
         <span className="lp-link">Ver producto ›</span>
       </div>
@@ -138,7 +166,19 @@ function LandingPage() {
     }).slice(0, 3)
   }, [portada, arbol, imgsRotas])
 
-  const destacados = (portada?.destacados || []).slice(0, 8)
+  // Destacados: se piden por rubro y se eligen al azar entre los que tienen foto.
+  const [destacados, setDestacados] = useState([])
+  useEffect(() => {
+    if (!arbol.length) return
+    let vivo = true
+    const rubros = DESTACADOS_RUBROS.map(nombre => buscarEnArbol(arbol, nombre)).filter(Boolean)
+    Promise.all(rubros.map(cat =>
+      axios.get('/api/productos/buscar', { params: { cat: cat.id, min: DESTACADOS_MIN_USD, size: 24 } })
+        .then(r => mezclar((r.data?.items || []).filter(p => p.imagenUrl && !NO_DESTACAR.test(p.modelo || ''))).slice(0, DESTACADOS_POR_RUBRO))
+        .catch(() => [])
+    )).then(grupos => { if (vivo) setDestacados(grupos.flat()) })
+    return () => { vivo = false }
+  }, [arbol])
 
   return (
     <div className="lp">
@@ -149,8 +189,8 @@ function LandingPage() {
             <span className="lp-rotulo">Tecnología en Olavarría</span>
             <h1>La tecnología que buscás, al mejor precio.</h1>
             <p>
-              Celulares, notebooks, PC, componentes y más. Precios del día en pesos y dólares,
-              envíos a todo el país y atención por WhatsApp.
+              Celulares, notebooks, PC, componentes y más. Precios del día, envíos a todo
+              el país y atención por WhatsApp.
             </p>
             <div className="lp-cta-row">
               <Link className="lp-btn" to="/catalogo">Ver productos</Link>
@@ -198,6 +238,7 @@ function LandingPage() {
             <h2>Destacados</h2>
             <Link className="lp-link" to="/catalogo">Ver todos los productos ›</Link>
           </div>
+          <AvisoMinimo style={{ marginBottom: '24px' }} />
           <div className="lp-prod-grid">
             {destacados.length === 0
               ? <div className="lp-prod-loading">Cargando productos…</div>

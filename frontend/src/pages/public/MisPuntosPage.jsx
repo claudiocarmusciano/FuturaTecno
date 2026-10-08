@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { useCotizacion, formatPesos } from '../../utils/minimoCompra'
 
 const fecha = (value) => value ? new Date(value).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'
 
 export default function MisPuntosPage() {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
+  const cotizacion = useCotizacion()
 
   useEffect(() => {
     axios.get('/api/puntos/mis-puntos').then(r => setData(r.data))
@@ -21,13 +23,13 @@ export default function MisPuntosPage() {
     <div className="card" style={{ border: '1px solid var(--color-accion)', background: 'linear-gradient(135deg, rgba(0, 119, 179, .13), transparent)' }}>
       <div style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Saldo disponible</div>
       <div style={{ fontSize: '44px', lineHeight: 1.1, fontWeight: 800, color: 'var(--color-accion)', marginTop: '5px' }}>{data.puntosDisponibles} puntos</div>
-      <p style={{ margin: '9px 0 0', fontSize: '15px' }}>Equivalen a <strong>US$ {data.puntosDisponibles}</strong> para descontar en una próxima compra.</p>
+      <p style={{ margin: '9px 0 0', fontSize: '15px' }}>Equivalen a {cotizacion ? <strong>$ {formatPesos(Math.round(data.puntosDisponibles * cotizacion))} aprox.</strong> : 'un descuento'} para usar en una próxima compra.</p>
       {data.proximoVencimiento && <p style={{ margin: '7px 0 0', color: 'var(--color-text-muted)', fontSize: '13px' }}>El próximo vencimiento es el {fecha(data.proximoVencimiento)}.</p>}
       <Link to="/catalogo" className="btn-primario" style={{ display: 'inline-block', marginTop: '16px', textDecoration: 'none' }}>Ver catálogo</Link>
     </div>
     <div className="card">
       <h2 style={{ marginTop: 0, fontSize: '18px' }}>Cómo funciona</h2>
-      <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.55 }}>Por cada US$ 100 en productos de una compra cobrada, sumás 1 punto. Cada punto equivale a US$ 1 de descuento, vence a los 12 meses y se usa en el checkout. La compra mínima de US$ 250 se calcula antes del descuento.</p>
+      <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.55 }}>Por cada {cotizacion ? `$ ${formatPesos(Math.round(100 * cotizacion))}` : 'cierto monto'} en productos de una compra cobrada, sumás 1 punto. Cada punto equivale a {cotizacion ? `$ ${formatPesos(Math.round(cotizacion))}` : 'un monto fijo'} de descuento (se actualiza con la cotización del día), vence a los 12 meses y se usa en el checkout. La compra mínima se calcula antes del descuento.</p>
     </div>
     <div className="card">
       <h2 style={{ marginTop: 0, fontSize: '18px' }}>Movimientos</h2>

@@ -4,6 +4,7 @@ import axios from 'axios'
 import { indexarArbol } from '../../utils/categorias'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import { textoMinimo } from '../../utils/minimoCompra'
 import EditarComoAdmin from '../../components/EditarComoAdmin'
 import CostoAdmin, { useCostosAdmin } from '../../components/CostoAdmin'
 import { IconArrowUpRight, IconBanknote, IconCart, IconCheck, IconGrid, IconMenu, IconSearchLine, IconX } from '../../components/icons'
@@ -11,9 +12,6 @@ import './CatalogPage.css'
 import { textoDemora } from '../../utils/demora'
 import FiltrosAtributos from '../../components/FiltrosAtributos'
 import { WHATSAPP_NUMBER } from '../../config'
-
-const formatNumber = (n) =>
-  Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const formatFecha = (iso) =>
   iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null
@@ -253,8 +251,11 @@ function CatalogPage() {
     if (categoriaId) params.cat = categoriaId
     if (marca) params.marca = marca
     if (busquedaDemorada) params.q = busquedaDemorada
-    if (minDemorado !== '' && Number.isFinite(Number(minDemorado))) params.min = minDemorado
-    if (maxDemorado !== '' && Number.isFinite(Number(maxDemorado))) params.max = maxDemorado
+    // El filtro de precio se escribe en PESOS (al cliente no se le muestran dólares), pero el
+    // backend filtra en USD: se convierte con la cotización del día. Sin cotización, no se filtra.
+    const tasa = Number(cotizacion?.valor)
+    if (tasa && minDemorado !== '' && Number.isFinite(Number(minDemorado))) params.min = (Number(minDemorado) / tasa).toFixed(2)
+    if (tasa && maxDemorado !== '' && Number.isFinite(Number(maxDemorado))) params.max = (Number(maxDemorado) / tasa).toFixed(2)
     for (const [k, v] of Object.entries(atributos)) params[k] = v.join(',')
 
     // Si el usuario cambia de filtro antes de que llegue la respuesta anterior, esa se descarta:
@@ -274,7 +275,7 @@ function CatalogPage() {
         setActualizando(false)
       })
     return () => control.abort()
-  }, [pagina, categoriaId, marca, busquedaDemorada, orden, minDemorado, maxDemorado, atributos])
+  }, [pagina, categoriaId, marca, busquedaDemorada, orden, minDemorado, maxDemorado, atributos, cotizacion])
 
   useEffect(() => {
     axios.get('/api/categorias').then(res => setArbol(res.data)).catch(err => console.error('Categorías:', err))
@@ -320,8 +321,10 @@ function CatalogPage() {
   }
 
   const marcas = resultado?.marcas || []
-  const rangoPrecios = resultado?.precioMinUsd != null
-    ? { min: Number(resultado.precioMinUsd), max: Number(resultado.precioMaxUsd) }
+  // Rango del catálogo, pasado a pesos para mostrarlo (el backend lo informa en USD).
+  const tasaRango = Number(cotizacion?.valor)
+  const rangoPrecios = resultado?.precioMinUsd != null && tasaRango
+    ? { min: Math.floor(Number(resultado.precioMinUsd) * tasaRango), max: Math.ceil(Number(resultado.precioMaxUsd) * tasaRango) }
     : null
   const totalCatalogo = resultado?.totalCatalogo ?? 0
   const totalFiltrados = resultado?.total ?? 0
@@ -366,8 +369,8 @@ function CatalogPage() {
           </p>
         )}
         <p className="catalog-aviso" role="note">
-          <span className="catalog-aviso-marca" aria-hidden="true">US$</span>
-          <span><strong>Compra mínima: US$ 250</strong> en productos.</span>
+          <IconBanknote />
+          <span>{textoMinimo(cotizacion?.valor)}</span>
         </p>
       </div>
 
@@ -443,16 +446,12 @@ function CatalogPage() {
               </div>
               <div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '6px', fontWeight: 600 }}>
-                  Precio en US$
-                  {rangoPrecios && (
-                    <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}> (entre {rangoPrecios.min} y {rangoPrecios.max})</span>
-                  )}
+                  Precio en pesos
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '5px' }}>Desde US$ 50 de forma predeterminada.</div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <input type="number" value={precioMin} onChange={e => setPrecioMin(e.target.value)} placeholder={rangoPrecios ? `${rangoPrecios.min}` : 'Mín'} style={{ ...inputFiltro, width: '100px' }} />
+                  <input type="number" value={precioMin} onChange={e => setPrecioMin(e.target.value)} placeholder={rangoPrecios ? `${rangoPrecios.min}` : 'Mín'} style={{ ...inputFiltro, width: '120px' }} />
                   <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-                  <input type="number" value={precioMax} onChange={e => setPrecioMax(e.target.value)} placeholder={rangoPrecios ? `${rangoPrecios.max}` : 'Máx'} style={{ ...inputFiltro, width: '100px' }} />
+                  <input type="number" value={precioMax} onChange={e => setPrecioMax(e.target.value)} placeholder={rangoPrecios ? `${rangoPrecios.max}` : 'Máx'} style={{ ...inputFiltro, width: '120px' }} />
                 </div>
               </div>
               {hayFiltros && (
@@ -470,8 +469,7 @@ function CatalogPage() {
                   {totalFiltrados !== totalCatalogo && <> (filtrados de {totalCatalogo})</>}</>}
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
-            {cotizacion?.valor && <><IconBanknote /> Precios en USD y pesos, a ${formatNumber(cotizacion.valor)} por dólar · </>}
-            Las fotos son de referencia: si un detalle te importa, <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)' }}>consultanos</a>.
+            Precios en pesos, actualizados todos los días. Las fotos son de referencia: si un detalle te importa, <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)' }}>consultanos</a>.
           </p>
 
           {error && <div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div>}
@@ -510,7 +508,6 @@ function CatalogPage() {
                       {v.especificaciones && (
                         <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '6px' }}>{v.especificaciones}</p>
                       )}
-                      <strong style={{ fontSize: '20px', color: 'var(--color-text)' }}>US$ {formatNumber(v.precioUsd)}</strong>
                       <PaymentPrices transferPrice={v.precioArs} compact />
                     </div>
                   ))}

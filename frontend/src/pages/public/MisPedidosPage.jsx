@@ -70,8 +70,7 @@ function MisPedidosPage() {
                     {p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : 'Pendiente'}
                   </td>
                   <td style={{ padding: '13px 8px', textAlign: 'right' }}>
-                    <div style={{ fontWeight: 600 }}>US$ {formatNumber(p.totalUsd)}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--color-price)' }}>$ {formatNumber(p.totalArs)}</div>
+                    <div style={{ fontWeight: 600 }}>$ {formatNumber(p.totalArs)}</div>
                   </td>
                 </tr>
               ))}

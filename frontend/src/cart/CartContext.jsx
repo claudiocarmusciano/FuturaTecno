@@ -111,7 +111,8 @@ export function CartProvider({ children }) {
       }
       const nuevoUsd = Number(encontrado.variante.precioUsd)
       if (nuevoUsd !== item.precioUsd) {
-        cambios.push({ nombre: item.nombre, anterior: item.precioUsd, nuevo: nuevoUsd })
+        // Se informa en pesos: al cliente no se le muestran dólares.
+        cambios.push({ nombre: item.nombre, anterior: item.precioArs, nuevo: Number(encontrado.variante.precioArs) })
       }
       actualizados.push({
         ...item,
