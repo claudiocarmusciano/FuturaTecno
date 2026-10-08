@@ -6,7 +6,8 @@ export const MP_EFFECTIVE_FEE = 0.0629 * 1.21
 export const mpImmediatePrice = (transferPrice) =>
   Number(transferPrice || 0) / (1 - MP_EFFECTIVE_FEE)
 
-export const CASH_DISCOUNT_PERCENTAGE = 7
+// Tiene que coincidir con contado-efectivo.descuento-porcentaje del backend (application.yml).
+export const CASH_DISCOUNT_PERCENTAGE = 5
 
 /** El descuento por contado aplica al valor de los productos, no al flete. */
 export const cashPrice = (transferPrice) =>

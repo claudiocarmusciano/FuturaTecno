@@ -106,7 +106,7 @@ mercadopago:
   iva-comision-porcentaje: ${MERCADOPAGO_IVA_COMISION_PORCENTAJE:21}
 
 contado-efectivo:
-  descuento-porcentaje: ${CONTADO_EFECTIVO_DESCUENTO_PORCENTAJE:7}
+  descuento-porcentaje: ${CONTADO_EFECTIVO_DESCUENTO_PORCENTAJE:5}
 
 cotizacion:
   api-url: ${COTIZACION_API_URL:https://dolarapi.com/v1/dolares/blue}

@@ -29,7 +29,7 @@ public class PrecioService {
     public PrecioService(
             @Value("${mercadopago.comision-inmediata-porcentaje:6.29}") BigDecimal comisionMercadoPagoPct,
             @Value("${mercadopago.iva-comision-porcentaje:21}") BigDecimal ivaComisionPct,
-            @Value("${contado-efectivo.descuento-porcentaje:7}") BigDecimal descuentoContadoEfectivoPct) {
+            @Value("${contado-efectivo.descuento-porcentaje:5}") BigDecimal descuentoContadoEfectivoPct) {
         this.comisionMercadoPagoPct = comisionMercadoPagoPct;
         this.ivaComisionPct = ivaComisionPct;
         this.descuentoContadoEfectivoPct = descuentoContadoEfectivoPct;

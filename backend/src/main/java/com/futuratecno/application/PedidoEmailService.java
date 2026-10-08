@@ -164,7 +164,7 @@ public class PedidoEmailService {
             return compromiso + "Coordinaremos los datos bancarios y el comprobante de transferencia por WhatsApp.";
         }
         if ("EFECTIVO".equals(pedido.getMedioPago())) {
-            return compromiso + "Coordinaremos el pago en contado efectivo por WhatsApp. El total aplica el 7% de descuento sobre los productos.";
+            return compromiso + "Coordinaremos el pago en contado efectivo por WhatsApp. El total aplica el 5% de descuento sobre los productos.";
         }
         return compromiso + "El pago total se realiza online con Mercado Pago. Si todavía no lo completaste, podés volver al detalle del pedido para reintentarlo.";
     }

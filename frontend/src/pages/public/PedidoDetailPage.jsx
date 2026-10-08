@@ -5,6 +5,7 @@ import { EstadoChip } from '../../components/EstadoPedido'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO } from '../../config'
 import { IconChat } from '../../components/icons'
 import { textoDemora } from '../../utils/demora'
+import { CASH_DISCOUNT_PERCENTAGE } from '../../utils/paymentPricing'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -85,7 +86,7 @@ function PedidoDetailPage() {
       <div className="card" style={{ borderLeft: `4px solid ${pagado ? 'var(--color-accion)' : 'var(--color-border)'}` }}>
         <h2 style={{ fontSize: '17px', margin: '0 0 8px' }}>Pago</h2>
         <p style={{ margin: '0 0 8px', color: 'var(--color-text-muted)', fontSize: '14px' }}>
-          {esTransferencia ? 'Transferencia bancaria' : esEfectivo ? 'Contado efectivo (7% OFF)' : 'Mercado Pago'}
+          {esTransferencia ? 'Transferencia bancaria' : esEfectivo ? `Contado efectivo (${CASH_DISCOUNT_PERCENTAGE}% OFF)` : 'Mercado Pago'}
         </p>
         <p style={{ margin: '0 0 10px', fontWeight: 700 }}>
           {pagado ? 'Pago aprobado' : pedido.estadoPago === 'EN_PROCESO' ? 'Pago en revisión' : 'Pago pendiente'}
@@ -105,7 +106,7 @@ function PedidoDetailPage() {
         )}
         {esEfectivo && !pagado && (
           <p style={{ margin: '0 0 14px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
-            Contactanos para coordinar el pago en efectivo. El total ya incluye el 7% de descuento sobre los productos.
+            Contactanos para coordinar el pago en efectivo. El total ya incluye el {CASH_DISCOUNT_PERCENTAGE}% de descuento sobre los productos.
           </p>
         )}
         {errorPago && <p style={{ color: 'var(--color-danger, #c0392b)', fontSize: '14px' }}>{errorPago}</p>}

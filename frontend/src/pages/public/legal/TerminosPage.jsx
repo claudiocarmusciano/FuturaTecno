@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import LegalLayout from './LegalLayout'
 import { TITULAR, CONTACTO_EMAIL, WHATSAPP_NUMBER, DEFENSA_CONSUMIDOR_URL } from '../../../config'
+import { CASH_DISCOUNT_PERCENTAGE } from '../../../utils/paymentPricing'
 
 export default function TerminosPage() {
   return (
@@ -31,7 +32,7 @@ export default function TerminosPage() {
         <ul>
           <li><strong>Mercado Pago</strong> (tarjetas, dinero en cuenta y los medios que ofrezca Mercado Pago). Las cuotas disponibles y su costo las define Mercado Pago según la tarjeta y las promociones vigentes al momento de pagar.</li>
           <li><strong>Transferencia bancaria:</strong> te enviamos los datos por WhatsApp.</li>
-          <li><strong>Efectivo:</strong> con un 7% de descuento sobre el valor de los productos (no sobre el envío).</li>
+          <li><strong>Efectivo:</strong> con un {CASH_DISCOUNT_PERCENTAGE}% de descuento sobre el valor de los productos (no sobre el envío).</li>
         </ul>
         <p>El precio de cada medio de pago se muestra antes de confirmar.</p>
       </section>

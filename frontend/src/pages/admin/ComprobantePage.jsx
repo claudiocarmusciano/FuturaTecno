@@ -5,6 +5,7 @@ import { TITULAR, CONTACTO_EMAIL, WHATSAPP_NUMBER } from '../../config'
 import { etiquetaEnvio } from '../../utils/envio'
 import { textoDemora } from '../../utils/demora'
 import './ComprobantePage.css'
+import { CASH_DISCOUNT_PERCENTAGE } from '../../utils/paymentPricing'
 
 const formatNumber = (n) =>
   Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -47,7 +48,7 @@ export default function ComprobantePage() {
   if (!p) return <div className="comp-pagina"><p>Cargando…</p></div>
 
   const envio = p.costoEnvioArs != null ? Number(p.costoEnvioArs) : null
-  // El total a cobrar lo calcula el backend según el medio de pago (7% off en efectivo, recargo de
+  // El total a cobrar lo calcula el backend según el medio de pago (descuento en efectivo, recargo de
   // Mercado Pago), igual que en la web.
   const totalArs = p.totalCobroArs != null ? Number(p.totalCobroArs) : Number(p.totalArs) + (envio || 0) - Number(p.descuentoPuntosArs || 0)
   const email = p.usuarioEmail || p.emailContacto
@@ -132,7 +133,7 @@ export default function ComprobantePage() {
           <div className="comp-detalle"><span>En pesos (dólar $ {formatNumber(p.cotizacionUsada)})</span><span>$ {formatNumber(p.totalArs)}</span></div>
           {p.modoEnvio && <div><span>{etiquetaEnvio(p.modoEnvio)}</span><span>{envio == null ? 'a cotizar' : envio === 0 ? 'sin cargo' : `$ ${formatNumber(envio)}`}</span></div>}
           {Number(p.descuentoPuntosArs) > 0 && <div><span>Puntos canjeados</span><span>− $ {formatNumber(p.descuentoPuntosArs)}</span></div>}
-          {p.medioPago === 'EFECTIVO' && <div className="comp-detalle"><span>Descuento pago en efectivo</span><span>7% sobre productos</span></div>}
+          {p.medioPago === 'EFECTIVO' && <div className="comp-detalle"><span>Descuento pago en efectivo</span><span>{CASH_DISCOUNT_PERCENTAGE}% sobre productos</span></div>}
           <div className="comp-total"><span>Total a pagar ({MEDIO[p.medioPago] || p.medioPago})</span><strong>$ {formatNumber(totalArs)}</strong></div>
           <div className="comp-detalle"><span>Pago: {MEDIO[p.medioPago] || p.medioPago}</span><span>{p.estadoPago === 'APROBADO' ? 'Cobrado' : 'Pendiente de pago'}</span></div>
         </div>

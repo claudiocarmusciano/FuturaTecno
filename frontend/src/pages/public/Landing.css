@@ -35,7 +35,7 @@
    minmax(0, …): sin esto, las fotos imponen su ancho mínimo y en el celular la grilla se pasa de la pantalla. */
 .lp-vidriera {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: repeat(11, minmax(0, 1fr));
-  gap: 16px; height: 540px;
+  gap: 16px; height: 600px;
 }
 .lp-v1 { grid-column: 1; grid-row: 1 / 7; }
 .lp-v2 { grid-column: 2; grid-row: 1 / 6; }
@@ -49,7 +49,14 @@
 /* La foto ocupa el 70% del alto de la tarjeta; abajo, nombre y precio. */
 .lp-vidriera-item img { flex: 0 0 70%; min-height: 0; width: 100%; object-fit: contain; }
 .lp-vidriera-nombre { font-size: 13px; color: var(--color-text-muted); margin-top: auto; padding-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lp-vidriera-precio { font-family: var(--fuente-titulos); font-size: 18px; font-weight: 700; color: var(--color-text); }
+.lp-precios { margin-top: auto; padding-top: 8px; line-height: 1.3; }
+.lp-vidriera-item .lp-precios { margin-top: 0; padding-top: 2px; }
+.lp-precio-efectivo strong { font-family: var(--fuente-titulos); font-size: 20px; font-weight: 700; color: var(--color-text); }
+.lp-precio-efectivo span, .lp-precio-transf span { font-size: 13px; color: var(--color-text-muted); }
+.lp-precio-transf { font-size: 14px; color: var(--color-text); }
+.lp-precios-chico .lp-precio-efectivo strong { font-size: 17px; }
+.lp-precios-chico .lp-precio-transf { font-size: 12px; }
+.lp-precios-chico span { font-size: 11px !important; }
 
 /* ===== BLOQUES ===== */
 .lp-block { padding: 48px 0; }
@@ -81,9 +88,6 @@
 .lp-prod-body { display: flex; flex-direction: column; gap: 8px; padding: 24px; flex: 1; }
 .lp-prod-cat { font-size: 13px; color: var(--color-text-muted); }
 .lp-prod-name { font-size: 17px; font-weight: 600; line-height: 1.35; }
-.lp-prod-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-top: auto; padding-top: 8px; }
-.lp-prod-price strong { font-size: 20px; font-weight: 600; }
-.lp-prod-price span { font-size: 13px; color: var(--color-text-muted); }
 .lp-prod-loading { grid-column: 1 / -1; color: var(--color-text-muted); padding: 48px 0; text-align: center; }
 
 /* ===== Franja Armá tu PC: foto del local de fondo, tarjeta blanca encima ===== */
@@ -120,7 +124,7 @@
 @media (max-width: 960px) {
   .lp-hero-grid, .lp-local { grid-template-columns: minmax(0, 1fr); }
   .lp-local { gap: 24px; }
-  .lp-vidriera { height: 420px; }
+  .lp-vidriera { height: 480px; }
   .lp-prod-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lp-ventajas { grid-template-columns: repeat(2, 1fr); }
 }
@@ -130,16 +134,16 @@
   .lp-hero .lp-wrap { padding: 0; }
   .lp-hero-card { padding: 32px 16px; border-radius: 0; }
   .lp-hero-card h1 { font-size: 29px; }
-  .lp-vidriera { height: 460px; margin: 0 16px; gap: 12px; }
+  .lp-vidriera { height: 520px; margin: 0 16px; gap: 12px; }
   .lp-vidriera-item { padding: 12px; }
-  .lp-vidriera-precio { font-size: 15px; }
+  .lp-precios-chico .lp-precio-efectivo strong { font-size: 15px; }
   .lp-cats { grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
   .lp-cat { font-size: 13px; }
   .lp-prod-grid { gap: 16px; }
   .lp-prod-img { padding: 12px; }
   .lp-prod-body { padding: 16px; }
   .lp-prod-name { font-size: 15px; }
-  .lp-prod-price strong { font-size: 17px; }
+  .lp-precio-efectivo strong { font-size: 17px; }
   .lp-banda { padding: 240px 0 0; }
   .lp-banda .lp-wrap { padding: 0; }
   .lp-banda-foto { height: 240px; }
