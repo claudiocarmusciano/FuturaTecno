@@ -120,6 +120,8 @@ app:
   image-storage-path: /app/static/images
   # URL canónica: el apex (sin www) redirige 301 a este host. Vacío = sin redirección.
   canonical-host: ${CANONICAL_HOST:www.futuratecno.com.ar}
+  # Dominios viejos que redirigen (301) al canónico, salvo /api/** (ver CanonicalHostRedirectFilter).
+  redirect-hosts: ${REDIRECT_HOSTS:}
   mail:
     # Se manda por la API HTTP de Resend, no por SMTP: Railway bloquea los puertos SMTP salientes.
     resend-api-key: ${RESEND_API_KEY:}   # vacío = no se manda email (queda en el log)

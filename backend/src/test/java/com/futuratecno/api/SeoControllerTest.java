@@ -25,9 +25,9 @@ class SeoControllerTest {
     @Test
     void armaTituloDescripcionImagenYPrecioMinimo() {
         String b = SeoController.bloqueProducto(producto("Apple", "iPhone 17 Pro 256GB \"Silver\"",
-                "https://img.test/a.png", new BigDecimal("2500000.4"), new BigDecimal("1999999.6")));
-        assertThat(b).contains("<title>Apple iPhone 17 Pro 256GB &quot;Silver&quot; | Futura Tecno</title>")
-                .contains("<link rel=\"canonical\" href=\"https://www.futuratecno.com.ar/producto/42\" />")
+                "https://img.test/a.png", new BigDecimal("2500000.4"), new BigDecimal("1999999.6")), "https://www.tecnopolisolavarria.com");
+        assertThat(b).contains("<title>Apple iPhone 17 Pro 256GB &quot;Silver&quot; | Tecnópolis Olavarría</title>")
+                .contains("<link rel=\"canonical\" href=\"https://www.tecnopolisolavarria.com/producto/42\" />")
                 .contains("og:image\" content=\"https://img.test/a.png\"")
                 .contains("$ 2.000.000.")
                 .contains("\"price\":\"1999999.60\"")
@@ -36,8 +36,8 @@ class SeoControllerTest {
 
     @Test
     void noRepiteLaMarcaYSinImagenUsaLaDelSitio() {
-        String b = SeoController.bloqueProducto(producto("Motorola", "Motorola G04 64GB", null));
-        assertThat(b).contains("<title>Motorola G04 64GB | Futura Tecno</title>")
+        String b = SeoController.bloqueProducto(producto("Motorola", "Motorola G04 64GB", null), "https://www.tecnopolisolavarria.com");
+        assertThat(b).contains("<title>Motorola G04 64GB | Tecnópolis Olavarría</title>")
                 .contains("og-image.png")
                 .doesNotContain("offers");
     }

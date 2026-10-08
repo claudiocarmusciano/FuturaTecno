@@ -49,8 +49,8 @@ public class MercadoPagoGateway {
 
         PreferenceItemRequest item = PreferenceItemRequest.builder()
                 .id(pedido.getNumero())
-                .title("Pedido " + pedido.getNumero() + " - FuturaTecno")
-                .description("Compra online en FuturaTecno")
+                .title("Pedido " + pedido.getNumero() + " - Tecnópolis Olavarría")
+                .description("Compra online en Tecnópolis Olavarría")
                 .quantity(1)
                 .currencyId("ARS")
                 .unitPrice(montoArs)
@@ -115,7 +115,7 @@ public class MercadoPagoGateway {
     }
 
     private static String quitarBarraFinal(String value) {
-        if (value == null || value.isBlank()) return "https://www.futuratecno.com.ar";
+        if (value == null || value.isBlank()) return "https://www.tecnopolisolavarria.com";
         String out = value.trim();
         while (out.endsWith("/")) out = out.substring(0, out.length() - 1);
         return out;

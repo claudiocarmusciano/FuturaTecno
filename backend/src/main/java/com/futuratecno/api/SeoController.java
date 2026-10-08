@@ -36,7 +36,8 @@ public class SeoController {
 
     private static final Logger log = LoggerFactory.getLogger(SeoController.class);
 
-    static final String SITIO = "https://www.futuratecno.com.ar";
+    /** Origen público del sitio (APP_PUBLIC_URL), sin barra final. */
+    private final String sitio;
     /** Bloque de index.html que se reemplaza en cada producto (ver el comentario en index.html). */
     private static final Pattern BLOQUE_SEO = Pattern.compile("<!-- seo:.*?<!-- /seo -->", Pattern.DOTALL);
     private static final List<String> PAGINAS = List.of(
@@ -44,8 +45,10 @@ public class SeoController {
 
     private final CatalogoService catalogoService;
 
-    public SeoController(CatalogoService catalogoService) {
+    public SeoController(CatalogoService catalogoService,
+                         @org.springframework.beans.factory.annotation.Value("${app.public-url:https://www.tecnopolisolavarria.com}") String publicUrl) {
         this.catalogoService = catalogoService;
+        this.sitio = publicUrl.replaceAll("/+$", "");
     }
 
     @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
@@ -53,11 +56,11 @@ public class SeoController {
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
         for (String pagina : PAGINAS) {
-            xml.append("  <url><loc>").append(SITIO).append(pagina).append("</loc></url>\n");
+            xml.append("  <url><loc>").append(sitio).append(pagina).append("</loc></url>\n");
         }
         DateTimeFormatter dia = DateTimeFormatter.ISO_LOCAL_DATE;
         for (ProductoCatalogoDTO p : catalogoService.listarCatalogo()) {
-            xml.append("  <url><loc>").append(SITIO).append("/producto/").append(p.getId()).append("</loc>");
+            xml.append("  <url><loc>").append(sitio).append("/producto/").append(p.getId()).append("</loc>");
             if (p.getUltimaActualizacion() != null) {
                 xml.append("<lastmod>").append(p.getUltimaActualizacion().format(dia)).append("</lastmod>");
             }
@@ -95,28 +98,28 @@ public class SeoController {
         }
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noCache())
-                .body(BLOQUE_SEO.matcher(html).replaceFirst(Matcher.quoteReplacement(bloqueProducto(p))));
+                .body(BLOQUE_SEO.matcher(html).replaceFirst(Matcher.quoteReplacement(bloqueProducto(p, sitio))));
     }
 
-    static String bloqueProducto(ProductoCatalogoDTO p) {
+    static String bloqueProducto(ProductoCatalogoDTO p, String sitio) {
         String nombre = nombre(p);
-        String url = SITIO + "/producto/" + p.getId();
+        String url = sitio + "/producto/" + p.getId();
         BigDecimal precio = p.getVariantes() == null ? null : p.getVariantes().stream()
                 .map(VarianteCatalogoDTO::getPrecioArs).filter(Objects::nonNull)
                 .min(Comparator.naturalOrder()).orElse(null);
         String precioTexto = precio == null ? "" : " $ " + String.format(java.util.Locale.of("es", "AR"), "%,d",
                 precio.setScale(0, RoundingMode.HALF_UP).longValue()) + ".";
-        String descripcion = nombre + " en Futura Tecno, Olavarría." + precioTexto
+        String descripcion = nombre + " en Tecnópolis Olavarría." + precioTexto
                 + " Envío a todo el país o retiro en San Martín 2821.";
         String imagen = p.getImagenUrl() != null && p.getImagenUrl().startsWith("http")
-                ? p.getImagenUrl() : SITIO + "/og-image.png";
+                ? p.getImagenUrl() : sitio + "/og-image.png";
 
         StringBuilder b = new StringBuilder();
-        b.append("<title>").append(esc(nombre)).append(" | Futura Tecno</title>\n");
+        b.append("<title>").append(esc(nombre)).append(" | Tecnópolis Olavarría</title>\n");
         b.append("    <meta name=\"description\" content=\"").append(esc(descripcion)).append("\" />\n");
         b.append("    <link rel=\"canonical\" href=\"").append(url).append("\" />\n");
         b.append("    <meta property=\"og:type\" content=\"product\" />\n");
-        b.append("    <meta property=\"og:site_name\" content=\"Futura Tecno\" />\n");
+        b.append("    <meta property=\"og:site_name\" content=\"Tecnópolis Olavarría\" />\n");
         b.append("    <meta property=\"og:title\" content=\"").append(esc(nombre)).append("\" />\n");
         b.append("    <meta property=\"og:description\" content=\"").append(esc(descripcion)).append("\" />\n");
         b.append("    <meta property=\"og:url\" content=\"").append(url).append("\" />\n");

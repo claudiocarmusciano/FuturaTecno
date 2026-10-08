@@ -39,7 +39,7 @@ public class EmailService {
     @Value("${app.mail.from:}")
     private String from;
 
-    @Value("${app.mail.from-name:FuturaTecno}")
+    @Value("${app.mail.from-name:Tecnópolis Olavarría}")
     private String fromName;
 
     public EmailService(@Qualifier("mailRestTemplate") RestTemplate restTemplate) {

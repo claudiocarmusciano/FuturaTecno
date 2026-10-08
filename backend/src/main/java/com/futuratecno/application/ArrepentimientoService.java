@@ -88,7 +88,7 @@ public class ArrepentimientoService {
         } else {
             logger.warn("Arrepentimiento {}: no hay ADMIN_NOTIFY_EMAIL/ADMIN_EMAIL configurado.", codigo);
         }
-        emailService.enviarHtmlAsync(email, "Recibimos tu solicitud de arrepentimiento " + codigo + " — FuturaTecno",
+        emailService.enviarHtmlAsync(email, "Recibimos tu solicitud de arrepentimiento " + codigo + " — Tecnópolis Olavarría",
                 htmlCliente(codigo, nombre, pedido, ahora));
         return codigo;
     }
@@ -129,7 +129,7 @@ public class ArrepentimientoService {
                 + "coordinar la devolución del producto y el reintegro. Guardá este código para cualquier consulta.</p>"
                 + "<p style=\"color:#555;font-size:14px\">El producto tiene que estar sin uso y con su embalaje original. "
                 + "Los costos de la devolución corren por nuestra cuenta.</p>"
-                + "<p style=\"color:#888;font-size:12px\">FuturaTecno · Tu tecnología. Tu futuro.</p></div>";
+                + "<p style=\"color:#888;font-size:12px\">Tecnópolis Olavarría · San Martín 2821, Olavarría</p></div>";
     }
 
     private static String esc(String s) {

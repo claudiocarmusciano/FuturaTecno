@@ -41,7 +41,7 @@ public class PedidoEmailService {
         if (emailCliente != null) {
             emailService.enviarHtmlAsync(
                     emailCliente,
-                    "Recibimos tu pedido " + pedido.getNumero() + " — FuturaTecno",
+                    "Recibimos tu pedido " + pedido.getNumero() + " — Tecnópolis Olavarría",
                     htmlCliente(pedido));
         }
 
@@ -77,7 +77,7 @@ public class PedidoEmailService {
         sb.append("</div>");
 
         sb.append("<p style=\"color:#555;font-size:14px\">").append(instruccionPago(pedido)).append("</p>");
-        sb.append("<p style=\"color:#888;font-size:12px\">FuturaTecno · Tu tecnología. Tu futuro.</p>");
+        sb.append("<p style=\"color:#888;font-size:12px\">Tecnópolis Olavarría · San Martín 2821, Olavarría</p>");
         sb.append("</div>");
         return sb.toString();
     }

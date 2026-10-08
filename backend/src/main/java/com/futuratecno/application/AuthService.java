@@ -86,7 +86,7 @@ public class AuthService {
         usuarioRepository.save(u);
 
         String enlace = baseUrl + "/activar-cuenta?token=" + tokenEmail;
-        emailService.enviarHtmlAsync(email, "Activá tu cuenta — Futura Tecno", emailActivacion(enlace));
+        emailService.enviarHtmlAsync(email, "Activá tu cuenta — Tecnópolis Olavarría", emailActivacion(enlace));
 
         String token = jwtService.generarToken(u.getEmail(), u.getRol());
         return new AuthResponse(token, u.getEmail(), u.getNombre(), u.getRol());
@@ -271,7 +271,7 @@ public class AuthService {
         // Asíncrono a propósito: la respuesta al cliente es siempre la misma (no filtra si el email
         // existe), así que no tiene sentido hacerlo esperar a que responda el proveedor de mail.
         // Los errores quedan en el log dentro de EmailService.
-        emailService.enviarHtmlAsync(u.getEmail(), "Restablecer tu contraseña — FuturaTecno", emailReset(enlace));
+        emailService.enviarHtmlAsync(u.getEmail(), "Restablecer tu contraseña — Tecnópolis Olavarría", emailReset(enlace));
     }
 
     /**
@@ -322,7 +322,7 @@ public class AuthService {
         return """
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #16181d;">
               <h2 style="color: #16181d;">Restablecer tu contraseña</h2>
-              <p>Recibimos un pedido para restablecer la contraseña de tu cuenta en Futura Tecno.</p>
+              <p>Recibimos un pedido para restablecer la contraseña de tu cuenta en Tecnópolis Olavarría.</p>
               <p>Hacé clic en el botón para elegir una nueva contraseña. El enlace vence en 1 hora.</p>
               <p style="text-align: center; margin: 28px 0;">
                 <a href="%s" style="background: #C8E048; color: #16181d; text-decoration: none;
@@ -339,7 +339,7 @@ public class AuthService {
     private String emailActivacion(String enlace) {
         return """
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #16181d;">
-              <h2>¡Bienvenido a Futura Tecno!</h2>
+              <h2>¡Bienvenido a Tecnópolis Olavarría!</h2>
               <p>Para terminar tu registro, confirmá que este email es tuyo.</p>
               <p style="text-align: center; margin: 28px 0;"><a href="%s" style="background: #C8E048; color: #16181d; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; display: inline-block;">Activar cuenta</a></p>
               <p style="font-size: 13px; color: #666;">El enlace vence en 24 horas.</p>
