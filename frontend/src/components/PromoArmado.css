@@ -11,5 +11,5 @@ a.promo-armado:hover { border-color: var(--color-cyan); text-decoration: none; }
 @media (max-width: 600px) {
   .promo-armado { align-items: flex-start; flex-wrap: wrap; padding: 16px; }
   .promo-armado-txt { flex: 1; min-width: 0; font-size: 14px; }
-  .promo-armado-cta { margin-left: 44px; }
+  .promo-armado-cta { flex-basis: 100%; margin-left: 44px; }
 }
