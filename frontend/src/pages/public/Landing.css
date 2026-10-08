@@ -37,8 +37,10 @@
   display: flex; flex-direction: column; padding: 20px; text-decoration: none; transition: box-shadow .2s, transform .2s;
 }
 .lp-vidriera-item:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); text-decoration: none; }
-.lp-vidriera-item img { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
-.lp-vidriera-item span { font-size: 13px; color: var(--color-text-muted); margin-top: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* La foto ocupa el 70% del alto de la tarjeta; abajo, nombre y precio. */
+.lp-vidriera-item img { flex: 0 0 70%; min-height: 0; width: 100%; object-fit: contain; }
+.lp-vidriera-nombre { font-size: 13px; color: var(--color-text-muted); margin-top: auto; padding-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lp-vidriera-precio { font-family: var(--fuente-titulos); font-size: 18px; font-weight: 700; color: var(--color-text); }
 .lp-v1 { grid-row: 1 / 3; }
 
 /* ===== BLOQUES ===== */
@@ -120,6 +122,7 @@
   .lp-hero-card h1 { font-size: 29px; }
   .lp-vidriera { height: 300px; margin: 0 16px; gap: 12px; }
   .lp-vidriera-item { padding: 12px; }
+  .lp-vidriera-precio { font-size: 15px; }
   .lp-cats { grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
   .lp-cat { font-size: 13px; }
   .lp-prod-grid { gap: 16px; }

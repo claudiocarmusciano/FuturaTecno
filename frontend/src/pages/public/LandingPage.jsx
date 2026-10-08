@@ -12,7 +12,12 @@ const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=` +
 
 const mapaLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(TITULAR.domicilioComercial)}`
 
-const fmt = (n) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 })
+// En la home, los precios mayores a $ 15.000 se muestran redondeados a miles (pedido del usuario).
+// Es solo presentación: la ficha, el carrito y el pedido usan el precio exacto.
+const fmt = (n) => {
+  const v = Number(n)
+  return (v > 15000 ? Math.round(v / 1000) * 1000 : v).toLocaleString('es-AR', { maximumFractionDigits: 0 })
+}
 
 // Precio "desde": el menor precio USD entre las variantes del producto.
 const precioDesde = (p) => {
@@ -204,7 +209,8 @@ function LandingPage() {
               <Link key={p.id} to={`/producto/${p.id}`} className={`lp-vidriera-item lp-v${i + 1}`}>
                 {/* eager: son las imágenes principales de la portada. */}
                 <img src={p.imagenUrl} alt={nombreDe(p)} loading="eager" onError={() => marcarImagenRota(p.id)} />
-                <span>{cortar(nombreDe(p), 30)}</span>
+                <span className="lp-vidriera-nombre">{cortar(nombreDe(p), 30)}</span>
+                {precioArsDesde(p) ? <strong className="lp-vidriera-precio">$ {fmt(precioArsDesde(p))}</strong> : null}
               </Link>
             ))}
           </div>

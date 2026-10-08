@@ -18,6 +18,7 @@ export default function TerminosPage() {
 
       <section><h2>3. Precios</h2>
         <p>Los precios se expresan en dólares estadounidenses (USD) y se muestran también en pesos, calculados con la cotización del dólar oficial del día. Se actualizan todos los días a las 6:30 h (hora de Argentina) junto con los costos de nuestros proveedores.</p>
+        <p>Cuando sea necesario, el importe en dólares se convierte a pesos con la cotización del día: en la tienda los precios se muestran y se cobran en pesos.</p>
         <p>El precio que pagás es el que figura al <strong>confirmar el pedido</strong>: desde ese momento queda fijo y un cambio posterior del catálogo no lo modifica. Un pedido confirmado mantiene su precio hasta las 6:30 h del día siguiente; si no se completó el pago para entonces, vence y hay que rehacerlo con los precios del día.</p>
       </section>
 
