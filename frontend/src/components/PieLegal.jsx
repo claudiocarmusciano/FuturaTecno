@@ -1,11 +1,17 @@
 import { Link } from 'react-router-dom'
 import {
-  TITULAR, CONTACTO_EMAIL, INSTAGRAM_URL, WHATSAPP_NUMBER, DEFENSA_CONSUMIDOR_URL, DATA_FISCAL_URL, DATA_FISCAL_IMG,
+  TITULAR, CONTACTO_EMAIL, INSTAGRAM_URL, WHATSAPP_NUMBER, DATA_FISCAL_URL, DATA_FISCAL_IMG,
   NOMBRE_NEGOCIO, NOMBRE_ANTERIOR, HORARIO_LOCAL
 } from '../config'
 import './PieLegal.css'
 
-/** Pie de página con los datos del titular y las páginas legales. Va en todas las páginas públicas. */
+/**
+ * Pie de página con los datos del titular. Va en todas las páginas públicas.
+ * Los links legales (términos, garantía, privacidad, botón de arrepentimiento, Defensa del
+ * Consumidor) y la barra del botón de arrepentimiento se sacaron por decisión del usuario
+ * (2026-10-08), advertido de que la Res. 424/2020 exige el botón visible en la primera pantalla.
+ * Las páginas siguen existiendo en sus rutas.
+ */
 export default function PieLegal() {
   return (
     <footer className="pie-legal">
@@ -21,14 +27,6 @@ export default function PieLegal() {
           <Link to="/arma-tu-pc">Armá tu PC</Link>
           <Link to="/mis-pedidos">Mis pedidos</Link>
           <Link to="/mis-puntos">Mis puntos</Link>
-        </nav>
-        <nav className="pie-legal-col" aria-label="Información legal">
-          <b>Ayuda</b>
-          <Link to="/terminos">Términos y condiciones</Link>
-          <Link to="/garantia">Garantía y devoluciones</Link>
-          <Link to="/privacidad">Política de privacidad</Link>
-          <Link to="/arrepentimiento" className="pie-legal-arr">Botón de arrepentimiento</Link>
-          <a href={DEFENSA_CONSUMIDOR_URL} target="_blank" rel="noreferrer">Defensa del Consumidor</a>
         </nav>
         <div className="pie-legal-col">
           <b>Contacto</b>
@@ -47,18 +45,5 @@ export default function PieLegal() {
         <span>CUIT {TITULAR.cuit} · {TITULAR.condicionIva}</span>
       </div>
     </footer>
-  )
-}
-
-/**
- * La Res. 424/2020 pide el botón de arrepentimiento en la primera pantalla, visible y de fácil
- * acceso: por eso va en una barra fina arriba de todo y no dentro del menú (en mobile queda
- * escondido detrás de la hamburguesa).
- */
-export function BarraArrepentimiento() {
-  return (
-    <div className="barra-arr">
-      <Link to="/arrepentimiento">Botón de arrepentimiento</Link>
-    </div>
   )
 }

@@ -1,11 +1,10 @@
 .pie-legal { background: var(--color-muted); color: var(--color-text-muted); font-size: 13px; padding: 48px 24px 24px; }
-.pie-legal-in { max-width: var(--ancho-pagina); margin: 0 auto; display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 24px; }
+.pie-legal-in { max-width: var(--ancho-pagina); margin: 0 auto; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 24px; }
 .pie-legal-col { display: flex; flex-direction: column; gap: 8px; }
 .pie-legal-col b { color: var(--color-text); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
 .pie-legal-marca img { display: block; height: auto; margin-bottom: 8px; }
 .pie-legal a { color: var(--color-text-muted); text-decoration: none; }
 .pie-legal a:hover { color: var(--color-text); text-decoration: underline; }
-.pie-legal a.pie-legal-arr { color: var(--color-accion); font-weight: 600; }
 .pie-legal-qr img { display: block; margin-top: 4px; background: #fff; }
 .pie-legal-copy {
   max-width: var(--ancho-pagina); margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--color-border);
@@ -13,7 +12,3 @@
 }
 @media (max-width: 860px) { .pie-legal-in { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 520px) { .pie-legal-in { grid-template-columns: 1fr; gap: 24px; } }
-
-.barra-arr { background: var(--color-muted); text-align: right; padding: 4px 16px; font-size: 12px; line-height: 1.4; }
-.barra-arr a { color: var(--color-accion); font-weight: 600; text-decoration: none; }
-.barra-arr a:hover { text-decoration: underline; }

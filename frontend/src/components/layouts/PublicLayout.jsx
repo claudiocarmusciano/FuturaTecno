@@ -5,7 +5,7 @@ import { useCart } from '../../cart/CartContext'
 import CartBadge from '../CartBadge'
 import { IconMenu, IconX } from '../../components/icons'
 import './PublicLayout.css'
-import PieLegal, { BarraArrepentimiento } from '../PieLegal'
+import PieLegal from '../PieLegal'
 
 function PublicLayout() {
   const { user, isAdmin, logout } = useAuth()
@@ -26,7 +26,6 @@ function PublicLayout() {
 
   return (
     <div className="public-layout">
-      <BarraArrepentimiento />
       <header className="public-header">
         <div className="header-container">
           <Link to="/" className="logo"><img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" className="header-logo" width="176" height="44" /></Link>
