@@ -113,7 +113,7 @@ public class InvidImportService {
         Proveedor proveedor = obtenerOcrearProveedor();
         BigDecimal cotizacion = cotizacionService.obtenerCotizacionUsdArs();
 
-        int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosSinPrecio = 0, salteadosPorPrecio = 0;
+        int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosSinPrecio = 0, salteadosPorPrecio = 0, desactivadosSinStock = 0;
         List<Long> vistos = new ArrayList<>();
 
         for (JsonNode art : arts) {
@@ -123,7 +123,12 @@ public class InvidImportService {
             if (precioOrigen.signum() <= 0) { salteadosSinPrecio++; continue; }
 
             Integer stock = stock(art);
-            if (soloConStock && stock != null && stock <= 0) { salteadosSinStock++; continue; }
+            // Stock desconocido (null) no saca nada: solo un "sin stock" explícito.
+            if ((soloConStock || soloExistentes) && stock != null && stock <= 0) {
+                salteadosSinStock++;
+                if (desactivarSinStock(proveedor, txt(art, "ID"))) desactivadosSinStock++;
+                continue;
+            }
 
             if (precioMinUsd != null && costoUsdInvid(art, precioOrigen, cotizacion).compareTo(precioMinUsd) < 0) {
                 salteadosPorPrecio++;
@@ -138,15 +143,17 @@ public class InvidImportService {
         productoRepository.marcarVistos(vistos);
 
         String mensaje = soloExistentes
-                ? String.format("Sincronización de Invid: %d productos actualizados.", actualizados)
-                : String.format("Importación de Invid completada: %d nuevos, %d actualizados, %d sin stock, %d sin precio, %d por debajo del precio mínimo.",
-                        creados, actualizados, salteadosSinStock, salteadosSinPrecio, salteadosPorPrecio);
+                ? String.format("Sincronización de Invid: %d productos actualizados, %d sacados de la tienda por quedarse sin stock.",
+                        actualizados, desactivadosSinStock)
+                : String.format("Importación de Invid completada: %d nuevos, %d actualizados, %d sin stock (%d sacados de la tienda), %d sin precio, %d por debajo del precio mínimo.",
+                        creados, actualizados, salteadosSinStock, desactivadosSinStock, salteadosSinPrecio, salteadosPorPrecio);
         logger.info(mensaje);
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("creados", creados);
         out.put("actualizados", actualizados);
         out.put("salteadosSinStock", salteadosSinStock);
+        out.put("desactivadosSinStock", desactivadosSinStock);
         out.put("salteadosSinPrecio", salteadosSinPrecio);
         out.put("salteadosPorPrecio", salteadosPorPrecio);
         out.put("mensaje", mensaje);
@@ -379,5 +386,19 @@ public class InvidImportService {
         String t = n.asText("").trim().replace(',', '.');
         if (t.isEmpty()) return null;
         try { return new BigDecimal(t); } catch (NumberFormatException e) { return null; }
+    }
+
+    /**
+     * Saca de la tienda (soft delete) el producto de este mayorista que se quedó sin stock. Antes la
+     * sync diaria lo actualizaba igual y quedaba publicado con stock 0 y marcado como visto, así que
+     * ni Depurar catálogo lo sacaba (2026-10-07: 513 de 1.518 de Elit). Si vuelve a tener stock, la
+     * sync lo reactiva: es la misma fila, con foto, categoría, margen y medidas intactos.
+     */
+    private boolean desactivarSinStock(Proveedor proveedor, String codigoExterno) {
+        if (codigoExterno == null) return false;
+        return productoRepository.findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno)
+                .filter(p -> Boolean.TRUE.equals(p.getActivo()))
+                .map(p -> { p.setActivo(false); productoRepository.save(p); return true; })
+                .orElse(false);
     }
 }

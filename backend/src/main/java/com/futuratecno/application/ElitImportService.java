@@ -133,7 +133,7 @@ public class ElitImportService {
 
         // Elit pagina con offset 1-based (offset >= 1): registro inicial de cada página.
         int offset = 1, total = Integer.MAX_VALUE, paginas = 0;
-        int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosPorPrecio = 0;
+        int creados = 0, actualizados = 0, salteadosSinStock = 0, salteadosPorPrecio = 0, desactivadosSinStock = 0;
         List<Long> vistos = new ArrayList<>();
 
         while (offset <= total && paginas < TOPE_PAGINAS) {
@@ -144,8 +144,10 @@ public class ElitImportService {
 
             for (JsonNode prod : arr) {
                 int stock = prod.path("stock_total").asInt(0);
-                if (soloConStock && stock <= 0) {
+                // La sync (soloExistentes) también exige stock: un artículo agotado sale de la tienda.
+                if ((soloConStock || soloExistentes) && stock <= 0) {
                     salteadosSinStock++;
+                    if (desactivarSinStock(proveedor, prod.path("id").asText(null))) desactivadosSinStock++;
                     continue;
                 }
                 BigDecimal costoUsd = costoUsdDe(prod);
@@ -164,15 +166,17 @@ public class ElitImportService {
         productoRepository.marcarVistos(vistos);
 
         String mensaje = soloExistentes
-                ? String.format("Sincronización de Elit: %d productos actualizados.", actualizados)
-                : String.format("Importación de Elit completada: %d nuevos, %d actualizados, %d sin stock, %d por debajo del precio mínimo.",
-                        creados, actualizados, salteadosSinStock, salteadosPorPrecio);
+                ? String.format("Sincronización de Elit: %d productos actualizados, %d sacados de la tienda por quedarse sin stock.",
+                        actualizados, desactivadosSinStock)
+                : String.format("Importación de Elit completada: %d nuevos, %d actualizados, %d sin stock (%d sacados de la tienda), %d por debajo del precio mínimo.",
+                        creados, actualizados, salteadosSinStock, desactivadosSinStock, salteadosPorPrecio);
         logger.info(mensaje);
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("creados", creados);
         out.put("actualizados", actualizados);
         out.put("salteadosSinStock", salteadosSinStock);
+        out.put("desactivadosSinStock", desactivadosSinStock);
         out.put("salteadosPorPrecio", salteadosPorPrecio);
         out.put("mensaje", mensaje);
         return out;
@@ -321,5 +325,19 @@ public class ElitImportService {
     private static BigDecimal dec(JsonNode node, String field) {
         JsonNode n = node.path(field);
         return n.isNumber() ? n.decimalValue() : BigDecimal.ZERO;
+    }
+
+    /**
+     * Saca de la tienda (soft delete) el producto de este mayorista que se quedó sin stock. Antes la
+     * sync diaria lo actualizaba igual y quedaba publicado con stock 0 y marcado como visto, así que
+     * ni Depurar catálogo lo sacaba (2026-10-07: 513 de 1.518 de Elit). Si vuelve a tener stock, la
+     * sync lo reactiva: es la misma fila, con foto, categoría, margen y medidas intactos.
+     */
+    private boolean desactivarSinStock(Proveedor proveedor, String codigoExterno) {
+        if (codigoExterno == null) return false;
+        return productoRepository.findByProveedorIdAndCodigoExterno(proveedor.getId(), codigoExterno)
+                .filter(p -> Boolean.TRUE.equals(p.getActivo()))
+                .map(p -> { p.setActivo(false); productoRepository.save(p); return true; })
+                .orElse(false);
     }
 }
