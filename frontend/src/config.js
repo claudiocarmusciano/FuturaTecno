@@ -21,7 +21,7 @@ export const TITULAR = {
 }
 
 // Horario de atención del local (se muestra en la home y en el pie).
-export const HORARIO_LOCAL = '9:30 a 12:30 y 16:30 a 19:30'
+export const HORARIO_LOCAL = 'Lunes a viernes, de 9:30 a 12:30 y de 16:30 a 19:30'
 
 // Beneficio de Armá tu PC: se anuncia en la home y en /arma-tu-pc.
 export const PROMO_ARMADO = {
