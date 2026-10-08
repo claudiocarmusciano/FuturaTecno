@@ -34,7 +34,8 @@
   font-weight: 400;
   padding: 8px;
 }
-.public-nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.public-nav a { border-radius: var(--radius-sm); }
+.public-nav a:hover { background: var(--color-muted); text-decoration: none; text-shadow: 0 0 0.7px currentColor, 0 0 0.7px currentColor; }
 /* Las cuentas van a la derecha, separadas de los links de la tienda. */
 .public-nav .public-nav-cuenta { margin-left: auto; }
 /* Registrarse va con la tipografía de botones. */

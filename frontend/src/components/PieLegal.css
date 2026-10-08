@@ -4,7 +4,7 @@
 .pie-legal-col b { color: var(--color-text); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
 .pie-legal-marca img { display: block; height: auto; margin-bottom: 8px; }
 .pie-legal a { color: var(--color-text-muted); text-decoration: none; }
-.pie-legal a:hover { color: var(--color-text); text-decoration: underline; }
+.pie-legal a:hover { color: var(--color-text); text-decoration: none; text-shadow: 0 0 0.7px currentColor, 0 0 0.7px currentColor; }
 .pie-legal-qr img { display: block; margin-top: 4px; background: #fff; }
 .pie-legal-copy {
   max-width: var(--ancho-pagina); margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--color-border);

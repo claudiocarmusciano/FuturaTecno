@@ -215,7 +215,7 @@ function ImagesPage() {
                     <Link
                       to={`/admin/productos?${new URLSearchParams({ editar: String(p.id), origen: 'imagenes', busqueda, filtro: soloSinImagen ? 'sin-imagen' : 'todos' })}`}
                       title="Editar producto completo"
-                      style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-accion)', textUnderlineOffset: '4px' }}
+                      className="link-fila"
                     >
                       {[p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')}
                     </Link>

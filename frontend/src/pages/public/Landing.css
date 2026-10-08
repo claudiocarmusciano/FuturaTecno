@@ -20,7 +20,7 @@
 }
 .lp-btn:hover { background: var(--color-accion-hover); text-decoration: none; }
 .lp-link { display: inline-flex; align-items: center; gap: 8px; color: var(--color-accion) !important; font-size: 15px; }
-.lp-link:hover { text-decoration: underline; }
+.lp-link:hover { text-decoration: none; text-shadow: 0 0 0.7px currentColor, 0 0 0.7px currentColor; }
 
 /* ===== HERO ===== */
 .lp-hero { background: var(--color-cyan); padding: 48px 0; }
@@ -64,7 +64,9 @@
   color: var(--color-accion) !important; font-size: 15px; text-align: center; text-decoration: none;
 }
 .lp-cat svg { color: var(--color-text); }
-.lp-cat:hover span { text-decoration: underline; }
+.lp-cat { border-radius: var(--radius-sm); }
+.lp-cat:hover { background: var(--color-muted); }
+.lp-cat:hover span { font-weight: 700; }
 .lp-cats-todas { text-align: center; margin-top: 16px; }
 
 /* El carrusel de promociones (administrable) va a lo ancho de la columna. */

@@ -148,7 +148,8 @@ function CartPage() {
           <button
             type="button"
             onClick={vaciar}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--color-text-muted)', textDecoration: 'underline' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--color-text-muted)' }}
+            className="negrita-hover"
           >
             Vaciar carrito
           </button>

@@ -80,7 +80,14 @@ h1, h2, h3, h4, h5, h6 { color: var(--color-text); font-family: var(--fuente-tit
 .btn, button { font-family: var(--fuente-titulos); }
 p, span, div, label { color: var(--color-text); }
 a { color: var(--color-accion); text-decoration: none; }
-a:hover { text-decoration: underline; }
+/* Sin subrayado al pasar el mouse (pedido del usuario): las opciones y links se marcan con
+   fondo gris y negrita. La negrita "de sombra" (.negrita-hover) no cambia el ancho del texto, así
+   los menús horizontales no saltan. */
+a:hover { text-decoration: none; }
+.negrita-hover:hover { text-shadow: 0 0 0.7px currentColor, 0 0 0.7px currentColor; }
+/* Links dentro de tablas y listas (ej. Admin → Imágenes): sin subrayado, negrita al pasar. */
+.link-fila { color: inherit; text-decoration: none; }
+.link-fila:hover { font-weight: 700; text-decoration: none; }
 
 /* ===== Layout admin ===== */
 .app-container { display: flex; height: 100vh; }
