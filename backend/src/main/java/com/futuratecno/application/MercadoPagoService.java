@@ -50,7 +50,8 @@ public class MercadoPagoService {
         if (pedido.getEstado() == EstadoPedido.CANCELADO || pedido.getEstado() == EstadoPedido.ENTREGADO) {
             throw new IllegalArgumentException("Este pedido ya no admite pagos.");
         }
-        if (pedido.getVenceEn().isBefore(LocalDateTime.now())) {
+        // Sin vencimiento (orden manual o pedido reactivado por el admin): se puede pagar cuando sea.
+        if (pedido.getVenceEn() != null && pedido.getVenceEn().isBefore(LocalDateTime.now())) {
             pedido.setEstado(EstadoPedido.VENCIDO);
             throw new IllegalArgumentException("El pedido venció. Volvé al catálogo para actualizar precios y stock.");
         }

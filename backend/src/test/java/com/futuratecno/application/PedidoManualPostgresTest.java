@@ -130,6 +130,40 @@ class PedidoManualPostgresTest {
     }
 
     @Test
+    void unPedidoWebVencidoSeReactivaSinVencimientoYAdmiteCobroManual() {
+        when(cotizacion.obtenerCotizacionUsdArs()).thenReturn(new BigDecimal("1500"));
+        Long v = variante("Notebook " + System.nanoTime());
+        var req = new CrearPedidoManualRequest();
+        req.setNombre("Cliente web");
+        req.setMedioPago("EFECTIVO");
+        req.setItems(List.of(item(v, 1, null)));
+        PedidoDTO p = pedidos.crearManual(req, "admin@example.com");
+
+        // Se lo convierte en un pedido web de Mercado Pago que venció anoche.
+        Long usuario = jdbc.queryForObject("""
+                INSERT INTO usuarios (email, password, created_at, updated_at)
+                VALUES (?, 'x', now(), now()) RETURNING id""", Long.class, "web" + System.nanoTime() + "@example.com");
+        jdbc.update("""
+                UPDATE pedidos SET origen = 'WEB', usuario_id = ?, medio_pago = 'MERCADO_PAGO', estado = 'VENCIDO',
+                       vence_en = now() - interval '1 day', mercado_pago_preference_id = 'pref-vieja',
+                       mercado_pago_checkout_url = 'https://mp.test/vieja'
+                 WHERE id = ?""", usuario, p.getId());
+        assertThrows(IllegalArgumentException.class, () -> pedidos.cambiarEstadoPagoManual(p.getId(), EstadoPago.APROBADO),
+                "un pedido web de Mercado Pago vigente no se cobra a mano");
+
+        var reactivado = pedidos.cambiarEstado(p.getId(), com.futuratecno.domain.EstadoPedido.PENDIENTE);
+        assertEquals("PENDIENTE", reactivado.getEstado());
+        assertNull(reactivado.getVenceEn(), "reactivado no vuelve a vencer a las 06:30");
+        assertNull(jdbc.queryForObject("SELECT mercado_pago_checkout_url FROM pedidos WHERE id = ?", String.class, p.getId()),
+                "el link de pago viejo caducó: se genera uno nuevo");
+
+        pedidos.vencerPendientes();
+        assertEquals("PENDIENTE", pedidos.obtenerParaAdmin(p.getNumero()).getEstado());
+        assertEquals("CONFIRMADO", pedidos.cambiarEstadoPagoManual(p.getId(), EstadoPago.APROBADO).getEstado(),
+                "el admin registra el cobro aunque haya sido de Mercado Pago");
+    }
+
+    @Test
     void validaNombrePrecioYMedioDePagoYLaBaseExigeUsuarioEnLasOrdenesWeb() {
         when(cotizacion.obtenerCotizacionUsdArs()).thenReturn(new BigDecimal("1500"));
         Long v = variante("Mouse " + System.nanoTime());

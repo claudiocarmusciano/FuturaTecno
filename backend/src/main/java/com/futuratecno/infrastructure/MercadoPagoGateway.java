@@ -62,7 +62,9 @@ public class MercadoPagoGateway {
                 .failure(publicUrl + "/pago/resultado?pedido=" + pedido.getNumero() + "&resultado=error")
                 .build();
 
-        OffsetDateTime vence = pedido.getVenceEn()
+        // Un pedido sin vencimiento (reactivado por el admin) igual necesita un link que caduque:
+        // se le dan 24 h, y si vence se genera otro al volver a pagar.
+        OffsetDateTime vence = (pedido.getVenceEn() != null ? pedido.getVenceEn() : java.time.LocalDateTime.now().plusDays(1))
                 .atZone(ZoneId.systemDefault())
                 .toOffsetDateTime();
 

@@ -106,6 +106,13 @@ public class PuntosService {
         creditoRepository.save(credito);
     }
 
+    /** true si el pedido canjeó puntos y esa reserva ya se le devolvió al cliente (venció o se canceló). */
+    @Transactional(readOnly = true)
+    public boolean tieneCanjeRevertido(Pedido pedido) {
+        return canjeRepository.findByPedidoId(pedido.getId())
+                .map(c -> c.getEstado() == EstadoCanjePuntos.REVERTIDO).orElse(false);
+    }
+
     @Transactional
     public void revertirReserva(Pedido pedido) {
         canjeRepository.findByPedidoId(pedido.getId()).ifPresent(canje -> {

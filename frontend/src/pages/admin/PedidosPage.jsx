@@ -52,6 +52,13 @@ function PedidosPage() {
     }
   }
 
+  // Un pedido vencido se retoma con los precios que aceptó el cliente y queda sin vencimiento,
+  // pendiente hasta que se entregue y se cobre (el backend le saca el vencimiento).
+  const reactivar = async (p) => {
+    if (!window.confirm(`¿Reactivar el pedido ${p.numero}?\n\nQueda PENDIENTE con los precios que aceptó el cliente ese día y ya no vence solo. Después lo marcás como cobrado y entregado.`)) return
+    await cambiarEstado(p.id, 'PENDIENTE')
+  }
+
   const marcarCobrado = async (id) => {
     try {
       await axios.put(`/api/admin/pedidos/${id}/pago`, { estado: 'APROBADO' })
@@ -152,10 +159,15 @@ function PedidosPage() {
                         <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{p.telefonoContacto || p.usuarioEmail || p.emailContacto}</div>
                       </td>
                       <td style={{ padding: '12px 8px', fontSize: '13px' }}>{formatFechaHora(p.createdAt)}</td>
-                      <td style={{ padding: '12px 8px' }}><EstadoChip estado={p.estado} /></td>
+                      <td style={{ padding: '12px 8px' }}>
+                        <EstadoChip estado={p.estado} />
+                        {p.estado === 'VENCIDO' && (
+                          <button type="button" onClick={() => reactivar(p)} style={{ display: 'block', marginTop: '6px', padding: '5px 8px', border: 'none', borderRadius: '2px', background: 'var(--color-accion)', color: 'var(--color-sobre-accion)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Reactivar</button>
+                        )}
+                      </td>
                       <td style={{ padding: '12px 8px', fontSize: '13px', fontWeight: 700, color: p.estadoPago === 'APROBADO' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
                         <div>{p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : p.estadoPago === 'RECHAZADO' ? 'Rechazado' : p.estadoPago === 'SIN_INICIAR' ? 'Sin iniciar' : 'Pendiente'}</div>
-                        {p.estadoPago !== 'APROBADO' && p.estado !== 'CANCELADO' && p.estado !== 'VENCIDO' && (p.medioPago !== 'MERCADO_PAGO' || p.origen === 'MANUAL') && (
+                        {p.estadoPago !== 'APROBADO' && p.estado !== 'CANCELADO' && p.estado !== 'VENCIDO' && (p.medioPago !== 'MERCADO_PAGO' || p.origen === 'MANUAL' || !p.venceEn) && (
                           <button type="button" onClick={() => marcarCobrado(p.id)} style={{ marginTop: '6px', padding: '5px 8px', border: '1px solid var(--color-accion)', borderRadius: '2px', background: 'transparent', color: 'var(--color-accion)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Marcar cobrado</button>
                         )}
                       </td>

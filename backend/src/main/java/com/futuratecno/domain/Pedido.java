@@ -255,6 +255,12 @@ public class Pedido extends BaseEntity {
     public String getOrigen() { return origen; }
     public void setOrigen(String origen) { this.origen = origen; }
     public boolean esManual() { return "MANUAL".equals(origen); }
+
+    /**
+     * El cobro lo registra el admin a mano: órdenes manuales y pedidos web reactivados después de
+     * vencer (quedan sin vencimiento). En el resto, el pago de Mercado Pago lo confirma el webhook.
+     */
+    public boolean cobroManual() { return esManual() || venceEn == null; }
     public String getEmailContacto() { return emailContacto; }
     public void setEmailContacto(String emailContacto) { this.emailContacto = emailContacto; }
 }

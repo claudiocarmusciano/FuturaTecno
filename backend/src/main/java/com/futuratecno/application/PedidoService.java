@@ -379,6 +379,23 @@ public class PedidoService {
     public PedidoDTO cambiarEstado(Long id, EstadoPedido nuevoEstado) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado."));
+        // Reactivar un pedido vencido: el admin lo retoma con los precios congelados que aceptó el
+        // cliente y queda SIN vencimiento, como una orden manual. Sin esto, el scheduler de las
+        // 06:30 lo volvía a vencer al día siguiente, porque conservaba su vence_en viejo.
+        boolean reactiva = pedido.getEstado() == EstadoPedido.VENCIDO
+                && nuevoEstado != EstadoPedido.VENCIDO && nuevoEstado != EstadoPedido.CANCELADO;
+        if (reactiva) {
+            // Al vencer se le devolvieron los puntos canjeados: reactivarlo con el descuento intacto
+            // le regalaría esos puntos dos veces.
+            if (puntosService.tieneCanjeRevertido(pedido)) {
+                throw new IllegalArgumentException("Este pedido usaba puntos del cliente y al vencer se le devolvieron. "
+                        + "Armá una orden manual nueva con los mismos artículos.");
+            }
+            pedido.setVenceEn(null);
+            // El link de Mercado Pago que tenía ya caducó con el pedido: se genera uno nuevo al pagar.
+            pedido.setMercadoPagoPreferenceId(null);
+            pedido.setMercadoPagoCheckoutUrl(null);
+        }
         pedido.setEstado(nuevoEstado);
         if (nuevoEstado == EstadoPedido.CANCELADO || nuevoEstado == EstadoPedido.VENCIDO) puntosService.revertirReserva(pedido);
         return toDTO(pedidoRepository.save(pedido), true);
@@ -389,7 +406,7 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado."));
         // En la web el pago de Mercado Pago lo confirma el webhook. En una orden manual el cliente
         // paga por un link o QR que armó el admin, así que el cobro se marca a mano.
-        if ("MERCADO_PAGO".equals(pedido.getMedioPago()) && !pedido.esManual()) {
+        if ("MERCADO_PAGO".equals(pedido.getMedioPago()) && !pedido.cobroManual()) {
             throw new IllegalArgumentException("Los pagos de Mercado Pago se actualizan automáticamente.");
         }
         pedido.setEstadoPago(nuevoEstado);
