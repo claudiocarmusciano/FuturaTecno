@@ -74,15 +74,19 @@
 .lp-prod-price span { font-size: 13px; color: var(--color-text-muted); }
 .lp-prod-loading { grid-column: 1 / -1; color: var(--color-text-muted); padding: 48px 0; text-align: center; }
 
-/* ===== Franja Armá tu PC (negro de marca, tarjeta blanca) ===== */
-.lp-banda { background: var(--color-dark); padding: 64px 0; margin-top: 16px; }
-.lp-banda-grid { display: grid; grid-template-columns: minmax(0, 480px) 1fr; gap: 48px; align-items: center; }
-.lp-banda-card { background: #fff; padding: 48px 40px; border-radius: var(--radius); }
+/* ===== Franja Armá tu PC: foto del local de fondo, tarjeta blanca encima ===== */
+.lp-banda { position: relative; overflow: hidden; background: var(--color-dark); padding: 96px 0; margin-top: 16px; }
+.lp-banda-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+.lp-banda-grid { position: relative; }
+.lp-banda-card { background: #fff; padding: 48px 40px; border-radius: var(--radius); max-width: 480px; }
 .lp-banda-card h2 { font-size: 29px; font-weight: 600; line-height: 1.2; margin-bottom: 16px; }
 .lp-banda-card p { font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
-.lp-banda-pasos { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: #3d3839; padding: 0; margin: 0; border-radius: var(--radius); overflow: hidden; }
-.lp-banda-pasos li { background: var(--color-dark); color: #fff; padding: 16px 20px; font-size: 15px; display: flex; gap: 16px; align-items: baseline; }
-.lp-banda-pasos b { font-family: var(--fuente-rotulo); font-size: 12px; letter-spacing: .2em; color: var(--color-cyan); font-weight: 600; }
+
+/* ===== Nuestro local ===== */
+.lp-local { display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
+.lp-local-foto { width: 100%; height: auto; display: block; border-radius: var(--radius); box-shadow: var(--shadow); }
+.lp-local-texto h2 { font-size: 29px; font-weight: 600; margin-bottom: 16px; }
+.lp-local-texto p { font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
 
 /* ===== Ventajas ===== */
 .lp-ventajas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 32px; }
@@ -97,7 +101,8 @@
 
 /* ===== Responsive ===== */
 @media (max-width: 960px) {
-  .lp-hero-grid, .lp-banda-grid { grid-template-columns: 1fr; }
+  .lp-hero-grid, .lp-local { grid-template-columns: 1fr; }
+  .lp-local { gap: 24px; }
   .lp-vidriera { height: 360px; }
   .lp-prod-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lp-ventajas { grid-template-columns: repeat(2, 1fr); }
@@ -117,10 +122,10 @@
   .lp-prod-body { padding: 16px; }
   .lp-prod-name { font-size: 15px; }
   .lp-prod-price strong { font-size: 17px; }
-  .lp-banda { padding: 0 0 32px; }
+  .lp-banda { padding: 240px 0 0; }
   .lp-banda .lp-wrap { padding: 0; }
-  .lp-banda-card { padding: 32px 16px; border-radius: 0; }
-  .lp-banda-pasos { margin: 0 16px; }
+  .lp-banda-foto { height: 240px; }
+  .lp-banda-card { padding: 32px 16px; border-radius: 0; max-width: none; }
   .lp-ventajas { grid-template-columns: 1fr; gap: 32px; }
   .lp .promotions-carousel { width: calc(100% - 32px); }
 }

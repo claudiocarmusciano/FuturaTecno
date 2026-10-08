@@ -8,6 +8,8 @@ import PromotionsCarousel from '../../components/PromotionsCarousel'
 const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=` +
   encodeURIComponent(`Hola ${NOMBRE_NEGOCIO}, quería hacer una consulta sobre el catálogo.`)
 
+const mapaLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(TITULAR.domicilioComercial)}`
+
 const fmt = (n) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 })
 
 // Precio "desde": el menor precio USD entre las variantes del producto.
@@ -200,8 +202,9 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ARMÁ TU PC: franja negra con tarjeta blanca. */}
+      {/* ARMÁ TU PC: foto del rincón gamer del local, de borde a borde, con la tarjeta blanca encima. */}
       <section className="lp-banda" aria-labelledby="armador-title">
+        <img className="lp-banda-foto" src="/local/rincon-gamer.jpg" alt="" aria-hidden="true" loading="lazy" />
         <div className="lp-wrap lp-banda-grid">
           <div className="lp-banda-card">
             <span className="lp-rotulo">Armá tu PC</span>
@@ -209,11 +212,6 @@ function LandingPage() {
             <p>Elegí procesador, mother, memoria y el resto, paso a paso. Te mostramos solo lo que es compatible entre sí.</p>
             <Link className="lp-btn" to="/arma-tu-pc">Empezar a armar</Link>
           </div>
-          <ol className="lp-banda-pasos" aria-hidden="true">
-            {['Procesador', 'Motherboard', 'Memoria', 'Placa de video', 'Disco', 'Fuente', 'Gabinete', 'Cooler'].map((p, i) => (
-              <li key={p}><b>{String(i + 1).padStart(2, '0')}</b>{p}</li>
-            ))}
-          </ol>
         </div>
       </section>
 
@@ -229,6 +227,22 @@ function LandingPage() {
                 <p>{v.d}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NUESTRO LOCAL */}
+      <section className="lp-block" id="local" aria-labelledby="local-title">
+        <div className="lp-wrap lp-local">
+          <img className="lp-local-foto" src="/local/fachada.jpg" alt={`Frente del local de ${NOMBRE_NEGOCIO}`} loading="lazy" width="1280" height="874" />
+          <div className="lp-local-texto">
+            <span className="lp-rotulo">Nuestro local</span>
+            <h2 id="local-title">Vení a conocernos.</h2>
+            <p>Estamos en {TITULAR.domicilioComercial}. Podés ver los productos, retirar tu compra o consultarnos lo que necesites.</p>
+            <div className="lp-cta-row">
+              <a className="lp-btn" href={mapaLink} target="_blank" rel="noreferrer">Cómo llegar</a>
+              <a className="lp-link lp-link-wa" href={waLink} target="_blank" rel="noreferrer"><IconWhatsApp /> Escribinos</a>
+            </div>
           </div>
         </div>
       </section>
