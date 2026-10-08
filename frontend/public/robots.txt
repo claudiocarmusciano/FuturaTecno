@@ -13,4 +13,4 @@ Disallow: /recuperar
 Disallow: /restablecer
 Disallow: /activar-cuenta
 
-Sitemap: https://www.futuratecno.com.ar/sitemap.xml
+Sitemap: https://www.tecnopolisolavarria.com/sitemap.xml
