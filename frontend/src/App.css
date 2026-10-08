@@ -45,9 +45,9 @@
   --shadow-hover: rgba(0, 0, 0, 0.18) 0 6px 14px 0, rgba(0, 0, 0, 0.12) 0 2px 4px 0;
 
   --ancho-pagina: 1200px;
-  /* Synonym (textos) y Amulya (títulos y botones), de Fontshare: ver index.html. Solo están
-     cargados Synonym 400 y Amulya 700; un 600 de Amulya usa el 700. */
-  --fuente: 'Synonym', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Amulya (Fontshare, ver index.html) en todo el sitio: 400 para textos, 700 para títulos y
+     botones. Solo esos dos pesos están cargados; un 600 usa el 700. */
+  --fuente: 'Amulya', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --fuente-titulos: 'Amulya', 'Segoe UI', system-ui, sans-serif;
   /* Rótulos cortos en mayúsculas espaciadas (eco del "OLAVARRIA" del logo). */
   --fuente-rotulo: var(--fuente);
