@@ -247,9 +247,9 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ARMÁ TU PC: foto del rincón gamer del local, de borde a borde, con la tarjeta blanca encima. */}
+      {/* ARMÁ TU PC: foto de un setup gamer, de borde a borde, con la tarjeta blanca encima. */}
       <section className="lp-banda" aria-labelledby="armador-title">
-        <img className="lp-banda-foto" src="/local/rincon-gamer.jpg" alt="" aria-hidden="true" loading="lazy" />
+        <img className="lp-banda-foto" src="/local/setup-gamer.webp" alt="" aria-hidden="true" loading="lazy" />
         <div className="lp-wrap lp-banda-grid">
           <div className="lp-banda-card">
             <span className="lp-rotulo">Armá tu PC</span>
