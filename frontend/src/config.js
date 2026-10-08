@@ -20,8 +20,8 @@ export const TITULAR = {
   domicilioComercial: 'San Martín 2821, Olavarría (7400), Buenos Aires'
 }
 
-export const CONTACTO_EMAIL = 'info@futuratecno.com.ar'
-export const INSTAGRAM_URL = 'https://www.instagram.com/futuratecnoargentina/'
+export const CONTACTO_EMAIL = 'tecnopolisolavarria@gmail.com'
+export const INSTAGRAM_URL = 'https://www.instagram.com/tecnopolisolavarria/'
 
 // Formulario de reclamos de Defensa del Consumidor (Nación).
 export const DEFENSA_CONSUMIDOR_URL = 'https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario'
