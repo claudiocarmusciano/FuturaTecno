@@ -55,7 +55,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root { color-scheme: light; }
+:root { color-scheme: light only; }
 
 input, select, textarea {
   background-color: var(--color-surface);
