@@ -37,7 +37,9 @@
 .public-nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
 /* Las cuentas van a la derecha, separadas de los links de la tienda. */
 .public-nav .public-nav-cuenta { margin-left: auto; }
+/* Registrarse va con la tipografía de botones. */
 .public-nav a.public-nav-cta {
+  font-family: var(--fuente-titulos);
   background: var(--color-accion);
   color: var(--color-sobre-accion);
   font-weight: 600;

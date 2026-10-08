@@ -45,9 +45,12 @@
   --shadow-hover: rgba(0, 0, 0, 0.18) 0 6px 14px 0, rgba(0, 0, 0, 0.12) 0 2px 4px 0;
 
   --ancho-pagina: 1200px;
-  --fuente: 'Segoe UI', 'Open Sans', system-ui, -apple-system, sans-serif;
-  /* Eco del "OLAVARRIA" del logo: sans geométrica espaciada, solo para rótulos cortos */
-  --fuente-rotulo: 'Montserrat', 'Segoe UI', sans-serif;
+  /* Synonym (textos) y Amulya (títulos y botones), de Fontshare: ver index.html. Solo están
+     cargados Synonym 400 y Amulya 700; un 600 de Amulya usa el 700. */
+  --fuente: 'Synonym', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --fuente-titulos: 'Amulya', 'Segoe UI', system-ui, sans-serif;
+  /* Rótulos cortos en mayúsculas espaciadas (eco del "OLAVARRIA" del logo). */
+  --fuente-rotulo: var(--fuente);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -73,7 +76,8 @@ html, body, #root { height: 100%; width: 100%; color: var(--color-text); }
 h1 { font-size: 37px; font-weight: 600; line-height: 1.2; }
 h2 { font-size: 29px; font-weight: 600; line-height: 1.2; }
 h3 { font-size: 17px; font-weight: 600; }
-h1, h2, h3, h4, h5, h6 { color: var(--color-text); }
+h1, h2, h3, h4, h5, h6 { color: var(--color-text); font-family: var(--fuente-titulos); }
+.btn, button { font-family: var(--fuente-titulos); }
 p, span, div, label { color: var(--color-text); }
 a { color: var(--color-accion); text-decoration: none; }
 a:hover { text-decoration: underline; }

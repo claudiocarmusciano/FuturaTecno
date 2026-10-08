@@ -17,10 +17,11 @@
     <meta property="og:locale" content="es_AR" />
     <meta name="twitter:card" content="summary_large_image" />
     <!-- /seo -->
-    <!-- Tipografías: Open Sans (textos, reemplazo libre de Segoe UI) y Montserrat (rótulos espaciados, eco del "OLAVARRIA" del logo) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Montserrat:wght@500;600&display=swap" rel="stylesheet" />
+    <!-- Tipografías (Fontshare): Synonym para textos y Amulya para títulos y botones. Se cargan desde
+         la API de Fontshare y NO se copian al repo: el repo es público y la licencia (FFL) no permite
+         dejar los archivos en un repositorio accesible a terceros. -->
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link href="https://api.fontshare.com/v2/css?f[]=synonym@400&f[]=amulya@700&display=swap" rel="stylesheet" />
     <!-- Sign in with Google (Google Identity Services). Solo se usa si hay GOOGLE_CLIENT_ID configurado. -->
     <script src="https://accounts.google.com/gsi/client" async></script>
   </head>
@@ -28,14 +29,13 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <!-- Chat de atención con IA (Forja). Solo responde en futuratecno.com.ar.
-         Verde WhatsApp (#25D366, texto blanco, igual que "Consultar por WhatsApp"): con el lima
-         de la marca la burbuja se confundía con los botones y acentos del resto del sitio.
+         Burbuja en el color de acción de la marca (#006FA6, texto blanco legible) y tema claro.
          "Tecnito" es el nombre del asistente: el mismo bot atiende WhatsApp, y ahí se presenta igual
          porque el nombre vive en su configuración de Forja (setting bot_name). -->
     <script src="https://forja-starter-18b9c9.claudiocarmu.workers.dev/widget.js"
             data-nombre="Tecnito"
-            data-tema="oscuro"
-            data-color="#25D366"
+            data-tema="claro"
+            data-color="#006FA6"
             data-saludo="¡Hola! ¿Qué estás buscando? Contame y te oriento."></script>
     <script>
       // Safari/iOS hace zoom al enfocar controles con letra menor a 16px. El
@@ -68,6 +68,6 @@
       })()
     </script>
     <!-- Tecnito: la mascota que se sienta sobre la burbuja del chat (public/tecnito.js). -->
-    <script src="/tecnito.js?v=1" defer></script>
+    <script src="/tecnito.js?v=2" defer></script>
   </body>
 </html>
