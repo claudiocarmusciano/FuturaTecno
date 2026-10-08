@@ -44,7 +44,6 @@ function App() {
     <BrowserRouter>
       <Analitica />
       <Routes>
-        <Route path="/" element={<LandingPage />} />
         {/* Direcciones del sorteo (ya no está en la web): siguen circulando en mensajes y
             anuncios viejos, así que llevan a la tienda en lugar de a una página vacía. */}
         <Route path="/sorteo" element={<Navigate to="/" replace />} />
@@ -56,6 +55,7 @@ function App() {
         <Route path="/arrepentimiento" element={<ArrepentimientoPage />} />
 
         <Route element={<PublicLayout />}>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/catalogo" element={<CatalogPage />} />
           <Route path="/arma-tu-pc" element={<ArmaTuPcPage />} />
           <Route path="/producto/:id" element={<ProductDetailPage />} />

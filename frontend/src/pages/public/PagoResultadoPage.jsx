@@ -33,7 +33,7 @@ function PagoResultadoPage() {
   const titulo = cargando ? 'Comprobando tu pago...' : aprobado ? '¡Pago aprobado!' : 'El pago todavía no está aprobado'
 
   return (
-    <div className="card" style={{ maxWidth: '620px', margin: '30px auto', textAlign: 'center', padding: '38px 24px', borderTop: '5px solid var(--color-lime)' }}>
+    <div className="card" style={{ maxWidth: '620px', margin: '30px auto', textAlign: 'center', padding: '38px 24px', borderTop: '5px solid var(--color-accion)' }}>
       <h1 style={{ marginTop: 0 }}>{titulo}</h1>
       {cargando && <p style={{ color: 'var(--color-text-muted)' }}>Estamos consultando el estado directamente en Mercado Pago.</p>}
       {!cargando && aprobado && <p>Recibimos el pago del pedido <strong>{numero}</strong>. Ya podemos comenzar a procesarlo.</p>}

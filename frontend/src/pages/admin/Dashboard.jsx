@@ -82,13 +82,13 @@ function ProcesarListasNotion({ proveedores }) {
       {error && <p role="alert" style={{ margin: '12px 0 0', fontSize: '14px', color: 'var(--color-danger)' }}>{error}</p>}
 
       {procesando && (
-        <p role="status" style={{ margin: '12px 0 0', fontSize: '14px', color: 'var(--color-lime)' }}>
+        <p role="status" style={{ margin: '12px 0 0', fontSize: '14px', color: 'var(--color-accion)' }}>
           Procesando en n8n… empezó hace {segundos < 60 ? `${segundos} s` : `${Math.floor(segundos / 60)} min`}. Una lista chica tarda menos de un minuto.
         </p>
       )}
 
       {estado?.estado === 'sin_respuesta' && (
-        <p role="status" style={{ margin: '12px 0 0', fontSize: '14px', color: '#f0c05a' }}>
+        <p role="status" style={{ margin: '12px 0 0', fontSize: '14px', color: 'var(--color-warning)' }}>
           n8n no avisó que terminó (pedido a las {hora(estado.pedidoEn)}). Puede que no hubiera listas en Pendiente
           o que alguna haya fallado: revisá los estados en Notion.
         </p>
@@ -100,9 +100,9 @@ function ProcesarListasNotion({ proveedores }) {
             <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>Última revisión a las {hora(estado.terminadoEn)}: no había listas en Pendiente.</p>
           ) : (
             <>
-              <p style={{ margin: 0, color: 'var(--color-lime)' }}>
+              <p style={{ margin: 0, color: 'var(--color-accion)' }}>
                 Terminó a las {hora(estado.terminadoEn)} · {r.listas} lista(s) · {r.creados} creado(s) · {r.actualizados} actualizado(s)
-                {r.revision > 0 && <> · <span style={{ color: '#f0c05a' }}>{r.revision} en revisión</span></>}
+                {r.revision > 0 && <> · <span style={{ color: 'var(--color-warning)' }}>{r.revision} en revisión</span></>}
               </p>
               {Array.isArray(r.detalle) && (
                 <ul style={{ margin: '8px 0 0', paddingLeft: '18px', color: 'var(--color-text-muted)' }}>
@@ -110,7 +110,7 @@ function ProcesarListasNotion({ proveedores }) {
                     <li key={d.notionPageId || i}>
                       {nombreProveedor(d.proveedorId)}: {d.estadoFinal}
                       {/* Lo que hay que mirar primero va primero; las fotos faltantes son lo esperable. */}
-                      {d.conProblemas > 0 && <> · <span style={{ color: '#f0c05a' }}>{d.conProblemas} para revisar</span></>}
+                      {d.conProblemas > 0 && <> · <span style={{ color: 'var(--color-warning)' }}>{d.conProblemas} para revisar</span></>}
                       {d.faltanFotos > 0 && ` · ${d.faltanFotos} sin foto`}
                     </li>
                   ))}

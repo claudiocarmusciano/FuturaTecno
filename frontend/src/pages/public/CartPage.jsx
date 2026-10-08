@@ -56,7 +56,7 @@ function CartPage() {
       )}
 
       {avisos.cambios.length > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid var(--color-lime)', marginBottom: '16px' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--color-accion)', marginBottom: '16px' }}>
           <strong>Se actualizaron algunos precios</strong>
           <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
             {avisos.cambios.map(c => (
@@ -94,14 +94,14 @@ function CartPage() {
                   <td style={{ padding: '14px 8px' }}>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                       {i.imagenUrl
-                        ? <img src={i.imagenUrl} alt="" style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '6px' }} />
-                        : <div style={{ width: '52px', height: '52px', borderRadius: '6px', background: 'var(--color-accent-light)' }} />}
+                        ? <img src={i.imagenUrl} alt="" style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '2px' }} />
+                        : <div style={{ width: '52px', height: '52px', borderRadius: '2px', background: 'var(--color-accent-light)' }} />}
                       <div>
                         <Link to={`/producto/${i.productoId}`} style={{ fontWeight: 600, color: 'var(--color-text)', textDecoration: 'none' }}>
                           {i.nombre}
                         </Link>
                         {textoDemora(i) && (
-                          <div style={{ fontSize: '12px', color: '#f0c05a', fontWeight: 600 }}>Entrega en {textoDemora(i)}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--color-warning)', fontWeight: 600 }}>Entrega en {textoDemora(i)}</div>
                         )}
                         {i.especificaciones && (
                           <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{i.especificaciones}</div>
@@ -120,7 +120,7 @@ function CartPage() {
                       onChange={e => cambiarCantidad(i.varianteId, e.target.value)}
                       style={{
                         width: '68px', padding: '7px', textAlign: 'center', fontSize: '14px',
-                        border: '1px solid var(--color-border)', borderRadius: '6px'
+                        border: '1px solid var(--color-border)', borderRadius: '2px'
                       }}
                     />
                   </td>
@@ -161,7 +161,7 @@ function CartPage() {
       </div>
 
       {!alcanzaMinimo && (
-        <div className="card" style={{ marginTop: '18px', borderLeft: '4px solid var(--color-lime)' }}>
+        <div className="card" style={{ marginTop: '18px', borderLeft: '4px solid var(--color-accion)' }}>
           <strong>Compra mínima: US$ {formatNumber(MONTO_MINIMO_PEDIDO_USD)}</strong>
           <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)', fontSize: '14px' }}>
             Te faltan US$ {formatNumber(faltaParaMinimo)} en productos para poder confirmar el pedido.
@@ -171,7 +171,7 @@ function CartPage() {
 
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '18px' }}>
         <Link to="/catalogo" style={{
-          padding: '12px 22px', borderRadius: '8px', textDecoration: 'none', fontWeight: 600,
+          padding: '12px 22px', borderRadius: '2px', textDecoration: 'none', fontWeight: 600,
           border: '1px solid var(--color-border)', color: 'var(--color-text)'
         }}>
           ← Seguir comprando
@@ -181,9 +181,9 @@ function CartPage() {
           onClick={() => navigate('/checkout')}
           disabled={!alcanzaMinimo}
           style={{
-            padding: '12px 26px', borderRadius: '8px', border: 'none',
+            padding: '12px 26px', borderRadius: '2px', border: 'none',
             cursor: alcanzaMinimo ? 'pointer' : 'not-allowed', opacity: alcanzaMinimo ? 1 : 0.55,
-            background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, fontSize: '16px'
+            background: 'var(--color-accion)', color: 'var(--color-sobre-accion)', fontWeight: 700, fontSize: '16px'
           }}
         >
           Confirmar pedido →

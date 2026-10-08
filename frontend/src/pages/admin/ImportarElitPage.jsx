@@ -83,7 +83,7 @@ function ImportarElitPage() {
       <div className="card" style={{ borderLeft: '4px solid var(--color-danger)' }}>
         <h2 style={{ marginBottom: '8px' }}>API de Elit no configurada</h2>
         <p style={{ marginBottom: '10px' }}>Para activar la importación, cargá estas variables de entorno en Railway:</p>
-        <pre style={{ background: '#16181d', color: '#e9eae5', padding: '12px 14px', borderRadius: '8px', fontSize: '13px', overflowX: 'auto' }}>
+        <pre style={{ background: 'var(--color-dark)', color: '#e9eae5', padding: '12px 14px', borderRadius: '2px', fontSize: '13px', overflowX: 'auto' }}>
 {`ELIT_USER_ID=tu_id_de_cliente
 ELIT_TOKEN=tu_token_de_api`}
         </pre>
@@ -157,10 +157,10 @@ ELIT_TOKEN=tu_token_de_api`}
         {error && <p style={{ marginTop: '14px', color: 'var(--color-danger)' }}>{error}</p>}
 
         {preview && (
-          <div style={{ marginTop: '16px', background: 'var(--color-lime-tint)', borderRadius: '10px', padding: '12px 14px' }}>
+          <div style={{ marginTop: '16px', background: 'var(--color-accion-tint)', borderRadius: '2px', padding: '12px 14px' }}>
             <strong>{preview.total}</strong> producto(s) coinciden con el filtro.
             {preview.muestra?.length > 0 && (
-              <ul style={{ margin: '8px 0 0 18px', fontSize: '13px', color: 'var(--color-lime)' }}>
+              <ul style={{ margin: '8px 0 0 18px', fontSize: '13px', color: 'var(--color-accion)' }}>
                 {preview.muestra.map((n, i) => <li key={i}>{n}</li>)}
               </ul>
             )}
@@ -169,7 +169,7 @@ ELIT_TOKEN=tu_token_de_api`}
       </div>
 
       {resultado && (
-        <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
           <h2 style={{ marginBottom: '8px' }}><IconCheckCircle /> Importación lista</h2>
           <p style={{ marginBottom: '10px' }}>{resultado.mensaje}</p>
           <p>

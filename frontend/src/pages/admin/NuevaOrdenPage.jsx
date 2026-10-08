@@ -118,7 +118,7 @@ export default function NuevaOrdenPage() {
     }
   }
 
-  const campo = { width: '100%', padding: '9px 11px', fontSize: '14px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-2)', color: 'var(--color-text)' }
+  const campo = { width: '100%', padding: '9px 11px', fontSize: '14px', borderRadius: '2px', border: '1px solid var(--color-border)', background: 'var(--color-surface-2)', color: 'var(--color-text)' }
   const etiqueta = { display: 'grid', gap: '5px', fontSize: '13px', fontWeight: 600 }
 
   return (
@@ -156,7 +156,7 @@ export default function NuevaOrdenPage() {
             <input type="search" placeholder="Buscar en el catálogo por marca, modelo o característica" value={busqueda}
               onChange={e => setBusqueda(e.target.value)} style={campo} />
             {(resultados.length > 0 || buscando) && (
-              <div style={{ position: 'absolute', zIndex: 5, left: 0, right: 0, marginTop: '4px', maxHeight: '340px', overflowY: 'auto', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '10px', boxShadow: '0 12px 30px rgba(0,0,0,.25)' }}>
+              <div style={{ position: 'absolute', zIndex: 5, left: 0, right: 0, marginTop: '4px', maxHeight: '340px', overflowY: 'auto', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '2px', boxShadow: '0 12px 30px rgba(0,0,0,.25)' }}>
                 {buscando && <div style={{ padding: '10px 12px', fontSize: '13px', color: 'var(--color-text-muted)' }}>Buscando…</div>}
                 {resultados.flatMap(p => (p.variantes || []).map(v => (
                   <button type="button" key={v.id} onClick={() => agregar(p, v)}

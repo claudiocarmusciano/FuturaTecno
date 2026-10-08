@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 
-const campo = { width: '100%', minWidth: 0, padding: '8px', border: '1px solid var(--color-border)', borderRadius: '6px', color: 'var(--color-text)', background: 'var(--color-surface-2)' }
+const campo = { width: '100%', minWidth: 0, padding: '8px', border: '1px solid var(--color-border)', borderRadius: '2px', color: 'var(--color-text)', background: 'var(--color-surface-2)' }
 const clavesSpecs = ['procesador', 'ram', 'almacenamiento', 'pantalla', 'gpu', 'sistema_operativo', 'otros']
 const clave = a => `${a.marca.trim().toLowerCase()}|${a.modelo.trim().toLowerCase().replace(/\s+/g, ' ')}`
 
@@ -129,7 +129,7 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
       </div>
       <p style={{ color: 'var(--color-text-muted)' }}>Podés corregir cada campo o quitar artículos. Las filas sin imagen también pueden importarse.</p>
       {duplicados.size > 0 && <p role="alert" style={{ color: 'var(--color-danger)' }}>Hay filas que son el mismo artículo (misma marca, modelo y características, aunque estén escritas distinto). Eliminá las repetidas o diferenciá las variantes antes de importar.</p>}
-      {enRevision.length > 0 && <details style={{ color: '#f0c05a', marginBottom: 8 }}><summary>{enRevision.length === 1 ? 'La fila' : 'Las filas'} {enRevision.join(', ')} {enRevision.length === 1 ? 'quedará' : 'quedarán'} para revisión: no se van a crear ni actualizar hasta completar los datos.</summary>
+      {enRevision.length > 0 && <details style={{ color: 'var(--color-warning)', marginBottom: 8 }}><summary>{enRevision.length === 1 ? 'La fila' : 'Las filas'} {enRevision.join(', ')} {enRevision.length === 1 ? 'quedará' : 'quedarán'} para revisión: no se van a crear ni actualizar hasta completar los datos.</summary>
         <ul>{enRevision.map(n => <li key={n}>Fila {n}: {identidadDe(n - 1).motivos.join(' ')}</li>)}</ul></details>}
       {invalidos && <p role="alert" style={{ color: 'var(--color-danger)' }}>Revisá marcas, modelos, precios positivos, URLs y especificaciones (menos de 500 caracteres).</p>}
       <div style={{ overflowX: 'auto', maxWidth: '100%' }}>

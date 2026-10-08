@@ -22,7 +22,7 @@ export function EstadoChip({ estado }) {
   const color = ESTADO_COLOR[estado] || ESTADO_COLOR.CANCELADO
   return (
     <span style={{
-      display: 'inline-block', padding: '3px 10px', borderRadius: '999px',
+      display: 'inline-block', padding: '3px 10px', borderRadius: '2px',
       background: color.bg, color: color.fg, fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap'
     }}>
       {ESTADO_LABEL[estado] || estado}

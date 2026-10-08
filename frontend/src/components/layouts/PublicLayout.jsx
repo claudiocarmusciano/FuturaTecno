@@ -12,7 +12,8 @@ function PublicLayout() {
   const { cantidadTotal } = useCart()
   const navigate = useNavigate()
   const location = useLocation()
-  const esVistaCatalogo = location.pathname === '/catalogo' || location.pathname.startsWith('/producto/')
+  // La home ocupa todo el ancho (franjas de color de borde a borde); el resto va en la columna centrada.
+  const esHome = location.pathname === '/'
   const [menuAbierto, setMenuAbierto] = useState(false)
 
   // Al navegar (link del menú, atrás del navegador) el menú mobile se cierra.
@@ -24,28 +25,27 @@ function PublicLayout() {
   }
 
   return (
-    <div className={`public-layout${esVistaCatalogo ? ' public-layout-catalogo' : ''}`}>
+    <div className="public-layout">
       <BarraArrepentimiento />
       <header className="public-header">
         <div className="header-container">
-          <Link to="/" className="logo"><img src="/logo.png?v=2" alt="FuturaTecno" className="header-logo" /></Link>
+          <Link to="/" className="logo"><img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" className="header-logo" width="176" height="44" /></Link>
           <nav id="public-nav" className={`public-nav${menuAbierto ? ' abierto' : ''}`}>
             {/* Mismo orden que la barra de la home. */}
             <Link to="/catalogo">Productos</Link>
             <Link to="/#categorias">Categorías</Link>
             <Link to="/arma-tu-pc">Armá tu PC</Link>
-            <Link to="/#por-que">Por qué</Link>
-            {isAdmin && <Link to="/admin">Panel Admin</Link>}
+                        {isAdmin && <Link to="/admin">Panel Admin</Link>}
             {user ? (
               <>
-                <Link to="/mis-puntos">Mis puntos</Link>
+                <span className="public-nav-saludo public-nav-cuenta" title={user.nombre || user.email}>Hola, {user.nombre || user.email}</span>
                 <Link to="/mis-pedidos">Mis pedidos</Link>
-                <span className="public-nav-saludo" title={user.nombre || user.email}>Hola, {user.nombre || user.email}</span>
+                <Link to="/mis-puntos">Mis puntos</Link>
                 <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>
               </>
             ) : (
               <>
-                <Link to="/login">Ingresar</Link>
+                <Link to="/login" className="public-nav-cuenta">Ingresar</Link>
                 <Link to="/registro" className="public-nav-cta">Registrarse</Link>
               </>
             )}
@@ -60,7 +60,7 @@ function PublicLayout() {
           </div>
         </div>
       </header>
-      <main className="public-main">
+      <main className={esHome ? 'public-main-home' : 'public-main'}>
         <Outlet />
       </main>
       <PieLegal />

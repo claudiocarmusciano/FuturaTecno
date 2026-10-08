@@ -30,7 +30,7 @@ export default function CostoAdmin({ costo, style }) {
   if (!isAdmin || costo == null) return null
   return (
     <p className="costo-admin" title="Costo del mayorista, antes de flete y margen. Solo lo ve el admin."
-      style={{ margin: '0 0 12px', fontSize: '12px', fontWeight: 700, color: '#f0c05a', ...style }}>
+      style={{ margin: '0 0 12px', fontSize: '12px', fontWeight: 700, color: 'var(--color-warning)', ...style }}>
       Costo: US$ {formatUsd(costo)} <span style={{ fontWeight: 400, opacity: .75 }}>· solo admin</span>
     </p>
   )

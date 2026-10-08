@@ -30,7 +30,7 @@ function MisPedidosPage() {
         <h1>Mis pedidos</h1>
         <div className="card" style={{ textAlign: 'center', padding: '46px 20px' }}>
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '20px' }}>Todavía no hiciste ningún pedido.</p>
-          <Link to="/catalogo" style={{ padding: '11px 22px', borderRadius: '8px', background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, textDecoration: 'none' }}>
+          <Link to="/catalogo" style={{ padding: '11px 22px', borderRadius: '2px', background: 'var(--color-accion)', color: 'var(--color-sobre-accion)', fontWeight: 700, textDecoration: 'none' }}>
             Ver el catálogo
           </Link>
         </div>

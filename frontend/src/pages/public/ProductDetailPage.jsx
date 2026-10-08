@@ -65,7 +65,7 @@ function ProductDetailPage() {
     const marca = producto.marca || ''
     const nombre = producto.modelo?.toLowerCase().startsWith(marca.toLowerCase())
       ? producto.modelo : [marca, producto.modelo].filter(Boolean).join(' ')
-    document.title = `${nombre} | Futura Tecno`
+    document.title = `${nombre} | Tecnópolis Olavarría`
     // Al salir vuelve el título general (no el anterior: al entrar directo, el anterior es el del producto).
     return () => { document.title = TITULO_SITIO }
   }, [producto])
@@ -118,7 +118,7 @@ function ProductDetailPage() {
                         style={{
                           width: '56px', height: '56px', padding: 0, background: '#fff', cursor: 'pointer',
                           border: `2px solid ${i === imagenActiva ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                          borderRadius: '6px', overflow: 'hidden'
+                          borderRadius: '2px', overflow: 'hidden'
                         }}
                       >
                         <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -166,9 +166,9 @@ function ProductDetailPage() {
                 onClick={() => { agregar(producto, v); setAgregado(v.id) }}
                 style={{
                   marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  background: agregado === v.id ? 'var(--color-accent-light)' : 'var(--color-lime)',
-                  color: '#16181d', border: agregado === v.id ? '1px solid var(--color-lime)' : 'none',
-                  padding: '11px 22px', borderRadius: '8px', fontSize: '15px', fontWeight: 600, cursor: 'pointer'
+                  background: agregado === v.id ? 'var(--color-accent-light)' : 'var(--color-accion)',
+                  color: 'var(--color-sobre-accion)', border: agregado === v.id ? '1px solid var(--color-accion)' : 'none',
+                  padding: '11px 22px', borderRadius: '2px', fontSize: '15px', fontWeight: 600, cursor: 'pointer'
                 }}
               >
                 {agregado === v.id ? <><IconCheck /> Agregado al carrito</> : <><IconCart /> Agregar al carrito</>}
@@ -191,7 +191,7 @@ function ProductDetailPage() {
           {/* Estimación de entrega (ETA) */}
           {textoDemora(producto) ? (
             <div style={{
-              background: 'rgba(240, 192, 90, .12)', border: '1px solid rgba(240, 192, 90, .45)', borderRadius: '12px',
+              background: 'rgba(240, 192, 90, .12)', border: '1px solid rgba(240, 192, 90, .45)', borderRadius: '2px',
               padding: '14px 16px', marginBottom: '20px', fontSize: '14px', color: 'var(--color-text)'
             }}>
               <IconTruck /> <strong>Entrega estimada: {textoDemora(producto)}</strong>
@@ -201,7 +201,7 @@ function ProductDetailPage() {
             </div>
           ) : eta?.fechaEntrega && (
             <div style={{
-              background: 'var(--color-accent-light)', border: '1px solid var(--color-border)', borderRadius: '12px',
+              background: 'var(--color-accent-light)', border: '1px solid var(--color-border)', borderRadius: '2px',
               padding: '14px 16px', marginBottom: '20px', fontSize: '14px', color: 'var(--color-text-muted)'
             }}>
               <IconTruck /> <strong>Entrega estimada:</strong> {formatFechaLarga(eta.fechaEntrega)}
@@ -219,7 +219,7 @@ function ProductDetailPage() {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '10px',
               background: '#25D366', color: 'white', textDecoration: 'none',
-              padding: '12px 24px', borderRadius: '8px', fontSize: '16px', fontWeight: 600,
+              padding: '12px 24px', borderRadius: '2px', fontSize: '16px', fontWeight: 600,
               boxShadow: '0 2px 6px rgba(37,211,102,0.4)'
             }}
           >

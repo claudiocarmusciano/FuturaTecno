@@ -8,7 +8,7 @@ import './legal.css'
 export default function LegalLayout({ eyebrow = 'FUTURATECNO', titulo, intro, actualizado, children }) {
   useEffect(() => {
     const anterior = document.title
-    document.title = `${titulo} — FuturaTecno`
+    document.title = `${titulo} — Tecnópolis Olavarría`
     window.scrollTo(0, 0)
     return () => { document.title = anterior }
   }, [titulo])
@@ -16,7 +16,7 @@ export default function LegalLayout({ eyebrow = 'FUTURATECNO', titulo, intro, ac
   return (
     <main className="bases-page">
       <header className="bases-header">
-        <Link to="/"><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>
+        <Link to="/"><img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" /></Link>
         <Link to="/catalogo" className="bases-back">← Volver a la tienda</Link>
       </header>
       <article className="bases-card legal-card">
@@ -32,7 +32,7 @@ export default function LegalLayout({ eyebrow = 'FUTURATECNO', titulo, intro, ac
           <Link to="/arrepentimiento">Botón de arrepentimiento</Link>
         </nav>
       </article>
-      <p className="bases-footer">Futura Tecno es el nombre comercial de {TITULAR.nombre} · CUIT {TITULAR.cuit}</p>
+      <p className="bases-footer">Tecnópolis Olavarría es el nombre comercial de {TITULAR.nombre} · CUIT {TITULAR.cuit}</p>
     </main>
   )
 }

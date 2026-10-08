@@ -39,7 +39,7 @@ export default function ComprobantePage() {
   useEffect(() => {
     if (!p) return
     const anterior = document.title
-    document.title = `Comprobante ${p.numero} — FuturaTecno`
+    document.title = `Comprobante ${p.numero} — Tecnópolis Olavarría`
     return () => { document.title = anterior }
   }, [p])
 
@@ -53,7 +53,7 @@ export default function ComprobantePage() {
   const email = p.usuarioEmail || p.emailContacto
 
   const textoWhatsapp = [
-    `Hola ${p.nombreContacto || ''}! Te paso el comprobante de tu pedido ${p.numero} en Futura Tecno:`,
+    `Hola ${p.nombreContacto || ''}! Te paso el comprobante de tu pedido ${p.numero} en Tecnópolis Olavarría:`,
     ...p.items.map(i => `• ${i.cantidad} × ${i.productoNombre} — US$ ${formatNumber(i.subtotalUsd)}`),
     `Total: US$ ${formatNumber(p.totalUsd)} (≈ $ ${formatNumber(totalArs)})`,
     `Pago: ${MEDIO[p.medioPago] || p.medioPago}${p.estadoPago === 'APROBADO' ? ' (cobrado)' : ''}`,
@@ -85,9 +85,9 @@ export default function ComprobantePage() {
       <article className="comp-hoja">
         <header className="comp-cabecera">
           <div>
-            <img src="/logo.png?v=2" alt="FuturaTecno" className="comp-logo" />
+            <img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" className="comp-logo" />
             <div className="comp-titular">
-              Futura Tecno — nombre comercial de {TITULAR.nombre}<br />
+              Tecnópolis Olavarría — nombre comercial de {TITULAR.nombre}<br />
               CUIT {TITULAR.cuit} · {TITULAR.condicionIva}<br />
               {TITULAR.domicilioComercial}<br />
               {CONTACTO_EMAIL} · WhatsApp +{WHATSAPP_NUMBER}

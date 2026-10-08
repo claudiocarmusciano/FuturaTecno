@@ -6,7 +6,7 @@ function SlideContent({ promo, active }) {
   return <>
     <picture>
       {promo.imagenMovilUrl && <source media="(max-width: 700px)" srcSet={promo.imagenMovilUrl} />}
-      <img src={promo.imagenEscritorioUrl} alt={promo.titulo || 'Promoción FuturaTecno'} loading={active ? 'eager' : 'lazy'} />
+      <img src={promo.imagenEscritorioUrl} alt={promo.titulo || 'Promoción Tecnópolis Olavarría'} loading={active ? 'eager' : 'lazy'} />
     </picture>
     {(promo.titulo || promo.texto) && <div className="promotions-copy"><div>{promo.titulo && <h2>{promo.titulo}</h2>}{promo.texto && <p>{promo.texto}</p>}</div></div>}
   </>

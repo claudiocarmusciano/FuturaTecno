@@ -23,14 +23,14 @@ function AdminLayout() {
     <div className="app-container">
       {/* Barra superior (solo mobile) */}
       <div className="admin-topbar">
-        <Link to="/admin" onClick={cerrarMenu}><img src="/logo.png?v=2" alt="FuturaTecno" /></Link>
+        <Link to="/admin" onClick={cerrarMenu}><img src="/marca/tecnopolis-olavarria-logo-sobre-negro.svg" alt="Tecnópolis Olavarría" /></Link>
         <button className="hamburger" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú"><IconMenu /></button>
       </div>
 
       {menuAbierto && <div className="sidebar-backdrop" onClick={cerrarMenu} />}
 
       <aside className={`sidebar${menuAbierto ? ' abierto' : ''}`}>
-        <Link to="/admin" onClick={cerrarMenu}><img src="/logo.png?v=2" alt="FuturaTecno" className="logo-admin" /></Link>
+        <Link to="/admin" onClick={cerrarMenu}><img src="/marca/tecnopolis-olavarria-logo-sobre-negro.svg" alt="Tecnópolis Olavarría" className="logo-admin" /></Link>
         <h3>Panel Admin</h3>
         <nav onClick={cerrarMenu}>
           <Link to="/admin" className={`nav-link ${isActive('/admin')}`}>Dashboard</Link>

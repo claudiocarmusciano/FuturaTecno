@@ -6,7 +6,7 @@ export default function PrivacidadPage() {
     <LegalLayout titulo="Política de privacidad" actualizado="30 de septiembre de 2026"
       intro="Qué datos tuyos guardamos, para qué los usamos y cómo podés pedir que los corrijamos o borremos.">
       <section><h2>1. Responsable</h2>
-        <p>El responsable de tus datos es {TITULAR.nombre} (Futura Tecno), CUIT {TITULAR.cuit}, con domicilio en {TITULAR.domicilioFiscal}. Para cualquier consulta sobre tus datos escribinos a {CONTACTO_EMAIL}.</p>
+        <p>El responsable de tus datos es {TITULAR.nombre} (Tecnópolis Olavarría), CUIT {TITULAR.cuit}, con domicilio en {TITULAR.domicilioFiscal}. Para cualquier consulta sobre tus datos escribinos a {CONTACTO_EMAIL}.</p>
       </section>
 
       <section><h2>2. Qué datos guardamos</h2>

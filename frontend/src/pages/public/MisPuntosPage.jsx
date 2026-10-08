@@ -18,9 +18,9 @@ export default function MisPuntosPage() {
 
   return <div style={{ maxWidth: '780px', margin: '0 auto' }}>
     <h1>Mis puntos</h1>
-    <div className="card" style={{ border: '1px solid var(--color-lime)', background: 'linear-gradient(135deg, rgba(200,224,72,.13), transparent)' }}>
+    <div className="card" style={{ border: '1px solid var(--color-accion)', background: 'linear-gradient(135deg, rgba(0, 119, 179, .13), transparent)' }}>
       <div style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Saldo disponible</div>
-      <div style={{ fontSize: '44px', lineHeight: 1.1, fontWeight: 800, color: 'var(--color-lime)', marginTop: '5px' }}>{data.puntosDisponibles} puntos</div>
+      <div style={{ fontSize: '44px', lineHeight: 1.1, fontWeight: 800, color: 'var(--color-accion)', marginTop: '5px' }}>{data.puntosDisponibles} puntos</div>
       <p style={{ margin: '9px 0 0', fontSize: '15px' }}>Equivalen a <strong>US$ {data.puntosDisponibles}</strong> para descontar en una próxima compra.</p>
       {data.proximoVencimiento && <p style={{ margin: '7px 0 0', color: 'var(--color-text-muted)', fontSize: '13px' }}>El próximo vencimiento es el {fecha(data.proximoVencimiento)}.</p>}
       <Link to="/catalogo" className="btn-primario" style={{ display: 'inline-block', marginTop: '16px', textDecoration: 'none' }}>Ver catálogo</Link>
@@ -34,7 +34,7 @@ export default function MisPuntosPage() {
       {data.movimientos.length === 0 ? <p style={{ color: 'var(--color-text-muted)' }}>Todavía no tenés movimientos.</p> : data.movimientos.map((m, index) => (
         <div key={index} style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
           <div><strong>{m.detalle}</strong><div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '3px' }}>{fecha(m.fecha)}{m.venceEn ? ` · vence ${fecha(m.venceEn)}` : ''}</div></div>
-          <strong style={{ whiteSpace: 'nowrap', color: m.puntos > 0 ? 'var(--color-lime)' : 'var(--color-text)' }}>{m.puntos > 0 ? '+' : ''}{m.puntos}</strong>
+          <strong style={{ whiteSpace: 'nowrap', color: m.puntos > 0 ? 'var(--color-accion)' : 'var(--color-text)' }}>{m.puntos > 0 ? '+' : ''}{m.puntos}</strong>
         </div>
       ))}
     </div>

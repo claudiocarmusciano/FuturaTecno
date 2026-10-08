@@ -311,7 +311,7 @@ export default function ArmaTuPcPage() {
   const compartir = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Mi PC armada en FuturaTecno', url: link })
+        await navigator.share({ title: 'Mi PC armada en Tecnópolis Olavarría', url: link })
         return
       } catch (e) {
         if (e?.name === 'AbortError') return   // cerró el menú de compartir
@@ -423,7 +423,7 @@ export default function ArmaTuPcPage() {
   const empezarDeNuevo = () => { setSeleccion({}); setPaso(0); setAvisoLink(null) }
 
   const mensajeWa = [
-    'Hola FuturaTecno, armé esta PC y quiero consultar:',
+    'Hola Tecnópolis Olavarría, armé esta PC y quiero consultar:',
     ...PASOS.filter(p => seleccion[p.clave]).map(p => {
       const s = seleccion[p.clave]
       return `• ${p.titulo}: ${s.item.modelo}${s.cantidad > 1 ? ` (x${s.cantidad})` : ''}`

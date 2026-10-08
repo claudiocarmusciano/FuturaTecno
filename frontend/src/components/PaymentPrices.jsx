@@ -14,7 +14,7 @@ export default function PaymentPrices({ transferPrice, compact = false, cashPric
       <div style={{ color: 'var(--color-price)', fontWeight: 700 }}>
         $ {money(transferPrice)} por transferencia
       </div>
-      <div style={{ marginTop: '4px', color: 'var(--color-lime)', fontWeight: 700 }}>
+      <div style={{ marginTop: '4px', color: 'var(--color-accion)', fontWeight: 700 }}>
         $ {money(efectivo)} en contado efectivo <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>({CASH_DISCOUNT_PERCENTAGE}% OFF)</span>
       </div>
       <p style={{ margin: '7px 0 0', fontSize: '11px', lineHeight: 1.35, color: 'var(--color-text-muted)' }}>

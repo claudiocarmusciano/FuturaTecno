@@ -18,9 +18,9 @@ function CartBadge({ cantidad = 0, className }) {
         <span
           style={{
             position: 'absolute', top: '-7px', right: '-9px',
-            background: 'var(--color-lime, #C8E048)', color: '#16181d',
+            background: 'var(--color-accion)', color: 'var(--color-sobre-accion)',
             fontSize: '11px', fontWeight: 700, lineHeight: 1,
-            minWidth: '18px', height: '18px', borderRadius: '9px',
+            minWidth: '18px', height: '18px', borderRadius: '2px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px'
           }}
         >

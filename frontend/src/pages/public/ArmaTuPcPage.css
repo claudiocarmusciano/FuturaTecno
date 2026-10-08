@@ -3,7 +3,7 @@
 .atp-intro { margin-bottom: 20px; }
 .atp-eyebrow {
   display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--color-lime); background: var(--color-lime-tint); padding: 4px 10px; border-radius: 999px;
+  color: var(--color-accion); background: var(--color-accion-tint); padding: 4px 10px; border-radius: 2px;
 }
 .atp-intro h1 { font-size: clamp(22px, 3vw, 32px); margin: 10px 0 6px; line-height: 1.2; }
 .atp-intro p { color: var(--color-text-muted); margin: 0; }
@@ -14,13 +14,13 @@
 }
 .atp-paso {
   display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px;
-  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 2px;
   color: var(--color-text-muted); cursor: pointer; font: inherit; font-size: 12px; text-align: center;
 }
 .atp-paso:hover { background: var(--color-surface-2); }
 .atp-paso.hecho { color: var(--color-text); }
-.atp-paso.hecho .atp-paso-icono { color: var(--color-lime); }
-.atp-paso.activo { border-color: var(--color-lime); color: var(--color-text); background: var(--color-lime-tint); }
+.atp-paso.hecho .atp-paso-icono { color: var(--color-accion); }
+.atp-paso.activo { border-color: var(--color-accion); color: var(--color-text); background: var(--color-accion-tint); }
 .atp-paso-icono { font-size: 18px; line-height: 1; }
 
 .atp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
@@ -28,39 +28,39 @@
 .atp-lista-header h2 { margin: 0 0 6px; font-size: 20px; display: flex; align-items: center; gap: 10px; }
 .atp-opcional {
   font-size: 11px; font-weight: 500; color: var(--color-text-muted); border: 1px solid var(--color-border);
-  padding: 2px 8px; border-radius: 999px;
+  padding: 2px 8px; border-radius: 2px;
 }
-.atp-nota { margin: 0 0 10px; color: var(--color-lime); font-size: 14px; }
+.atp-nota { margin: 0 0 10px; color: var(--color-accion); font-size: 14px; }
 .atp-filtros { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
 .atp-filtros input { flex: 1 1 220px; min-width: 0; }
 .atp-filtros input, .atp-filtros select, .atp-resumen select {
   background: var(--color-surface-2); color: var(--color-text); border: 1px solid var(--color-border);
-  border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 14px;
+  border-radius: 2px; padding: 9px 12px; font: inherit; font-size: 14px;
 }
 .atp-ocultos { font-size: 12px; color: var(--color-text-muted); margin: 0 0 12px; }
 
 .atp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 14px; }
 .atp-card {
   display: flex; flex-direction: column; gap: 8px; padding: 14px;
-  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 2px;
 }
-.atp-card.elegido { border-color: var(--color-lime); }
+.atp-card.elegido { border-color: var(--color-accion); }
 /* Blanco a propósito, igual que el catálogo: las fotos de los mayoristas vienen sobre blanco. */
 .atp-card-img {
-  background: #fff; border-radius: 10px; height: 130px; display: flex; align-items: center; justify-content: center;
+  background: #fff; border-radius: 2px; height: 130px; display: flex; align-items: center; justify-content: center;
   color: #8a8f99; font-size: 12px; overflow: hidden;
 }
 .atp-card-img img { max-width: 100%; max-height: 118px; object-fit: contain; }
 .atp-card h3 { font-size: 14px; line-height: 1.35; margin: 0; }
 .atp-atributos { display: flex; flex-wrap: wrap; gap: 4px; }
 .atp-atributos span {
-  font-size: 11px; padding: 2px 7px; border-radius: 6px; background: var(--color-surface-2); color: var(--color-text-muted);
+  font-size: 11px; padding: 2px 7px; border-radius: 2px; background: var(--color-surface-2); color: var(--color-text-muted);
 }
-.atp-aviso { margin: 0; font-size: 12px; color: #f0c05a; }
-.atp-sugerencia { margin: 0; font-size: 12px; color: #9ec5ff; line-height: 1.4; }
+.atp-aviso { margin: 0; font-size: 12px; color: var(--color-warning); }
+.atp-sugerencia { margin: 0; font-size: 12px; color: var(--color-accion); line-height: 1.4; }
 .atp-recomendada {
-  margin: 0; font-size: 11px; font-weight: 600; color: var(--color-lime);
-  background: var(--color-lime-tint); padding: 3px 8px; border-radius: 6px; align-self: flex-start;
+  margin: 0; font-size: 11px; font-weight: 600; color: var(--color-accion);
+  background: var(--color-accion-tint); padding: 3px 8px; border-radius: 2px; align-self: flex-start;
 }
 .atp-card-precio { margin-top: auto; }
 .atp-card-precio strong { font-size: 18px; }
@@ -68,14 +68,14 @@
 .atp-card-acciones .btn { flex: 1; }
 .atp-card-acciones select {
   background: var(--color-surface-2); color: var(--color-text); border: 1px solid var(--color-border);
-  border-radius: 10px; padding: 6px 8px; font: inherit; font-size: 13px; min-width: 0;
+  border-radius: 2px; padding: 6px 8px; font: inherit; font-size: 13px; min-width: 0;
 }
 .atp-mas { display: block; margin: 18px auto 0; }
 
 /* Resumen */
 .atp-resumen {
   position: sticky; top: 16px; background: var(--color-surface); border: 1px solid var(--color-border);
-  border-radius: 16px; padding: 16px;
+  border-radius: 2px; padding: 16px;
 }
 .atp-resumen-barra { display: none; }
 .atp-resumen h2 { margin: 0 0 12px; font-size: 18px; }
@@ -95,8 +95,8 @@
 }
 .atp-quitar:hover { color: var(--color-danger); }
 .atp-resumen-vacio { display: block; font-size: 13px; color: var(--color-text-muted); margin-top: 4px; }
-.atp-resumen-avisos { margin-top: 12px; padding: 10px; border-radius: 10px; background: rgba(240, 192, 90, .1); }
-.atp-resumen-avisos p { margin: 0 0 4px; font-size: 12px; color: #f0c05a; }
+.atp-resumen-avisos { margin-top: 12px; padding: 10px; border-radius: 2px; background: rgba(240, 192, 90, .1); }
+.atp-resumen-avisos p { margin: 0 0 4px; font-size: 12px; color: var(--color-warning); }
 .atp-total { margin: 14px 0 12px; display: flex; flex-direction: column; gap: 2px; }
 .atp-total > span { font-size: 12px; color: var(--color-text-muted); }
 .atp-total strong { font-size: 24px; }
@@ -105,15 +105,15 @@
 .atp-faltan { font-size: 12px; color: var(--color-text-muted); margin: 8px 0 0; }
 .atp-legal { font-size: 11px; color: var(--color-text-muted); margin: 10px 0 0; }
 .atp-aviso-link {
-  margin: 0 0 12px; font-size: 13px; padding: 10px 12px; border-radius: 10px;
-  background: var(--color-lime-tint); color: var(--color-lime);
+  margin: 0 0 12px; font-size: 13px; padding: 10px 12px; border-radius: 2px;
+  background: var(--color-accion-tint); color: var(--color-accion);
 }
 .atp-envio { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--color-border); }
 .atp-envio-titulo { display: block; font-size: 12px; color: var(--color-text-muted); margin-bottom: 8px; }
 .atp-envio-form { display: flex; gap: 8px; }
 .atp-envio-form input {
   flex: 1; min-width: 0; background: var(--color-surface-2); color: var(--color-text);
-  border: 1px solid var(--color-border); border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 14px;
+  border: 1px solid var(--color-border); border-radius: 2px; padding: 8px 10px; font: inherit; font-size: 14px;
 }
 .atp-envio-form .btn:disabled { opacity: .5; cursor: not-allowed; }
 .atp-envio-opciones { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -142,7 +142,7 @@
 
   /* En mobile el resumen es una barra fija abajo que se despliega. */
   .atp-resumen {
-    position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 50; border-radius: 16px 16px 0 0;
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 50; border-radius: 2px 16px 0 0;
     padding: 0; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -8px 24px rgba(0, 0, 0, .35);
   }
   .atp-resumen-barra {
@@ -150,7 +150,7 @@
     /* A la derecha queda lugar para el botón flotante de WhatsApp, que es fixed y taparía la flecha. */
     padding: 14px 84px 14px 16px; background: none; border: 0; color: var(--color-text); font: inherit; cursor: pointer;
   }
-  .atp-resumen-barra strong { color: var(--color-lime); }
+  .atp-resumen-barra strong { color: var(--color-accion); }
   .atp-resumen-cuerpo { display: none; overflow-y: auto; padding: 0 16px 16px; }
   .atp-resumen.abierto .atp-resumen-cuerpo { display: block; }
   .atp-resumen h2 { display: none; }

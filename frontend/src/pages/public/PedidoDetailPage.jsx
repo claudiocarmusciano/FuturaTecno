@@ -82,7 +82,7 @@ function PedidoDetailPage() {
         </div>
       </div>
 
-      <div className="card" style={{ borderLeft: `4px solid ${pagado ? 'var(--color-lime)' : 'var(--color-border)'}` }}>
+      <div className="card" style={{ borderLeft: `4px solid ${pagado ? 'var(--color-accion)' : 'var(--color-border)'}` }}>
         <h2 style={{ fontSize: '17px', margin: '0 0 8px' }}>Pago</h2>
         <p style={{ margin: '0 0 8px', color: 'var(--color-text-muted)', fontSize: '14px' }}>
           {esTransferencia ? 'Transferencia bancaria' : esEfectivo ? 'Contado efectivo (7% OFF)' : 'Mercado Pago'}
@@ -118,7 +118,7 @@ function PedidoDetailPage() {
       </div>
 
       {pedido.estado === 'PENDIENTE' && pedido.venceEn && (
-        <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
           <strong>Vale hasta el {formatCorte(pedido.venceEn)}.</strong>
           <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
             Completá el pago antes de ese horario. Después se actualizan los precios y el pedido vence.
@@ -141,11 +141,11 @@ function PedidoDetailPage() {
         {pedido.items.map(i => (
           <div key={i.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
             {i.imagenUrl
-              ? <img src={i.imagenUrl} alt="" style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '6px' }} />
-              : <div style={{ width: '52px', height: '52px', borderRadius: '6px', background: 'var(--color-accent-light)' }} />}
+              ? <img src={i.imagenUrl} alt="" style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '2px' }} />
+              : <div style={{ width: '52px', height: '52px', borderRadius: '2px', background: 'var(--color-accent-light)' }} />}
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 600 }}>{i.productoNombre}</div>
-              {textoDemora(i) && <div style={{ fontSize: '12px', color: '#f0c05a', fontWeight: 600 }}>Entrega en {textoDemora(i)}</div>}
+              {textoDemora(i) && <div style={{ fontSize: '12px', color: 'var(--color-warning)', fontWeight: 600 }}>Entrega en {textoDemora(i)}</div>}
               {i.especificaciones && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{i.especificaciones}</div>}
               <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                 {i.sku && <>Cód. {i.sku} · </>}{i.cantidad} × US$ {formatNumber(i.precioUnitarioUsd)}
@@ -164,7 +164,7 @@ function PedidoDetailPage() {
         </div>
         <div style={{ textAlign: 'right', color: 'var(--color-price)' }}>$ {formatNumber(pedido.totalArs)}</div>
         {pedido.puntosCanjeados > 0 && (
-          <p style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-lime)', margin: '5px 0 0' }}>
+          <p style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-accion)', margin: '5px 0 0' }}>
             − {pedido.puntosCanjeados} punto(s): $ {formatNumber(pedido.descuentoPuntosArs)}
           </p>
         )}
@@ -211,7 +211,7 @@ function PedidoDetailPage() {
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '10px',
           background: '#25D366', color: 'white', textDecoration: 'none',
-          padding: '12px 24px', borderRadius: '8px', fontSize: '16px', fontWeight: 600
+          padding: '12px 24px', borderRadius: '2px', fontSize: '16px', fontWeight: 600
         }}
       >
         <IconChat size="20px" /> Consultar por WhatsApp

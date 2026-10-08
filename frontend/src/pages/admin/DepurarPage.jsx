@@ -100,7 +100,7 @@ function DepurarPage() {
       </p>
 
       {mensaje && (
-        <div className="card" style={{ borderLeft: '4px solid var(--color-lime)', color: 'var(--color-lime)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--color-accion)', color: 'var(--color-accion)' }}>
           {mensaje}
         </div>
       )}
@@ -113,7 +113,7 @@ function DepurarPage() {
             onChange={(e) => setDias(Math.max(1, Number(e.target.value) || 1))}
             style={{
               width: '90px', padding: '8px', border: '1px solid var(--color-border)',
-              borderRadius: '4px', color: 'var(--color-text)'
+              borderRadius: '2px', color: 'var(--color-text)'
             }}
           />
         </label>
@@ -180,7 +180,7 @@ function DepurarPage() {
               </thead>
               <tbody>
                 {productos.map((p) => (
-                  <tr key={p.id} style={seleccionados.has(p.id) ? { background: 'rgba(200, 224, 72, 0.08)' } : undefined}>
+                  <tr key={p.id} style={seleccionados.has(p.id) ? { background: 'rgba(0, 119, 179, 0.08)' } : undefined}>
                     <td>
                       <input
                         type="checkbox" checked={seleccionados.has(p.id)} onChange={() => alternar(p.id)}

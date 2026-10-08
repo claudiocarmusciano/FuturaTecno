@@ -14,7 +14,7 @@ function ActivateAccountPage() {
       .then(res => { guardarSesion(res.data); setEstado('ok') }).catch(() => setEstado('invalido'))
   }, [token, guardarSesion])
   return <div style={{ maxWidth: 480, margin: '80px auto', padding: '0 20px', textAlign: 'center' }} className="card">
-    <img src="/logo.png?v=2" alt="FuturaTecno" style={{ height: 64, background: '#16181d', borderRadius: 12, padding: 8, marginBottom: 20 }} />
+    <img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" style={{ height: 52, marginBottom: 20 }} />
     {estado === 'activando' && <><h1 style={{ fontSize: 25 }}>Activando tu cuenta…</h1><p>Un momento, estamos verificando el enlace.</p></>}
     {estado === 'ok' && <><h1 style={{ fontSize: 25 }}>¡Email activado!</h1><p style={{ margin: '10px 0 22px', color: 'var(--color-text-muted)' }}>Tu cuenta ya está lista para comprar.</p><Link className="btn btn-primary" to="/catalogo">Ir a la tienda</Link></>}
     {estado === 'invalido' && <><h1 style={{ fontSize: 25 }}>El enlace no es válido</h1><p style={{ margin: '10px 0 22px', color: 'var(--color-text-muted)' }}>Puede haber vencido. Volvé a registrarte para recibir uno nuevo.</p><Link className="btn btn-primary" to="/registro">Ir al registro</Link></>}

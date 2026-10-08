@@ -2,13 +2,16 @@
 
 // Número de WhatsApp del negocio (con código de país, sin "+" ni espacios).
 // Ej: 5492284622222  → +54 9 2284 62-2222
-export const WHATSAPP_NUMBER = '5492284381111'
+export const WHATSAPP_NUMBER = '5492284324444'
 
 // Nombre del negocio (se usa en mensajes y textos).
-export const NOMBRE_NEGOCIO = 'FuturaTecno'
+export const NOMBRE_NEGOCIO = 'Tecnópolis Olavarría'
+
+// Marca anterior: se menciona en el pie legal mientras dure la mudanza ("antes Futura Tecno").
+export const NOMBRE_ANTERIOR = 'Futura Tecno'
 
 // Datos legales del titular (pie de página y páginas legales). Tienen que coincidir con la
-// constancia de ARCA: "Futura Tecno" es el nombre comercial de una persona física.
+// constancia de ARCA: "Tecnópolis Olavarría" es el nombre comercial de una persona física.
 export const TITULAR = {
   nombre: 'Claudio José Carmusciano',
   cuit: '20-23128286-7',
@@ -29,4 +32,4 @@ export const DATA_FISCAL_URL = ''
 export const DATA_FISCAL_IMG = ''
 
 // Título general de la pestaña: el mismo que el <title> de index.html.
-export const TITULO_SITIO = 'Futura Tecno — Tecnología en Olavarría | Celulares, notebooks y PC'
+export const TITULO_SITIO = 'Tecnópolis Olavarría — Tecnología en Olavarría | Celulares, notebooks y PC'

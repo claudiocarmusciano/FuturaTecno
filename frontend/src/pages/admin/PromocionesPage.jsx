@@ -107,7 +107,7 @@ function PromocionesPage() {
       <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginBottom: 0 }}>
         El carrousel se publica al tener al menos 4 imágenes activas y vigentes. Escritorio: 1600 × 300 px. Móvil: 1080 × 608 px. JPG o WebP, máximo 500 KB cada una.
       </p>
-      {activas > 0 && activas < 4 && <p style={{ color: '#d7a928', fontWeight: 600 }}>Faltan {4 - activas} imágenes activas para publicar el carrousel.</p>}
+      {activas > 0 && activas < 4 && <p style={{ color: 'var(--color-warning)', fontWeight: 600 }}>Faltan {4 - activas} imágenes activas para publicar el carrousel.</p>}
     </div>
 
     <form className="card" onSubmit={guardar}>

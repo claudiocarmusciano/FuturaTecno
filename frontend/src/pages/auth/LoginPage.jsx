@@ -48,15 +48,15 @@ function LoginPage() {
     <div style={{ maxWidth: '400px', margin: '60px auto', padding: '0 20px' }}>
       <div className="card">
         <div style={{ textAlign: 'center', marginBottom: '26px' }}>
-          <span style={{ display: 'inline-block', background: '#16181d', borderRadius: '16px', padding: '11px 16px' }}>
-            <img src="/logo.png?v=2" alt="FuturaTecno" style={{ height: '66px', width: 'auto', display: 'block' }} />
+          <span style={{ display: 'inline-block', background: 'var(--color-sobre-accion)', borderRadius: '2px', padding: '11px 16px' }}>
+            <img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" style={{ height: '52px', width: 'auto', display: 'block' }} />
           </span>
         </div>
         <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Iniciar sesión</h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginBottom: '24px', textAlign: 'center' }}>Ingresá a tu cuenta</p>
 
         {error && (
-          <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
+          <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '11px 14px', borderRadius: '2px', marginBottom: '16px', fontSize: '14px' }}>
             {error}
           </div>
         )}

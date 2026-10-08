@@ -1,18 +1,15 @@
-/* Este archivo era el boilerplate de Vite: traía un violeta #646cff para los links, un
-   fondo #242424 y un media query de prefers-color-scheme que peleaban con los tokens de
-   App.css. Los colores del sitio salen todos de App.css (:root), así que acá solo queda
-   lo estructural. */
+/* Lo estructural de botones. Los colores del sitio salen todos de App.css (:root). */
 
 button {
-  border-radius: 8px;
+  border-radius: 2px;
   border: 1px solid transparent;
   font-size: 1em;
-  font-weight: 500;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
 }
 
-button:focus-visible {
-  outline: 2px solid var(--color-lime);
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--color-accion);
   outline-offset: 2px;
 }

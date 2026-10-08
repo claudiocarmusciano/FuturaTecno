@@ -5,22 +5,9 @@
   background-color: var(--color-bg);
 }
 
-/* Textura mate y grilla tenue: identidad sin brillos ni fondos que compitan
-   con el contenido del catálogo. */
-.public-layout-catalogo {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    repeating-linear-gradient(-22deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 8px);
-  background-size: 42px 42px, 42px 42px, auto;
-  background-attachment: fixed;
-}
-
 .public-header {
-  background-color: rgba(22, 24, 29, 0.88);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid var(--color-dark-border);
+  background-color: #fff;
+  box-shadow: 0 1px 0 #e6e6e6;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -28,79 +15,73 @@
 
 .header-container {
   position: relative;
-  max-width: 1320px;
+  max-width: var(--ancho-pagina);
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 14px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-}
-.logo:hover { opacity: 0.85; }
-.header-logo { height: 72px; width: auto; display: block; }
+.logo { display: flex; align-items: center; text-decoration: none; }
+.header-logo { height: 44px; width: auto; display: block; }
 
-.public-nav { display: flex; gap: 24px; align-items: center; margin-left: auto; }
+.public-nav { display: flex; gap: 8px; align-items: center; margin-left: 40px; flex: 1; }
 .public-nav a {
-  color: #e9eae5;
+  color: var(--color-text);
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  transition: color 0.15s;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 8px;
 }
-.public-nav a:hover { color: var(--color-lime); }
-/* Acción principal: lima con texto oscuro, igual que .lp-nav-cta de la home (el lima sobre el header
-   oscuro contrasta; el texto blanco sobre lima no se leería). */
+.public-nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+/* Las cuentas van a la derecha, separadas de los links de la tienda. */
+.public-nav .public-nav-cuenta { margin-left: auto; }
 .public-nav a.public-nav-cta {
-  background: var(--color-lime);
-  color: #16181d;
-  font-weight: 700;
+  background: var(--color-accion);
+  color: var(--color-sobre-accion);
+  font-weight: 600;
   padding: 8px 16px;
-  border-radius: 999px;
+  border-radius: 2px;
 }
-.public-nav a.public-nav-cta:hover { color: #16181d; background: var(--color-lime-dark); }
-/* max-width + ellipsis: un nombre largo no debe poder romper el header (mismo criterio que la home). */
+.public-nav a.public-nav-cta:hover { background: var(--color-accion-hover); text-decoration: none; }
 .public-nav-saludo {
-  color: #9a9d92; font-size: 14px;
-  max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--color-text-muted); font-size: 15px; padding: 8px;
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.public-header-acciones { display: flex; align-items: center; gap: 18px; margin-left: 24px; color: #e9eae5; }
+.public-header-acciones { display: flex; align-items: center; gap: 16px; margin-left: 16px; color: var(--color-text); }
 .public-header-acciones a { color: inherit; }
-.public-header-acciones a:hover { color: var(--color-lime); }
 .public-nav-toggle {
-  display: none; background: none; border: none; color: #e9eae5; cursor: pointer;
+  display: none; background: none; border: none; color: var(--color-text); cursor: pointer;
   padding: 4px; line-height: 0;
 }
 
 .public-main {
   flex: 1;
-  max-width: 1320px;
+  max-width: var(--ancho-pagina);
   margin: 0 auto;
   width: 100%;
-  padding: 44px 24px;
+  padding: 48px 24px;
 }
+.public-main-home { flex: 1; width: 100%; }
 
-/* Mismo corte que la home (Landing.css): por debajo, los links pasan a un menú desplegable. */
-@media (max-width: 860px) {
+@media (max-width: 920px) {
   .public-nav { display: none; }
   .public-nav.abierto {
-    display: flex; position: absolute; top: 100%; left: 0; right: 0;
+    display: flex; position: absolute; top: 100%; left: 0; right: 0; margin: 0;
     flex-direction: column; align-items: flex-start; gap: 0;
-    background: #16181d; border-bottom: 1px solid var(--color-dark-border);
-    padding: 8px 24px 18px;
+    background: #fff; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    padding: 8px 24px 16px;
   }
   .public-nav.abierto a, .public-nav.abierto .public-nav-saludo { padding: 12px 0; width: 100%; max-width: none; }
-  .public-nav.abierto a.public-nav-cta { width: auto; margin-top: 8px; padding: 10px 22px; }
+  .public-nav.abierto .public-nav-cuenta { margin-left: 0; border-top: 1px solid #e6e6e6; margin-top: 8px; padding-top: 16px; }
+  .public-nav.abierto a.public-nav-cta { width: auto; padding: 10px 20px; }
   .public-nav-toggle { display: block; }
 }
 
 @media (max-width: 600px) {
   .header-container { padding: 10px 16px; }
-  .header-logo { height: 48px; }
+  .header-logo { height: 36px; }
   .public-nav.abierto { padding: 4px 16px 16px; }
-  .public-main { padding: 22px 16px; }
+  .public-main { padding: 24px 16px; }
 }

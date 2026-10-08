@@ -163,10 +163,10 @@ function ImagesPage() {
             {mostrarSoloSinImagen && <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '13px' }}>Mostrando primero los {sinImagen} artículo(s) sin imagen.</p>}
           </div>
           <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => setSoloSinImagen(true)} className="btn" style={{ padding: '7px 10px', fontSize: '12px', border: soloSinImagen ? '1px solid var(--color-lime)' : '1px solid var(--color-border)', background: soloSinImagen ? 'var(--color-lime)' : 'transparent', color: soloSinImagen ? '#16181d' : 'var(--color-text)' }}>
+            <button type="button" onClick={() => setSoloSinImagen(true)} className="btn" style={{ padding: '7px 10px', fontSize: '12px', border: soloSinImagen ? '1px solid var(--color-accion)' : '1px solid var(--color-border)', background: soloSinImagen ? 'var(--color-accion)' : 'transparent', color: soloSinImagen ? 'var(--color-sobre-accion)' : 'var(--color-text)' }}>
               Sin imagen ({sinImagen})
             </button>
-            <button type="button" onClick={() => setSoloSinImagen(false)} className="btn" style={{ padding: '7px 10px', fontSize: '12px', border: !soloSinImagen ? '1px solid var(--color-lime)' : '1px solid var(--color-border)', background: !soloSinImagen ? 'var(--color-lime)' : 'transparent', color: !soloSinImagen ? '#16181d' : 'var(--color-text)' }}>
+            <button type="button" onClick={() => setSoloSinImagen(false)} className="btn" style={{ padding: '7px 10px', fontSize: '12px', border: !soloSinImagen ? '1px solid var(--color-accion)' : '1px solid var(--color-border)', background: !soloSinImagen ? 'var(--color-accion)' : 'transparent', color: !soloSinImagen ? 'var(--color-sobre-accion)' : 'var(--color-text)' }}>
               Todos ({productos.length})
             </button>
           </div>
@@ -177,7 +177,7 @@ function ImagesPage() {
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por marca, modelo, categoría, proveedor o SKU..."
           aria-label="Buscar productos"
-          style={{ width: '100%', maxWidth: '560px', marginBottom: '16px', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '14px', color: 'var(--color-text)', background: 'var(--color-surface-2)' }}
+          style={{ width: '100%', maxWidth: '560px', marginBottom: '16px', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '14px', color: 'var(--color-text)', background: 'var(--color-surface-2)' }}
         />
         {cargando ? (
           <p>Cargando...</p>
@@ -215,7 +215,7 @@ function ImagesPage() {
                     <Link
                       to={`/admin/productos?${new URLSearchParams({ editar: String(p.id), origen: 'imagenes', busqueda, filtro: soloSinImagen ? 'sin-imagen' : 'todos' })}`}
                       title="Editar producto completo"
-                      style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-lime)', textUnderlineOffset: '4px' }}
+                      style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-accion)', textUnderlineOffset: '4px' }}
                     >
                       {[p.categoria, p.marca, p.modelo].filter(Boolean).join(' ')}
                     </Link>
@@ -225,9 +225,9 @@ function ImagesPage() {
                       <div style={{ marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
                         <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{p.colores.length > 1 ? 'Colores:' : 'Color:'}</span>
                         {p.colores.map(c => (
-                          <span key={c} style={{ fontSize: '12px', fontWeight: 600, color: '#16181d', background: 'var(--color-lime)', borderRadius: '999px', padding: '1px 8px' }}>{c}</span>
+                          <span key={c} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-sobre-accion)', background: 'var(--color-accion)', borderRadius: '2px', padding: '1px 8px' }}>{c}</span>
                         ))}
-                        {p.colores.length > 1 && <span style={{ fontSize: '11px', color: 'var(--color-warning, #f0c05a)' }}>no dice cuál es este</span>}
+                        {p.colores.length > 1 && <span style={{ fontSize: '11px', color: 'var(--color-warning, var(--color-warning))' }}>no dice cuál es este</span>}
                       </div>
                     )}
                     {p.especificaciones && (
@@ -237,7 +237,7 @@ function ImagesPage() {
                       <span><span style={{ color: 'var(--color-text-muted)' }}>Proveedor:</span> {p.proveedor || '—'}</span>
                       <span><span style={{ color: 'var(--color-text-muted)' }}>Costo:</span> {p.costoUsd != null ? `US$ ${formatUsd(p.costoUsd)}` : '—'}</span>
                       <span><span style={{ color: 'var(--color-text-muted)' }}>Venta:</span> {p.ventaUsd != null
-                        ? <strong style={{ color: 'var(--color-lime)' }}>US$ {formatUsd(p.ventaUsd)}{p.ventaArs != null && <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}> · $ {formatArs(p.ventaArs)}</span>}</strong>
+                        ? <strong style={{ color: 'var(--color-accion)' }}>US$ {formatUsd(p.ventaUsd)}{p.ventaArs != null && <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}> · $ {formatArs(p.ventaArs)}</span>}</strong>
                         : '—'}</span>
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
@@ -310,8 +310,8 @@ function ImagesPage() {
                                 style={{
                                   width: '132px', padding: '6px', textAlign: 'left',
                                   cursor: rota ? 'not-allowed' : 'pointer', opacity: rota ? 0.45 : 1,
-                                  background: 'var(--color-surface)', borderRadius: '6px',
-                                  border: edits[p.id] === c.url ? '2px solid var(--color-lime)' : '1px solid var(--color-border)'
+                                  background: 'var(--color-surface)', borderRadius: '2px',
+                                  border: edits[p.id] === c.url ? '2px solid var(--color-accion)' : '1px solid var(--color-border)'
                                 }}
                               >
                                 {rota ? (

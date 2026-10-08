@@ -62,10 +62,10 @@ function useDemorado(valor, ms) {
 }
 
 const botonPagina = (activo, deshabilitado) => ({
-  padding: '8px 14px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
-  border: `1px solid ${activo ? 'var(--color-lime)' : 'var(--color-border)'}`,
-  background: activo ? 'var(--color-lime)' : 'transparent',
-  color: activo ? '#16181d' : 'var(--color-text)',
+  padding: '8px 14px', borderRadius: '2px', fontSize: '14px', fontWeight: 600,
+  border: `1px solid ${activo ? 'var(--color-accion)' : 'var(--color-border)'}`,
+  background: activo ? 'var(--color-accion)' : 'transparent',
+  color: activo ? 'var(--color-sobre-accion)' : 'var(--color-text)',
   cursor: deshabilitado ? 'default' : 'pointer',
   opacity: deshabilitado ? 0.35 : 1
 })
@@ -128,8 +128,8 @@ function NodoCategoria({ nodo, nivel, seleccionado, onSeleccionar, expandidos, t
 // Estilo de cada opción dentro del panel desplegable de marcas.
 const opcionMarca = (activo) => ({
   display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px',
-  background: activo ? 'var(--color-lime)' : 'none', border: 'none', borderRadius: '6px',
-  cursor: 'pointer', fontSize: '14px', color: activo ? '#16181d' : 'var(--color-text)',
+  background: activo ? 'var(--color-accion)' : 'none', border: 'none', borderRadius: '2px',
+  cursor: 'pointer', fontSize: '14px', color: activo ? 'var(--color-sobre-accion)' : 'var(--color-text)',
   fontWeight: activo ? 600 : 500
 })
 
@@ -155,7 +155,7 @@ function MarcaDropdown({ marca, marcas, onChange }) {
         onClick={() => setAbierto(a => !a)}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%',
-          padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)', borderRadius: '8px',
+          padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)', borderRadius: '2px',
           background: 'var(--color-surface-2)', color: 'var(--color-text)', cursor: 'pointer'
         }}
       >
@@ -165,7 +165,7 @@ function MarcaDropdown({ marca, marcas, onChange }) {
       {abierto && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 20,
-          background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '8px',
+          background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: '2px',
           boxShadow: 'var(--shadow)', maxHeight: '280px', overflowY: 'auto', padding: '4px'
         }}>
           <button type="button" onClick={() => elegir('')} style={opcionMarca(marca === '')}>Todas</button>
@@ -348,27 +348,27 @@ function CatalogPage() {
 
   const inputFiltro = {
     padding: '9px 12px', fontSize: '14px', border: '1px solid var(--color-border)',
-    borderRadius: '8px', color: 'var(--color-text)', background: 'var(--color-surface-2)'
+    borderRadius: '2px', color: 'var(--color-text)', background: 'var(--color-surface-2)'
   }
 
   return (
     <div className="catalog-page">
-      <section className="catalog-hero">
-        <span className="catalog-kicker">FUTURATECNO · CATÁLOGO</span>
-        <h1>Elegí tu próximo <span>upgrade.</span></h1>
-        <p>Productos de primeras marcas, precios actualizados y atención personalizada para comprar con tranquilidad.</p>
-      </section>
+      <header className="catalog-hero">
+        <h1>Productos</h1>
+        <p>Primeras marcas, precios del día y atención personalizada para comprar con tranquilidad.</p>
+      </header>
 
-      {eta?.fechaEntrega && (
-        <div className="catalog-eta">
-          <span className="catalog-eta-marker" aria-hidden="true"><IconArrowUpRight /></span>
-          <span>Comprando hoy, tu pedido llega aprox. el <strong>{formatFechaLarga(eta.fechaEntrega)}</strong> ({eta.diasHabiles} días hábiles).</span>
-        </div>
-      )}
-
-      <div className="catalog-minimum" role="note">
-        <span className="catalog-minimum-marker" aria-hidden="true">US$</span>
-        <span><strong>Compra mínima: US$ 250</strong> en productos.</span>
+      <div className="catalog-avisos">
+        {eta?.fechaEntrega && (
+          <p className="catalog-aviso">
+            <IconArrowUpRight />
+            <span>Comprando hoy, tu pedido llega aprox. el <strong>{formatFechaLarga(eta.fechaEntrega)}</strong> ({eta.diasHabiles} días hábiles).</span>
+          </p>
+        )}
+        <p className="catalog-aviso" role="note">
+          <span className="catalog-aviso-marca" aria-hidden="true">US$</span>
+          <span><strong>Compra mínima: US$ 250</strong> en productos.</span>
+        </p>
       </div>
 
       {/* Botón hamburguesa: solo visible en mobile (ver CSS) */}
@@ -517,7 +517,7 @@ function CatalogPage() {
 
                   <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
                     {textoDemora(p)
-                      ? <p style={{ fontSize: '11px', color: '#f0c05a', fontWeight: 600 }}>● Entrega en {textoDemora(p)}</p>
+                      ? <p style={{ fontSize: '11px', color: 'var(--color-warning)', fontWeight: 600 }}>● Entrega en {textoDemora(p)}</p>
                       : <p style={{ fontSize: '11px', color: 'var(--color-price)' }}>● Stock sujeto a disponibilidad</p>}
                     {p.ultimaActualizacion && (
                       <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
@@ -538,10 +538,10 @@ function CatalogPage() {
                           setAgregado(p.id)
                         }}
                         style={{
-                          width: '100%', marginTop: '12px', padding: '10px', borderRadius: '8px',
-                          border: agregado === p.id ? '1px solid var(--color-lime)' : 'none',
-                          background: agregado === p.id ? 'var(--color-lime-tint)' : 'var(--color-lime)',
-                          color: agregado === p.id ? 'var(--color-lime)' : '#16181d',
+                          width: '100%', marginTop: '12px', padding: '10px', borderRadius: '2px',
+                          border: agregado === p.id ? '1px solid var(--color-accion)' : 'none',
+                          background: agregado === p.id ? 'var(--color-accion-tint)' : 'var(--color-accion)',
+                          color: agregado === p.id ? 'var(--color-accion)' : 'var(--color-sobre-accion)',
                           fontSize: '14px', fontWeight: 600, cursor: 'pointer'
                         }}
                       >
@@ -550,7 +550,7 @@ function CatalogPage() {
                     ) : (
                       <div
                         style={{
-                          width: '100%', marginTop: '12px', padding: '10px', borderRadius: '8px',
+                          width: '100%', marginTop: '12px', padding: '10px', borderRadius: '2px',
                           border: '1px solid var(--color-border)', background: 'transparent',
                           color: 'var(--color-accent)', fontSize: '14px', fontWeight: 600, textAlign: 'center'
                         }}

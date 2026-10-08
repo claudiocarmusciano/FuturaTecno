@@ -39,7 +39,7 @@ function PedidosPage() {
 
   const hayFiltrosExtra = busqueda || desde || hasta || medio || origen
   const limpiarFiltros = () => { setBusqueda(''); setQ(''); setDesde(''); setHasta(''); setMedio(''); setOrigen('') }
-  const campo = { padding: '8px 10px', fontSize: '13px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-2)', color: 'var(--color-text)' }
+  const campo = { padding: '8px 10px', fontSize: '13px', borderRadius: '2px', border: '1px solid var(--color-border)', background: 'var(--color-surface-2)', color: 'var(--color-text)' }
 
   useEffect(() => { cargar() }, [cargar])
 
@@ -67,10 +67,10 @@ function PedidosPage() {
       type="button"
       onClick={() => setFiltro(valor)}
       style={{
-        padding: '7px 14px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+        padding: '7px 14px', borderRadius: '2px', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
         border: '1px solid var(--color-border)',
-        background: filtro === valor ? 'var(--color-lime)' : 'transparent',
-        color: filtro === valor ? '#16181d' : 'var(--color-text)'
+        background: filtro === valor ? 'var(--color-accion)' : 'transparent',
+        color: filtro === valor ? 'var(--color-sobre-accion)' : 'var(--color-text)'
       }}
     >
       {texto}
@@ -143,7 +143,7 @@ function PedidosPage() {
                         </button>
                         <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                           {p.items.length} art.
-                          {p.origen === 'MANUAL' && <span style={{ marginLeft: '6px', padding: '1px 6px', borderRadius: '6px', background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontWeight: 700 }}>Manual</span>}
+                          {p.origen === 'MANUAL' && <span style={{ marginLeft: '6px', padding: '1px 6px', borderRadius: '2px', background: 'var(--color-accent-light)', color: 'var(--color-accent)', fontWeight: 700 }}>Manual</span>}
                         </div>
                         <Link to={`/admin/pedidos/${p.numero}/comprobante`} style={{ fontSize: '12px' }}>Comprobante</Link>
                       </td>
@@ -156,7 +156,7 @@ function PedidosPage() {
                       <td style={{ padding: '12px 8px', fontSize: '13px', fontWeight: 700, color: p.estadoPago === 'APROBADO' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
                         <div>{p.estadoPago === 'APROBADO' ? 'Aprobado' : p.estadoPago === 'EN_PROCESO' ? 'En revisión' : p.estadoPago === 'RECHAZADO' ? 'Rechazado' : p.estadoPago === 'SIN_INICIAR' ? 'Sin iniciar' : 'Pendiente'}</div>
                         {p.estadoPago !== 'APROBADO' && p.estado !== 'CANCELADO' && p.estado !== 'VENCIDO' && (p.medioPago !== 'MERCADO_PAGO' || p.origen === 'MANUAL') && (
-                          <button type="button" onClick={() => marcarCobrado(p.id)} style={{ marginTop: '6px', padding: '5px 8px', border: '1px solid var(--color-lime)', borderRadius: '6px', background: 'transparent', color: 'var(--color-lime)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Marcar cobrado</button>
+                          <button type="button" onClick={() => marcarCobrado(p.id)} style={{ marginTop: '6px', padding: '5px 8px', border: '1px solid var(--color-accion)', borderRadius: '2px', background: 'transparent', color: 'var(--color-accion)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Marcar cobrado</button>
                         )}
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'right' }}>
@@ -168,7 +168,7 @@ function PedidosPage() {
                           value=""
                           onChange={e => e.target.value && cambiarEstado(p.id, e.target.value)}
                           style={{
-                            padding: '6px 8px', fontSize: '13px', borderRadius: '6px',
+                            padding: '6px 8px', fontSize: '13px', borderRadius: '2px',
                             border: '1px solid var(--color-border)',
                             background: 'var(--color-surface-2)', color: 'var(--color-text)'
                           }}

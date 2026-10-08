@@ -77,7 +77,7 @@ function CheckoutPage() {
     return (
       <div>
         <h1>Confirmar pedido</h1>
-        <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
           <h2 style={{ marginTop: 0, fontSize: '18px' }}>Compra mínima: US$ {formatNumber(MONTO_MINIMO_PEDIDO_USD)}</h2>
           <p style={{ color: 'var(--color-text-muted)' }}>
             Tu carrito suma US$ {formatNumber(totalUsd)}. Agregá US$ {formatNumber(faltaParaMinimo)} en productos para poder continuar al checkout.
@@ -105,14 +105,14 @@ function CheckoutPage() {
             <Link
               to="/login"
               state={{ from: '/checkout' }}
-              style={{ padding: '12px 26px', borderRadius: '8px', background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, textDecoration: 'none' }}
+              style={{ padding: '12px 26px', borderRadius: '2px', background: 'var(--color-accion)', color: 'var(--color-sobre-accion)', fontWeight: 700, textDecoration: 'none' }}
             >
               Ingresar
             </Link>
             <Link
               to="/registro"
               state={{ from: '/checkout' }}
-              style={{ padding: '12px 26px', borderRadius: '8px', border: '1px solid var(--color-border)', color: 'var(--color-text)', fontWeight: 600, textDecoration: 'none' }}
+              style={{ padding: '12px 26px', borderRadius: '2px', border: '1px solid var(--color-border)', color: 'var(--color-text)', fontWeight: 600, textDecoration: 'none' }}
             >
               Crear cuenta
             </Link>
@@ -202,7 +202,7 @@ function CheckoutPage() {
       <div className="card">
         <h2 style={{ fontSize: '17px', marginTop: 0 }}>Resumen</h2>
         {items.some(textoDemora) && (
-          <p role="note" style={{ background: 'rgba(240, 192, 90, .12)', border: '1px solid rgba(240, 192, 90, .45)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', margin: '0 0 10px' }}>
+          <p role="note" style={{ background: 'rgba(240, 192, 90, .12)', border: '1px solid rgba(240, 192, 90, .45)', borderRadius: '2px', padding: '10px 12px', fontSize: '14px', margin: '0 0 10px' }}>
             Algunos productos de tu pedido tienen una demora de entrega mayor a la habitual: la indicamos en cada uno.
           </p>
         )}
@@ -211,7 +211,7 @@ function CheckoutPage() {
             <span>
               {i.cantidad}× {i.nombre}
               {i.especificaciones && <span style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}> · {i.especificaciones}</span>}
-              {textoDemora(i) && <span style={{ color: '#f0c05a', fontSize: '13px', fontWeight: 600 }}> · Entrega en {textoDemora(i)}</span>}
+              {textoDemora(i) && <span style={{ color: 'var(--color-warning)', fontSize: '13px', fontWeight: 600 }}> · Entrega en {textoDemora(i)}</span>}
             </span>
             <span style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>US$ {formatNumber(i.precioUsd * i.cantidad)}</span>
           </div>
@@ -224,7 +224,7 @@ function CheckoutPage() {
         <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} cashPriceOverride={totalEfectivoConEnvio} /></div>
       </div>
 
-      <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
         <h2 style={{ fontSize: '17px', marginTop: 0 }}>Tus puntos</h2>
         {misPuntos === null ? (
           <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '14px' }}>Cargando tu saldo…</p>
@@ -237,10 +237,10 @@ function CheckoutPage() {
               Usar
               <input type="number" min="0" max={maximoPuntosUsables} value={puntosUsar}
                 onChange={e => setPuntosUsar(e.target.value)}
-                style={{ width: '90px', padding: '8px', border: '1px solid var(--color-border)', borderRadius: '7px', fontSize: '15px' }} />
+                style={{ width: '90px', padding: '8px', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '15px' }} />
               puntos
               <button type="button" onClick={() => setPuntosUsar(maximoPuntosUsables)}
-                style={{ padding: '7px 10px', borderRadius: '7px', border: '1px solid var(--color-lime)', background: 'transparent', color: 'var(--color-lime)', cursor: 'pointer', fontWeight: 700 }}>Usar máximo</button>
+                style={{ padding: '7px 10px', borderRadius: '2px', border: '1px solid var(--color-accion)', background: 'transparent', color: 'var(--color-accion)', cursor: 'pointer', fontWeight: 700 }}>Usar máximo</button>
             </label>
             <p style={{ margin: '9px 0 0', color: 'var(--color-text-muted)', fontSize: '12px' }}>
               {puntosAplicados > 0 ? `Descuento estimado: $ ${formatNumber(descuentoPuntosArs)}. ` : ''}Los puntos se aplican sólo a productos, no al envío. La compra mínima de US$ 250 se valida antes del descuento.
@@ -263,14 +263,14 @@ function CheckoutPage() {
             placeholder="Código postal"
             inputMode="numeric"
             maxLength={8}
-            style={{ flex: '1 1 160px', padding: '10px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '15px' }}
+            style={{ flex: '1 1 160px', padding: '10px', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '15px' }}
           />
           <button
             type="button"
             onClick={cotizarEnvio}
             disabled={cotizando || cp.trim().length < 4}
             style={{
-              padding: '10px 20px', borderRadius: '8px', border: '1px solid var(--color-border)',
+              padding: '10px 20px', borderRadius: '2px', border: '1px solid var(--color-border)',
               background: 'transparent', color: 'var(--color-text)', fontWeight: 600, fontSize: '15px',
               cursor: (cotizando || cp.trim().length < 4) ? 'default' : 'pointer',
               opacity: (cotizando || cp.trim().length < 4) ? 0.6 : 1
@@ -293,8 +293,8 @@ function CheckoutPage() {
                 key={o.codigo}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-                  marginBottom: '8px', cursor: 'pointer', borderRadius: '8px',
-                  border: `1px solid ${modoEnvio === o.codigo ? 'var(--color-lime)' : 'var(--color-border)'}`
+                  marginBottom: '8px', cursor: 'pointer', borderRadius: '2px',
+                  border: `1px solid ${modoEnvio === o.codigo ? 'var(--color-accion)' : 'var(--color-border)'}`
                 }}
               >
                 <input
@@ -312,8 +312,8 @@ function CheckoutPage() {
             <label
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-                cursor: 'pointer', borderRadius: '8px',
-                border: `1px solid ${modoEnvio === '' ? 'var(--color-lime)' : 'var(--color-border)'}`
+                cursor: 'pointer', borderRadius: '2px',
+                border: `1px solid ${modoEnvio === '' ? 'var(--color-accion)' : 'var(--color-border)'}`
               }}
             >
               <input
@@ -336,7 +336,7 @@ function CheckoutPage() {
       </div>
 
       {/* Advertencia de vigencia: se acordó avisarlo al confirmar (y va también en el email). */}
-      <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
         <strong>Tu pedido vale hasta mañana a las 6:30 de la mañana.</strong>
         <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
           Los precios se actualizan cada mañana junto con el stock de nuestros proveedores.
@@ -345,7 +345,7 @@ function CheckoutPage() {
         </p>
       </div>
 
-      <div className="card" style={{ borderLeft: '4px solid var(--color-lime)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
         <h2 style={{ fontSize: '17px', margin: '0 0 6px' }}>Forma de pago</h2>
         <label style={{ display: 'flex', gap: '10px', padding: '10px 0', cursor: 'pointer' }}>
           <input type="radio" name="medioPago" checked={medioPago === 'TRANSFERENCIA'} onChange={() => setMedioPago('TRANSFERENCIA')} />
@@ -369,7 +369,7 @@ function CheckoutPage() {
           value={nombre}
           onChange={e => setNombre(e.target.value)}
           required
-          style={{ width: '100%', padding: '10px', marginBottom: '14px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '15px' }}
+          style={{ width: '100%', padding: '10px', marginBottom: '14px', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '15px' }}
         />
 
         <label style={{ display: 'block', fontSize: '14px', marginBottom: '4px' }}>Teléfono</label>
@@ -378,7 +378,7 @@ function CheckoutPage() {
           onChange={e => setTelefono(e.target.value)}
           required
           placeholder="2284 12-3456"
-          style={{ width: '100%', padding: '10px', marginBottom: '14px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '15px' }}
+          style={{ width: '100%', padding: '10px', marginBottom: '14px', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '15px' }}
         />
 
         <label style={{ display: 'block', fontSize: '14px', marginBottom: '4px' }}>Notas (opcional)</label>
@@ -387,7 +387,7 @@ function CheckoutPage() {
           onChange={e => setNotas(e.target.value)}
           rows={3}
           placeholder="Algo que quieras aclarar sobre el pedido"
-          style={{ width: '100%', padding: '10px', marginBottom: '16px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '15px', fontFamily: 'inherit' }}
+          style={{ width: '100%', padding: '10px', marginBottom: '16px', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '15px', fontFamily: 'inherit' }}
         />
 
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '18px', cursor: 'pointer', fontSize: '14px' }}>
@@ -407,16 +407,16 @@ function CheckoutPage() {
         {error && <p style={{ color: 'var(--color-danger, #c0392b)', fontSize: '14px' }}>{error}</p>}
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <Link to="/carrito" style={{ padding: '12px 22px', borderRadius: '8px', border: '1px solid var(--color-border)', color: 'var(--color-text)', textDecoration: 'none', fontWeight: 600 }}>
+          <Link to="/carrito" style={{ padding: '12px 22px', borderRadius: '2px', border: '1px solid var(--color-border)', color: 'var(--color-text)', textDecoration: 'none', fontWeight: 600 }}>
             ← Volver al carrito
           </Link>
           <button
             type="submit"
             disabled={enviando || !aceptaCompromiso}
             style={{
-              padding: '12px 26px', borderRadius: '8px', border: 'none',
+              padding: '12px 26px', borderRadius: '2px', border: 'none',
               cursor: (enviando || !aceptaCompromiso) ? 'default' : 'pointer', opacity: (enviando || !aceptaCompromiso) ? 0.6 : 1,
-              background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, fontSize: '16px'
+              background: 'var(--color-accion)', color: 'var(--color-sobre-accion)', fontWeight: 700, fontSize: '16px'
             }}
           >
             {enviando ? 'Confirmando...' : medioPago === 'TRANSFERENCIA' ? 'Confirmar pedido por transferencia' : medioPago === 'EFECTIVO' ? 'Confirmar pedido en efectivo' : 'Confirmar y pagar con Mercado Pago'}

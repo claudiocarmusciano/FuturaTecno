@@ -27,8 +27,8 @@ function ForgotPasswordPage() {
     <div style={{ maxWidth: '400px', margin: '60px auto', padding: '0 20px' }}>
       <div className="card">
         <div style={{ textAlign: 'center', marginBottom: '26px' }}>
-          <span style={{ display: 'inline-block', background: '#16181d', borderRadius: '16px', padding: '11px 16px' }}>
-            <img src="/logo.png?v=2" alt="FuturaTecno" style={{ height: '66px', width: 'auto', display: 'block' }} />
+          <span style={{ display: 'inline-block', background: 'var(--color-sobre-accion)', borderRadius: '2px', padding: '11px 16px' }}>
+            <img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" style={{ height: '52px', width: 'auto', display: 'block' }} />
           </span>
         </div>
         <h1 style={{ fontSize: '22px', marginBottom: '4px', textAlign: 'center' }}>Recuperar contraseña</h1>
@@ -37,7 +37,7 @@ function ForgotPasswordPage() {
         </p>
 
         {enviado ? (
-          <div style={{ background: 'var(--color-lime-tint)', color: 'var(--color-lime)', border: '1px solid rgba(200,224,72,0.3)', padding: '14px', borderRadius: '10px', fontSize: '14px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--color-accion-tint)', color: 'var(--color-accion)', border: '1px solid rgba(0, 119, 179, 0.3)', padding: '14px', borderRadius: '2px', fontSize: '14px', textAlign: 'center' }}>
             <IconMail /> {enviado}
             <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '10px' }}>
               Revisá tu casilla (y la carpeta de spam). El enlace vence en 1 hora.
@@ -46,7 +46,7 @@ function ForgotPasswordPage() {
         ) : (
           <>
             {error && (
-              <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '11px 14px', borderRadius: '10px', marginBottom: '16px', fontSize: '14px' }}>
+              <div style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger)', border: '1px solid rgba(255,107,94,0.3)', padding: '11px 14px', borderRadius: '2px', marginBottom: '16px', fontSize: '14px' }}>
                 {error}
               </div>
             )}

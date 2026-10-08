@@ -7,7 +7,7 @@ export default function TerminosPage() {
     <LegalLayout titulo="Términos y condiciones" actualizado="30 de septiembre de 2026"
       intro="Estas son las reglas de compra en www.futuratecno.com.ar. Al confirmar un pedido las aceptás.">
       <section><h2>1. Quiénes somos</h2>
-        <p>Futura Tecno es el nombre comercial de {TITULAR.nombre}, CUIT {TITULAR.cuit}, {TITULAR.condicionIva} ante ARCA, con domicilio fiscal en {TITULAR.domicilioFiscal} y domicilio comercial en {TITULAR.domicilioComercial}.</p>
+        <p>Tecnópolis Olavarría es el nombre comercial de {TITULAR.nombre}, CUIT {TITULAR.cuit}, {TITULAR.condicionIva} ante ARCA, con domicilio fiscal en {TITULAR.domicilioFiscal} y domicilio comercial en {TITULAR.domicilioComercial}.</p>
         <p>Contacto: {CONTACTO_EMAIL} · WhatsApp +{WHATSAPP_NUMBER}.</p>
       </section>
 
@@ -47,7 +47,7 @@ export default function TerminosPage() {
       </section>
 
       <section><h2>8. Puntos y promociones</h2>
-        <p>Los puntos del Club FuturaTecno y las promociones tienen las condiciones que se informan en cada caso. Los puntos no son canjeables por dinero.</p>
+        <p>Los puntos del Club Tecnópolis y las promociones tienen las condiciones que se informan en cada caso. Los puntos no son canjeables por dinero.</p>
       </section>
 
       <section><h2>9. Datos personales</h2>

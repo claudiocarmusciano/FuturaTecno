@@ -5,7 +5,7 @@ import { IconCheck, IconRefresh } from '../../components/icons'
 
 const inputEstilo = {
   padding: '8px 10px', fontSize: '14px', border: '1px solid var(--color-border)',
-  borderRadius: '8px', color: 'var(--color-text)', background: 'var(--color-surface-2)'
+  borderRadius: '2px', color: 'var(--color-text)', background: 'var(--color-surface-2)'
 }
 
 function CategoriasPage() {
@@ -234,7 +234,7 @@ function CategoriasPage() {
         <p style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Productos que hoy no pueden cotizar por Andreani porque les falta peso o alguna medida. Completá los valores de su categoría o editá el producto puntualmente.</p>
         {auditando ? <p>Cargando auditoría...</p> : sinCotizar.length === 0 ? <p style={{ color: 'var(--color-success)' }}><IconCheck /> Todos los productos activos tienen peso y dimensiones resolubles.</p> : <>
           <p style={{ color: 'var(--color-danger)', fontWeight: 700 }}>{sinCotizar.length} producto(s) sin cotización automática.</p>
-          <div style={{ overflowX: 'auto', maxHeight: '300px' }}><table className="table"><thead><tr><th>Producto</th><th>Categoría</th><th>Falta</th><th aria-label="Acciones"></th></tr></thead><tbody>{sinCotizar.map(p => <tr key={p.productoId}><td><Link to={`/admin/productos?editar=${p.productoId}&origen=categorias`} title="Editar producto" style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-lime)', textUnderlineOffset: '4px' }}>{p.producto}</Link></td><td>{p.categoria}</td><td>{p.faltan}</td><td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><button type="button" className="btn-accion danger" onClick={() => eliminarProductoSinCotizar(p)} disabled={eliminandoProductoId === p.productoId}>{eliminandoProductoId === p.productoId ? 'Eliminando...' : 'Eliminar'}</button></td></tr>)}</tbody></table></div>
+          <div style={{ overflowX: 'auto', maxHeight: '300px' }}><table className="table"><thead><tr><th>Producto</th><th>Categoría</th><th>Falta</th><th aria-label="Acciones"></th></tr></thead><tbody>{sinCotizar.map(p => <tr key={p.productoId}><td><Link to={`/admin/productos?editar=${p.productoId}&origen=categorias`} title="Editar producto" style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--color-accion)', textUnderlineOffset: '4px' }}>{p.producto}</Link></td><td>{p.categoria}</td><td>{p.faltan}</td><td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><button type="button" className="btn-accion danger" onClick={() => eliminarProductoSinCotizar(p)} disabled={eliminandoProductoId === p.productoId}>{eliminandoProductoId === p.productoId ? 'Eliminando...' : 'Eliminar'}</button></td></tr>)}</tbody></table></div>
         </>}
         <button type="button" className="btn btn-secondary" onClick={cargarAuditoria} disabled={auditando} style={{ marginTop: '12px' }}><IconRefresh /> Actualizar reporte</button>
       </div>
@@ -294,8 +294,8 @@ function CategoriasPage() {
               type="button"
               onClick={() => { setCreandoEn('raiz'); setNombreNuevo(''); setEditando(null) }}
               style={{
-                marginTop: '16px', padding: '10px 20px', borderRadius: '8px', border: 'none',
-                background: 'var(--color-lime)', color: '#16181d', fontWeight: 700, cursor: 'pointer'
+                marginTop: '16px', padding: '10px 20px', borderRadius: '2px', border: 'none',
+                background: 'var(--color-accion)', color: 'var(--color-sobre-accion)', fontWeight: 700, cursor: 'pointer'
               }}
             >
               + Nueva categoría

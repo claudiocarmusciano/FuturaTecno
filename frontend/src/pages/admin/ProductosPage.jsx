@@ -32,7 +32,7 @@ const calcularVenta = (precio, moneda, ed) => {
 
 const inputStyle = {
   width: '100%', padding: '6px 8px', border: '1px solid var(--color-border)',
-  borderRadius: '4px', fontSize: '13px', color: 'var(--color-text)'
+  borderRadius: '2px', fontSize: '13px', color: 'var(--color-text)'
 }
 
 function ProductosPage() {
@@ -343,7 +343,7 @@ function ProductosPage() {
   return (
     <div>
       <h1>Productos</h1>
-      {mensaje && <div className="card" style={{ borderLeft: '4px solid var(--color-lime)', color: 'var(--color-lime)' }}>{mensaje}</div>}
+      {mensaje && <div className="card" style={{ borderLeft: '4px solid var(--color-accion)', color: 'var(--color-accion)' }}>{mensaje}</div>}
 
       <div className="card">
         <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '10px' }}>
@@ -366,7 +366,7 @@ function ProductosPage() {
         <div
           className="card"
           onClick={(e) => e.stopPropagation()}
-          style={{ borderLeft: '4px solid var(--color-lime)', maxWidth: '820px', width: '100%', marginTop: '30px', maxHeight: '88vh', overflowY: 'auto' }}
+          style={{ borderLeft: '4px solid var(--color-accion)', maxWidth: '820px', width: '100%', marginTop: '30px', maxHeight: '88vh', overflowY: 'auto' }}
         >
           <h2 style={{ marginBottom: '4px' }}>Editar producto</h2>
           <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
@@ -415,7 +415,7 @@ function ProductosPage() {
               />
               <small style={{ color: 'var(--color-text-muted)', display: 'block', marginTop: '4px' }}>Vacío = producto sin imagen.</small>
             </div>
-            <div style={{ height: '88px', border: '1px solid var(--color-border)', borderRadius: '6px', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <div style={{ height: '88px', border: '1px solid var(--color-border)', borderRadius: '2px', background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               {editData.imagenUrl
                 ? <img src={editData.imagenUrl} alt="Vista previa de la imagen principal" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={e => { e.currentTarget.style.display = 'none' }} />
                 : <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Sin imagen</span>}
@@ -511,7 +511,7 @@ function ProductosPage() {
                     <td><input style={inputStyle} type="number" step="0.01" value={v.precio ?? ''} onChange={e => setVariante(idx, 'precio', e.target.value)} /></td>
                     <td><input style={inputStyle} type="number" value={v.stock ?? 0} onChange={e => setVariante(idx, 'stock', e.target.value)} /></td>
                     <td style={{ whiteSpace: 'nowrap', color: 'var(--color-text)' }}>{venta.usd != null ? `US$ ${formatNumber(venta.usd)}` : '-'}</td>
-                    <td style={{ whiteSpace: 'nowrap', color: 'var(--color-lime)' }}>{venta.ars != null ? `$ ${formatNumber(venta.ars)}` : '-'}</td>
+                    <td style={{ whiteSpace: 'nowrap', color: 'var(--color-accion)' }}>{venta.ars != null ? `$ ${formatNumber(venta.ars)}` : '-'}</td>
                   </tr>
                 )
               })}
@@ -556,7 +556,7 @@ function ProductosPage() {
               aria-label="Buscar productos"
               style={{
                 width: '100%', padding: '8px 32px 8px 34px', fontSize: '14px',
-                border: '1px solid var(--color-border)', borderRadius: '8px',
+                border: '1px solid var(--color-border)', borderRadius: '2px',
                 background: 'transparent', color: 'var(--color-text)'
               }}
             />
@@ -584,7 +584,7 @@ function ProductosPage() {
             value={proveedorFiltro}
             onChange={e => { setProveedorFiltro(e.target.value); setSeleccionados(new Set()) }}
             aria-label="Filtrar por proveedor"
-            style={{ padding: '7px 9px', border: '1px solid var(--color-border)', borderRadius: '8px', background: 'transparent', color: 'var(--color-text)', fontSize: '14px' }}
+            style={{ padding: '7px 9px', border: '1px solid var(--color-border)', borderRadius: '2px', background: 'transparent', color: 'var(--color-text)', fontSize: '14px' }}
           >
             <option value="">Todos los proveedores</option>
             {proveedores.map(proveedor => <option key={proveedor} value={proveedor}>{proveedor}</option>)}
@@ -597,7 +597,7 @@ function ProductosPage() {
 
         {/* Barra de asignación masiva de categoría */}
         {seleccionados.size > 0 && (
-          <div style={{ background: 'var(--color-accent-light)', border: '1px solid var(--color-lime-dark)', borderRadius: '10px', padding: '12px 14px', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div style={{ background: 'var(--color-accent-light)', border: '1px solid var(--color-accion-hover)', borderRadius: '2px', padding: '12px 14px', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <strong style={{ fontSize: '14px', alignSelf: 'center' }}>{seleccionados.size} seleccionado(s)</strong>
             <div>
               <label style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block' }}>Categoría</label>
