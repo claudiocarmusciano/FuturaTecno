@@ -155,7 +155,7 @@ function LandingPage() {
       .filter(c => c.cat && (!portada || cuenta[c.cat.id]))
   }, [arbol, portada])
 
-  // Vidriera del hero: tres productos reales con foto, de rubros distintos. "Tiene imagenUrl" no
+  // Vidriera del hero: cuatro productos reales con foto, de rubros distintos. "Tiene imagenUrl" no
   // garantiza que la foto cargue (hay hotlinks que fallan), así que una foto rota pasa al siguiente.
   const vidriera = useMemo(() => {
     const porRaiz = portada?.heroPorCategoriaRaiz || {}
@@ -168,7 +168,7 @@ function LandingPage() {
       if (!p?.id || !p.imagenUrl || imgsRotas.has(p.id) || vistos.has(p.id)) return false
       vistos.add(p.id)
       return true
-    }).slice(0, 3)
+    }).slice(0, 4)
   }, [portada, arbol, imgsRotas])
 
   // Destacados: se piden por rubro y se eligen al azar entre los que tienen foto.
