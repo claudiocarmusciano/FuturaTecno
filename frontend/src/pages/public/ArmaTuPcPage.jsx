@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import PromoArmado from '../../components/PromoArmado'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { useCart } from '../../cart/CartContext'
@@ -443,6 +444,7 @@ export default function ArmaTuPcPage() {
         <span className="atp-eyebrow">Armá tu PC</span>
         <h1>Elegí cada componente, nosotros cuidamos la compatibilidad.</h1>
         <p>En cada paso te mostramos solo lo que es compatible con lo que ya elegiste.</p>
+        <PromoArmado className="atp-promo" />
       </header>
 
       <nav className="atp-pasos" aria-label="Pasos del armado">

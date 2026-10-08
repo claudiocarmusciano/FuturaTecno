@@ -82,11 +82,16 @@
 .lp-banda-card h2 { font-size: 29px; font-weight: 600; line-height: 1.2; margin-bottom: 16px; }
 .lp-banda-card p { font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
 
+/* Beneficio de Armá tu PC, debajo del hero. */
+.lp-promo-armado { margin-top: 32px; }
+.lp-banda-regalo { padding: 12px 16px; background: var(--color-cyan-tint); border-left: 3px solid var(--color-cyan); }
+
 /* ===== Nuestro local ===== */
 .lp-local { display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
 .lp-local-foto { width: 100%; height: auto; display: block; border-radius: var(--radius); box-shadow: var(--shadow); }
 .lp-local-texto h2 { font-size: 29px; font-weight: 600; margin-bottom: 16px; }
-.lp-local-texto p { font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
+.lp-local-texto p { font-size: 15px; line-height: 1.6; margin-bottom: 16px; }
+.lp-local-texto .lp-cta-row { margin-top: 24px; }
 
 /* ===== Ventajas ===== */
 .lp-ventajas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 32px; }

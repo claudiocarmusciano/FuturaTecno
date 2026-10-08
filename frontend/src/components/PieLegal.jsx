@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
   TITULAR, CONTACTO_EMAIL, INSTAGRAM_URL, WHATSAPP_NUMBER, DEFENSA_CONSUMIDOR_URL, DATA_FISCAL_URL, DATA_FISCAL_IMG,
-  NOMBRE_NEGOCIO, NOMBRE_ANTERIOR
+  NOMBRE_NEGOCIO, NOMBRE_ANTERIOR, HORARIO_LOCAL
 } from '../config'
 import './PieLegal.css'
 
@@ -13,6 +13,7 @@ export default function PieLegal() {
         <div className="pie-legal-col pie-legal-marca">
           <img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt={NOMBRE_NEGOCIO} width="168" />
           <span>{TITULAR.domicilioComercial}</span>
+          <span>Horario: {HORARIO_LOCAL}</span>
         </div>
         <nav className="pie-legal-col" aria-label="Tienda">
           <b>Tienda</b>

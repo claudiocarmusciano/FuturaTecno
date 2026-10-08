@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
-import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO, TITULAR } from '../../config'
+import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO, TITULAR, HORARIO_LOCAL } from '../../config'
 import './Landing.css'
 import PromotionsCarousel from '../../components/PromotionsCarousel'
+import PromoArmado from '../../components/PromoArmado'
 
 const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=` +
   encodeURIComponent(`Hola ${NOMBRE_NEGOCIO}, quería hacer una consulta sobre el catálogo.`)
@@ -170,6 +171,9 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* Beneficio destacado: el armado y la instalación de regalo. */}
+      <div className="lp-wrap lp-promo-armado"><PromoArmado enlace /></div>
+
       {/* CATEGORÍAS: fila de íconos de línea con el nombre en azul de acción. */}
       <section className="lp-block lp-cats-block" id="categorias" aria-label="Categorías">
         <div className="lp-wrap">
@@ -210,6 +214,7 @@ function LandingPage() {
             <span className="lp-rotulo">Armá tu PC</span>
             <h2 id="armador-title">Tu PC a medida, pieza por pieza.</h2>
             <p>Elegí procesador, mother, memoria y el resto, paso a paso. Te mostramos solo lo que es compatible entre sí.</p>
+            <p className="lp-banda-regalo"><strong>De regalo:</strong> si comprás todos los componentes acá, te la armamos y te instalamos Windows + Office.</p>
             <Link className="lp-btn" to="/arma-tu-pc">Empezar a armar</Link>
           </div>
         </div>
@@ -239,6 +244,7 @@ function LandingPage() {
             <span className="lp-rotulo">Nuestro local</span>
             <h2 id="local-title">Vení a conocernos.</h2>
             <p>Estamos en {TITULAR.domicilioComercial}. Podés ver los productos, retirar tu compra o consultarnos lo que necesites.</p>
+            <p className="lp-local-horario"><strong>Horario:</strong> {HORARIO_LOCAL}</p>
             <div className="lp-cta-row">
               <a className="lp-btn" href={mapaLink} target="_blank" rel="noreferrer">Cómo llegar</a>
               <a className="lp-link lp-link-wa" href={waLink} target="_blank" rel="noreferrer"><IconWhatsApp /> Escribinos</a>

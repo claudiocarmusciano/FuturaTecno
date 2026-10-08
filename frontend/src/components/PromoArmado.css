@@ -1,0 +1,15 @@
+.promo-armado {
+  display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+  background: var(--color-cyan-tint); border: 1px solid #b3e6fa; border-radius: var(--radius);
+  color: var(--color-text); text-decoration: none;
+}
+a.promo-armado:hover { border-color: var(--color-cyan); text-decoration: none; }
+.promo-armado-ico { color: var(--color-accion); display: flex; flex: 0 0 auto; }
+.promo-armado-txt { display: flex; flex-direction: column; gap: 2px; font-size: 15px; line-height: 1.5; }
+.promo-armado-txt strong { font-weight: 600; }
+.promo-armado-cta { margin-left: auto; color: var(--color-accion); font-size: 15px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .promo-armado { align-items: flex-start; flex-wrap: wrap; padding: 16px; }
+  .promo-armado-txt { flex: 1; min-width: 0; font-size: 14px; }
+  .promo-armado-cta { margin-left: 44px; }
+}
