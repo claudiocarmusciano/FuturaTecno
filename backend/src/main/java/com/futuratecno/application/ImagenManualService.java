@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Memoria compartida entre proveedores. No elimina colores, capacidades ni nombres de combos. */
@@ -189,7 +190,32 @@ public class ImagenManualService {
             // Opciones comerciales del proveedor: "ABM OPT" (Apple Business Manager), CTO,
             // sellado, open box, garantía, versión SIM. No cambian cómo se ve el aparato.
             + "|\\b(?:ABM|OPT|CTO|BTO|SELLADOS?|NUEVOS?|NEW|OPEN\\s+BOX|ORIGINAL|OFICIAL|GARANTIA(?:\\s+OFICIAL)?"
-            + "|LIBERADOS?|NACIONAL|IMPORTADOS?|INTERNACIONAL|ESIM|DUALSIM|SIM\\s+FISICA)\\b");
+            + "|LIBERADOS?|NACIONAL|IMPORTADOS?|INTERNACIONAL|ESIM|DUALSIM|SIM\\s+FISICA)\\b"
+            // Garantía con plazo ("3 Años On Site", "12 meses de garantía"): es del servicio, no del aparato.
+            + "|\\b\\d+\\s*(?:ANOS?|MESES)(?:\\s+(?:DE\\s+)?GARANTIA)?(?:\\s+ON\\s*-?\\s*SITE)?\\b|\\bON\\s*-?\\s*SITE\\b"
+            // Procesador escrito sin "Core" ("ThinkPad E16 Ultra 5 225U"). Solo con 5, 7 o 9 y como
+            // palabra suelta: "Galaxy S25 Ultra" o "Ultra 5G" no se tocan.
+            + "|\\bULTRA\\s+[579](?:\\s+\\d{3}[A-Z]{0,2})?\\b");
+
+    /**
+     * Tamaño de pantalla entero con marca de pulgadas ("16'", "16\"", "16 pulgadas"). Se descarta
+     * solo si el número ya está en el nombre ("ThinkPad E16 … 16'"): ahí no agrega nada y separaba
+     * de sus hermanos a los que no lo repiten. Si no está, queda como número suelto, porque el
+     * tamaño sí cambia el aparato (MacBook Air 13 ≠ 15, ver ImagenFamiliaTest).
+     */
+    private static final Pattern PULGADAS_ENTERAS = Pattern.compile("\\b(\\d{2})\\s*(?:\"|”|''|'|´|PULGADAS\\b)");
+
+    static String sinPulgadasRepetidas(String texto) {
+        Matcher m = PULGADAS_ENTERAS.matcher(texto);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String resto = texto.substring(0, m.start()) + " " + texto.substring(m.end());
+            boolean repetido = resto.contains(m.group(1));
+            m.appendReplacement(sb, repetido ? " " : " " + m.group(1) + " ");
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
 
     /** Colores que sirven de foto "genérica" cuando el artículo no dice el suyo, del más neutro al menos. */
     private static final List<Set<String>> NEUTROS = List.of(
@@ -201,7 +227,8 @@ public class ImagenManualService {
      * nada que identifique la línea: una clave de 3 letras juntaría artículos distintos.
      */
     static String claveFamilia(String marca, String modelo) {
-        String sinVariantes = NO_CAMBIA_LA_FOTO.matcher(IdentidadProductoService.sinColores(modelo)).replaceAll(" ");
+        String sinVariantes = NO_CAMBIA_LA_FOTO.matcher(
+                sinPulgadasRepetidas(IdentidadProductoService.sinColores(modelo))).replaceAll(" ");
         String k = claveSuelta(sinVariantes), m = claveSuelta(marca);
         if (!m.isEmpty() && k.startsWith(m) && k.length() > m.length()) k = k.substring(m.length());
         return k.length() < 4 ? "" : k;

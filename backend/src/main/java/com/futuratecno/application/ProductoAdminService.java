@@ -444,7 +444,8 @@ public class ProductoAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
         producto.setImagenUrl(url != null && !url.isBlank() ? url.trim() : null);
         imagenManualService.guardar(producto.getMarca(), producto.getModelo(), producto.getImagenUrl());
-        productoRepository.save(producto);
+        productoRepository.saveAndFlush(producto);
+        int parientes = producto.getImagenUrl() == null ? 0 : completarParientesSinFoto(producto);
         var nombres = categoriaService.resolverNombres(producto.getCategoriaId());
         ProductoAdminDTO dto = new ProductoAdminDTO(
                 producto.getId(), nombres != null ? nombres.getSubcategoria() : null, producto.getMarca(),
@@ -453,7 +454,34 @@ public class ProductoAdminService {
                 producto.getImagenUrl());
         dto.setCategoriaId(producto.getCategoriaId());
         dto.setSku(sku(producto));
+        dto.setParientesActualizados(parientes);
         return dto;
+    }
+
+    /**
+     * Al cargarle la foto a un producto, sus parientes publicados SIN foto (misma marca y familia,
+     * ver {@link ImagenManualService#claveFamilia}) la toman también. Pasaba todos los días: una
+     * lista trae varias variantes del mismo equipo, ninguna con foto; el admin le busca la foto a
+     * una y las demás seguían vacías aunque el panel ya las mostraba como "parecidas". Cada pariente
+     * elige con las reglas de siempre (color incluido), así que uno de otro color no se la lleva.
+     */
+    private int completarParientesSinFoto(Producto origen) {
+        String familia = ImagenManualService.claveFamilia(origen.getMarca(), origen.getModelo());
+        if (familia.isEmpty()) return 0;
+        String marca = ImagenManualService.claveSuelta(origen.getMarca());
+        int n = 0;
+        for (Producto p : productosSinImagen()) {
+            if (p.getId().equals(origen.getId())
+                    || !marca.equals(ImagenManualService.claveSuelta(p.getMarca()))
+                    || !familia.equals(ImagenManualService.claveFamilia(p.getMarca(), p.getModelo()))) continue;
+            var url = imagenManualService.buscarPorFamilia(p.getMarca(), p.getModelo(), especificacionesDe(p));
+            if (url.isEmpty()) continue;
+            p.setImagenUrl(url.get());
+            productoRepository.save(p);
+            n++;
+        }
+        if (n > 0) logger.info("Foto del producto {} aplicada a {} pariente(s) sin foto.", origen.getId(), n);
+        return n;
     }
 
     /**

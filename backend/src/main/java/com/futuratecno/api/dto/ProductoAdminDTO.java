@@ -58,6 +58,11 @@ public class ProductoAdminDTO {
     public String getImagenUrl() { return imagenUrl; }
     public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
 
+    /** Al guardar una foto: cuántos productos parecidos sin foto la tomaron también. */
+    private Integer parientesActualizados;
+    public Integer getParientesActualizados() { return parientesActualizados; }
+    public void setParientesActualizados(Integer parientesActualizados) { this.parientesActualizados = parientesActualizados; }
+
     public String getEspecificaciones() { return especificaciones; }
     public void setEspecificaciones(String especificaciones) { this.especificaciones = especificaciones; }
     /** Colores reconocidos en el nombre y las especificaciones ("Plata", "Celeste"); vacío si ninguno. */

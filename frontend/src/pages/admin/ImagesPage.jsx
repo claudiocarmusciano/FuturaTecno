@@ -91,8 +91,11 @@ function ImagesPage() {
   const guardarUrl = async (id) => {
     const url = edits[id] ?? ''
     try {
-      await axios.put(`/api/admin/productos/${id}/imagen`, { url })
+      const res = await axios.put(`/api/admin/productos/${id}/imagen`, { url })
       setEdits(prev => { const c = { ...prev }; delete c[id]; return c })
+      // El backend le pasa la foto a los parecidos sin foto (misma marca y familia).
+      const n = res.data?.parientesActualizados || 0
+      setMensaje(n > 0 ? `Foto guardada. También se cargó en ${n} producto${n === 1 ? '' : 's'} parecido${n === 1 ? '' : 's'} que no tenía${n === 1 ? '' : 'n'} foto.` : '')
       await cargar()
     } catch (e) {
       console.error(e)

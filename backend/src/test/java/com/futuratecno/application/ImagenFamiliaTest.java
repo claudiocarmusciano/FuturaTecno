@@ -80,4 +80,20 @@ class ImagenFamiliaTest {
         // Varios colores = la ficha lista los disponibles, no cuál es este: se trata como sin color.
         assertEquals(Optional.of("plata.jpg"), ImagenManualService.elegirPariente(Set.of("azul", "negro"), parientes));
     }
+
+    @Test
+    void laGarantiaElProcesadorSinCoreYElTamanoRepetidoNoSeparanFamilias() {
+        // Caso real del 2026-10-09 (Kadabra): tres redacciones del mismo ThinkPad E16.
+        String kadabra = familia("Lenovo", "ThinkPad E16 Ultra 5 225U 64GB 1TB 16' IPS Win11 Pro 3 Años On Site");
+        assertEquals(kadabra, familia("Lenovo", "THINKPAD E16 ULTRA 5 225U 64GB, 1TB"));
+        assertEquals(kadabra, familia("Lenovo", "ThinkPad E16 Ultra 5 64GB 2TB"));
+        assertEquals(kadabra, familia("Lenovo", "ThinkPad E16 Ultra 5 225U 32GB 2TB 16' IPS Win11 Pro 3 Años On Site"));
+        assertEquals(familia("HP", "ProBook 450 G10 i5 16GB 512GB 12 meses de garantia"), familia("HP", "ProBook 450 G10 i5 8GB 256GB"));
+
+        // Lo que tiene que seguir separado.
+        assertNotEquals(familia("Apple", "MacBook Air M5 13\" 16GB 512GB"), familia("Apple", "MacBook Air M5 15\" 16GB 512GB"));
+        assertNotEquals(familia("Samsung", "Galaxy S25 Ultra 12/256GB"), familia("Samsung", "Galaxy S25 12/256GB"));
+        assertNotEquals(familia("Xiaomi", "Redmi Note 14 Pro 5G 8/256GB"), familia("Xiaomi", "Redmi Note 14 5G 8/256GB"));
+        assertNotEquals(familia("Lenovo", "ThinkPad E14 Ultra 5 225U 16GB 512GB 14'"), familia("Lenovo", "ThinkPad E16 Ultra 5 225U 16GB 512GB 16'"));
+    }
 }
