@@ -26,7 +26,7 @@
 .lp-hero { background: var(--color-cyan); padding: 48px 0; }
 .lp-hero-grid { display: grid; grid-template-columns: minmax(0, 480px) 1fr; gap: 48px; align-items: center; min-height: 420px; }
 .lp-hero-card { background: #fff; padding: 48px 40px; border-radius: var(--radius); }
-.lp-hero-card h1 { font-size: 37px; line-height: 1.2; font-weight: 600; margin-bottom: 16px; }
+.lp-hero-card h1 { font-size: clamp(36px, 4.6vw, 60px); line-height: 1.04; font-weight: 600; letter-spacing: -0.025em; margin-bottom: 20px; }
 .lp-hero-card p { font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
 .lp-cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
 
@@ -59,9 +59,9 @@
 .lp-precios-chico span { font-size: 11px !important; }
 
 /* ===== BLOQUES ===== */
-.lp-block { padding: 48px 0; }
+.lp-block { padding: 72px 0; }
 .lp-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 24px; }
-.lp-head h2 { font-size: 29px; font-weight: 600; }
+.lp-head h2 { font-size: clamp(30px, 3.6vw, 48px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; }
 
 /* Categorías: ícono de línea arriba, nombre en azul de acción. */
 .lp-cats-block { padding-bottom: 24px; }
@@ -95,7 +95,7 @@
 .lp-banda-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 45%; }
 .lp-banda-grid { position: relative; }
 .lp-banda-card { background: #fff; padding: 48px 40px; border-radius: var(--radius); max-width: 480px; }
-.lp-banda-card h2 { font-size: 29px; font-weight: 600; line-height: 1.2; margin-bottom: 16px; }
+.lp-banda-card h2 { font-size: clamp(28px, 3vw, 40px); font-weight: 600; line-height: 1.08; letter-spacing: -0.02em; margin-bottom: 16px; }
 .lp-banda-card p { font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
 
 /* Beneficio de Armá tu PC, debajo del hero. */
@@ -105,7 +105,7 @@
 /* ===== Nuestro local ===== */
 .lp-local { display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
 .lp-local-foto { width: 100%; height: auto; display: block; border-radius: var(--radius); box-shadow: var(--shadow); }
-.lp-local-texto h2 { font-size: 29px; font-weight: 600; margin-bottom: 16px; }
+.lp-local-texto h2 { font-size: clamp(30px, 3.6vw, 48px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; margin-bottom: 16px; }
 .lp-local-texto p { font-size: 15px; line-height: 1.6; margin-bottom: 16px; }
 .lp-local-texto .lp-cta-row { margin-top: 24px; }
 
@@ -116,7 +116,7 @@
 .lp-ventaja p { font-size: 15px; line-height: 1.6; color: var(--color-text-muted); }
 
 /* ===== Marcas ===== */
-.lp-marcas { border-top: 1px solid #e6e6e6; padding: 40px 0 48px; text-align: center; }
+.lp-marcas { padding: 56px 0 64px; text-align: center; }
 .lp-marcas-lista { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 32px; padding: 0; margin: 0; }
 .lp-marcas-lista li { font-size: 17px; font-weight: 600; color: var(--color-text-muted); }
 
@@ -133,7 +133,7 @@
   .lp-hero { padding: 0 0 32px; }
   .lp-hero .lp-wrap { padding: 0; }
   .lp-hero-card { padding: 32px 16px; border-radius: 0; }
-  .lp-hero-card h1 { font-size: 29px; }
+  .lp-hero-card h1 { font-size: 34px; }
   .lp-vidriera { height: 520px; margin: 0 16px; gap: 12px; }
   .lp-vidriera-item { padding: 12px; }
   .lp-precios-chico .lp-precio-efectivo strong { font-size: 15px; }
@@ -206,3 +206,12 @@
   .lp-marcas .lp-marcas-lista { flex-wrap: wrap; width: auto; justify-content: center; }
   .lp-marcas-lista li[aria-hidden] { display: none; }
 }
+
+/* ===== Franjas alternadas (estilo Apple) =====
+   Las secciones se separan por el tono del fondo, no por líneas: blanco, gris muy claro, blanco…
+   Sobre el gris, las tarjetas de producto van blancas y sin sombra (la sombra aparece al pasar el mouse). */
+.lp-franja { background: var(--color-franja); }
+.lp-franja .lp-prod { box-shadow: none; }
+.lp-franja .lp-prod:hover { box-shadow: var(--shadow-hover); }
+.lp-franja .lp-prod-img { border-bottom-color: var(--color-franja); }
+@media (max-width: 600px) { .lp-block { padding: 48px 0; } }

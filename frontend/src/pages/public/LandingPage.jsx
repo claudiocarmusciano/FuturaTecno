@@ -253,7 +253,7 @@ function LandingPage() {
       <PromotionsCarousel />
 
       {/* DESTACADOS: grilla de 4 columnas. */}
-      <section className="lp-block" id="productos">
+      <section className="lp-block lp-franja" id="productos">
         <div className="lp-wrap">
           <div className="lp-head revelar">
             <h2>Destacados</h2>
@@ -299,7 +299,7 @@ function LandingPage() {
       </section>
 
       {/* NUESTRO LOCAL */}
-      <section className="lp-block" id="local" aria-labelledby="local-title">
+      <section className="lp-block lp-franja" id="local" aria-labelledby="local-title">
         <div className="lp-wrap lp-local">
           <img className="lp-local-foto revelar" src="/local/fachada.jpg" alt={`Frente del local de ${NOMBRE_NEGOCIO}`} loading="lazy" width="1280" height="874" />
           <div className="lp-local-texto revelar" style={{ '--d': 2 }}>
