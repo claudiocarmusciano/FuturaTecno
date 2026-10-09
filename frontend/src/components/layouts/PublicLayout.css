@@ -8,6 +8,7 @@
 .public-header {
   background-color: #fff;
   box-shadow: 0 1px 0 #e6e6e6;
+  transition: background-color .3s, box-shadow .3s;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -33,6 +34,12 @@
   font-size: 15px;
   font-weight: 400;
   padding: 8px;
+}
+.public-header.con-scroll {
+  background-color: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 6px 20px rgba(0, 0, 0, 0.04);
 }
 .public-nav a { border-radius: var(--radius-sm); }
 .public-nav a:hover { background: var(--color-muted); text-decoration: none; text-shadow: 0 0 0.7px currentColor, 0 0 0.7px currentColor; }

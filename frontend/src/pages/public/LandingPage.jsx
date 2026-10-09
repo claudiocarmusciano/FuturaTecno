@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { WHATSAPP_NUMBER, NOMBRE_NEGOCIO, TITULAR, HORARIO_LOCAL } from '../../config'
@@ -7,6 +7,7 @@ import PromotionsCarousel from '../../components/PromotionsCarousel'
 import PromoArmado from '../../components/PromoArmado'
 import AvisoMinimo from '../../components/AvisoMinimo'
 import { cashPrice } from '../../utils/paymentPricing'
+import useRevelar from '../../utils/useRevelar'
 
 const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=` +
   encodeURIComponent(`Hola ${NOMBRE_NEGOCIO}, quería hacer una consulta sobre el catálogo.`)
@@ -118,10 +119,10 @@ function Precios({ ars, className = '' }) {
   )
 }
 
-function TarjetaProducto({ p }) {
+function TarjetaProducto({ p, i = 0 }) {
   const ars = precioArsDesde(p)
   return (
-    <Link className="lp-prod" to={`/producto/${p.id}`}>
+    <Link className="lp-prod revelar" style={{ '--d': i % 4 }} to={`/producto/${p.id}`}>
       <div className="lp-prod-img">
         <img src={p.imagenUrl} alt={nombreDe(p)} loading="lazy" onError={e => { e.target.style.visibility = 'hidden' }} />
       </div>
@@ -195,8 +196,12 @@ function LandingPage() {
     return () => { vivo = false }
   }, [arbol])
 
+  // Aparición al scroll; se recalcula cuando llega el contenido que se pide aparte.
+  const raizRef = useRef(null)
+  useRevelar(raizRef, [categorias.length, destacados.length])
+
   return (
-    <div className="lp">
+    <div className="lp" ref={raizRef}>
       {/* HERO: franja cyan de borde a borde con la tarjeta blanca de texto a la izquierda. */}
       <section className="lp-hero" id="top">
         <div className="lp-wrap lp-hero-grid">
@@ -234,14 +239,14 @@ function LandingPage() {
       <section className="lp-block lp-cats-block" id="categorias" aria-label="Categorías">
         <div className="lp-wrap">
           <div className="lp-cats">
-            {categorias.map(c => (
-              <Link key={c.cat.id} className="lp-cat" to={`/catalogo?cat=${c.cat.id}`}>
+            {categorias.map((c, i) => (
+              <Link key={c.cat.id} className="lp-cat revelar" style={{ '--d': i % 5 }} to={`/catalogo?cat=${c.cat.id}`}>
                 <Ico>{c.ico}</Ico>
                 <span>{c.nombre}</span>
               </Link>
             ))}
           </div>
-          <div className="lp-cats-todas"><Link className="lp-link" to="/catalogo">Ver todas las categorías ›</Link></div>
+          <div className="lp-cats-todas revelar"><Link className="lp-link" to="/catalogo">Ver todas las categorías ›</Link></div>
         </div>
       </section>
 
@@ -250,7 +255,7 @@ function LandingPage() {
       {/* DESTACADOS: grilla de 4 columnas. */}
       <section className="lp-block" id="productos">
         <div className="lp-wrap">
-          <div className="lp-head">
+          <div className="lp-head revelar">
             <h2>Destacados</h2>
             <Link className="lp-link" to="/catalogo">Ver todos los productos ›</Link>
           </div>
@@ -258,16 +263,16 @@ function LandingPage() {
           <div className="lp-prod-grid">
             {destacados.length === 0
               ? <div className="lp-prod-loading">Cargando productos…</div>
-              : destacados.map(p => <TarjetaProducto key={p.id} p={p} />)}
+              : destacados.map((p, i) => <TarjetaProducto key={p.id} p={p} i={i} />)}
           </div>
         </div>
       </section>
 
       {/* ARMÁ TU PC: foto de un setup de escritorio, de borde a borde, con la tarjeta blanca encima. */}
-      <section className="lp-banda" aria-labelledby="armador-title">
+      <section className="lp-banda revelar" aria-labelledby="armador-title">
         <img className="lp-banda-foto" src="/local/setup-pc-moderno.jpg" alt="" aria-hidden="true" loading="lazy" />
         <div className="lp-wrap lp-banda-grid">
-          <div className="lp-banda-card">
+          <div className="lp-banda-card revelar">
             <span className="lp-rotulo">Armá tu PC</span>
             <h2 id="armador-title">Tu PC a medida, pieza por pieza.</h2>
             <p>Elegí procesador, mother, memoria y el resto, paso a paso. Te mostramos solo lo que es compatible entre sí.</p>
@@ -280,10 +285,10 @@ function LandingPage() {
       {/* POR QUÉ */}
       <section className="lp-block" id="por-que">
         <div className="lp-wrap">
-          <div className="lp-head"><h2>Por qué comprar en {NOMBRE_NEGOCIO}</h2></div>
+          <div className="lp-head revelar"><h2>Por qué comprar en {NOMBRE_NEGOCIO}</h2></div>
           <div className="lp-ventajas">
-            {VENTAJAS.map(v => (
-              <div className="lp-ventaja" key={v.t}>
+            {VENTAJAS.map((v, i) => (
+              <div className="lp-ventaja revelar" style={{ '--d': i % 3 }} key={v.t}>
                 {v.ico}
                 <h3>{v.t}</h3>
                 <p>{v.d}</p>
@@ -296,8 +301,8 @@ function LandingPage() {
       {/* NUESTRO LOCAL */}
       <section className="lp-block" id="local" aria-labelledby="local-title">
         <div className="lp-wrap lp-local">
-          <img className="lp-local-foto" src="/local/fachada.jpg" alt={`Frente del local de ${NOMBRE_NEGOCIO}`} loading="lazy" width="1280" height="874" />
-          <div className="lp-local-texto">
+          <img className="lp-local-foto revelar" src="/local/fachada.jpg" alt={`Frente del local de ${NOMBRE_NEGOCIO}`} loading="lazy" width="1280" height="874" />
+          <div className="lp-local-texto revelar" style={{ '--d': 2 }}>
             <span className="lp-rotulo">Nuestro local</span>
             <h2 id="local-title">Vení a conocernos.</h2>
             <p>Estamos en {TITULAR.domicilioComercial}. Podés ver los productos, retirar tu compra o consultarnos lo que necesites.</p>
@@ -314,9 +319,11 @@ function LandingPage() {
       <section className="lp-marcas" aria-labelledby="marcas-title">
         <div className="lp-wrap">
           <p className="lp-rotulo" id="marcas-title">Marcas que trabajamos</p>
-          <ul className="lp-marcas-lista">
-            {MARCAS.map(m => <li key={m}>{m}</li>)}
-          </ul>
+          <div className="lp-marcas-cinta">
+            <ul className="lp-marcas-lista">
+              {[...MARCAS, ...MARCAS].map((m, i) => <li key={i} aria-hidden={i >= MARCAS.length || undefined}>{m}</li>)}
+            </ul>
+          </div>
         </div>
       </section>
     </div>

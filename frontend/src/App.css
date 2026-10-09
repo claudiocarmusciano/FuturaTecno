@@ -411,3 +411,18 @@ a:hover { text-decoration: none; }
   margin: 0; padding: 12px 16px; font-size: 14px; line-height: 1.5;
   background: var(--color-cyan-tint); border-left: 3px solid var(--color-cyan); border-radius: var(--radius-sm);
 }
+
+/* ===== Movimiento (estilo Apple: sutil, al servicio del contenido) ===== */
+/* Aparición al scroll: ver utils/useRevelar.js. --d escalona elementos de una misma fila. */
+.con-animacion .revelar {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .8s cubic-bezier(.2, .7, .2, 1), transform .8s cubic-bezier(.2, .7, .2, 1);
+  transition-delay: calc(min(var(--d, 0), 8) * 80ms);
+}
+.con-animacion .revelar.visible { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .con-animacion .revelar { opacity: 1; transform: none; transition: none; }
+  *, *::before, *::after { animation: none !important; }
+}

@@ -15,6 +15,14 @@ function PublicLayout() {
   // La home ocupa todo el ancho (franjas de color de borde a borde); el resto va en la columna centrada.
   const esHome = location.pathname === '/'
   const [menuAbierto, setMenuAbierto] = useState(false)
+  // Al bajar, el encabezado se vuelve translúcido con desenfoque (estilo Apple).
+  const [conScroll, setConScroll] = useState(false)
+  useEffect(() => {
+    const alScroll = () => setConScroll(window.scrollY > 8)
+    alScroll()
+    window.addEventListener('scroll', alScroll, { passive: true })
+    return () => window.removeEventListener('scroll', alScroll)
+  }, [])
 
   // Al navegar (link del menú, atrás del navegador) el menú mobile se cierra.
   useEffect(() => { setMenuAbierto(false) }, [location.pathname, location.hash])
@@ -26,7 +34,7 @@ function PublicLayout() {
 
   return (
     <div className="public-layout">
-      <header className="public-header">
+      <header className={`public-header${conScroll ? ' con-scroll' : ''}`}>
         <div className="header-container">
           <Link to="/" className="logo"><img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" className="header-logo" width="176" height="44" /></Link>
           <nav id="public-nav" className={`public-nav${menuAbierto ? ' abierto' : ''}`}>

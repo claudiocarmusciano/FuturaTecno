@@ -151,3 +151,58 @@
   .lp-ventajas { grid-template-columns: 1fr; gap: 32px; }
   .lp .promotions-carousel { width: calc(100% - 32px); }
 }
+
+/* ===== Movimiento de la home ===== */
+@keyframes lp-entrar { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+/* La flotación usa la propiedad `translate` (no `transform`), así no pelea con el hover. */
+@keyframes lp-flotar { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+
+/* Hero: el texto entra escalonado y las tarjetas aparecen una tras otra y después flotan. */
+.lp-hero-card > * { animation: lp-entrar .9s cubic-bezier(.2, .7, .2, 1) both; }
+.lp-hero-card > :nth-child(2) { animation-delay: .08s; }
+.lp-hero-card > :nth-child(3) { animation-delay: .16s; }
+.lp-hero-card > :nth-child(4) { animation-delay: .24s; }
+.lp-vidriera-item {
+  animation: lp-entrar .9s cubic-bezier(.2, .7, .2, 1) both, lp-flotar 7s ease-in-out 1.2s infinite;
+}
+.lp-v1 { animation-delay: .25s, 1.2s; }
+.lp-v2 { animation-delay: .35s, 2.4s; }
+.lp-v3 { animation-delay: .45s, 3.1s; }
+.lp-v4 { animation-delay: .55s, 1.8s; }
+.lp-vidriera-item img { transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
+.lp-vidriera-item:hover img { transform: scale(1.06); }
+
+/* Productos: se elevan y la foto se acerca. */
+.lp-prod { transition: box-shadow .3s, transform .4s cubic-bezier(.2, .7, .2, 1); }
+.lp-prod:hover { transform: translateY(-4px); }
+.lp-prod-img img { transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
+.lp-prod:hover .lp-prod-img img { transform: scale(1.05); }
+
+/* Iconos de categorías: un pequeño salto. */
+.lp-cat svg { transition: transform .3s cubic-bezier(.2, .7, .2, 1); }
+.lp-cat:hover svg { transform: translateY(-3px); }
+
+/* Franja de Armá tu PC: la franja no se desvanece; la foto se acerca suave al entrar en pantalla. */
+.con-animacion .lp-banda.revelar { opacity: 1; transform: none; }
+.lp-banda-foto { transform: scale(1.08); transition: transform 1.6s cubic-bezier(.2, .7, .2, 1); }
+.lp-banda.visible .lp-banda-foto, .lp:not(.con-animacion) .lp-banda-foto { transform: none; }
+
+/* Marcas: cinta que se desliza sola (la lista va duplicada) y se frena al pasar el mouse. */
+.lp-marcas-cinta {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.lp-marcas .lp-marcas-lista {
+  flex-wrap: nowrap; width: max-content; justify-content: flex-start; gap: 48px; padding-right: 48px;
+  animation: lp-cinta 45s linear infinite;
+}
+.lp-marcas-cinta:hover .lp-marcas-lista { animation-play-state: paused; }
+.lp-marcas-lista li { white-space: nowrap; }
+@keyframes lp-cinta { to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-banda-foto { transform: none; transition: none; }
+  .lp-marcas .lp-marcas-lista { flex-wrap: wrap; width: auto; justify-content: center; }
+  .lp-marcas-lista li[aria-hidden] { display: none; }
+}
