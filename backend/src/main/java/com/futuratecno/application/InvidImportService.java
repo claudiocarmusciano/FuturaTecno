@@ -106,6 +106,11 @@ public class InvidImportService {
 
     private Map<String, Object> procesar(String categoria, String marca, boolean soloConStock,
                                          BigDecimal precioMinUsd, boolean soloExistentes) {
+        // Una sola importación de Invid a la vez: dos en paralelo duplicaban productos (ver
+        // ProductoRepository#findByProveedorIdAndCodigoExterno). El bloqueo se libera al terminar.
+        if (!productoRepository.intentarBloqueoImportacion(81002L)) {
+            throw new IllegalStateException("Ya hay una importación de Invid en curso. Esperá a que termine y volvé a intentar.");
+        }
         if (!estaConfigurado()) {
             throw new IllegalStateException("La API de Invid no está configurada (faltan INVID_BASE_URL / INVID_USERNAME / INVID_PASSWORD).");
         }

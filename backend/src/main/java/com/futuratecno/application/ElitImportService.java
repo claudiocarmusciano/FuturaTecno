@@ -126,6 +126,11 @@ public class ElitImportService {
 
     private Map<String, Object> procesar(String categoria, String marca, boolean soloConStock, String store,
                                          BigDecimal precioMinUsd, boolean soloExistentes) {
+        // Una sola importación de Elit a la vez: dos en paralelo duplicaban productos (ver
+        // ProductoRepository#findByProveedorIdAndCodigoExterno). El bloqueo se libera al terminar.
+        if (!productoRepository.intentarBloqueoImportacion(81001L)) {
+            throw new IllegalStateException("Ya hay una importación de Elit en curso. Esperá a que termine y volvé a intentar.");
+        }
         if (!estaConfigurado()) {
             throw new IllegalStateException("La API de Elit no está configurada (faltan ELIT_USER_ID / ELIT_TOKEN).");
         }

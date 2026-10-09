@@ -19,7 +19,24 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Optional<Producto> findByProveedorIdAndMarcaAndModelo(Long proveedorId, String marca, String modelo);
 
-    Optional<Producto> findByProveedorIdAndCodigoExterno(Long proveedorId, String codigoExterno);
+    List<Producto> findAllByProveedorIdAndCodigoExternoOrderByActivoDescIdAsc(Long proveedorId, String codigoExterno);
+
+    /**
+     * El producto de un mayorista por su código. Tolera duplicados: el 2026-10-07 dos importaciones
+     * de Elit simultáneas cargaron dos veces el mismo código y, con un Optional estricto, la
+     * importación y la sync diaria morían enteras ("Query did not return a unique result"). Si hay
+     * más de uno, gana el activo y, entre iguales, el más viejo.
+     */
+    default Optional<Producto> findByProveedorIdAndCodigoExterno(Long proveedorId, String codigoExterno) {
+        return findAllByProveedorIdAndCodigoExternoOrderByActivoDescIdAsc(proveedorId, codigoExterno).stream().findFirst();
+    }
+
+    /**
+     * Bloqueo de la importación de un mayorista mientras dura la transacción. Devuelve false si ya
+     * hay otra corriendo (un doble clic, o una importación manual pisando la sync de las 06:30).
+     */
+    @Query(value = "SELECT pg_try_advisory_xact_lock(:clave)", nativeQuery = true)
+    boolean intentarBloqueoImportacion(@Param("clave") long clave);
 
     /**
      * Mismo producto del mismo proveedor, aunque la IA haya redactado el modelo distinto en esta

@@ -21,25 +21,30 @@ class ElitSinStockTest {
     @Test
     void laSyncSacaDeLaTiendaLoQueSeQuedoSinStock() throws Exception {
         ElitApiClient api = mock(ElitApiClient.class);
-        ProductoRepository productos = mock(ProductoRepository.class);
-        ProveedorRepository proveedores = mock(ProveedorRepository.class);
+        ProductoRepositoryFalso falso = new ProductoRepositoryFalso();
+        ProductoRepository productos = falso.repo();
         when(api.estaConfigurado()).thenReturn(true);
         Proveedor elit = new Proveedor();
         elit.setId(7L);
         elit.setActivo(true);
-        when(proveedores.findByNombreIgnoreCase("Elit")).thenReturn(Optional.of(elit));
+        // Sin Mockito por la misma razón que ProductoRepositoryFalso.
+        ProveedorRepository proveedores = (ProveedorRepository) java.lang.reflect.Proxy.newProxyInstance(
+                ProveedorRepository.class.getClassLoader(), new Class<?>[]{ProveedorRepository.class},
+                (proxy, m, args) -> "findByNombreIgnoreCase".equals(m.getName()) && "Elit".equals(args[0])
+                        ? Optional.of(elit)
+                        : m.getReturnType() == Optional.class ? Optional.empty() : null);
         when(api.consultarProductos(anyInt(), eq(1), any(), any(), any(), any())).thenReturn(new ObjectMapper().readTree(
                 "{\"paginador\":{\"total\":1},\"resultado\":[{\"id\":555,\"stock_total\":0,\"precio\":10,\"iva\":21}]}"));
         Producto agotado = new Producto();
         agotado.setActivo(true);
-        when(productos.findByProveedorIdAndCodigoExterno(7L, "555")).thenReturn(Optional.of(agotado));
+        falso.agregar(7L, "555", agotado);
 
         ElitImportService servicio = new ElitImportService(api, productos, mock(MargenManualService.class),
                 mock(VarianteRepository.class), proveedores, mock(ImagenRepository.class), mock(CategoriaClasificadorService.class));
         Map<String, Object> r = servicio.sincronizar();
 
         assertThat(agotado.getActivo()).isFalse();
-        verify(productos).save(agotado);
+        assertThat(falso.guardados).contains(agotado);
         assertThat(r.get("desactivadosSinStock")).isEqualTo(1);
     }
 }
