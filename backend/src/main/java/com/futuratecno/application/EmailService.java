@@ -42,6 +42,10 @@ public class EmailService {
     @Value("${app.mail.from-name:Tecnópolis Olavarría}")
     private String fromName;
 
+    /** A dónde van las respuestas de los clientes (vacío = al remitente). Ver application.yml. */
+    @Value("${app.mail.reply-to:}")
+    private String replyTo;
+
     public EmailService(@Qualifier("mailRestTemplate") RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -65,11 +69,12 @@ public class EmailService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(apiKey);
 
-            Map<String, Object> body = Map.of(
+            Map<String, Object> body = new java.util.HashMap<>(Map.of(
                     "from", fromName + " <" + from + ">",
                     "to", List.of(para),
                     "subject", asunto,
-                    "html", htmlBody);
+                    "html", htmlBody));
+            if (replyTo != null && !replyTo.isBlank()) body.put("reply_to", replyTo.trim());
 
             restTemplate.postForObject(API_URL, new HttpEntity<>(body, headers), String.class);
             logger.info("Email enviado a {} (asunto: {})", para, asunto);

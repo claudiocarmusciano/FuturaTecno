@@ -125,8 +125,10 @@ app:
   mail:
     # Se manda por la API HTTP de Resend, no por SMTP: Railway bloquea los puertos SMTP salientes.
     resend-api-key: ${RESEND_API_KEY:}   # vacío = no se manda email (queda en el log)
-    from: ${MAIL_FROM:}                  # remitente verificado en Resend (ej. no-responder@futuratecno.com.ar)
-    from-name: ${MAIL_FROM_NAME:FuturaTecno}
+    from: ${MAIL_FROM:}                  # remitente verificado en Resend (ej. no-responder@tecnopolisolavarria.com)
+    from-name: ${MAIL_FROM_NAME:Tecnópolis Olavarría}
+    # Si el cliente responde un mail, la respuesta va acá (ej. la casilla que se lee). Vacío = al remitente.
+    reply-to: ${MAIL_REPLY_TO:}
     # Destinatario de los avisos internos (pedidos nuevos). Por defecto, la misma casilla del admin.
     admin-to: ${ADMIN_NOTIFY_EMAIL:${admin.email:}}
 
