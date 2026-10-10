@@ -25,7 +25,7 @@
 }
 
 .logo { display: flex; align-items: center; text-decoration: none; }
-.header-logo { height: 44px; width: auto; display: block; }
+.header-logo { height: 53px; width: auto; display: block; }
 
 .public-nav { display: flex; gap: 8px; align-items: center; margin-left: 40px; flex: 1; }
 .public-nav a {
@@ -91,7 +91,7 @@
 
 @media (max-width: 600px) {
   .header-container { padding: 10px 16px; }
-  .header-logo { height: 36px; }
+  .header-logo { height: 43px; }
   .public-nav.abierto { padding: 4px 16px 16px; }
   .public-main { padding: 24px 16px; }
 }

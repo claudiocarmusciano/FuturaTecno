@@ -36,7 +36,7 @@ function PublicLayout() {
     <div className="public-layout">
       <header className={`public-header${conScroll ? ' con-scroll' : ''}`}>
         <div className="header-container">
-          <Link to="/" className="logo"><img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" className="header-logo" width="176" height="44" /></Link>
+          <Link to="/" className="logo"><img src="/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" className="header-logo" width="212" height="53" /></Link>
           <nav id="public-nav" className={`public-nav${menuAbierto ? ' abierto' : ''}`}>
             {/* Mismo orden que la barra de la home. */}
             <Link to="/catalogo">Productos</Link>
