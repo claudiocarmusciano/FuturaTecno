@@ -21,9 +21,9 @@ export default function PromotionsCarousel() {
   useEffect(() => { axios.get('/api/promociones').then(r => setItems(r.data || [])).catch(() => {}) }, [])
   useEffect(() => {
     if (paused || items.length < 2) return undefined
-    const timer = window.setInterval(() => setIndex(i => (i + 1) % items.length), 5000)
-    return () => window.clearInterval(timer)
-  }, [paused, items.length])
+    const timer = window.setTimeout(() => setIndex(i => (i + 1) % items.length), 5000)
+    return () => window.clearTimeout(timer)
+  }, [paused, items.length, index])
   useEffect(() => { if (index >= items.length) setIndex(0) }, [items.length, index])
 
   if (items.length < 4) return null
@@ -34,12 +34,14 @@ export default function PromotionsCarousel() {
       const delta = e.clientX - touchStart.current
       if (Math.abs(delta) > 45) ir(index + (delta < 0 ? 1 : -1))
     }
-    touchStart.current = null; setPaused(false)
+    touchStart.current = null; setPaused(e.pointerType === 'mouse')
   }
 
   return <section className="promotions-carousel" aria-label="Promociones"
-    onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
-    onFocusCapture={() => setPaused(true)} onBlurCapture={() => setPaused(false)}
+    onPointerEnter={e => { if (e.pointerType === 'mouse') setPaused(true) }}
+    onPointerLeave={e => { if (e.pointerType === 'mouse') setPaused(false) }}
+    onFocusCapture={e => { if (e.target.matches(':focus-visible')) setPaused(true) }}
+    onBlurCapture={() => setPaused(false)}
     onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => { touchStart.current = null; setPaused(false) }}>
     <div className="promotions-track" style={{ transform: `translateX(-${index * 100}%)` }}>
       {items.map((promo, i) => <article className="promotions-slide" aria-hidden={i !== index} key={promo.id}>
