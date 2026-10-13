@@ -6,7 +6,7 @@ import { CASH_DISCOUNT_PERCENTAGE } from '../../../utils/paymentPricing'
 export default function TerminosPage() {
   return (
     <LegalLayout titulo="Términos y condiciones" actualizado="30 de septiembre de 2026"
-      intro="Estas son las reglas de compra en www.futuratecno.com.ar. Al confirmar un pedido las aceptás.">
+      intro="Estas son las reglas de compra en www.tecnopolisolavarria.com. Al confirmar un pedido las aceptás.">
       <section><h2>1. Quiénes somos</h2>
         <p>Tecnópolis Olavarría es el nombre comercial de {TITULAR.nombre}, CUIT {TITULAR.cuit}, {TITULAR.condicionIva} ante ARCA, con domicilio fiscal en {TITULAR.domicilioFiscal} y domicilio comercial en {TITULAR.domicilioComercial}.</p>
         <p>Contacto: {CONTACTO_EMAIL} · WhatsApp +{WHATSAPP_NUMBER}.</p>

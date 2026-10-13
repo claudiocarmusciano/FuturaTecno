@@ -74,7 +74,7 @@ public class MercadoPagoGateway {
                         .email(pedido.getUsuario().getEmail())
                         .build())
                 .externalReference(pedido.getNumero())
-                .statementDescriptor("FUTURATECNO")
+                .statementDescriptor("TECNOPOLIS")
                 .backUrls(backUrls)
                 .autoReturn("approved")
                 .notificationUrl(publicUrl + "/api/pagos/mercadopago/webhook")

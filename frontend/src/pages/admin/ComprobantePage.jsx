@@ -59,7 +59,7 @@ export default function ComprobantePage() {
     `Total: US$ ${formatNumber(p.totalUsd)} (≈ $ ${formatNumber(totalArs)})`,
     `Pago: ${MEDIO[p.medioPago] || p.medioPago}${p.estadoPago === 'APROBADO' ? ' (cobrado)' : ''}`,
     p.modoEnvio ? `Entrega: ${etiquetaEnvio(p.modoEnvio)}` : null,
-    'Guardá este mensaje: es tu comprobante para la garantía. Condiciones: www.futuratecno.com.ar/garantia'
+    'Guardá este mensaje: es tu comprobante para la garantía. Condiciones: www.tecnopolisolavarria.com/garantia'
   ].filter(Boolean).join('\n')
   const tel = telefonoWhatsapp(p.telefonoContacto)
   // Sin número, wa.me deja elegir el contacto: sirve también cuando el teléfono del pedido está mal.
@@ -142,8 +142,8 @@ export default function ComprobantePage() {
 
         <footer className="comp-pie">
           Garantía por defectos de fabricación de al menos 3 meses desde la entrega, o la del fabricante si es mayor.
-          Conservá este comprobante: es el que vale para la garantía. Condiciones completas en www.futuratecno.com.ar/garantia.
-          Podés revocar la compra dentro de los 10 días de recibida en www.futuratecno.com.ar/arrepentimiento.
+          Conservá este comprobante: es el que vale para la garantía. Condiciones completas en www.tecnopolisolavarria.com/garantia.
+          Podés revocar la compra dentro de los 10 días de recibida en www.tecnopolisolavarria.com/arrepentimiento.
         </footer>
       </article>
     </div>

@@ -5,7 +5,7 @@ import './LegalBase.css'
 import './legal.css'
 
 /** Marco común de las páginas legales: tarjeta centrada sobre fondo oscuro. */
-export default function LegalLayout({ eyebrow = 'FUTURATECNO', titulo, intro, actualizado, children }) {
+export default function LegalLayout({ eyebrow = 'TECNÓPOLIS OLAVARRÍA', titulo, intro, actualizado, children }) {
   useEffect(() => {
     const anterior = document.title
     document.title = `${titulo} — Tecnópolis Olavarría`
