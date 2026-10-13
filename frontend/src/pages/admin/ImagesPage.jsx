@@ -307,13 +307,14 @@ function ImagesPage() {
                               <button
                                 key={c.productoId}
                                 type="button"
+                                className="boton-tarjeta"
                                 disabled={rota}
                                 onClick={() => setEdits(prev => ({ ...prev, [p.id]: c.url }))}
                                 title={rota ? 'Esta foto ya no carga' : `${c.marca} ${c.modelo}`}
                                 style={{
                                   width: '132px', padding: '6px', textAlign: 'left',
                                   cursor: rota ? 'not-allowed' : 'pointer', opacity: rota ? 0.45 : 1,
-                                  background: 'var(--color-surface)', borderRadius: '2px',
+                                  background: 'var(--color-surface)', borderRadius: '10px', overflow: 'hidden',
                                   border: edits[p.id] === c.url ? '2px solid var(--color-accion)' : '1px solid var(--color-border)'
                                 }}
                               >

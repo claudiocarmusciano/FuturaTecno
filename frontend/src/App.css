@@ -435,4 +435,6 @@ a:hover { text-decoration: none; }
 /* ===== Botones en píldora =====
    Va con !important porque muchos botones de las pantallas traen el borde escrito en línea. Los
    campos de texto, tarjetas y tablas no se tocan. */
-button, .btn, .lp-btn, a.public-nav-cta, .promotions-arrow { border-radius: var(--radius-boton) !important; }
+button:not(.boton-tarjeta), .btn, .lp-btn, a.public-nav-cta, .promotions-arrow { border-radius: var(--radius-boton) !important; }
+/* Botones que son tarjetas (fotos para elegir): bordes apenas redondeados, no píldora. */
+.boton-tarjeta { border-radius: 10px; }
