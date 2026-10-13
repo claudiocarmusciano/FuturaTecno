@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment } from 'react'
 import axios from 'axios'
 import { Link, useSearchParams } from 'react-router-dom'
 import { IconTrash, IconDatabase, IconSearchLine, IconCheck } from '../../components/icons'
+import { coincideBusqueda } from '../../utils/busqueda'
 
 const formatUsd = (n) => Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatArs = (n) => Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 })
@@ -121,13 +122,9 @@ function ImagesPage() {
   // completo para que la pantalla no quede vacía.
   const mostrarSoloSinImagen = soloSinImagen && sinImagen > 0
   const productosBase = mostrarSoloSinImagen ? productos.filter(p => !tieneImagen(p)) : productos
-  const terminoBusqueda = busqueda.trim().toLowerCase()
-  const productosFiltrados = terminoBusqueda
-    ? productosBase.filter(p => [p.categoria, p.marca, p.modelo, p.proveedor, p.sku, p.especificaciones]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-      .includes(terminoBusqueda))
+  const productosFiltrados = busqueda.trim()
+    ? productosBase.filter(p => coincideBusqueda(
+      [p.categoria, p.marca, p.modelo, p.proveedor, p.sku, p.especificaciones].filter(Boolean).join(' '), busqueda))
     : productosBase
 
   // Misma razón que en Productos: pintar las ~4.000 filas de una bloqueaba el hilo principal

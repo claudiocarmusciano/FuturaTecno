@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
@@ -43,7 +44,10 @@ public final class BusquedaCatalogo {
     private BusquedaCatalogo() {}
 
     public static CatalogoPaginaDTO buscar(List<ProductoCatalogoDTO> catalogo, Filtro f) {
-        String q = f.texto() == null ? "" : f.texto().trim().toLowerCase(Locale.ROOT);
+        // Sin distinguir mayúsculas ni tildes, y por palabras en cualquier orden ("Computación" =
+        // "computacion"; "lenovo 15" encuentra "Lenovo IdeaPad Slim 3 15.6"), igual que el admin.
+        List<String> palabras = f.texto() == null ? List.of()
+                : Arrays.stream(paraBuscar(f.texto()).split("\\s+")).filter(w -> !w.isEmpty()).toList();
         String marca = f.marca() == null || f.marca().isBlank() ? null : f.marca();
 
         // Filtros por atributo de la categoría (iPhone, Celulares…): valores normalizados por clave.
@@ -52,7 +56,10 @@ public final class BusquedaCatalogo {
         for (ProductoCatalogoDTO p : catalogo) {
             if (f.idsCategoria() != null && !f.idsCategoria().contains(p.getCategoriaId())) continue;
             if (marca != null && !marcaNormalizada(p.getMarca()).equals(marcaNormalizada(marca))) continue;
-            if (!q.isEmpty() && !textoDe(p).contains(q)) continue;
+            if (!palabras.isEmpty()) {
+                String texto = textoDe(p);
+                if (!palabras.stream().allMatch(texto::contains)) continue;
+            }
             BigDecimal precio = precioDesde(p);
             // Sin precio (todas las variantes en 0) queda afuera si hay cualquier límite: el front
             // lo trataba como Infinity, que pasa un mínimo pero no un máximo. Se conserva eso.
@@ -330,6 +337,12 @@ public final class BusquedaCatalogo {
         partes.add(p.getMarca());
         partes.add(p.getModelo());
         if (p.getVariantes() != null) p.getVariantes().forEach(v -> partes.add(v.getEspecificaciones()));
-        return partes.stream().filter(Objects::nonNull).collect(Collectors.joining(" ")).toLowerCase(Locale.ROOT);
+        return paraBuscar(partes.stream().filter(Objects::nonNull).collect(Collectors.joining(" ")));
+    }
+
+    /** Minúsculas y sin tildes: "Computación" y "COMPUTACION" se buscan igual. */
+    static String paraBuscar(String s) {
+        return java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT).trim();
     }
 }

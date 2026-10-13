@@ -9,6 +9,7 @@ import { WHATSAPP_NUMBER } from '../../config'
 import { etiquetaEnvio } from '../../utils/envio'
 import { IconAlert, IconBulb, IconCheck, IconChat, IconCpu, IconDisc, IconFan, IconGpu, IconHardDrive, IconLink, IconMemory, IconMotherboard, IconPlug, IconTower, IconX } from '../../components/icons'
 import './ArmaTuPcPage.css'
+import { coincideBusqueda } from '../../utils/busqueda'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -332,14 +333,13 @@ export default function ArmaTuPcPage() {
 
   const { opciones, ocultos } = useMemo(() => {
     if (!componentes) return { opciones: [], ocultos: 0 }
-    const q = busqueda.trim().toLowerCase()
     let ocultos = 0
     const lista = []
     for (const c of componentes) {
       if (c.tipo !== pasoActual.tipo) continue
       // El 2º disco es para sumar uno distinto: el mismo modelo se lleva con la cantidad del primero.
       if (pasoActual.clave === 'ALMACENAMIENTO_2' && c.varianteId === seleccion.ALMACENAMIENTO?.item?.varianteId) continue
-      if (q && !`${c.marca} ${c.modelo}`.toLowerCase().includes(q)) continue
+      if (!coincideBusqueda(`${c.marca} ${c.modelo}`, busqueda)) continue
       const ev = evaluar(c, seleccion)
       if (ev.bloqueo) { ocultos++; continue }
       lista.push({ c, avisos: ev.avisos, sugerencias: ev.sugerencias || [], recomendada: ev.recomendada })

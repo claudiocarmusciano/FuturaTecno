@@ -63,6 +63,18 @@ class BusquedaCatalogoTest {
     }
 
     @Test
+    void elTextoIgnoraTildesYMayusculasYBuscaPorPalabras() {
+        List<ProductoCatalogoDTO> cat = List.of(
+                producto(1, 10, "Lenovo", "IdeaPad Slim 3 15.6 Computación", "8GB", "500"),
+                producto(2, 10, "HP", "Mouse óptico", "USB", "20"));
+        for (String q : List.of("Computación", "COMPUTACION", "computacion", "Computacion", "cómputacíon")) {
+            assertEquals(List.of(1L), ids(BusquedaCatalogo.buscar(cat, filtro(null, null, q, null, null, null, 1, 24))), q);
+        }
+        assertEquals(List.of(2L), ids(BusquedaCatalogo.buscar(cat, filtro(null, null, "OPTICO", null, null, null, 1, 24))));
+        assertEquals(List.of(1L), ids(BusquedaCatalogo.buscar(cat, filtro(null, null, "lenovo 15", null, null, null, 1, 24))));
+    }
+
+    @Test
     void paginaYAjustaUnaPaginaFueraDeRangoALaUltima() {
         var p2 = BusquedaCatalogo.buscar(catalogo, filtro(null, null, null, null, null, null, 2, 2));
         assertEquals(List.of(2L, 1L), ids(p2));

@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { IconEdit, IconSearch, IconTrash } from '../../components/icons'
 import { indexarArbol } from '../../utils/categorias'
 import { ordenarPor } from '../../utils/orden'
+import { coincideBusqueda } from '../../utils/busqueda'
 
 const formatFecha = (iso) =>
   iso ? new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
@@ -183,15 +184,9 @@ function ProductosPage() {
   // La búsqueda es en el navegador a propósito: el listado del admin ya viene entero (son ~1.500
   // productos), así que filtrar acá es instantáneo y no agrega un viaje al backend por tecla.
   // Si el catálogo creciera un orden de magnitud, esto hay que pasarlo a server-side.
-  const termino = busqueda.trim().toLowerCase()
-  const coincide = (p) => {
-    if (!termino) return true
-    // Se busca por palabras sueltas y en cualquier orden: "lenovo 15" encuentra
-    // "Lenovo IdeaPad Slim 3 15.6".
-    const texto = [p.marca, p.modelo, p.sku, p.categoria, p.especificaciones]
-      .filter(Boolean).join(' ').toLowerCase()
-    return termino.split(/\s+/).every(palabra => texto.includes(palabra))
-  }
+  const termino = busqueda.trim()
+  const coincide = (p) =>
+    coincideBusqueda([p.marca, p.modelo, p.sku, p.categoria, p.especificaciones].filter(Boolean).join(' '), busqueda)
 
   const productosVisibles = productos
     .filter(p => !soloSinCategoria || p.categoriaId == null)
