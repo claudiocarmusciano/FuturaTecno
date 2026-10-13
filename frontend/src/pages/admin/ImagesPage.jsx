@@ -124,7 +124,7 @@ function ImagesPage() {
   const productosBase = mostrarSoloSinImagen ? productos.filter(p => !tieneImagen(p)) : productos
   const productosFiltrados = busqueda.trim()
     ? productosBase.filter(p => coincideBusqueda(
-      [p.categoria, p.marca, p.modelo, p.proveedor, p.sku, p.especificaciones].filter(Boolean).join(' '), busqueda))
+      [p.categoriaPadre, p.categoria, p.marca, p.modelo, p.proveedor, p.sku, p.especificaciones].filter(Boolean).join(' '), busqueda))
     : productosBase
 
   // Misma razón que en Productos: pintar las ~4.000 filas de una bloqueaba el hilo principal

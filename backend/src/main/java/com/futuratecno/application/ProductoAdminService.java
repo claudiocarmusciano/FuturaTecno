@@ -137,6 +137,7 @@ public class ProductoAdminService {
                             p.getProveedor() != null ? p.getProveedor().getNombre() : null,
                             p.getImagenUrl());
                     dto.setCategoriaId(p.getCategoriaId());
+                    dto.setCategoriaPadre(nombres != null ? nombres.getCategoriaPadre() : null);
                     dto.setSku(sku(p));
                     if (!variantes.isEmpty()) {
                         Variante v = variantes.get(0);

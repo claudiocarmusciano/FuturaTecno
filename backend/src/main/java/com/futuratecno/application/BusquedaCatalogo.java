@@ -330,9 +330,10 @@ public final class BusquedaCatalogo {
                 .min(Comparator.naturalOrder()).orElse(null);
     }
 
-    /** Lo que mira el buscador: subcategoría, marca, modelo y las especificaciones de cada variante. */
+    /** Lo que mira el buscador: categoría y subcategoría, marca, modelo y las especificaciones de cada variante. */
     private static String textoDe(ProductoCatalogoDTO p) {
         List<String> partes = new ArrayList<>();
+        partes.add(p.getCategoriaPadre());
         partes.add(p.getCategoria());
         partes.add(p.getMarca());
         partes.add(p.getModelo());

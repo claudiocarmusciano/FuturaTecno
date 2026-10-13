@@ -6,6 +6,7 @@ public class ProductoAdminDTO {
     private Long id;
     private Long categoriaId;
     private String categoria;
+    private String categoriaPadre;   // la categoría de arriba, para el buscador del admin
     private String marca;
     private String modelo;
     private String proveedor;
@@ -83,4 +84,6 @@ public class ProductoAdminDTO {
 
     public java.math.BigDecimal getVentaArs() { return ventaArs; }
     public void setVentaArs(java.math.BigDecimal ventaArs) { this.ventaArs = ventaArs; }
+    public String getCategoriaPadre() { return categoriaPadre; }
+    public void setCategoriaPadre(String categoriaPadre) { this.categoriaPadre = categoriaPadre; }
 }

@@ -186,7 +186,7 @@ function ProductosPage() {
   // Si el catálogo creciera un orden de magnitud, esto hay que pasarlo a server-side.
   const termino = busqueda.trim()
   const coincide = (p) =>
-    coincideBusqueda([p.marca, p.modelo, p.sku, p.categoria, p.especificaciones].filter(Boolean).join(' '), busqueda)
+    coincideBusqueda([p.marca, p.modelo, p.sku, p.categoriaPadre, p.categoria, p.especificaciones].filter(Boolean).join(' '), busqueda)
 
   const productosVisibles = productos
     .filter(p => !soloSinCategoria || p.categoriaId == null)

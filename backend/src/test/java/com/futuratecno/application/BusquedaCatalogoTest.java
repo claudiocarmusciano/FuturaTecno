@@ -72,6 +72,9 @@ class BusquedaCatalogoTest {
         }
         assertEquals(List.of(2L), ids(BusquedaCatalogo.buscar(cat, filtro(null, null, "OPTICO", null, null, null, 1, 24))));
         assertEquals(List.of(1L), ids(BusquedaCatalogo.buscar(cat, filtro(null, null, "lenovo 15", null, null, null, 1, 24))));
+        // También busca por la categoría de arriba, no solo por la subcategoría.
+        cat.get(1).setCategoriaPadre("Periféricos");
+        assertEquals(List.of(2L), ids(BusquedaCatalogo.buscar(cat, filtro(null, null, "perifericos", null, null, null, 1, 24))));
     }
 
     @Test
