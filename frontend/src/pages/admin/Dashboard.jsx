@@ -124,6 +124,54 @@ function ProcesarListasNotion({ proveedores }) {
   )
 }
 
+/** Flor Qtech: su planilla se lee sola a las 08:00 y 15:00; el botón la lee ahora. */
+function SincronizarFlr() {
+  const [cargando, setCargando] = useState(false)
+  const [resultado, setResultado] = useState(null)
+  const [error, setError] = useState(null)
+
+  const sincronizar = async () => {
+    setCargando(true)
+    setError(null)
+    setResultado(null)
+    try {
+      const r = await axios.post('/api/admin/flr/sincronizar')
+      setResultado(r.data)
+    } catch (e) {
+      setError(e.response?.data?.error || 'No se pudo contactar al servidor.')
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  const enRevision = (resultado?.items || []).filter(i => i.estado === 'revision')
+
+  return (
+    <div className="card" style={{ marginBottom: '18px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ flex: '1 1 260px' }}>
+          <h2 style={{ marginBottom: '4px' }}>Flor Qtech</h2>
+          <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
+            La lista se actualiza sola a las 08:00 y a las 15:00. Toma el precio por unidad y solo lo de US$ 50 o más.
+          </p>
+        </div>
+        <button className="btn btn-primary" onClick={sincronizar} disabled={cargando}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <IconRefresh className={cargando ? 'icono-girando' : ''} />
+          {cargando ? 'Actualizando…' : 'Actualizar ahora'}
+        </button>
+      </div>
+      {error && <p role="alert" style={{ margin: '12px 0 0', fontSize: '14px', color: 'var(--color-danger)' }}>{error}</p>}
+      {resultado && <p role="status" style={{ margin: '12px 0 0', fontSize: '14px' }}>{resultado.mensaje}</p>}
+      {enRevision.length > 0 && (
+        <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+          {enRevision.map((i, n) => <li key={n}>{i.producto}: {i.motivo}</li>)}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function Dashboard() {
   const { user } = useAuth()
   const [data, setData] = useState({ productos: [], usuarios: [], proveedores: [], cotizacion: null, pendientes: [] })
@@ -150,6 +198,7 @@ function Dashboard() {
       <p style={{ color: 'var(--color-text-muted)', marginBottom: '28px' }}>Resumen de tu tienda</p>
 
       <ProcesarListasNotion proveedores={proveedores} />
+      <SincronizarFlr />
 
       {cargando ? (
         <div className="card"><p>Cargando métricas...</p></div>

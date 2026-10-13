@@ -34,16 +34,33 @@ public class SincronizacionScheduler {
     private final ElitImportService elitImportService;
     private final InvidImportService invidImportService;
     private final TaskScheduler taskScheduler;
+    private final FlrImportService flrImportService;
 
     @Value("${sync.enabled:true}")
     private boolean habilitado;
 
     public SincronizacionScheduler(ElitImportService elitImportService,
                                    InvidImportService invidImportService,
-                                   TaskScheduler taskScheduler) {
+                                   TaskScheduler taskScheduler,
+                                   FlrImportService flrImportService) {
         this.elitImportService = elitImportService;
         this.invidImportService = invidImportService;
         this.taskScheduler = taskScheduler;
+        this.flrImportService = flrImportService;
+    }
+
+    /**
+     * Flor Qtech publica su planilla en vivo y es chica (~100 filas): se lee dos veces por día.
+     * A diferencia de Elit e Invid, sí crea los artículos nuevos (pedido del usuario, 2026-10-13).
+     */
+    @Scheduled(cron = "${flr.cron:0 0 8,15 * * *}", zone = "America/Argentina/Buenos_Aires")
+    public void sincronizarFlr() {
+        if (!habilitado || !flrImportService.estaConfigurado()) return;
+        try {
+            logger.info("Sync automática Flor Qtech: {}", flrImportService.sincronizar().get("mensaje"));
+        } catch (Exception e) {
+            logger.error("Sync automática Flor Qtech falló: {}", e.toString());
+        }
     }
 
     // Segundo Minuto Hora DíaMes Mes DíaSemana — default: 06:30 todos los días.

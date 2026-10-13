@@ -132,6 +132,14 @@ app:
     # Destinatario de los avisos internos (pedidos nuevos). Por defecto, la misma casilla del admin.
     admin-to: ${ADMIN_NOTIFY_EMAIL:${admin.email:}}
 
+# Flor Qtech Electronics (proveedor 34, FLR): planilla de Google publicada como CSV.
+flr:
+  csv-url: ${FLR_CSV_URL:https://docs.google.com/spreadsheets/d/e/2PACX-1vRMCEpa10r6HSQ-m9HSJwLTBRUHpzkzoxTFZNgDdzF6N12k24eN2JS-0X4j7DGkeMT6mJo6TKos22Ge/pub?output=csv}
+  proveedor-id: ${FLR_PROVEEDOR_ID:34}
+  precio-minimo-usd: ${FLR_PRECIO_MINIMO_USD:50}
+  categorias-excluidas: ${FLR_CATEGORIAS_EXCLUIDAS:PERFUMES}
+  cron: ${FLR_CRON:0 0 8,15 * * *}   # 08:00 y 15:00 hora Argentina
+
 sync:
   enabled: ${SYNC_ENABLED:true}
   cron: ${SYNC_CRON:0 30 6 * * *}   # 06:30 hora Argentina, todos los días
