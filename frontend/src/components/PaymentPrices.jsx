@@ -1,12 +1,14 @@
 import { CASH_DISCOUNT_PERCENTAGE, cashPrice } from '../utils/paymentPricing'
 
 const money = (value) => Number(value).toLocaleString('es-AR', { maximumFractionDigits: 0 })
+const dolares = (value) => Number(value).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 /**
  * Precio en pesos: el de transferencia en grande, el de contado efectivo y el aviso de cuotas.
- * Los precios en dólares no se muestran al cliente (pedido del usuario, 2026-10-07).
+ * Con `usdPrice` muestra además el precio en dólares (vuelto a pedido del usuario, 2026-10-13):
+ * en las fichas de producto sí, en el carrito y el checkout no, porque ahí se paga en pesos.
  */
-export default function PaymentPrices({ transferPrice, compact = false, cashPriceOverride }) {
+export default function PaymentPrices({ transferPrice, compact = false, cashPriceOverride, usdPrice }) {
   const efectivo = cashPriceOverride ?? cashPrice(transferPrice)
 
   return (
@@ -14,7 +16,10 @@ export default function PaymentPrices({ transferPrice, compact = false, cashPric
       <div style={{ fontFamily: 'var(--fuente-titulos)', fontSize: compact ? '22px' : '30px', fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>
         $ {money(transferPrice)}
       </div>
-      <div style={{ color: 'var(--color-text-muted)' }}>por transferencia</div>
+      <div style={{ color: 'var(--color-text-muted)' }}>
+        por transferencia
+        {Number(usdPrice) > 0 && <> · <strong style={{ color: 'var(--color-text)', fontWeight: 600 }}>US$ {dolares(usdPrice)}</strong></>}
+      </div>
       <div style={{ marginTop: '6px', color: 'var(--color-accion)', fontWeight: 600 }}>
         $ {money(efectivo)} en contado efectivo <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>({CASH_DISCOUNT_PERCENTAGE}% OFF)</span>
       </div>

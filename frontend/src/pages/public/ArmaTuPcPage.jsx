@@ -516,7 +516,7 @@ export default function ArmaTuPcPage() {
                   {avisos.map(a => <p key={a} className="atp-aviso"><IconAlert /> {a}</p>)}
                   {sugerencias.map(a => <p key={a} className="atp-sugerencia"><IconBulb /> {a}</p>)}
                   <div className="atp-card-precio">
-                    <PaymentPrices transferPrice={c.precioArs} compact />
+                    <PaymentPrices transferPrice={c.precioArs} usdPrice={c.precioUsd} compact />
                   </div>
                   <div className="atp-card-acciones">
                     {pasoActual.cantidad && (
@@ -586,7 +586,7 @@ export default function ArmaTuPcPage() {
 
             <div className="atp-total">
               <span>Total</span>
-              <PaymentPrices transferPrice={totales.ars} compact />
+              <PaymentPrices transferPrice={totales.ars} usdPrice={totales.usd} compact />
             </div>
             <button className="btn btn-primary atp-agregar" disabled={faltantes.length > 0} onClick={agregarTodo}>
               Agregar todo al carrito

@@ -154,7 +154,7 @@ function ProductDetailPage() {
               {v.especificaciones && (
                 <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>{v.especificaciones}</p>
               )}
-              <PaymentPrices transferPrice={v.precioArs} />
+              <PaymentPrices transferPrice={v.precioArs} usdPrice={v.precioUsd} />
               <AvisoMinimo style={{ marginTop: '12px' }} />
               {/* El carrito es por variante: el precio vive en la variante, no en el producto. */}
               <button
