@@ -29,9 +29,10 @@
   padding: 48px 0;
   background-color: var(--color-cyan);
   background-image:
-    radial-gradient(60% 70% at 85% 10%, rgba(140, 225, 255, .55), transparent 70%),
-    radial-gradient(50% 60% at 5% 100%, rgba(0, 60, 120, .35), transparent 70%),
-    linear-gradient(135deg, #18bdf5 0%, var(--color-cyan) 40%, #0089c9 75%, #006FA6 100%);
+    radial-gradient(55% 65% at 90% 5%, rgba(170, 235, 255, .75), transparent 70%),
+    radial-gradient(45% 55% at 10% 0%, rgba(120, 220, 255, .6), transparent 70%),
+    radial-gradient(60% 70% at 15% 100%, rgba(0, 40, 90, .55), transparent 70%),
+    linear-gradient(135deg, #3cc9fa 0%, var(--color-cyan) 30%, #0079b8 65%, #004a7c 100%);
 }
 .lp-hero-grid { display: grid; grid-template-columns: minmax(0, 480px) 1fr; gap: 48px; align-items: center; min-height: 420px; }
 .lp-hero-card { background: #fff; padding: 48px 40px; border-radius: var(--radius); }
