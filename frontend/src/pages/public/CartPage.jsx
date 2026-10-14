@@ -109,6 +109,7 @@ function CartPage() {
                         )}
                         <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                           $ {formatNumber(i.precioArs)} c/u
+                          {i.precioUsd > 0 && <> · US$ {i.precioUsd.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</>}
                         </div>
                       </div>
                     </div>
@@ -155,7 +156,7 @@ function CartPage() {
           </button>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>Total de productos</div>
-            <PaymentPrices transferPrice={totalArs} />
+            <PaymentPrices transferPrice={totalArs} usdPrice={totalUsd} />
           </div>
         </div>
       </div>

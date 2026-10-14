@@ -223,7 +223,8 @@ function CheckoutPage() {
         ))}
         <div style={{ marginTop: '14px', fontSize: '19px', fontWeight: 700 }}>Total</div>
         {opcionElegida && <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '6px' }}>{Number(opcionElegida.totalArs) === 0 ? 'Incluye envío gratis en Olavarría.' : `Incluye envío estimado: $ ${formatNumber(opcionElegida.totalArs)}`}</div>}
-        <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} cashPriceOverride={totalEfectivoConEnvio} /></div>
+        <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} cashPriceOverride={totalEfectivoConEnvio}
+          usdPrice={cotizacion ? totalTransferenciaConEnvio / cotizacion : null} /></div>
       </div>
 
       <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
