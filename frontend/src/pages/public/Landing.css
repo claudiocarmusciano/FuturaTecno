@@ -23,10 +23,10 @@
 .lp-link:hover { text-decoration: none; text-shadow: 0 0 0.7px currentColor, 0 0 0.7px currentColor; }
 
 /* ===== HERO ===== */
-/* Degradé (pedido del usuario, 2026-10-14): un brillo claro arriba a la derecha, otro suave abajo
-   a la izquierda, sobre un pase del cyan de la marca al azul de acción. */
-.lp-hero {
-  padding: 48px 0;
+/* Degradé (pedido del usuario, 2026-10-14): dos brillos claros arriba y una sombra azul abajo a
+   la izquierda, sobre un pase del cyan de la marca al azul oscuro. Lo comparten la portada y las
+   franjas (2026-10-15). */
+.lp-hero, .lp-franja {
   background-color: var(--color-cyan);
   background-image:
     radial-gradient(55% 65% at 90% 5%, rgba(170, 235, 255, .75), transparent 70%),
@@ -34,6 +34,7 @@
     radial-gradient(60% 70% at 15% 100%, rgba(0, 40, 90, .55), transparent 70%),
     linear-gradient(135deg, #3cc9fa 0%, var(--color-cyan) 30%, #0079b8 65%, #004a7c 100%);
 }
+.lp-hero { padding: 48px 0; }
 .lp-hero-grid { display: grid; grid-template-columns: minmax(0, 480px) 1fr; gap: 48px; align-items: center; min-height: 420px; }
 .lp-hero-card { background: #fff; padding: 48px 40px; border-radius: var(--radius); }
 .lp-hero-card h1 { font-size: clamp(36px, 4.6vw, 60px); line-height: 1.04; font-weight: 600; letter-spacing: -0.025em; margin-bottom: 20px; }
@@ -222,8 +223,15 @@
 /* ===== Franjas alternadas (estilo Apple) =====
    Las secciones se separan por el tono del fondo, no por líneas: blanco, gris muy claro, blanco…
    Sobre el gris, las tarjetas de producto van blancas y sin sombra (la sombra aparece al pasar el mouse). */
-.lp-franja { background: var(--color-franja); }
+/* Sobre el azul: textos en blanco y el botón al revés (blanco con letras azules). */
+.lp-franja .lp-head h2, .lp-franja .lp-local-texto h2, .lp-franja .lp-local-texto p,
+.lp-franja .lp-local-horario, .lp-franja .lp-rotulo { color: #fff; }
+.lp-franja .lp-rotulo { opacity: .85; }
+.lp-franja .lp-head .lp-link, .lp-franja .lp-local-texto .lp-link { color: #fff !important; }
+.lp-franja .lp-btn { background: #fff; color: var(--color-accion) !important; }
+.lp-franja .lp-btn:hover { background: #e8f6fd; }
+.lp-franja .lp-marcas-lista li { color: rgba(255, 255, 255, .85); }
 .lp-franja .lp-prod { box-shadow: none; }
 .lp-franja .lp-prod:hover { box-shadow: var(--shadow-hover); }
-.lp-franja .lp-prod-img { border-bottom-color: var(--color-franja); }
+.lp-franja .lp-prod-img { border-bottom-color: #eef1f4; }
 @media (max-width: 600px) { .lp-block { padding: 48px 0; } }
