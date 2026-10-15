@@ -75,6 +75,38 @@ function ImagesPage() {
   // las de gstatic, que Google no sirve a IPs de datacenter aunque anden bien en un navegador.
   // Acá la prueba es real, porque es el mismo contexto donde la foto se va a ver.
   const [rotas, setRotas] = useState(new Set())
+  // Galería de fotos por producto: las extra se cargan a mano (Elit e Invid mandan una sola foto).
+  const [galerias, setGalerias] = useState({}) // { [productoId]: { cargando, fotos, url, error, guardando } }
+  const cambiarGaleria = (id, cambios) => setGalerias(prev => ({ ...prev, [id]: { ...prev[id], ...cambios } }))
+  const abrirGaleria = async (id) => {
+    if (galerias[id]) { setGalerias(prev => { const n = { ...prev }; delete n[id]; return n }); return }
+    cambiarGaleria(id, { cargando: true, fotos: [], url: '', error: '' })
+    try {
+      const res = await axios.get(`/api/admin/productos/${id}/galeria`)
+      cambiarGaleria(id, { cargando: false, fotos: res.data })
+    } catch (e) {
+      cambiarGaleria(id, { cargando: false, error: e.response?.data?.error || 'No se pudo leer la galería.' })
+    }
+  }
+  const agregarAGaleria = async (id) => {
+    cambiarGaleria(id, { guardando: true, error: '' })
+    try {
+      const res = await axios.post(`/api/admin/productos/${id}/galeria`, { url: galerias[id]?.url || '' })
+      cambiarGaleria(id, { guardando: false, fotos: res.data, url: '' })
+    } catch (e) {
+      cambiarGaleria(id, { guardando: false, error: e.response?.data?.error || 'No se pudo agregar la foto.' })
+    }
+  }
+  const quitarDeGaleria = async (id, imagenId) => {
+    if (!window.confirm('¿Quitar esta foto de la galería del producto?')) return
+    try {
+      const res = await axios.delete(`/api/admin/productos/${id}/galeria/${imagenId}`)
+      cambiarGaleria(id, { fotos: res.data, error: '' })
+    } catch (e) {
+      cambiarGaleria(id, { error: e.response?.data?.error || 'No se pudo quitar la foto.' })
+    }
+  }
+
   // Selección múltiple para dar de baja varios a la vez (misma baja masiva que Admin → Productos).
   const [seleccionados, setSeleccionados] = useState(new Set())
   const [dandoDeBaja, setDandoDeBaja] = useState(false)
@@ -318,6 +350,12 @@ function ImagesPage() {
                       title="Ver fotos que ya están en el catálogo para productos parecidos de esta misma marca. No consulta internet."
                     ><IconDatabase /> De la base</button>
                     <button
+                      onClick={() => abrirGaleria(p.id)}
+                      className="btn btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }}
+                      title="Ver todas las fotos del producto y agregar más a la galería de la ficha"
+                    >Galería</button>
+                    <button
                       onClick={() => guardarUrl(p.id)}
                       className="btn btn-primary"
                       style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }}
@@ -330,6 +368,44 @@ function ImagesPage() {
                     ><IconTrash /> Eliminar</button>
                   </td>
                 </tr>
+                {galerias[p.id] && (
+                  <tr>
+                    <td colSpan={5} style={{ background: 'var(--color-surface-2)' }}>
+                      {galerias[p.id].cargando ? <p style={{ margin: 0 }}>Cargando fotos…</p> : (
+                        <>
+                          <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                            Fotos de la ficha, en orden. Podés agregar hasta 4: copiá la <strong>dirección de la imagen</strong> (click derecho en la foto → Copiar dirección de imagen). Las del mayorista no se quitan, porque vuelven en la próxima sincronización.
+                          </p>
+                          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                            {galerias[p.id].fotos.map((f, i) => (
+                              <div key={f.id ?? 'principal'} style={{ width: '120px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '10px', padding: '6px', fontSize: '11px' }}>
+                                <img src={f.url} alt="" style={{ width: '100%', height: '80px', objectFit: 'contain' }} />
+                                <div style={{ marginTop: '4px', color: 'var(--color-text-muted)' }}>
+                                  {i + 1}. {f.origen === 'principal' ? 'Principal' : f.origen === 'manual' ? 'Agregada a mano' : 'Del mayorista'}
+                                </div>
+                                {f.origen === 'manual' && (
+                                  <button type="button" className="btn-accion danger" style={{ marginTop: '4px', fontSize: '11px', padding: '2px 8px' }}
+                                          onClick={() => quitarDeGaleria(p.id, f.id)}><IconTrash /> Quitar</button>
+                                )}
+                              </div>
+                            ))}
+                            {galerias[p.id].fotos.length === 0 && <span style={{ fontSize: '13px' }}>Este producto todavía no tiene fotos.</span>}
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <input type="url" placeholder="https://… dirección de la foto" value={galerias[p.id].url || ''}
+                                   onChange={e => cambiarGaleria(p.id, { url: e.target.value })}
+                                   style={{ flex: '1 1 320px', maxWidth: '520px', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '13px' }} />
+                            <button type="button" className="btn btn-primary" style={{ padding: '6px 14px', fontSize: '12px' }}
+                                    disabled={!galerias[p.id].url?.trim() || galerias[p.id].guardando}
+                                    onClick={() => agregarAGaleria(p.id)}>{galerias[p.id].guardando ? 'Verificando…' : 'Agregar a la galería'}</button>
+                            {galerias[p.id].url?.trim() && <img src={galerias[p.id].url.trim()} alt="" style={{ width: '44px', height: '44px', objectFit: 'contain', background: '#fff', borderRadius: '6px' }} />}
+                          </div>
+                          {galerias[p.id].error && <p role="alert" style={{ margin: '8px 0 0', fontSize: '13px', color: 'var(--color-danger)' }}>{galerias[p.id].error}</p>}
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                )}
                 {similares[p.id] && (
                   <tr>
                     <td colSpan={5} style={{ background: 'var(--color-surface-2)' }}>

@@ -18,6 +18,18 @@ public class Imagen extends BaseEntity {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    /** Cargada a mano en Admin → Imágenes: la sync de Elit y la carga JSON no la borran (V46). */
+    @Column(nullable = false)
+    private Boolean manual = false;
+
+    public Boolean getManual() {
+        return manual;
+    }
+
+    public void setManual(Boolean manual) {
+        this.manual = manual;
+    }
+
     public Producto getProducto() {
         return producto;
     }

@@ -311,7 +311,9 @@ public class ElitImportService {
      * Producto.imagenUrl). Se reemplazan por completo en cada sync para no acumular duplicados.
      */
     private void sincronizarGaleria(Producto producto, List<String> imagenes) {
-        imagenRepository.deleteAll(imagenRepository.findByProductoIdAndActivoOrderByOrden(producto.getId(), true));
+        // Las fotos cargadas a mano en Admin → Imágenes no se tocan (V46).
+        imagenRepository.deleteAll(imagenRepository.findByProductoIdAndActivoOrderByOrden(producto.getId(), true).stream()
+                .filter(i -> !Boolean.TRUE.equals(i.getManual())).toList());
         for (int i = 1; i < imagenes.size(); i++) {
             Imagen img = new Imagen();
             img.setProducto(producto);

@@ -379,7 +379,9 @@ public class CargaJsonService {
 
             // Galería de imágenes: se reemplaza por la del JSON (borra las anteriores del producto).
             if (!imagenes.isEmpty()) {
-                imagenRepository.deleteAll(imagenRepository.findByProductoIdAndActivoOrderByOrden(prod.getId(), true));
+                // Las fotos cargadas a mano en Admin → Imágenes no se tocan (V46).
+                imagenRepository.deleteAll(imagenRepository.findByProductoIdAndActivoOrderByOrden(prod.getId(), true).stream()
+                        .filter(im -> !Boolean.TRUE.equals(im.getManual())).toList());
                 int orden = 0;
                 for (String url : imagenes) {
                     Imagen img = new Imagen();
