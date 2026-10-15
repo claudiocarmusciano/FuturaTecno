@@ -75,6 +75,9 @@ function ImagesPage() {
   // las de gstatic, que Google no sirve a IPs de datacenter aunque anden bien en un navegador.
   // Acá la prueba es real, porque es el mismo contexto donde la foto se va a ver.
   const [rotas, setRotas] = useState(new Set())
+  // Selección múltiple para dar de baja varios a la vez (misma baja masiva que Admin → Productos).
+  const [seleccionados, setSeleccionados] = useState(new Set())
+  const [dandoDeBaja, setDandoDeBaja] = useState(false)
   const marcarRota = url => setRotas(prev => prev.has(url) ? prev : new Set(prev).add(url))
 
   const buscarSimilares = async (id) => {
@@ -115,6 +118,31 @@ function ImagesPage() {
     }
   }
 
+  const toggleSeleccion = (id) => setSeleccionados(prev => {
+    const n = new Set(prev)
+    if (n.has(id)) n.delete(id); else n.add(id)
+    return n
+  })
+
+  const darDeBajaSeleccionados = async () => {
+    const cantidad = seleccionados.size
+    if (cantidad === 0) return
+    if (!window.confirm(`¿Dar de baja ${cantidad} producto(s)? Dejarán de verse en el catálogo y en este listado.`)) return
+    setDandoDeBaja(true)
+    setMensaje('')
+    try {
+      const res = await axios.post('/api/admin/productos/dar-de-baja', { ids: [...seleccionados] })
+      setSeleccionados(new Set())
+      await cargar()
+      setMensaje(res.data?.mensaje || `${cantidad} producto(s) dados de baja`)
+    } catch (e) {
+      console.error(e)
+      setMensaje('Error al dar de baja los productos: ' + (e.response?.data?.message || e.message))
+    } finally {
+      setDandoDeBaja(false)
+    }
+  }
+
   const tieneImagen = (p) => Boolean(p.imagenUrl && p.imagenUrl.trim())
   const conImagen = productos.filter(tieneImagen).length
   const sinImagen = productos.length - conImagen
@@ -134,6 +162,9 @@ function ImagesPage() {
   const totalPaginas = Math.max(1, Math.ceil(productosFiltrados.length / POR_PAGINA))
   const paginaActual = Math.min(pagina, totalPaginas)
   const productosPagina = productosFiltrados.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA)
+  // "Seleccionar todos" toma todo lo que coincide con la búsqueda, no solo la página visible.
+  const todosSeleccionados = productosFiltrados.length > 0 && productosFiltrados.every(p => seleccionados.has(p.id))
+  const toggleTodos = () => setSeleccionados(todosSeleccionados ? new Set() : new Set(productosFiltrados.map(p => p.id)))
 
   return (
     <div>
@@ -179,6 +210,17 @@ function ImagesPage() {
           aria-label="Buscar productos"
           style={{ width: '100%', maxWidth: '560px', marginBottom: '16px', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '14px', color: 'var(--color-text)', background: 'var(--color-surface-2)' }}
         />
+        {seleccionados.size > 0 && (
+          <div role="status" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '14px', padding: '10px 14px', background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
+            <strong>{seleccionados.size} seleccionado(s)</strong>
+            <button type="button" className="btn-accion danger" onClick={darDeBajaSeleccionados} disabled={dandoDeBaja}>
+              <IconTrash /> {dandoDeBaja ? 'Dando de baja…' : 'Eliminar seleccionados'}
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => setSeleccionados(new Set())} disabled={dandoDeBaja}>
+              Quitar selección
+            </button>
+          </div>
+        )}
         {cargando ? (
           <p>Cargando...</p>
         ) : productos.length === 0 ? (
@@ -189,6 +231,10 @@ function ImagesPage() {
           <table className="table">
             <thead>
               <tr>
+                <th style={{ width: '36px' }}>
+                  <input type="checkbox" className="check-seleccion" checked={todosSeleccionados} onChange={toggleTodos}
+                         title={`Seleccionar los ${productosFiltrados.length} que coinciden`} aria-label="Seleccionar todos" />
+                </th>
                 <th>Imagen</th>
                 <th>Producto</th>
                 <th>URL (cargar/editar manualmente)</th>
@@ -199,6 +245,10 @@ function ImagesPage() {
               {productosPagina.map(p => (
                 <Fragment key={p.id}>
                 <tr>
+                  <td>
+                    <input type="checkbox" className="check-seleccion" checked={seleccionados.has(p.id)} onChange={() => toggleSeleccion(p.id)}
+                           aria-label={`Seleccionar ${[p.marca, p.modelo].filter(Boolean).join(' ')}`} />
+                  </td>
                   <td>
                     {(() => {
                       const preview = edits[p.id] !== undefined ? edits[p.id] : p.imagenUrl
@@ -282,7 +332,7 @@ function ImagesPage() {
                 </tr>
                 {similares[p.id] && (
                   <tr>
-                    <td colSpan={4} style={{ background: 'var(--color-surface-2)' }}>
+                    <td colSpan={5} style={{ background: 'var(--color-surface-2)' }}>
                       {similares[p.id].cargando ? (
                         <p style={{ margin: 0, fontSize: '13px' }}>Buscando en el catálogo...</p>
                       ) : similares[p.id].error ? (
