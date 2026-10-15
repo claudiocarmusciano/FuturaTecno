@@ -112,11 +112,13 @@ function ProductDetailPage() {
                       <button
                         key={url + i}
                         type="button"
+                        className="boton-tarjeta"
+                        aria-label={`Ver foto ${i + 1}`}
                         onClick={() => setImagenActiva(i)}
                         style={{
                           width: '56px', height: '56px', padding: 0, background: '#fff', cursor: 'pointer',
                           border: `2px solid ${i === imagenActiva ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                          borderRadius: '2px', overflow: 'hidden'
+                          borderRadius: '8px', overflow: 'hidden'
                         }}
                       >
                         <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />

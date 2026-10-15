@@ -150,6 +150,7 @@ a:hover { text-decoration: none; }
 @media (max-width: 760px) {
   .detalle-grid { grid-template-columns: 1fr; gap: 20px; }
   .detalle-grid img { height: 280px !important; }
+  .detalle-grid .boton-tarjeta img { height: 100% !important; }   /* las miniaturas de la galería no */
   .main-content { padding: 24px 16px; }
   h1 { font-size: 30px; }
   /* Tablas anchas: solo sus cards scrollean horizontalmente. Aplicarlo a todas
