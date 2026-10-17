@@ -235,3 +235,12 @@
 .lp-franja .lp-prod:hover { box-shadow: var(--shadow-hover); }
 .lp-franja .lp-prod-img { border-bottom-color: #eef1f4; }
 @media (max-width: 600px) { .lp-block { padding: 48px 0; } }
+
+/* Carrusel de promos arriba de todo: sobre blanco, con aire, alineado con el contenido y con
+   las esquinas de las tarjetas, para que se lea como promo y no se mezcle con el azul del hero. */
+.lp > .promotions-carousel { width: min(calc(var(--ancho-pagina) - 48px), calc(100% - 48px)); margin: 20px auto; border-radius: var(--radius); }
+@media (max-width: 700px) {
+  .lp > .promotions-carousel { width: calc(100% - 24px); margin: 12px auto; }
+  /* En el celular se pasa deslizando: las flechas tapaban el texto del banner. */
+  .lp > .promotions-carousel .promotions-arrow { display: none; }
+}

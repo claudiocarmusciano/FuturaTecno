@@ -203,6 +203,10 @@ function LandingPage() {
 
   return (
     <div className="lp" ref={raizRef}>
+      {/* PROMOS: lo primero que se ve (pedido del usuario, 2026-10-17). Solo aparece con 4 o más
+          banners activos; con menos, la home arranca directo en el hero. */}
+      <PromotionsCarousel />
+
       {/* HERO: franja cyan de borde a borde con la tarjeta blanca de texto a la izquierda. */}
       <section className="lp-hero" id="top">
         <div className="lp-wrap lp-hero-grid">
@@ -250,8 +254,6 @@ function LandingPage() {
           <div className="lp-cats-todas revelar"><Link className="lp-link" to="/catalogo">Ver todas las categorías ›</Link></div>
         </div>
       </section>
-
-      <PromotionsCarousel />
 
       {/* DESTACADOS: grilla de 4 columnas. */}
       <section className="lp-block lp-franja" id="productos">
