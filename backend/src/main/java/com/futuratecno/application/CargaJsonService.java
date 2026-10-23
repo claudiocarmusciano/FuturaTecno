@@ -205,6 +205,12 @@ public class CargaJsonService {
                         "Falta marca, modelo o precio_usd válido."));
                 continue;
             }
+            String excluido = ExclusionesCarga.motivo(marca, modelo, art.getModeloExacto(), art.getListado());
+            if (excluido != null) {
+                omitidos++;
+                res.getItems().add(new CargaJsonResponse.Item(etiqueta(marca, modelo, art), "omitido", null, excluido));
+                continue;
+            }
 
             Resolucion r = resoluciones.get(i);
             Decision decision;
@@ -466,10 +472,12 @@ public class CargaJsonService {
             String marca = limpiar(art.getMarca());
             String modelo = derivarModelo(art, marca);
             Map<String, Object> fila = new LinkedHashMap<>();
-            if (marca == null || modelo == null) {
+            String excluido = marca == null || modelo == null ? null
+                    : ExclusionesCarga.motivo(marca, modelo, art.getModeloExacto(), art.getListado());
+            if (marca == null || modelo == null || excluido != null) {
                 fila.put("estado", "omitido");
                 fila.put("identidad", null);
-                fila.put("motivos", List.of("Falta marca o modelo."));
+                fila.put("motivos", List.of(excluido != null ? excluido : "Falta marca o modelo."));
             } else {
                 Resolucion r = identidad.resolver(marca, modelo, especificacionesParaIdentidad(art, modelo), limpiar(art.getCategoria()));
                 fila.put("estado", r.resuelta() ? "resuelta" : "revision");
