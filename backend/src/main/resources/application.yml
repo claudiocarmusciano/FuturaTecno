@@ -140,6 +140,14 @@ flr:
   categorias-excluidas: ${FLR_CATEGORIAS_EXCLUIDAS:PERFUMES}
   cron: ${FLR_CRON:0 0 8,15 * * *}   # 08:00 y 15:00 hora Argentina
 
+# Kadabra (Comunidad Kadabra Daro): planilla de Google con una pestaña por rubro, leída con la IA.
+kadabra:
+  sheet-id: ${KADABRA_SHEET_ID:1zIn243odrc0b7RtSXiC0dNEnE6xfywucHC5zhY4wISI}
+  pestanas: ${KADABRA_PESTANAS:APPLE,TABLETS,NOTEBOOKS OFFICE,NOTEBOOKS GAMER,CONSOLAS ,ARTICULOS VARIOS,CAMARAS Y FILMADORAS,TV´S,MONOPATINES }
+  proveedor: ${KADABRA_PROVEEDOR:Comunidad Kadabra Daro}
+  precio-minimo-usd: ${KADABRA_PRECIO_MINIMO_USD:50}
+  cron: ${KADABRA_CRON:0 0 9 * * MON-FRI}   # lunes a viernes 9:00 hora Argentina
+
 sync:
   enabled: ${SYNC_ENABLED:true}
   cron: ${SYNC_CRON:0 30 6 * * *}   # 06:30 hora Argentina, todos los días

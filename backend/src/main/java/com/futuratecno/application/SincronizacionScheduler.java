@@ -35,6 +35,7 @@ public class SincronizacionScheduler {
     private final InvidImportService invidImportService;
     private final TaskScheduler taskScheduler;
     private final FlrImportService flrImportService;
+    private final KadabraImportService kadabraImportService;
 
     @Value("${sync.enabled:true}")
     private boolean habilitado;
@@ -42,11 +43,24 @@ public class SincronizacionScheduler {
     public SincronizacionScheduler(ElitImportService elitImportService,
                                    InvidImportService invidImportService,
                                    TaskScheduler taskScheduler,
-                                   FlrImportService flrImportService) {
+                                   FlrImportService flrImportService,
+                                   KadabraImportService kadabraImportService) {
         this.elitImportService = elitImportService;
         this.invidImportService = invidImportService;
         this.taskScheduler = taskScheduler;
         this.flrImportService = flrImportService;
+        this.kadabraImportService = kadabraImportService;
+    }
+
+    /** Kadabra: su planilla se lee los días hábiles a las 9:00 (pedido del usuario, 2026-10-23). */
+    @Scheduled(cron = "${kadabra.cron:0 0 9 * * MON-FRI}", zone = "America/Argentina/Buenos_Aires")
+    public void sincronizarKadabra() {
+        if (!habilitado || !kadabraImportService.estaConfigurado()) return;
+        try {
+            logger.info("Sync automática Kadabra: {}", kadabraImportService.sincronizar().get("mensaje"));
+        } catch (Exception e) {
+            logger.error("Sync automática Kadabra falló: {}", e.toString());
+        }
     }
 
     /**

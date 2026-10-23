@@ -28,7 +28,7 @@ class SincronizacionSchedulerTest {
     private final TaskScheduler taskScheduler = stub(TaskScheduler.class);
 
     private SincronizacionScheduler scheduler() {
-        var s = new SincronizacionScheduler(elit, invid, taskScheduler, stub(FlrImportService.class));
+        var s = new SincronizacionScheduler(elit, invid, taskScheduler, stub(FlrImportService.class), stub(KadabraImportService.class));
         ReflectionTestUtils.setField(s, "habilitado", true);
         when(elit.estaConfigurado()).thenReturn(false);
         when(invid.estaConfigurado()).thenReturn(true);

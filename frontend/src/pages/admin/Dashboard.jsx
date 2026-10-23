@@ -172,6 +172,63 @@ function SincronizarFlr() {
   )
 }
 
+/** Kadabra: su planilla se lee con la IA los días hábiles a las 9:00; el botón la lee ahora. */
+function SincronizarKadabra() {
+  const [estado, setEstado] = useState(null)
+  const [error, setError] = useState(null)
+  const consultar = () => axios.get('/api/admin/kadabra/estado').then(r => setEstado(r.data)).catch(() => {})
+  useEffect(() => { consultar() }, [])
+  const corriendo = estado?.corriendo
+  useEffect(() => {
+    if (!corriendo) return
+    const t = setInterval(consultar, 5000)
+    return () => clearInterval(t)
+  }, [corriendo])
+
+  const sincronizar = async () => {
+    setError(null)
+    try {
+      await axios.post('/api/admin/kadabra/sincronizar')
+      await consultar()
+    } catch (e) {
+      setError(e.response?.data?.error || 'No se pudo contactar al servidor.')
+    }
+  }
+
+  const u = estado?.ultimo
+  const enRevision = u?.items || []
+  const hora = iso => iso ? new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''
+
+  return (
+    <div className="card" style={{ marginBottom: '18px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ flex: '1 1 260px' }}>
+          <h2 style={{ marginBottom: '4px' }}>Kadabra</h2>
+          <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
+            La planilla se lee sola de lunes a viernes a las 9:00. Solo productos nuevos de US$ 50 o más; no saca nada de la tienda (para eso, Depurar catálogo).
+          </p>
+        </div>
+        <button className="btn btn-primary" onClick={sincronizar} disabled={corriendo}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+          <IconRefresh className={corriendo ? 'icono-girando' : ''} />
+          {corriendo ? 'Actualizando… (unos minutos)' : 'Actualizar ahora'}
+        </button>
+      </div>
+      {error && <p role="alert" style={{ margin: '12px 0 0', fontSize: '14px', color: 'var(--color-danger)' }}>{error}</p>}
+      {u && !corriendo && (
+        <p role="status" style={{ margin: '12px 0 0', fontSize: '14px' }}>
+          <strong>Última corrida ({hora(u.fin)}):</strong> {u.error ? <span style={{ color: 'var(--color-danger)' }}>{u.error}</span> : u.mensaje}
+        </p>
+      )}
+      {!corriendo && enRevision.length > 0 && (
+        <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+          {enRevision.map((i, n) => <li key={n}>{i.producto}: {i.motivo}</li>)}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 function Dashboard() {
   const { user } = useAuth()
   const [data, setData] = useState({ productos: [], usuarios: [], proveedores: [], cotizacion: null, pendientes: [] })
@@ -199,6 +256,7 @@ function Dashboard() {
 
       <ProcesarListasNotion proveedores={proveedores} />
       <SincronizarFlr />
+      <SincronizarKadabra />
 
       {cargando ? (
         <div className="card"><p>Cargando métricas...</p></div>
