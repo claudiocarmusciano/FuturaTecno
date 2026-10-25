@@ -46,3 +46,26 @@
 @media (max-width: 600px) {
   .filtro-opcion { min-height: 40px; padding: 8px 13px; }   /* objetivo táctil más cómodo en el teléfono */
 }
+
+/* Celular: dos productos por fila (pedido del usuario, 2026-10-25). La tarjeta muestra solo lo
+   esencial; la ficha técnica, el código y la fecha están al entrar al producto. */
+.card-btn-corto { display: none; }
+@media (max-width: 600px) {
+  .catalog-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  .catalog-product-grid .producto-card { padding: 0 10px 12px; }
+  .catalog-product-grid .producto-card > .catalog-product-image-frame { width: calc(100% + 20px); margin: 0 -10px 8px; height: 130px; }
+  .catalog-product-grid .chip-categoria { font-size: 10px; margin-bottom: 2px !important; }
+  .catalog-product-grid .card-nombre { font-size: 13px !important; line-height: 1.25; margin: 4px 0 2px !important;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .catalog-product-grid .card-sku, .catalog-product-grid .card-specs,
+  .catalog-product-grid .card-actualizado, .catalog-product-grid .pp-cuotas { display: none; }
+  .catalog-product-grid .card-variante { padding-top: 6px !important; margin-top: 6px !important; }
+  .catalog-product-grid .pp-transferencia { font-size: 17px !important; }
+  .catalog-product-grid .pp-sub { font-size: 10.5px; }
+  .catalog-product-grid .pp-efectivo { font-size: 11.5px; margin-top: 3px !important; }
+  .catalog-product-grid .card-pie { padding-top: 6px !important; }
+  .catalog-product-grid .card-pie p { font-size: 10px !important; }
+  .catalog-product-grid .card-pie button { margin-top: 8px !important; padding: 8px 4px !important; font-size: 13px !important; }
+  .catalog-product-grid .card-btn-largo, .catalog-product-grid .pp-largo { display: none; }
+  .catalog-product-grid .card-btn-corto { display: inline; }
+}

@@ -12,18 +12,18 @@ export default function PaymentPrices({ transferPrice, compact = false, cashPric
   const efectivo = cashPriceOverride ?? cashPrice(transferPrice)
 
   return (
-    <div style={{ marginTop: compact ? '4px' : '8px', fontSize: compact ? '12px' : '14px' }}>
-      <div style={{ fontFamily: 'var(--fuente-titulos)', fontSize: compact ? '22px' : '30px', fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>
+    <div className="pp" style={{ marginTop: compact ? '4px' : '8px', fontSize: compact ? '12px' : '14px' }}>
+      <div className="pp-transferencia" style={{ fontFamily: 'var(--fuente-titulos)', fontSize: compact ? '22px' : '30px', fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>
         $ {money(transferPrice)}
       </div>
-      <div style={{ color: 'var(--color-text-muted)' }}>
+      <div className="pp-sub" style={{ color: 'var(--color-text-muted)' }}>
         por transferencia
         {Number(usdPrice) > 0 && <> · <strong style={{ color: 'var(--color-text)', fontWeight: 600 }}>US$ {dolares(usdPrice)}</strong></>}
       </div>
-      <div style={{ marginTop: '6px', color: 'var(--color-accion)', fontWeight: 600 }}>
-        $ {money(efectivo)} en contado efectivo <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>({CASH_DISCOUNT_PERCENTAGE}% OFF)</span>
+      <div className="pp-efectivo" style={{ marginTop: '6px', color: 'var(--color-accion)', fontWeight: 600 }}>
+        $ {money(efectivo)} <span className="pp-largo">en contado </span>efectivo <span className="pp-largo" style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>({CASH_DISCOUNT_PERCENTAGE}% OFF)</span>
       </div>
-      <p style={{ margin: '6px 0 0', fontSize: '11px', lineHeight: 1.35, color: 'var(--color-text-muted)' }}>
+      <p className="pp-cuotas" style={{ margin: '6px 0 0', fontSize: '11px', lineHeight: 1.35, color: 'var(--color-text-muted)' }}>
         Pagá con Mercado Pago en cuotas fijas y en pesos
       </p>
     </div>

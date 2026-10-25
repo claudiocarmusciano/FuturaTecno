@@ -499,25 +499,25 @@ function CatalogPage() {
                     <div className="catalog-product-image-frame" style={{ background: 'var(--color-surface-2)', color: 'var(--color-text-muted)', fontSize: '13px' }}>Sin imagen</div>
                   )}
                   {p.categoria && <span className="chip-categoria" style={{ marginBottom: '8px' }}>{p.categoria}</span>}
-                  <h3 style={{ margin: '8px 0 4px', fontSize: '16px' }}>{p.marca} {p.modelo}</h3>
-                  {p.sku && <p style={{ margin: '0 0 12px', fontSize: '11px', color: 'var(--color-text-muted)' }}>Cód. {p.sku}</p>}
+                  <h3 className="card-nombre" style={{ margin: '8px 0 4px', fontSize: '16px' }}>{p.marca} {p.modelo}</h3>
+                  {p.sku && <p className="card-sku" style={{ margin: '0 0 12px', fontSize: '11px', color: 'var(--color-text-muted)' }}>Cód. {p.sku}</p>}
                   <CostoAdmin costo={costosAdmin[p.id]} />
 
                   {p.variantes.map(v => (
-                    <div key={v.id} style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', marginTop: '10px' }}>
+                    <div key={v.id} className="card-variante" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', marginTop: '10px' }}>
                       {v.especificaciones && (
-                        <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '6px' }}>{v.especificaciones}</p>
+                        <p className="card-specs" style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '6px' }}>{v.especificaciones}</p>
                       )}
                       <PaymentPrices transferPrice={v.precioArs} usdPrice={v.precioUsd} compact />
                     </div>
                   ))}
 
-                  <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+                  <div className="card-pie" style={{ marginTop: 'auto', paddingTop: '12px' }}>
                     {textoDemora(p)
                       ? <p style={{ fontSize: '11px', color: 'var(--color-warning)', fontWeight: 600 }}>● Entrega en {textoDemora(p)}</p>
                       : <p style={{ fontSize: '11px', color: 'var(--color-price)' }}>● Stock sujeto a disponibilidad</p>}
                     {p.ultimaActualizacion && (
-                      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                      <p className="card-actualizado" style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                         Actualizado: {formatFecha(p.ultimaActualizacion)}
                       </p>
                     )}
@@ -542,7 +542,7 @@ function CatalogPage() {
                           fontSize: '14px', fontWeight: 600, cursor: 'pointer'
                         }}
                       >
-                        {agregado === p.id ? <><IconCheck /> En el carrito</> : <><IconCart /> Agregar al carrito</>}
+                        {agregado === p.id ? <><IconCheck /> <span className="card-btn-largo">En el carrito</span><span className="card-btn-corto">Listo</span></> : <><IconCart /> <span className="card-btn-largo">Agregar al carrito</span><span className="card-btn-corto">Agregar</span></>}
                       </button>
                     ) : (
                       <div
