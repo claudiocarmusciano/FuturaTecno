@@ -30,6 +30,7 @@ const ORDEN_POR_DEFECTO = 'precio-asc'
 // fundas y accesorios que sí están a la venta. El campo sigue ahí para que el visitante acote
 // cuando quiera.
 const PRECIO_MINIMO_PREDETERMINADO_USD = ''
+const PISO_PORTADA_USD = 50
 
 // Cuántas tarjetas se pintan por página. 24 es divisible por 2, 3 y 4, así que la última fila
 // queda completa en cualquiera de los anchos de la grilla (auto-fill de 260px).
@@ -255,6 +256,9 @@ function CatalogPage() {
     // backend filtra en USD: se convierte con la cotización del día. Sin cotización, no se filtra.
     const tasa = Number(cotizacion?.valor)
     if (tasa && minDemorado !== '' && Number.isFinite(Number(minDemorado))) params.min = (Number(minDemorado) / tasa).toFixed(2)
+    // Al entrar sin filtros, el catálogo arranca en US$ 50 (pedido del usuario, 2026-10-25): si no,
+    // lo primero que se ve son cables de un dólar. Buscando, o dentro de una categoría o marca, se ve todo.
+    else if (minDemorado === '' && !busquedaDemorada && !categoriaId && !marca) params.min = PISO_PORTADA_USD
     if (tasa && maxDemorado !== '' && Number.isFinite(Number(maxDemorado))) params.max = (Number(maxDemorado) / tasa).toFixed(2)
     for (const [k, v] of Object.entries(atributos)) params[k] = v.join(',')
 
@@ -358,7 +362,7 @@ function CatalogPage() {
     <div className="catalog-page">
       <header className="catalog-hero">
         <h1>Productos</h1>
-        <p>Primeras marcas, precios del día y atención personalizada para comprar con tranquilidad.</p>
+        <p>Primeras marcas y atención personalizada para comprar con tranquilidad.</p>
       </header>
 
       <div className="catalog-avisos">
@@ -469,7 +473,7 @@ function CatalogPage() {
                   {totalFiltrados !== totalCatalogo && <> (filtrados de {totalCatalogo})</>}</>}
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginBottom: '22px' }}>
-            Precios en pesos, actualizados todos los días. Las fotos son de referencia: si un detalle te importa, <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)' }}>consultanos</a>.
+            Las fotos son de referencia: si un detalle te importa, <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)' }}>consultanos</a>.
           </p>
 
           {error && <div className="card" style={{ color: 'var(--color-danger)' }}>{error}</div>}

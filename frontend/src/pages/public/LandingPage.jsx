@@ -65,7 +65,7 @@ const IcoGarantia = () => <Ico><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 
 const VENTAJAS = [
   { ico: <IcoLocal />, t: 'Local en Olavarría', d: `Vení a vernos a ${TITULAR.domicilioComercial.split(',')[0]} o retirá tu compra en el local.` },
   { ico: <IcoEnvio />, t: 'Envíos a todo el país', d: 'Enviamos por Andreani a cualquier punto del país.' },
-  { ico: <IcoPrecio />, t: 'Precios del día', d: 'Precios en pesos, actualizados todos los días.' },
+  { ico: <IcoPrecio />, t: 'Precios en pesos y dólares', d: 'Cada producto muestra su precio en pesos y en dólares.' },
   { ico: <IcoPago />, t: 'Pagá como quieras', d: 'Mercado Pago, transferencia o efectivo, con descuento pagando en efectivo.' },
   { ico: <IcoGarantia />, t: 'Garantía oficial', d: 'Productos nuevos y con garantía. Las condiciones están en Garantía y devoluciones.' },
   { ico: <IcoChat />, t: 'Atención por WhatsApp', d: 'Te asesoramos antes y después de la compra, con una persona del otro lado.' },
@@ -214,8 +214,8 @@ function LandingPage() {
             <span className="lp-rotulo">Tecnología en Olavarría</span>
             <h1>La tecnología que buscás, al mejor precio.</h1>
             <p>
-              Celulares, notebooks, PC, componentes y más. Precios del día, envíos a todo
-              el país y atención por WhatsApp.
+              Celulares, notebooks, PC, componentes y más, con envíos a todo el país y
+              atención por WhatsApp.
             </p>
             <div className="lp-cta-row">
               <Link className="lp-btn" to="/catalogo">Ver productos</Link>

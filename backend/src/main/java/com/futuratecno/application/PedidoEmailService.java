@@ -71,9 +71,8 @@ public class PedidoEmailService {
         // La advertencia de vigencia que se acordó mostrar también en el checkout.
         sb.append("<div style=\"background:#FFF8E1;border-left:4px solid #C8E048;padding:12px 14px;margin:18px 0\">");
         sb.append("<strong>Tu pedido vale hasta el ").append(corteEnAr(pedido.getVenceEn())).append(" h.</strong><br>");
-        sb.append("<span style=\"color:#555;font-size:14px\">Los precios se actualizan todas las mañanas junto con ")
-          .append("el stock de nuestros proveedores. Si no lo cerramos antes de ese horario, el pedido vence y hay ")
-          .append("que rehacerlo con los precios del día.</span>");
+        sb.append("<span style=\"color:#555;font-size:14px\">Si no lo cerramos antes de ese horario, el pedido vence ")
+          .append("y hay que hacerlo de nuevo.</span>");
         sb.append("</div>");
 
         sb.append("<p style=\"color:#555;font-size:14px\">").append(instruccionPago(pedido)).append("</p>");

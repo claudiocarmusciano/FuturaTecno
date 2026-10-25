@@ -342,9 +342,8 @@ function CheckoutPage() {
       <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
         <strong>Tu pedido vale hasta mañana a las 6:30 de la mañana.</strong>
         <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>
-          Los precios se actualizan cada mañana junto con el stock de nuestros proveedores.
-          Si no llegamos a cerrarlo antes de ese horario, el pedido vence y hay que rehacerlo
-          con los precios del día.
+          Si no llegamos a cerrarlo antes de ese horario, el pedido vence y hay que hacerlo
+          de nuevo.
         </p>
       </div>
 
