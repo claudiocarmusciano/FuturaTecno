@@ -4,6 +4,8 @@ import com.futuratecno.api.dto.CargaJsonRequest;
 import com.futuratecno.api.dto.CargaJsonResponse;
 import com.futuratecno.application.CargaJsonService;
 import com.futuratecno.application.GenerarListadoService;
+import com.futuratecno.application.ListadoCozzoService;
+import com.futuratecno.application.ReglasCozzo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,20 +24,28 @@ public class CargaJsonController {
     private final CargaJsonService cargaJsonService;
 
     private final GenerarListadoService generador;
+    private final ListadoCozzoService cozzo;
 
-    public CargaJsonController(CargaJsonService cargaJsonService, GenerarListadoService generador) {
+    public CargaJsonController(CargaJsonService cargaJsonService, GenerarListadoService generador, ListadoCozzoService cozzo) {
+        this.cozzo = cozzo;
         this.generador = generador;
         this.cargaJsonService = cargaJsonService;
     }
 
-    public record ListadoRequest(String texto) {}
+    /** `proveedorId` es opcional: con Cozzo se aplican sus reglas (ver ReglasCozzo). */
+    public record ListadoRequest(String texto, Long proveedorId) {}
     public record ImagenRequest(String marca, String modelo) {}
 
     // Todo fallo se loguea antes de responder: el mensaje que ve el admin es deliberadamente corto,
     // así que sin log la causa real (cuota agotada, clave mal, modelo inexistente) se perdía entera.
     @PostMapping("/generar")
     public ResponseEntity<?> generar(@RequestBody ListadoRequest req) {
-        try { return ResponseEntity.ok(generador.generar(req.texto())); }
+        try {
+            if (!cozzo.esCozzo(req.proveedorId())) return ResponseEntity.ok(generador.generar(req.texto()));
+            String texto = ReglasCozzo.texto(req.texto());
+            if (texto == null || texto.isBlank()) throw new IllegalArgumentException("Pegá el listado de artículos.");
+            return ResponseEntity.ok(cozzo.depurar(generador.generar(texto)));
+        }
         catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
         catch (IllegalStateException e) {
             logger.warn("Generar listado: la IA no pudo responder — {}", e.getMessage());

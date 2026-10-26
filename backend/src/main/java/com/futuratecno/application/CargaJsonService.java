@@ -188,6 +188,20 @@ public class CargaJsonService {
             }
         }
 
+        // Cozzo manda el mismo artículo en varias listas con precios distintos: vale el más alto
+        // (pedido del usuario). Se elige antes del recorrido, así la fila más barata ni se mira.
+        boolean cozzo = ReglasCozzo.aplica(proveedor);
+        Map<String, Integer> masCaro = new HashMap<>();
+        if (cozzo) {
+            for (int i = 0; i < lista.size(); i++) {
+                Resolucion r = resoluciones.get(i);
+                BigDecimal p = lista.get(i).getPrecioUsd();
+                if (r == null || !r.resuelta() || p == null) continue;
+                Integer previo = masCaro.get(r.clave());
+                if (previo == null || p.compareTo(lista.get(previo).getPrecioUsd()) > 0) masCaro.put(r.clave(), i);
+            }
+        }
+
         Map<String, Integer> vistasEnLote = new HashMap<>();
         Map<Long, Resolucion> cacheGuardadas = new HashMap<>();
         Map<String, List<Producto>> cacheMarcas = new HashMap<>();
@@ -213,6 +227,17 @@ public class CargaJsonService {
             }
 
             Resolucion r = resoluciones.get(i);
+            if (cozzo) {
+                String motivo = ReglasCozzo.motivo(modelo, art.getModeloExacto(), precio);
+                Integer elegido = r.resuelta() ? masCaro.get(r.clave()) : null;
+                if (motivo == null && elegido != null && elegido != i)
+                    motivo = "Cozzo: el mismo artículo viene más caro en la fila " + (elegido + 1) + ", y vale el precio más alto.";
+                if (motivo != null) {
+                    omitidos++;
+                    res.getItems().add(new CargaJsonResponse.Item(etiqueta(marca, modelo, art), "omitido", null, motivo));
+                    continue;
+                }
+            }
             Decision decision;
             Integer filaPrevia = r.resuelta() ? vistasEnLote.putIfAbsent(r.clave(), i + 1) : null;
             if (filaPrevia != null) {
@@ -376,9 +401,18 @@ public class CargaJsonService {
                         return v;
                     });
             variante.setEspecificaciones(especificaciones);
-            variante.setCostoUsd(precio.setScale(2, RoundingMode.HALF_UP));
+            BigDecimal costo = precio.setScale(2, RoundingMode.HALF_UP);
+            // Cozzo: si otra lista de hoy ya lo trajo más caro, queda ese precio (vale el más alto).
+            String avisoCozzo = null;
+            if (cozzo && !nuevo && variante.getId() != null && variante.getCostoUsd() != null
+                    && variante.getCostoUsd().compareTo(costo) > 0 && vistoHoy(prod)) {
+                avisoCozzo = "Cozzo: hoy ya vino a US$ " + variante.getCostoUsd().stripTrailingZeros().toPlainString()
+                        + " en otra lista; se mantiene el precio más alto.";
+                costo = variante.getCostoUsd();
+            }
+            variante.setCostoUsd(costo);
             variante.setMonedaOrigen("USD");
-            variante.setPrecioOrigen(precio);
+            variante.setPrecioOrigen(avisoCozzo != null ? costo : precio);
             variante.setActivo(true);
             proyectarAtributos(variante, r);
             varianteRepository.save(variante);
@@ -411,7 +445,9 @@ public class CargaJsonService {
                             : null);
             item.setProductoId(prod.getId());
             item.setIdentidad(r.clave());
-            if (!decision.motivos().isEmpty()) item.setAviso(String.join(" ", decision.motivos()));
+            List<String> avisos = new ArrayList<>(decision.motivos());
+            if (avisoCozzo != null) avisos.add(avisoCozzo);
+            if (!avisos.isEmpty()) item.setAviso(String.join(" ", avisos));
             res.getItems().add(item);
         }
 
@@ -488,6 +524,15 @@ public class CargaJsonService {
             out.add(fila);
         }
         return out;
+    }
+
+    private static final java.time.ZoneId AR = java.time.ZoneId.of("America/Argentina/Buenos_Aires");
+
+    /** Si una carga ya lo marcó hoy (día de Argentina). `marcarVistos` escribe la hora local del servidor. */
+    private static boolean vistoHoy(Producto p) {
+        var visto = p.getVistoEnSyncAt();
+        return visto != null && visto.atZone(java.time.ZoneId.systemDefault()).withZoneSameInstant(AR).toLocalDate()
+                .equals(java.time.LocalDate.now(AR));
     }
 
     enum Accion { CREAR, ACTUALIZAR, REVISION }

@@ -54,7 +54,7 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
       setAvisos([]); setArticulos([]); setPagina(0); setProcesados(0); setEtapa('generando')
       // 240 s: más que los 180 s que el backend le da al proveedor de IA, para que cuando algo
       // falle gane el mensaje del servidor y no este corte, que no puede explicar nada.
-      const { data } = await axios.post('/api/admin/carga-json/generar', { texto: entrada }, { signal: abort.signal, timeout: 240000 })
+      const { data } = await axios.post('/api/admin/carga-json/generar', { texto: entrada, proveedorId: proveedorId ? Number(proveedorId) : null }, { signal: abort.signal, timeout: 240000 })
       const lista = data.articulos
       setArticulos(lista); setAvisos(data.avisos || [])
       if (lista.length > 0) setGeneraciones(n => n + 1)

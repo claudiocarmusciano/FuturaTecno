@@ -31,7 +31,8 @@ final class ExclusionesCarga {
     static String motivo(String marca, String modelo, String modeloExacto, String listado) {
         String m = normalizar(modelo);
         String sinMarca = marca != null && m.startsWith(normalizar(marca) + " ") ? m.substring(normalizar(marca).length() + 1) : m;
-        String encabezado = Arrays.stream(sinMarca.split(" ")).limit(4).collect(Collectors.joining(" "));
+        // Lo que viene en el combo no dice qué es el artículo: "A07 + Cargador" es un teléfono.
+        String encabezado = Arrays.stream(sinMarca.split(" \\+ ")[0].split(" ")).limit(4).collect(Collectors.joining(" "));
         String todo = Stream.of(marca, modelo, modeloExacto, listado).filter(Objects::nonNull)
                 .map(ExclusionesCarga::normalizar).collect(Collectors.joining(" "));
         if (LAVARROPAS.matcher(todo).find()) return "No se cargan lavarropas.";
