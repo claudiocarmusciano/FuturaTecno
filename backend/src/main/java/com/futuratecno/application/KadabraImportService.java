@@ -46,6 +46,8 @@ public class KadabraImportService {
             + "REFURB|\\bCPO\\b|REPARAD|EXHIBICI|CLASE [ABC]\\b|SEMI ?NUEV|\\bOUTLET\\b|DESCUENTO POR");
     /** Precio por cantidad de los monopatines: se queda solo el de una unidad. */
     private static final Pattern POR_CANTIDAD = Pattern.compile("(?i)^\\s*X\\s*(\\d+)\\s+(\\d[\\d.,]*)\\s*USD.*$");
+    private static final Pattern SOLO_PRECIO = Pattern.compile("(?i)^(Precio por unidad )?USD ?\\d[\\d.,]*$");
+    private static final Pattern TIENE_PRECIO = Pattern.compile("(?i)USD ?\\d|\\d ?USD|US\\$ ?\\d");
     /** El generador acepta hasta 20.000 caracteres por llamada; se deja margen. */
     private static final int MAX_CARACTERES = 18000;
 
@@ -185,6 +187,7 @@ public class KadabraImportService {
      */
     static String texto(String pestana, String csv) {
         StringBuilder sb = new StringBuilder("Pestaña: ").append(pestana.trim()).append('\n');
+        List<String> lineas = new ArrayList<>();
         for (List<String> fila : FlrImportService.parsearCsv(csv)) {
             String linea = String.join(" ", fila.stream().map(String::trim).filter(c -> !c.isEmpty()).toList())
                     .replace("🔥", "").replaceAll("\\s+", " ").trim();
@@ -195,8 +198,21 @@ public class KadabraImportService {
                 linea = "Precio por unidad USD " + m.group(2);
             }
             if (NO_NUEVO.matcher(FlrImportService.normalizar(linea)).find()) continue;
-            sb.append(linea).append('\n');
+            lineas.add(linea);
         }
+        // Algunas pestañas (monopatines) escriben nombre, ficha y precio en filas separadas, y la IA
+        // no las relaciona: devolvía cero artículos. Una fila que es solo precio se pega a la última
+        // fila de nombre, y las fichas técnicas ("⚡ Motor 350W / …") se descartan.
+        List<String> out = new ArrayList<>();
+        for (String linea : lineas) {
+            if (linea.startsWith("⚡")) continue;
+            if (SOLO_PRECIO.matcher(linea).matches() && !out.isEmpty() && !TIENE_PRECIO.matcher(out.get(out.size() - 1)).find()) {
+                out.set(out.size() - 1, out.get(out.size() - 1) + " " + linea.replace("Precio por unidad ", ""));
+                continue;
+            }
+            out.add(linea);
+        }
+        out.forEach(l -> sb.append(l).append('\n'));
         return sb.toString();
     }
 

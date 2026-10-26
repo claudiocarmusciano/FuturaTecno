@@ -19,7 +19,7 @@ class KadabraImportServiceTest {
                 "\"💻 MACBOOK NEO A18 PRO 13” 8GB, 256GB\",\"USD 835 🔥\"");
         String t = KadabraImportService.texto("MONOPATINES ", csv);
         assertTrue(t.startsWith("Pestaña: MONOPATINES\n"), t);
-        assertTrue(t.contains("Precio por unidad USD 370"), t);
+        assertTrue(t.contains("🛴 KICKBOOT KB-FS (Autonomía 35 km) USD 370"), t);
         assertFalse(t.contains("360") || t.contains("345"), t);
         assertFalse(t.contains("REFURBISHED") || t.contains("USADO"), t);
         assertTrue(t.contains("MACBOOK NEO A18 PRO 13” 8GB, 256GB USD 835"), t);
