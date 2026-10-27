@@ -42,7 +42,9 @@ public class GenerarListadoService {
     @Value("${deepseek.api-key:}") private String deepseekKey;
     @Value("${deepseek.model:deepseek-chat}") private String deepseekModel = "deepseek-chat";
     @Value("${gemini.api-key:}") private String geminiKey;
-    @Value("${gemini.model:gemini-3.8-flash}") private String geminiModel = "gemini-3.8-flash";
+    @Value("${gemini.model:gemini-flash-lite-latest}") private String geminiModel = "gemini-flash-lite-latest";
+    /** Si el modelo elegido está saturado (503, pasa seguido en la capa gratuita), se prueba con estos. */
+    private static final List<String> GEMINI_RESPALDO = List.of("gemini-flash-lite-latest", "gemini-3-flash-preview");
     /**
      * Gemini en la capa gratuita (2026-10-27, pedido del usuario: Anthropic le costaba US$ 5 por día)
      * limita las consultas por minuto. Las tandas van en paralelo y una lista de 20.000 caracteres
@@ -426,35 +428,46 @@ public class GenerarListadoService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("x-goog-api-key", geminiKey.trim());
-        Map<String, Object> config = new LinkedHashMap<>();
-        config.put("responseMimeType", "application/json");
-        // El "pensamiento" gasta del mismo tope de salida. En la 2.5 se apaga; en las 3.x (sin ese
-        // parámetro) se deja más tope para que la tanda entre entera.
-        if (geminiModel.startsWith("gemini-2.5")) {
-            config.put("maxOutputTokens", 16000);
-            config.put("thinkingConfig", Map.of("thinkingBudget", 0));
-        } else config.put("maxOutputTokens", 32000);
-        Map<String, Object> body = Map.of(
-                "systemInstruction", Map.of("parts", List.of(Map.of("text", instrucciones))),
-                "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", "Convertí estos datos a JSON:\n" + entrada)))),
-                "generationConfig", config);
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModel + ":generateContent";
+        boolean reintentado429 = false;
+        // 2026-10-27: gemini-3.8-flash devolvía 503 "high demand" y, desde Railway, colgaba la
+        // llamada hasta el tope de 150 s. Un 503 pasa al modelo siguiente de la lista.
+        List<String> modelos = new ArrayList<>(List.of(geminiModel));
+        GEMINI_RESPALDO.stream().filter(m -> !modelos.contains(m)).forEach(modelos::add);
         JsonNode response = null;
         try {
             CUPO_GEMINI.acquire();
             try {
-                for (int intento = 1; response == null; intento++) {
+                for (int i = 0; response == null; ) {
+                    String modeloActual = modelos.get(i);
+                    String url = "https://generativelanguage.googleapis.com/v1beta/models/" + modeloActual + ":generateContent";
+                    Map<String, Object> config = new LinkedHashMap<>();
+                    config.put("responseMimeType", "application/json");
+                    // El "pensamiento" gasta del mismo tope de salida: en la 2.5 se apaga; en las demás
+                    // (sin ese parámetro) se deja más tope para que la tanda entre entera.
+                    if (modeloActual.startsWith("gemini-2.5")) {
+                        config.put("maxOutputTokens", 16000);
+                        config.put("thinkingConfig", Map.of("thinkingBudget", 0));
+                    } else config.put("maxOutputTokens", 32000);
+                    Map<String, Object> body = Map.of(
+                            "systemInstruction", Map.of("parts", List.of(Map.of("text", instrucciones))),
+                            "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", "Convertí estos datos a JSON:\n" + entrada)))),
+                            "generationConfig", config);
                     try {
                         response = http.postForObject(url, new HttpEntity<>(body, headers), JsonNode.class);
                     } catch (org.springframework.web.client.HttpStatusCodeException e) {
                         int codigo = e.getStatusCode().value();
+                        if ((codigo == 503 || codigo == 404) && i + 1 < modelos.size()) {
+                            logger.warn("Gemini {} respondió {}; se prueba con {}", modeloActual, codigo, modelos.get(i + 1));
+                            i++; continue;
+                        }
                         // Un 429 por minuto se pasa esperando lo que indica Gemini (una vez); el diario no.
                         long espera = codigo == 429 ? esperaGemini(e.getResponseBodyAsString()) : -1;
-                        if (intento == 1 && espera > 0 && espera <= 40) { Thread.sleep(espera * 1000); continue; }
+                        if (espera > 0 && espera <= 40 && !reintentado429) { reintentado429 = true; Thread.sleep(espera * 1000); continue; }
                         if (codigo == 429) throw new IllegalStateException("Gemini alcanzó el límite gratuito. Esperá un rato (o hasta mañana si es el límite diario) y volvé a generar.");
+                        if (codigo == 503) throw new IllegalStateException("Gemini está saturado en este momento. Probá de nuevo en unos minutos.");
                         if (codigo == 400 && e.getResponseBodyAsString().contains("API_KEY_INVALID")) throw new IllegalStateException("Gemini rechazó la clave de API. Revisá GEMINI_API_KEY.");
                         if (codigo == 401 || codigo == 403) throw new IllegalStateException("Gemini rechazó la clave de API. Revisá GEMINI_API_KEY.");
-                        if (codigo == 404) throw new IllegalStateException("Gemini no reconoce el modelo " + geminiModel + ". Revisá GEMINI_MODEL.");
+                        if (codigo == 404) throw new IllegalStateException("Gemini no reconoce el modelo " + modeloActual + ". Revisá GEMINI_MODEL.");
                         throw new IllegalStateException("Gemini rechazó la solicitud (HTTP " + codigo + ").");
                     }
                 }
