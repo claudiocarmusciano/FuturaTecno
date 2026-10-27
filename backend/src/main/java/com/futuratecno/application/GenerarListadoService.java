@@ -42,7 +42,7 @@ public class GenerarListadoService {
     @Value("${deepseek.api-key:}") private String deepseekKey;
     @Value("${deepseek.model:deepseek-chat}") private String deepseekModel = "deepseek-chat";
     @Value("${gemini.api-key:}") private String geminiKey;
-    @Value("${gemini.model:gemini-2.5-flash}") private String geminiModel = "gemini-2.5-flash";
+    @Value("${gemini.model:gemini-3.8-flash}") private String geminiModel = "gemini-3.8-flash";
     /**
      * Gemini en la capa gratuita (2026-10-27, pedido del usuario: Anthropic le costaba US$ 5 por día)
      * limita las consultas por minuto. Las tandas van en paralelo y una lista de 20.000 caracteres
@@ -428,9 +428,12 @@ public class GenerarListadoService {
         headers.set("x-goog-api-key", geminiKey.trim());
         Map<String, Object> config = new LinkedHashMap<>();
         config.put("responseMimeType", "application/json");
-        config.put("maxOutputTokens", 16000);
-        // En la 2.5 el "pensamiento" gasta del mismo tope de salida: apagado, la tanda entra entera.
-        if (geminiModel.startsWith("gemini-2.5")) config.put("thinkingConfig", Map.of("thinkingBudget", 0));
+        // El "pensamiento" gasta del mismo tope de salida. En la 2.5 se apaga; en las 3.x (sin ese
+        // parámetro) se deja más tope para que la tanda entre entera.
+        if (geminiModel.startsWith("gemini-2.5")) {
+            config.put("maxOutputTokens", 16000);
+            config.put("thinkingConfig", Map.of("thinkingBudget", 0));
+        } else config.put("maxOutputTokens", 32000);
         Map<String, Object> body = Map.of(
                 "systemInstruction", Map.of("parts", List.of(Map.of("text", instrucciones))),
                 "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", "Convertí estos datos a JSON:\n" + entrada)))),
