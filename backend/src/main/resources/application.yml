@@ -146,7 +146,7 @@ kadabra:
   pestanas: ${KADABRA_PESTANAS:APPLE,TABLETS,NOTEBOOKS OFFICE,NOTEBOOKS GAMER,CONSOLAS ,ARTICULOS VARIOS,CAMARAS Y FILMADORAS,TV´S,MONOPATINES }
   proveedor: ${KADABRA_PROVEEDOR:Comunidad Kadabra Daro}
   precio-minimo-usd: ${KADABRA_PRECIO_MINIMO_USD:50}
-  cron: ${KADABRA_CRON:0 0 9 * * MON-FRI}   # lunes a viernes 9:00 hora Argentina
+  cron: ${KADABRA_CRON:0 0 9 * * MON,WED,FRI}   # lunes, miércoles y viernes 9:00 hora Argentina
 
 sync:
   enabled: ${SYNC_ENABLED:true}
@@ -161,7 +161,8 @@ admin:
   password: ${ADMIN_PASSWORD:admin1234}
 
 # Generación desde texto: proveedor explícito, sin fallback que duplique gastos.
-# Valores admitidos: anthropic, openai, deepseek (la búsqueda de imágenes solo usa anthropic u openai).
+# Valores admitidos: anthropic, openai, deepseek, gemini (la búsqueda de imágenes solo usa anthropic u openai;
+# con gemini el generador no busca fotos en internet).
 catalogo:
   ia-provider: ${CATALOGO_IA_PROVIDER:anthropic}
 openai:
@@ -170,6 +171,9 @@ openai:
 deepseek:
   api-key: ${DEEPSEEK_API_KEY:}
   model: ${DEEPSEEK_MODEL:deepseek-chat}
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-2.5-flash}
 
 notion:
   token: ${NOTION_TOKEN:}

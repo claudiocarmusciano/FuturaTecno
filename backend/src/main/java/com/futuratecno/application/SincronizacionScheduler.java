@@ -53,7 +53,7 @@ public class SincronizacionScheduler {
     }
 
     /** Kadabra: su planilla se lee los días hábiles a las 9:00 (pedido del usuario, 2026-10-23). */
-    @Scheduled(cron = "${kadabra.cron:0 0 9 * * MON-FRI}", zone = "America/Argentina/Buenos_Aires")
+    @Scheduled(cron = "${kadabra.cron:0 0 9 * * MON,WED,FRI}", zone = "America/Argentina/Buenos_Aires")
     public void sincronizarKadabra() {
         if (!habilitado || !kadabraImportService.estaConfigurado()) return;
         try {

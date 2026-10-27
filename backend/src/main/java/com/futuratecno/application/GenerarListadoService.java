@@ -41,6 +41,14 @@ public class GenerarListadoService {
     @Value("${openai.model:gpt-4.1-mini}") private String openaiModel = "gpt-4.1-mini";
     @Value("${deepseek.api-key:}") private String deepseekKey;
     @Value("${deepseek.model:deepseek-chat}") private String deepseekModel = "deepseek-chat";
+    @Value("${gemini.api-key:}") private String geminiKey;
+    @Value("${gemini.model:gemini-2.5-flash}") private String geminiModel = "gemini-2.5-flash";
+    /**
+     * Gemini en la capa gratuita (2026-10-27, pedido del usuario: Anthropic le costaba US$ 5 por día)
+     * limita las consultas por minuto. Las tandas van en paralelo y una lista de 20.000 caracteres
+     * son ~11: sin este tope chocaban todas contra el 429 a la vez.
+     */
+    private static final java.util.concurrent.Semaphore CUPO_GEMINI = new java.util.concurrent.Semaphore(3);
     private static final List<String> SPECS = List.of("procesador", "ram", "almacenamiento", "pantalla", "gpu", "sistema_operativo", "color", "otros");
     private static final String INSTRUCCIONES = """
         Eres "Json artículos electrónica", un asistente experto en parsear listados de productos de
@@ -240,6 +248,7 @@ public class GenerarListadoService {
     private String nombreProveedor() {
         if ("openai".equalsIgnoreCase(proveedorIa)) return "OpenAI";
         if ("deepseek".equalsIgnoreCase(proveedorIa)) return "DeepSeek";
+        if ("gemini".equalsIgnoreCase(proveedorIa)) return "Gemini";
         return "Anthropic";
     }
 
@@ -251,6 +260,10 @@ public class GenerarListadoService {
         if ("deepseek".equalsIgnoreCase(proveedorIa)) {
             try { return normalizar(leerBorrador(solicitarDeepseek(INSTRUCCIONES, texto))); }
             catch (java.io.IOException e) { throw new IllegalStateException("DeepSeek no devolvió un JSON válido. Probá con menos artículos."); }
+        }
+        if ("gemini".equalsIgnoreCase(proveedorIa)) {
+            try { return normalizar(leerBorrador(solicitarGemini(INSTRUCCIONES, texto))); }
+            catch (java.io.IOException e) { throw new IllegalStateException("Gemini no devolvió un JSON válido. Probá con menos artículos."); }
         }
         if (apiKey == null || apiKey.isBlank()) throw new IllegalStateException("La generación no está configurada. Falta la clave de IA del servidor.");
         HttpHeaders headers = new HttpHeaders();
@@ -407,6 +420,64 @@ public class GenerarListadoService {
         return contenido;
     }
 
+    private String solicitarGemini(String instrucciones, String entrada) {
+        if (geminiKey == null || geminiKey.isBlank())
+            throw new IllegalStateException("Falta GEMINI_API_KEY. Creá una clave gratis en aistudio.google.com y cargala en Railway.");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-goog-api-key", geminiKey.trim());
+        Map<String, Object> config = new LinkedHashMap<>();
+        config.put("responseMimeType", "application/json");
+        config.put("maxOutputTokens", 16000);
+        // En la 2.5 el "pensamiento" gasta del mismo tope de salida: apagado, la tanda entra entera.
+        if (geminiModel.startsWith("gemini-2.5")) config.put("thinkingConfig", Map.of("thinkingBudget", 0));
+        Map<String, Object> body = Map.of(
+                "systemInstruction", Map.of("parts", List.of(Map.of("text", instrucciones))),
+                "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", "Convertí estos datos a JSON:\n" + entrada)))),
+                "generationConfig", config);
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModel + ":generateContent";
+        JsonNode response = null;
+        try {
+            CUPO_GEMINI.acquire();
+            try {
+                for (int intento = 1; response == null; intento++) {
+                    try {
+                        response = http.postForObject(url, new HttpEntity<>(body, headers), JsonNode.class);
+                    } catch (org.springframework.web.client.HttpStatusCodeException e) {
+                        int codigo = e.getStatusCode().value();
+                        // Un 429 por minuto se pasa esperando lo que indica Gemini (una vez); el diario no.
+                        long espera = codigo == 429 ? esperaGemini(e.getResponseBodyAsString()) : -1;
+                        if (intento == 1 && espera > 0 && espera <= 40) { Thread.sleep(espera * 1000); continue; }
+                        if (codigo == 429) throw new IllegalStateException("Gemini alcanzó el límite gratuito. Esperá un rato (o hasta mañana si es el límite diario) y volvé a generar.");
+                        if (codigo == 400 && e.getResponseBodyAsString().contains("API_KEY_INVALID")) throw new IllegalStateException("Gemini rechazó la clave de API. Revisá GEMINI_API_KEY.");
+                        if (codigo == 401 || codigo == 403) throw new IllegalStateException("Gemini rechazó la clave de API. Revisá GEMINI_API_KEY.");
+                        if (codigo == 404) throw new IllegalStateException("Gemini no reconoce el modelo " + geminiModel + ". Revisá GEMINI_MODEL.");
+                        throw new IllegalStateException("Gemini rechazó la solicitud (HTTP " + codigo + ").");
+                    }
+                }
+            } finally { CUPO_GEMINI.release(); }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("La generación se interrumpió. Volvé a intentar.");
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            throw new IllegalStateException(mensajeDemora("Gemini"));
+        }
+        JsonNode candidato = response.path("candidates").path(0);
+        if (candidato.isMissingNode()) throw new IllegalStateException("Gemini no devolvió contenido utilizable.");
+        if (!"STOP".equals(candidato.path("finishReason").asText()))
+            throw new IllegalStateException("La generación no terminó completa. Probá con un listado más corto.");
+        StringBuilder contenido = new StringBuilder();
+        for (JsonNode parte : candidato.path("content").path("parts")) contenido.append(parte.path("text").asText(""));
+        if (contenido.isEmpty()) throw new IllegalStateException("Gemini no devolvió contenido utilizable.");
+        return contenido.toString();
+    }
+
+    /** Segundos que pide esperar un 429 de Gemini ("retryDelay": "23s"), o -1 si no lo dice. */
+    static long esperaGemini(String cuerpo) {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"retryDelay\"\\s*:\\s*\"(\\d+)(?:\\.\\d+)?s\"").matcher(cuerpo == null ? "" : cuerpo);
+        return m.find() ? Long.parseLong(m.group(1)) + 1 : -1;
+    }
+
     private Optional<String> buscarImagenOpenai(String marca, String modelo) {
         String respuesta = solicitarOpenai("""
                 Buscá una imagen del producto exacto indicado en los datos del usuario. Respetá color,
@@ -501,6 +572,11 @@ public class GenerarListadoService {
         Optional<String> delModelo = memoria.buscarPorFamilia(marca, modelo, null)
                 .filter(u -> validador.verificar(u) != ImageUrlValidatorService.Verificacion.MUERTA);
         if (delModelo.isPresent()) return Map.of("imagenes", List.of(delModelo.get()), "origen", "memoria", "mensaje", "");
+        // Con Gemini no se sale a internet: la búsqueda iría por Anthropic, que es justo el gasto que
+        // se quiso cortar. La foto se completa después en Admin → Imágenes.
+        if ("gemini".equalsIgnoreCase(proveedorIa))
+            return Map.of("imagenes", List.of(), "origen", "busqueda",
+                    "mensaje", "Sin foto en la base. Buscala después en Admin → Imágenes.");
         // DeepSeek no tiene búsqueda web alojada: para imágenes usa el mismo camino que Anthropic.
         Optional<String> candidata = ("openai".equalsIgnoreCase(proveedorIa)
                 ? buscarImagenOpenai(marca, modelo) : buscador.buscarImagen(marca + " " + modelo))
