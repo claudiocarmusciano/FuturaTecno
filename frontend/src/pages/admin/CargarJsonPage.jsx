@@ -79,8 +79,10 @@ function CargarJsonPage() {
     try {
       const res = await axios.post('/api/admin/carga-json', { proveedorId: Number(proveedorId), articulos })
       setResultado(res.data)
+      return true
     } catch (err) {
       setError(err.response?.data?.error || 'Error al cargar los artículos.')
+      return false
     } finally {
       setCargando(false)
     }

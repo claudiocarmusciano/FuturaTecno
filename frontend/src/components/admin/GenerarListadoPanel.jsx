@@ -13,6 +13,9 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
   const [etapa, setEtapa] = useState('')
   const [procesados, setProcesados] = useState(0)
   const [pagina, setPagina] = useState(0)
+  // Importado = el botón queda apagado hasta la próxima generación: volvía a habilitarse al terminar y
+  // no se sabía si ya se había apretado. Si la importación falla se vuelve a habilitar.
+  const [importado, setImportado] = useState(false)
   const controller = useRef(null)
   useEffect(() => () => controller.current?.abort(), [])
   // La tabla y "Confirmar e importar" quedan varias pantallas debajo del texto: sin llevar al
@@ -51,7 +54,7 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
         entrada = respuesta.data.texto
         setTexto(entrada)
       }
-      setAvisos([]); setArticulos([]); setPagina(0); setProcesados(0); setEtapa('generando')
+      setAvisos([]); setArticulos([]); setImportado(false); setPagina(0); setProcesados(0); setEtapa('generando')
       // 240 s: más que los 180 s que el backend le da al proveedor de IA, para que cuando algo
       // falle gane el mensaje del servidor y no este corte, que no puede explicar nada.
       const { data } = await axios.post('/api/admin/carga-json/generar', { texto: entrada, proveedorId: proveedorId ? Number(proveedorId) : null }, { signal: abort.signal, timeout: 240000 })
@@ -99,8 +102,8 @@ export default function GenerarListadoPanel({ onImportar, importando, proveedorI
   const filasInvalidas = articulos.flatMap((a, i) => ( !a.marca.trim() || !a.modelo.trim() || a.modelo.length > 255 || a.marca.length > 255 || !Number.isFinite(Number(a.precio_usd)) || Number(a.precio_usd) <= 0 || Object.values(a.especificaciones || {}).join(' · ').length >= 500 || a.imagenes.some(u => !/^https?:\/\/\S+$/i.test(u) || u.length > 1000)) ? [i + 1] : [])
   const invalidos = filasInvalidas.length > 0
   const ocupado = Boolean(etapa) || importando
-  const importable = !ocupado && !invalidos && duplicados.size === 0 && Boolean(proveedorId)
-  const botonImportar = <button className="btn btn-primary" disabled={!importable} onClick={() => onImportar(articulos.map(a => ({ ...a, precio_usd: Number(a.precio_usd) })))}>{importando ? 'Importando…' : 'Confirmar e importar'}</button>
+  const importable = !ocupado && !importado && !invalidos && duplicados.size === 0 && Boolean(proveedorId)
+  const botonImportar = <button className="btn btn-primary" disabled={!importable} onClick={async () => { setImportado(true); setImportado(await onImportar(articulos.map(a => ({ ...a, precio_usd: Number(a.precio_usd) }))) === true) }}>{importando ? 'Importando…' : importado ? 'Ya importado ✓' : 'Confirmar e importar'}</button>
   const descargar = () => {
     const contenido = articulos.map(a => ({ ...a, precio_usd: Number(a.precio_usd) }))
     const url = URL.createObjectURL(new Blob([JSON.stringify(contenido, null, 2)], { type: 'application/json' }))
