@@ -219,7 +219,7 @@ public class CargaJsonService {
                         "Falta marca, modelo o precio_usd válido."));
                 continue;
             }
-            String excluido = ExclusionesCarga.motivo(marca, modelo, art.getModeloExacto(), art.getListado());
+            String excluido = ExclusionesCarga.motivo(marca, modelo, art.getModeloExacto(), art.getListado(), art.getCategoria());
             if (excluido != null) {
                 omitidos++;
                 res.getItems().add(new CargaJsonResponse.Item(etiqueta(marca, modelo, art), "omitido", null, excluido));
@@ -509,7 +509,7 @@ public class CargaJsonService {
             String modelo = derivarModelo(art, marca);
             Map<String, Object> fila = new LinkedHashMap<>();
             String excluido = marca == null || modelo == null ? null
-                    : ExclusionesCarga.motivo(marca, modelo, art.getModeloExacto(), art.getListado());
+                    : ExclusionesCarga.motivo(marca, modelo, art.getModeloExacto(), art.getListado(), art.getCategoria());
             if (marca == null || modelo == null || excluido != null) {
                 fila.put("estado", "omitido");
                 fila.put("identidad", null);

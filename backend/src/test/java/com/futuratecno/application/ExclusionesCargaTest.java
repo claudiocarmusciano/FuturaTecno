@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ExclusionesCargaTest {
-    private static String m(String marca, String modelo) { return ExclusionesCarga.motivo(marca, modelo, null, null); }
+    private static String m(String marca, String modelo) { return ExclusionesCarga.motivo(marca, modelo, null, null, null); }
 
     @Test
     void descartaAccesoriosChicosLavarropasYReplicas() {
@@ -36,5 +36,26 @@ class ExclusionesCargaTest {
         assertNull(m("Corsair", "Fuente RM850x 850W 80 Plus Gold"));
         assertNull(m("JBL", "Xtreme 5 130W Negro"));
         assertNull(m("Fujifilm", "Film Instax Mini 12 Repuesto X20U"));
+    }
+
+    @Test
+    void electrodomesticosNoSeCargan() {
+        assertNotNull(m("Xiaomi", "Smart Air Fryer 6.5L"));
+        assertNotNull(m("Philips", "Freidora de aire 4L"));
+        assertNotNull(m("Samsung", "Heladera No Frost 382L"));
+        assertNotNull(m("BGH", "Microondas 20L Digital"));
+        assertNotNull(m("Xiaomi", "Robot Aspirador X20+"));
+        assertNotNull(m("Xiaomi", "Mi Robot Vacuum S10"));
+        assertNotNull(m("Liliana", "Ventilador de pie 20\""));
+        assertNotNull(m("Peabody", "Calefactor infrarrojo 1200W"));
+        assertNotNull(ExclusionesCarga.motivo("Atma", "MX-2000", null, null, "Electrodomésticos"));
+    }
+
+    @Test
+    void loQueSoloSeParecesSeCarga() {
+        assertNull(m("Cooler Master", "Ventilador 120mm ARGB"));
+        assertNull(m("Lenovo", "IdeaPad Slim 3 con ventilador silencioso"));
+        assertNull(m("Dyson", "Secador de pelo Supersonic"));
+        assertNull(ExclusionesCarga.motivo("Lenovo", "IdeaPad 1", null, null, "Notebooks > Consumo"));
     }
 }

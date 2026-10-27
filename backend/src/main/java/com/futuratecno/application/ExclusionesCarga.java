@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 
 /**
  * Lo que no se carga en la tienda por ninguna vía (Cargar por JSON, Flor Qtech, Kadabra), por pedido
- * del usuario (2026-10-23): accesorios chicos, lavarropas y réplicas. Los ya publicados no se tocan.
+ * del usuario (2026-10-23): accesorios chicos, lavarropas y réplicas; y electrodomésticos (2026-10-27).
+ * Los ya publicados no se tocan.
  *
  * <p>Los accesorios se reconocen por cómo EMPIEZA el modelo (las primeras palabras), igual que
  * {@link ClasificadorPorNombre}: "Notebook … con cargador" o "iPhone … compatible MagSafe" mencionan
@@ -24,11 +25,24 @@ final class ExclusionesCarga {
             + "CABLES?|CARGADOR(ES)?|ADAPTADOR(ES)?|ENCHUFES?|MAGSAFE|SOPORTES?|HOLDER|POPSOCKETS?|CORREAS?|MALLAS?|"
             + "LANYARD|COLGANTES?|STRAPS?|BANDS?)\\b");
     private static final Pattern LAVARROPAS = Pattern.compile("LAVARROPA|LAVASECARROPA|SECARROPA|LAVA ?Y ?SECA|LAVADORA|SECADORA DE ROPA");
+    /**
+     * Electrodomésticos, por cómo empieza el modelo (como los accesorios: "Smart TV … con horno" no
+     * existe, pero "Notebook … ventilador" sí). El ventilador de PC no cuenta. Los de cuidado personal
+     * (secador de pelo, afeitadora) no entran en esta lista.
+     */
+    private static final Pattern ELECTRODOMESTICO = Pattern.compile(
+            "^(SMART |MI |MINI |DIGITAL |ELECTRIC[AO]S? )*(HELADERAS?|FREEZERS?|MICROONDAS|HORNOS?|ANAFES?|COCINAS?|FREIDORAS?|AIR ?FRYERS?|CAFETERAS?|LICUADORAS?|"
+            + "BATIDORAS?|PROCESADORAS?|MIXERS?|MINIPIMERS?|TOSTADORAS?|SANDWICHERAS?|WAFLERAS?|PAVAS?|JARRAS? ELECTRICAS?|"
+            + "HERVIDOR(ES)?|EXPRIMIDOR(ES)?|JUGUERAS?|ARROCERAS?|PANIFICADORAS?|YOGURTERAS?|OLLAS? ELECTRICAS?|ASPIRADORAS?|"
+            + "ROBOTS? ASPIRADORE?S?|LAVAVAJILLAS|LAVAPLATOS|AIRES? ACONDICIONADOS?|ACONDICIONADOR(ES)?|CALEFACTOR(ES)?|"
+            + "CALOVENTOR(ES)?|ESTUFAS?|TERMOTANQUES?|CALEFONES?|PURIFICADOR(ES)?|HUMIDIFICADOR(ES)?|DESHUMIDIFICADOR(ES)?|"
+            + "PLANCHAS?( A VAPOR| DE ROPA)?|ROBOT VACUUM|VACUUM|KETTLE|BLENDER|COFFEE MAKER|AIR PURIFIER|HEATER|EXTRACTOR(ES)?|CAMPANAS?|DISPENSERS? DE AGUA|"
+            + "VENTILADOR(ES)?(?!.*\\b(PC|CPU|GABINETE|RGB|ARGB|\\d+ ?MM)\\b))\\b");
     private static final Pattern REPLICA = Pattern.compile(
             "REPLICA|\\bCLON(E|ICO|ES)?\\b|\\bAAA\\+?(?=\\s|$)|\\b1\\s?[:.]\\s?1\\b|\\bCOPIA\\b|NO ORIGINAL|ALTERNATIV[OA]");
 
     /** El motivo para no cargarlo, o null si se carga. */
-    static String motivo(String marca, String modelo, String modeloExacto, String listado) {
+    static String motivo(String marca, String modelo, String modeloExacto, String listado, String categoria) {
         String m = normalizar(modelo);
         String sinMarca = marca != null && m.startsWith(normalizar(marca) + " ") ? m.substring(normalizar(marca).length() + 1) : m;
         // Lo que viene en el combo no dice qué es el artículo: "A07 + Cargador" es un teléfono.
@@ -37,6 +51,8 @@ final class ExclusionesCarga {
                 .map(ExclusionesCarga::normalizar).collect(Collectors.joining(" "));
         if (LAVARROPAS.matcher(todo).find()) return "No se cargan lavarropas.";
         if (REPLICA.matcher(todo).find()) return "No se cargan réplicas.";
+        if (normalizar(categoria).startsWith("ELECTRODOMESTICOS") || ELECTRODOMESTICO.matcher(encabezado).find())
+            return "No se cargan electrodomésticos.";
         if (ACCESORIO.matcher(encabezado).find()) return "No se cargan accesorios chicos (fundas, vidrios, cables, cargadores…).";
         return null;
     }

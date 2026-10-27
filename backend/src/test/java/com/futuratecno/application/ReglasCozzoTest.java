@@ -58,8 +58,8 @@ class ReglasCozzoTest {
 
     @Test
     void elTelefonoConCargadorNoEsUnCargador() {
-        assertNull(ExclusionesCarga.motivo("Samsung", "Galaxy A07 + Cargador", null, null));
-        assertNotNull(ExclusionesCarga.motivo("Apple", "Cargador 20W USB-C", null, null));
+        assertNull(ExclusionesCarga.motivo("Samsung", "Galaxy A07 + Cargador", null, null, null));
+        assertNotNull(ExclusionesCarga.motivo("Apple", "Cargador 20W USB-C", null, null, null));
     }
 
     @Test
