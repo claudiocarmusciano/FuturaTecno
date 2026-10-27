@@ -42,9 +42,9 @@ public class GenerarListadoService {
     @Value("${deepseek.api-key:}") private String deepseekKey;
     @Value("${deepseek.model:deepseek-chat}") private String deepseekModel = "deepseek-chat";
     @Value("${gemini.api-key:}") private String geminiKey;
-    @Value("${gemini.model:gemini-flash-lite-latest}") private String geminiModel = "gemini-flash-lite-latest";
+    @Value("${gemini.model:gemini-3-flash-preview}") private String geminiModel = "gemini-3-flash-preview";
     /** Si el modelo elegido está saturado (503, pasa seguido en la capa gratuita), se prueba con estos. */
-    private static final List<String> GEMINI_RESPALDO = List.of("gemini-flash-lite-latest", "gemini-3-flash-preview");
+    private static final List<String> GEMINI_RESPALDO = List.of("gemini-3-flash-preview", "gemini-flash-lite-latest");
     /**
      * Gemini en la capa gratuita (2026-10-27, pedido del usuario: Anthropic le costaba US$ 5 por día)
      * limita las consultas por minuto. Las tandas van en paralelo y una lista de 20.000 caracteres
@@ -442,12 +442,13 @@ public class GenerarListadoService {
                     String url = "https://generativelanguage.googleapis.com/v1beta/models/" + modeloActual + ":generateContent";
                     Map<String, Object> config = new LinkedHashMap<>();
                     config.put("responseMimeType", "application/json");
-                    // El "pensamiento" gasta del mismo tope de salida: en la 2.5 se apaga; en las demás
-                    // (sin ese parámetro) se deja más tope para que la tanda entre entera.
-                    if (modeloActual.startsWith("gemini-2.5")) {
-                        config.put("maxOutputTokens", 16000);
-                        config.put("thinkingConfig", Map.of("thinkingBudget", 0));
-                    } else config.put("maxOutputTokens", 32000);
+                    // Pasar texto a JSON no necesita "pensar". Medido el 2026-10-27 con el prompt real
+                    // y dos artículos: gemini-3-flash-preview con thinkingLevel "minimal" 2,7 s; sin
+                    // eso 7,8 s; gemini-flash-lite-latest 27-46 s (cola de la capa gratuita). Cada
+                    // modelo acepta otro parámetro (la 3.8 rechaza "minimal", la lite rechaza el budget).
+                    config.put("maxOutputTokens", 32000);
+                    if (modeloActual.startsWith("gemini-3-flash")) config.put("thinkingConfig", Map.of("thinkingLevel", "minimal"));
+                    else if (modeloActual.startsWith("gemini-2.5")) config.put("thinkingConfig", Map.of("thinkingBudget", 0));
                     Map<String, Object> body = Map.of(
                             "systemInstruction", Map.of("parts", List.of(Map.of("text", instrucciones))),
                             "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", "Convertí estos datos a JSON:\n" + entrada)))),
