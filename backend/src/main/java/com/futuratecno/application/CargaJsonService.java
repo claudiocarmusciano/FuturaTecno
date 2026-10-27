@@ -956,7 +956,7 @@ public class CargaJsonService {
         LinkedHashSet<String> unicas = new LinkedHashSet<>();   // dedup preservando el orden
         if (imagenes != null) {
             for (String u : imagenes) {
-                if (u != null && !u.isBlank() && u.trim().startsWith("http")) unicas.add(u.trim());
+                if (u != null && !u.isBlank() && u.trim().startsWith("http") && u.trim().length() <= Imagen.URL_MAX) unicas.add(u.trim());
             }
         }
         return new ArrayList<>(unicas);

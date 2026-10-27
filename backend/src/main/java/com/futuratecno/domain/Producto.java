@@ -28,7 +28,7 @@ public class Producto extends BaseEntity {
     @Column(nullable = false)
     private String modelo;
 
-    @Column(name = "imagen_url", length = 1000)
+    @Column(name = "imagen_url", length = Imagen.URL_MAX)
     private String imagenUrl;
 
     // Momento del último intento automático sin resultado. Permite que cada clic siga con los

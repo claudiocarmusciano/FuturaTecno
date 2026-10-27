@@ -5,11 +5,14 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "imagenes")
 public class Imagen extends BaseEntity {
+    /** Largo máximo de una URL de foto (V47): las de Apple pasan los 500. */
+    public static final int URL_MAX = 2000;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = Imagen.URL_MAX)
     private String url;
 
     @Column(name = "orden", nullable = false)

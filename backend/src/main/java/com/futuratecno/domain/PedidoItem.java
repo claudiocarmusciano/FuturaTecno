@@ -36,7 +36,7 @@ public class PedidoItem extends BaseEntity {
     @Column(length = 120)
     private String sku;
 
-    @Column(name = "imagen_url", length = 1000)
+    @Column(name = "imagen_url", length = Imagen.URL_MAX)
     private String imagenUrl;
 
     @Column(nullable = false)
