@@ -28,7 +28,6 @@ class ExclusionesCargaTest {
         assertNull(m("HP", "Notebook 15 i5 16GB 512GB con cargador"));
         assertNull(m("Apple", "iPhone 17 Pro 256GB compatible MagSafe"));
         assertNull(m("Apple", "Pencil USB-C"));
-        assertNull(m("Apple", "Magic Keyboard iPad Air 13\" White"));
         assertNull(m("Apple", "AirTag Pack x4"));
         assertNull(m("Sony", "PlayStation 5 DualSense Wireless Controller Black"));
         assertNull(m("Logitech", "Volante G923 Xbox"));
@@ -52,10 +51,24 @@ class ExclusionesCargaTest {
     }
 
     @Test
+    void cuidadoPersonalDysonYTecladosDeIpadNoSeCargan() {
+        assertNotNull(m("Dyson", "Secador de pelo Supersonic"));
+        assertNotNull(m("Dyson", "V15 Detect Absolute"));
+        assertNotNull(m("Philips", "Afeitadora Serie 5000"));
+        assertNotNull(m("Gama", "Planchita de pelo Elegance"));
+        assertNotNull(m("Remington", "Cortadora de pelo HC5150"));
+        assertNotNull(m("Xiaomi", "Hair Clipper 2"));
+        assertNotNull(m("Apple", "Magic Keyboard iPad Air 13\" White"));
+        assertNotNull(m("Apple", "Smart Keyboard Folio iPad Pro 11"));
+        assertNull(m("Apple", "Magic Keyboard Touch ID Español"));
+        assertNull(m("Apple", "iPad Air M3 11 128GB"));
+        assertNotNull(m("Samsung", "Secadora de ropa 8kg"));
+    }
+
+    @Test
     void loQueSoloSeParecesSeCarga() {
         assertNull(m("Cooler Master", "Ventilador 120mm ARGB"));
         assertNull(m("Lenovo", "IdeaPad Slim 3 con ventilador silencioso"));
-        assertNull(m("Dyson", "Secador de pelo Supersonic"));
         assertNull(ExclusionesCarga.motivo("Lenovo", "IdeaPad 1", null, null, "Notebooks > Consumo"));
     }
 }

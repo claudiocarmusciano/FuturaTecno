@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 
 /**
  * Lo que no se carga en la tienda por ninguna vía (Cargar por JSON, Flor Qtech, Kadabra), por pedido
- * del usuario (2026-10-23): accesorios chicos, lavarropas y réplicas; y electrodomésticos (2026-10-27).
+ * del usuario (2026-10-23): accesorios chicos, lavarropas y réplicas; electrodomésticos (2026-10-27);
+ * cuidado personal, la marca Dyson y los teclados de iPad (2026-10-28).
  * Los ya publicados no se tocan.
  *
  * <p>Los accesorios se reconocen por cómo EMPIEZA el modelo (las primeras palabras), igual que
@@ -27,8 +28,7 @@ final class ExclusionesCarga {
     private static final Pattern LAVARROPAS = Pattern.compile("LAVARROPA|LAVASECARROPA|SECARROPA|LAVA ?Y ?SECA|LAVADORA|SECADORA DE ROPA");
     /**
      * Electrodomésticos, por cómo empieza el modelo (como los accesorios: "Smart TV … con horno" no
-     * existe, pero "Notebook … ventilador" sí). El ventilador de PC no cuenta. Los de cuidado personal
-     * (secador de pelo, afeitadora) no entran en esta lista.
+     * existe, pero "Notebook … ventilador" sí). El ventilador de PC no cuenta.
      */
     private static final Pattern ELECTRODOMESTICO = Pattern.compile(
             "^(SMART |MI |MINI |DIGITAL |ELECTRIC[AO]S? )*(HELADERAS?|FREEZERS?|MICROONDAS|HORNOS?|ANAFES?|COCINAS?|FREIDORAS?|AIR ?FRYERS?|CAFETERAS?|LICUADORAS?|"
@@ -38,6 +38,15 @@ final class ExclusionesCarga {
             + "CALOVENTOR(ES)?|ESTUFAS?|TERMOTANQUES?|CALEFONES?|PURIFICADOR(ES)?|HUMIDIFICADOR(ES)?|DESHUMIDIFICADOR(ES)?|"
             + "PLANCHAS?( A VAPOR| DE ROPA)?|ROBOT VACUUM|VACUUM|KETTLE|BLENDER|COFFEE MAKER|AIR PURIFIER|HEATER|EXTRACTOR(ES)?|CAMPANAS?|DISPENSERS? DE AGUA|"
             + "VENTILADOR(ES)?(?!.*\\b(PC|CPU|GABINETE|RGB|ARGB|\\d+ ?MM)\\b))\\b");
+    /** Cuidado personal: secadores y planchitas de pelo, afeitadoras, cortadoras, depiladoras. */
+    private static final Pattern CUIDADO_PERSONAL = Pattern.compile(
+            "^(SMART |MINI |DIGITAL |ELECTRIC[AO]S? |PROFESIONAL(ES)? )*(SECADOR(ES)?\\b(?! DE ROPA)|SECADORAS? DE (PELO|CABELLO)|PLANCHITAS?|"
+            + "PLANCHAS? (DE|PARA) (PELO|CABELLO)|ALISADOR(ES|AS?)?|RIZADOR(ES|AS?)?|BUCLERAS?|ONDULADOR(ES|AS?)?|AFEITADORAS?|"
+            + "MAQUINAS? (DE|PARA) (AFEITAR|CORTAR)|CORTADORAS? (DE|PARA) (PELO|CABELLO|BARBA)|CORTAPELOS?|RECORTADORAS?|"
+            + "TRIMMERS?|DEPILADORAS?|CEPILLOS? (SECADOR|ALISADOR|ELECTRICO|DENTAL|DE DIENTES)|HAIR ?(DRYER|STRAIGHTENER|CLIPPER)S?|"
+            + "SHAVERS?|GROOMERS?|EPILATORS?)");
+    /** Teclados para iPad (Magic Keyboard, Smart Keyboard Folio…); los de Mac se siguen cargando. */
+    private static final Pattern TECLADO = Pattern.compile("^(APPLE )?(MAGIC |SMART )?(KEYBOARD|TECLADO)\\b");
     private static final Pattern REPLICA = Pattern.compile(
             "REPLICA|\\bCLON(E|ICO|ES)?\\b|\\bAAA\\+?(?=\\s|$)|\\b1\\s?[:.]\\s?1\\b|\\bCOPIA\\b|NO ORIGINAL|ALTERNATIV[OA]");
 
@@ -51,6 +60,9 @@ final class ExclusionesCarga {
                 .map(ExclusionesCarga::normalizar).collect(Collectors.joining(" "));
         if (LAVARROPAS.matcher(todo).find()) return "No se cargan lavarropas.";
         if (REPLICA.matcher(todo).find()) return "No se cargan réplicas.";
+        if (todo.matches(".*\\bDYSON\\b.*")) return "No se carga la marca Dyson.";
+        if (CUIDADO_PERSONAL.matcher(encabezado).find()) return "No se carga cuidado personal.";
+        if (TECLADO.matcher(encabezado).find() && todo.matches(".*\\bIPAD.*")) return "No se cargan teclados de iPad.";
         if (normalizar(categoria).startsWith("ELECTRODOMESTICOS") || ELECTRODOMESTICO.matcher(encabezado).find())
             return "No se cargan electrodomésticos.";
         if (ACCESORIO.matcher(encabezado).find()) return "No se cargan accesorios chicos (fundas, vidrios, cables, cargadores…).";
