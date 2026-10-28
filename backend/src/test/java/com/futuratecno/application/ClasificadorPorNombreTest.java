@@ -184,4 +184,11 @@ class ClasificadorPorNombreTest {
         assertEquals("Apple > Accesorios", clasificar("Apple", "HomePod mini"));
         assertEquals("Apple > Accesorios", clasificar("Apple", "Dispositivo nuevo sin nombre conocido"));
     }
+
+    @Test
+    void losMicSonMicrofonos() {
+        assertEquals("Periféricos > Micrófonos", clasificar("Hollyland", "Mic Mini 2TX + 1RX + Estuche de Carga"));
+        assertEquals("Periféricos > Micrófonos", clasificar("Boya", "Micrófono corbatero inalámbrico"));
+        assertEquals("Periféricos > Auriculares", clasificar("Logitech", "Auricular G435 con micrófono"));
+    }
 }

@@ -94,4 +94,15 @@ class CategoriaClasificadorAppleTest {
 
         assertEquals(93L, servicio.clasificar(pad, "Celulares"));
     }
+
+    /** 2026-10-27: la IA de la carga sugería "Auriculares" para los "Mic Mini 2TX + 1RX + Estuche de Carga". */
+    @Test
+    void unMicrofonoNoQuedaEnAuricularesAunqueLaCargaLoSugiera() {
+        Producto mic = producto("Hollyland", "Mic Mini 2TX + 1RX + Estuche de Carga");
+        when(porNombre.clasificar(mic)).thenReturn("Periféricos > Micrófonos");
+        when(categorias.idPorPath("Periféricos > Micrófonos")).thenReturn(77L);
+        when(categorias.idPorPath("Periféricos > Auriculares")).thenReturn(76L);
+
+        assertEquals(77L, servicio.clasificar(mic, "Periféricos > Auriculares"));
+    }
 }

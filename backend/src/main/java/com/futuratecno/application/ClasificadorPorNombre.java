@@ -63,7 +63,8 @@ public class ClasificadorPorNombre {
         r.add(new Regla("teclado", "Periféricos > Teclados"));
         r.add(new Regla("mouses?\\b", "Periféricos > Mouse"));
         r.add(new Regla("auricular|headset|vincha", "Periféricos > Auriculares"));
-        r.add(new Regla("microfono", "Periféricos > Micrófonos"));
+        // "Mic" solo (2026-10-27): los inalámbricos de solapa llegan como "Mic Mini 2TX + 1RX".
+        r.add(new Regla("microfono|\\bmics?\\b|lavalier|corbatero", "Periféricos > Micrófonos"));
         r.add(new Regla("parlante|speaker|barra de sonido|soundbar", "Periféricos > Parlantes"));
         r.add(new Regla("web ?cam|camara web", "Periféricos > Web Cam"));
         r.add(new Regla("power ?bank|power klip|\\bm ?ah\\b", "Periféricos > Power Banks"));

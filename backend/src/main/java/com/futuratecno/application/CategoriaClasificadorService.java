@@ -114,7 +114,10 @@ public class CategoriaClasificadorService {
         // Ojo: el clasificador por nombre ya descarta los accesorios (fundas, teclados, mousepad,
         // gamepad) antes de llegar a su regla de tablets, así que acá no hay que repetir ese filtro.
         String pathPorNombreTemprano = clasificadorPorNombre.clasificar(producto);
-        if (pathPorNombreTemprano != null && pathPorNombreTemprano.startsWith("Tablets")) {
+        // Micrófonos, igual (2026-10-27): la IA de la carga mandaba "Periféricos > Auriculares" para los
+        // "Mic Mini 2TX + 1RX + Estuche de Carga" (vienen con estuche como los auriculares).
+        if (pathPorNombreTemprano != null && (pathPorNombreTemprano.startsWith("Tablets")
+                || pathPorNombreTemprano.equals("Periféricos > Micrófonos"))) {
             Long idTablet = categoriaService.idPorPath(pathPorNombreTemprano);
             if (idTablet != null) return idTablet;
         }
