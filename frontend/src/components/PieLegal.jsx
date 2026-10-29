@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
   TITULAR, CONTACTO_EMAIL, INSTAGRAM_URL, WHATSAPP_NUMBER, DATA_FISCAL_URL, DATA_FISCAL_IMG,
-  NOMBRE_NEGOCIO, NOMBRE_ANTERIOR, HORARIO_LOCAL
+  NOMBRE_NEGOCIO, HORARIO_LOCAL
 } from '../config'
 import './PieLegal.css'
 
@@ -41,7 +41,7 @@ export default function PieLegal() {
         </div>
       </div>
       <div className="pie-legal-copy">
-        <span>© {new Date().getFullYear()} {NOMBRE_NEGOCIO} (antes {NOMBRE_ANTERIOR}) · nombre comercial de {TITULAR.nombre}</span>
+        <span>© {new Date().getFullYear()} {NOMBRE_NEGOCIO} · nombre comercial de {TITULAR.nombre}</span>
         <span>CUIT {TITULAR.cuit} · {TITULAR.condicionIva}</span>
       </div>
     </footer>

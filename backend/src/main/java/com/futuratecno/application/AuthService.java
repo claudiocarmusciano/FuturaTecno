@@ -142,7 +142,7 @@ public class AuthService {
         do { codigo = generarCodigoSorteo(); } while (usuarioRepository.existsByCodigoSorteo(codigo));
         u.setCodigoSorteo(codigo);
         u.setCodigoSorteoAsignadoEn(LocalDateTime.now());
-        emailService.enviarHtmlAsync(u.getEmail(), "Tu código de sorteo — Futura Tecno", emailCodigoSorteo(codigo, u.getChancesSorteo()));
+        emailService.enviarHtmlAsync(u.getEmail(), "Tu código de sorteo — Tecnópolis Olavarría", emailCodigoSorteo(codigo, u.getChancesSorteo()));
     }
 
     private String generarCodigoSorteo() {
@@ -355,7 +355,7 @@ public class AuthService {
         return """
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #16181d;">
               <h2 style="color: #16181d;">¡Tu inscripción fue validada!</h2>
-              <p>Ya cumpliste los requisitos del Sorteo Bienvenida de Futura Tecno.</p>
+              <p>Ya cumpliste los requisitos del Sorteo Bienvenida de Tecnópolis Olavarría.</p>
               <p>Tu código único de sorteo es:</p>
               <p style="margin: 24px 0; padding: 16px; text-align: center; background: #16181d; border-radius: 10px; color: #C8E048; font-size: 24px; font-weight: bold; letter-spacing: 2px;">%s</p>
               %s

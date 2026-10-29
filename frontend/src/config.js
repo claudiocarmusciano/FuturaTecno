@@ -7,9 +7,6 @@ export const WHATSAPP_NUMBER = '5492284324444'
 // Nombre del negocio (se usa en mensajes y textos).
 export const NOMBRE_NEGOCIO = 'Tecnópolis Olavarría'
 
-// Marca anterior: se menciona en el pie legal mientras dure la mudanza ("antes Futura Tecno").
-export const NOMBRE_ANTERIOR = 'Futura Tecno'
-
 // Datos legales del titular (pie de página y páginas legales). Tienen que coincidir con la
 // constancia de ARCA: "Tecnópolis Olavarría" es el nombre comercial de una persona física.
 export const TITULAR = {
