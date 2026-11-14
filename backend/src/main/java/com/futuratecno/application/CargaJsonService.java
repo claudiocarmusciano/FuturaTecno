@@ -115,7 +115,7 @@ public class CargaJsonService {
                 .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado: " + proveedorId));
 
         CargaJsonResponse res = new CargaJsonResponse();
-        int creados = 0, actualizados = 0, omitidos = 0, sinCategoria = 0, revision = 0;
+        int creados = 0, actualizados = 0, omitidos = 0, sinCategoria = 0, revision = 0, ocultos = 0;
         List<ArticuloJsonDTO> lista = articulos != null ? articulos : List.of();
 
         // 1) Resolver la identidad de todo el lote antes de tocar la base.
@@ -219,6 +219,7 @@ public class CargaJsonService {
                         "Falta marca, modelo o precio_usd válido."));
                 continue;
             }
+            if (sinCajaOCajaDanada(art, modelo)) { ocultos++; continue; }
             String excluido = ExclusionesCarga.motivo(marca, modelo, art.getModeloExacto(), art.getListado(), art.getCategoria());
             if (excluido != null) {
                 omitidos++;
@@ -469,7 +470,7 @@ public class CargaJsonService {
         res.setOmitidos(omitidos);
         res.setSinCategoria(sinCategoria);
         if (reemplazo) {
-            if (revision != 0 || omitidos != 0 || creados + actualizados != lista.size()) {
+            if (revision != 0 || omitidos != 0 || creados + actualizados + ocultos != lista.size()) {
                 // Sin los motivos, quien llama (n8n) no tiene cómo saber qué artículo frenó el lote:
                 // la transacción se revierte y la respuesta por ítem se pierde.
                 String detalle = res.getItems().stream()
@@ -502,6 +503,13 @@ public class CargaJsonService {
     // ------------------------------------------------------------------ identidad
 
     /** Vista previa para el borrador: la identidad de cada artículo, en el mismo orden. No toca la base. */
+    /** Sin caja o con caja dañada (pedido del usuario, 2026-11-14): no se cargan ni se listan en el resultado. */
+    static boolean sinCajaOCajaDanada(ArticuloJsonDTO art, String modelo) {
+        String specs = art.getEspecificaciones() == null ? null : art.getEspecificaciones().values().stream()
+                .filter(Objects::nonNull).map(String::valueOf).collect(java.util.stream.Collectors.joining(" "));
+        return ExclusionesCarga.sinCajaOCajaDanada(modelo, art.getModelo(), art.getModeloExacto(), art.getListado(), specs);
+    }
+
     public List<Map<String, Object>> identidades(List<ArticuloJsonDTO> articulos) {
         List<Map<String, Object>> out = new ArrayList<>();
         for (ArticuloJsonDTO art : articulos) {

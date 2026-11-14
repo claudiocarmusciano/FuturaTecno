@@ -11,7 +11,8 @@ import java.util.stream.Stream;
 /**
  * Lo que no se carga en la tienda por ninguna vía (Cargar por JSON, Flor Qtech, Kadabra), por pedido
  * del usuario (2026-10-23): accesorios chicos, lavarropas y réplicas; electrodomésticos (2026-10-27);
- * cuidado personal, la marca Dyson y los teclados de iPad (2026-10-28).
+ * cuidado personal, la marca Dyson y los teclados de iPad (2026-10-28); sin caja o con caja dañada
+ * (2026-11-14, y esos ni se muestran: ver {@link #sinCajaOCajaDanada}).
  * Los ya publicados no se tocan.
  *
  * <p>Los accesorios se reconocen por cómo EMPIEZA el modelo (las primeras palabras), igual que
@@ -47,6 +48,10 @@ final class ExclusionesCarga {
             + "SHAVERS?|GROOMERS?|EPILATORS?)");
     /** Teclados para iPad (Magic Keyboard, Smart Keyboard Folio…); los de Mac se siguen cargando. */
     private static final Pattern TECLADO = Pattern.compile("^(APPLE )?(MAGIC |SMART )?(KEYBOARD|TECLADO)\\b");
+    /** Sin caja o con la caja dañada: se descartan en silencio, sin aparecer en la vista previa ni en el resultado. */
+    private static final Pattern CAJA = Pattern.compile(
+            "\\bSIN CAJA\\b|\\bS/ ?CAJA\\b|\\bCAJA (DANADA|ROTA|GOLPEADA|AVERIADA|ABOLLADA|MALTRATADA|CON (DETALLES?|DANOS?|GOLPES?))\\b|"
+            + "\\bDANOS? EN (LA )?CAJA\\b|\\b(DAMAGED|BROKEN) BOX\\b|\\bBOX DAMAGED\\b|\\bNO BOX\\b|\\bWITHOUT BOX\\b");
     private static final Pattern REPLICA = Pattern.compile(
             "REPLICA|\\bCLON(E|ICO|ES)?\\b|\\bAAA\\+?(?=\\s|$)|\\b1\\s?[:.]\\s?1\\b|\\bCOPIA\\b|NO ORIGINAL|ALTERNATIV[OA]");
 
@@ -67,6 +72,11 @@ final class ExclusionesCarga {
             return "No se cargan electrodomésticos.";
         if (ACCESORIO.matcher(encabezado).find()) return "No se cargan accesorios chicos (fundas, vidrios, cables, cargadores…).";
         return null;
+    }
+
+    static boolean sinCajaOCajaDanada(String... textos) {
+        return CAJA.matcher(Stream.of(textos).filter(Objects::nonNull).map(ExclusionesCarga::normalizar)
+                .collect(Collectors.joining(" "))).find();
     }
 
     static String normalizar(String s) {

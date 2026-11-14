@@ -529,6 +529,8 @@ public class GenerarListadoService {
             }
             StringBuilder condicion = new StringBuilder(nombre);
             for (String k : SPECS) condicion.append(" ").append(texto(n.path("especificaciones"), k));
+            // Sin caja o con caja dañada: ni se muestran (pedido del usuario, 2026-11-14).
+            if (ExclusionesCarga.sinCajaOCajaDanada(condicion.toString(), texto(n, "modelo_exacto"), n.path("especificaciones").toString())) continue;
             if (condicionEspecial(condicion.toString())) {
                 avisos.add("Omitido por falla o condición especial: " + marca + " " + nombre + ".");
                 continue;

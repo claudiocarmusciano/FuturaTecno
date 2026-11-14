@@ -66,6 +66,17 @@ class ExclusionesCargaTest {
     }
 
     @Test
+    void sinCajaOCajaDanadaSeDescarta() {
+        assertTrue(ExclusionesCarga.sinCajaOCajaDanada("iPhone 15 128GB (Caja Dañada)"));
+        assertTrue(ExclusionesCarga.sinCajaOCajaDanada("Galaxy A15", "Galaxy A15 4/128 SIN CAJA"));
+        assertTrue(ExclusionesCarga.sinCajaOCajaDanada("Redmi Note 13 s/caja"));
+        assertTrue(ExclusionesCarga.sinCajaOCajaDanada("PS5 Slim - caja rota"));
+        assertTrue(ExclusionesCarga.sinCajaOCajaDanada(null, "Switch OLED damaged box"));
+        assertFalse(ExclusionesCarga.sinCajaOCajaDanada("Caja de sonido JBL Go 4"));
+        assertFalse(ExclusionesCarga.sinCajaOCajaDanada("iPhone 15 128GB", "Sellado en caja"));
+    }
+
+    @Test
     void loQueSoloSeParecesSeCarga() {
         assertNull(m("Cooler Master", "Ventilador 120mm ARGB"));
         assertNull(m("Lenovo", "IdeaPad Slim 3 con ventilador silencioso"));
