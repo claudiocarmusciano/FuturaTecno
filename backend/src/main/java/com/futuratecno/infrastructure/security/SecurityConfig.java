@@ -38,6 +38,7 @@ public class SecurityConfig {
                         // así que toda ruta privada nueva tiene que listarse explícitamente.
                         .requestMatchers("/api/pedidos/**").authenticated()
                         .requestMatchers("/api/puntos/**").authenticated()
+                        .requestMatchers("/api/presupuestos/**", "/api/presupuestos").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

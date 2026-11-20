@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import PromoArmado from '../../components/PromoArmado'
 import { formatPesos } from '../../utils/minimoCompra'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
@@ -10,6 +10,8 @@ import { etiquetaEnvio } from '../../utils/envio'
 import { IconAlert, IconBulb, IconCheck, IconChat, IconCpu, IconDisc, IconFan, IconGpu, IconHardDrive, IconLink, IconMemory, IconMotherboard, IconPlug, IconTower, IconX } from '../../components/icons'
 import './ArmaTuPcPage.css'
 import { coincideBusqueda } from '../../utils/busqueda'
+import { useAuth } from '../../auth/AuthContext'
+import { imprimirPresupuesto } from '../../utils/imprimirPresupuesto'
 
 const formatNumber = (n) =>
   Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -216,9 +218,17 @@ function atributos(c) {
   return a
 }
 
+/**
+ * El invitado conserva su armado solo mientras tenga la pestaña abierta (sessionStorage); el que
+ * tiene sesión, también entre visitas (localStorage) y además puede guardarlo como presupuesto.
+ */
+function haySesion() {
+  try { return !!localStorage.getItem('auth') } catch { return false }
+}
+
 function leerGuardado() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}
+    return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || (haySesion() && localStorage.getItem(STORAGE_KEY))) || {}
   } catch {
     return {}
   }
@@ -242,6 +252,14 @@ export default function ArmaTuPcPage() {
   const [envio, setEnvio] = useState(null)
   const [cotizando, setCotizando] = useState(false)
   const [copiado, setCopiado] = useState(false)
+  const { isAuth, listo } = useAuth()
+  // Presupuesto guardado que se está editando (se abrió desde "Mis presupuestos").
+  const [presupuesto, setPresupuesto] = useState(() => {
+    const id = Number(searchParams.get('presupuesto'))
+    return id ? { id, nombre: searchParams.get('nombre') || '' } : null
+  })
+  const [guardando, setGuardando] = useState(false)
+  const [avisoGuardado, setAvisoGuardado] = useState(null)
 
   useEffect(() => {
     axios.get('/api/arma-tu-pc/componentes')
@@ -284,8 +302,18 @@ export default function ArmaTuPcPage() {
   }, [componentes])
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seleccion)) } catch { /* modo privado */ }
-  }, [seleccion])
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(seleccion))
+      if (isAuth) localStorage.setItem(STORAGE_KEY, JSON.stringify(seleccion))
+    } catch { /* modo privado */ }
+  }, [seleccion, isAuth])
+
+  // Sin sesión no queda nada entre visitas (también borra lo que guardaban las versiones anteriores).
+  useEffect(() => {
+    if (listo && !isAuth) try { localStorage.removeItem(STORAGE_KEY) } catch { /* modo privado */ }
+  }, [listo, isAuth])
+
+  useEffect(() => { setAvisoGuardado(null) }, [seleccion])
 
   useEffect(() => { setBusqueda(''); setVisibles(POR_PAGINA) }, [paso])
 
@@ -422,7 +450,35 @@ export default function ArmaTuPcPage() {
     navigate('/carrito')
   }
 
-  const empezarDeNuevo = () => { setSeleccion({}); setPaso(0); setAvisoLink(null) }
+  const empezarDeNuevo = () => { setSeleccion({}); setPaso(0); setAvisoLink(null); setPresupuesto(null) }
+
+  const itemsPresupuesto = () => PASOS.filter(p => seleccion[p.clave]).map(p => {
+    const s = seleccion[p.clave]
+    return { titulo: p.titulo, marca: s.item.marca, modelo: s.item.modelo, cantidad: s.cantidad, precioArs: Number(s.item.precioArs), precioUsd: Number(s.item.precioUsd) }
+  })
+
+  const imprimir = () => imprimirPresupuesto({
+    nombre: presupuesto?.nombre, items: itemsPresupuesto(), totalArs: totales.ars, totalUsd: totales.usd
+  })
+
+  const guardarPresupuesto = async (comoNuevo) => {
+    const editar = presupuesto && !comoNuevo
+    const nombre = window.prompt('Nombre del presupuesto (por ejemplo: PC gamer)', editar ? presupuesto.nombre : '')
+    if (nombre === null) return
+    setGuardando(true)
+    try {
+      const body = { nombre, seleccion: { armado: aLink(seleccion) }, resumen: itemsPresupuesto(), totalArs: totales.ars, totalUsd: totales.usd }
+      const { data } = editar
+        ? await axios.put(`/api/presupuestos/${presupuesto.id}`, body)
+        : await axios.post('/api/presupuestos', body)
+      setPresupuesto({ id: data.id, nombre: data.nombre })
+      setAvisoGuardado({ ok: true, texto: `Guardado como "${data.nombre}". Lo ves en Mis presupuestos.` })
+    } catch (e) {
+      setAvisoGuardado({ ok: false, texto: e.response?.data?.error || 'No se pudo guardar el presupuesto.' })
+    } finally {
+      setGuardando(false)
+    }
+  }
 
   const mensajeWa = [
     'Hola Tecnópolis Olavarría, armé esta PC y quiero consultar:',
@@ -635,6 +691,27 @@ export default function ArmaTuPcPage() {
                 <button className="btn btn-secondary" onClick={compartir}>{copiado ? <><IconCheck /> Link copiado</> : <><IconLink /> Compartir armado</>}</button>
                 <a className="btn btn-secondary" href={waLink} target="_blank" rel="noreferrer"><IconChat /> Consultar por WhatsApp</a>
               </div>
+            )}
+
+            {hayAlgo && (
+              <div className="atp-compartir">
+                <button className="btn btn-secondary" onClick={imprimir}>Imprimir presupuesto</button>
+                {isAuth ? (
+                  <button className="btn btn-secondary" onClick={() => guardarPresupuesto(false)} disabled={guardando}>
+                    {guardando ? 'Guardando…' : presupuesto ? 'Guardar cambios' : 'Guardar presupuesto'}
+                  </button>
+                ) : (
+                  <Link className="btn btn-secondary" to="/login" state={{ from: '/arma-tu-pc' }}>Ingresá para guardarlo</Link>
+                )}
+              </div>
+            )}
+            {isAuth && presupuesto && hayAlgo && (
+              <button className="atp-reiniciar" onClick={() => guardarPresupuesto(true)} disabled={guardando}>Guardar como presupuesto nuevo</button>
+            )}
+            {avisoGuardado && (
+              <p className="atp-envio-msg" style={{ color: avisoGuardado.ok ? 'var(--color-accion)' : 'var(--color-danger)' }}>
+                {avisoGuardado.texto}{avisoGuardado.ok && <> <Link to="/mis-presupuestos">Ver</Link></>}
+              </p>
             )}
 
             {hayAlgo && (

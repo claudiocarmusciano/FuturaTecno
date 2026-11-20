@@ -10,7 +10,7 @@
 ## Arquitectura no obvia
 - **Frontend embebido en el jar:** Vite buildea a `backend/src/main/resources/static/` → mismo origen que el backend → sin CORS. El `Dockerfile` hace el build del frontend primero.
 - **Sin Lombok:** se rompió bajo Java 25 durante el desarrollo → getters/setters explícitos en todas las entidades. No agregar Lombok.
-- **Flyway activo (`ddl-auto=validate`):** las migraciones van en `backend/src/main/resources/db/migration/` (ya hay **V1–V50**; la próxima libre es **V51**). Cualquier cambio de schema necesita un archivo nuevo. **No cambiar a `ddl-auto=update`.**
+- **Flyway activo (`ddl-auto=validate`):** las migraciones van en `backend/src/main/resources/db/migration/` (ya hay **V1–V51**; la próxima libre es **V52**). Cualquier cambio de schema necesita un archivo nuevo. **No cambiar a `ddl-auto=update`.**
 - **Fórmula de precios:** `(costo USD) × (1 + flete%) × (1 + margen%)`, y vive **solo** en `PrecioService` — la usan el catálogo, los pedidos y el envío; si se duplicara, un cliente podría ver un precio y que se le registre otro. El flete es **porcentaje**, no monto fijo. Defaults del proveedor: flete 5%, margen 15%.
 - **Margen y flete se pueden pisar por producto (V41).** `productos.margen_porcentaje` / `flete_porcentaje`, opcionales: **null = usar el del proveedor**, que NO es lo mismo que 0% (eso sería vender al costo) — por eso se compara contra null y no se hace coalesce a cero. Se editan en Admin → Productos, con el valor del proveedor como placeholder. El override se recuerda en `margenes_manuales`, y esa memoria **lleva el proveedor en la clave**, a diferencia de las otras (imágenes, descripciones, atributos): la foto de un iPhone 15 es la misma venga de donde venga, pero el margen está atado a lo que ESE mayorista te cobra, y cruzarlo daría un precio equivocado en silencio. Vaciar los dos campos borra la memoria. Cambiar el margen mueve el precio público al instante, pero **no toca pedidos ya confirmados**: esos guardan importes congelados.
 - **Soft delete:** `activo=false` en `Producto` y `Variante`. Nunca borrar físicamente.
@@ -170,3 +170,9 @@ railway deployment list --service FuturaTecno --environment production --json
 **Dominio:**
 - `futuratecno.com.ar` — **en producción** desde 2026-07-19: apex y `www` con SSL, el apex redirige 301 a `www`. Registrado en NIC.ar (dominio "especial" pago; vence 2027-07-16).
 - `futuratecno.com` — **NO es nuestro**: pertenece a un tercero (registrado en 2018 vía Bluehost, apuntando a Wix). No usar ni asumir disponibilidad.
+
+## Presupuestos de "Armá tu PC" (2026-11-20)
+- Invitado: el armado vive en `sessionStorage` (se pierde al cerrar la pestaña); con sesión, también en `localStorage`. Al no haber sesión se borra la copia de `localStorage`.
+- "Imprimir presupuesto" (`utils/imprimirPresupuesto.js`): ventana aparte con transferencia + USD por componente y total; se imprime o guarda como PDF.
+- Registrados: "Guardar presupuesto" → tabla `presupuestos_pc` (V51; `seleccion` = `{armado: <link>}`, `resumen` = foto de precios del día). `/api/presupuestos` (propios, máx. 50) y `/mis-presupuestos`; "Abrir y editar" usa `?armado=&presupuesto=&nombre=`. Admin: `/api/admin/presupuestos` y Admin → Presupuestos.
+- Ojo para probar local: el preview `tienda` (5190) proxea a PRODUCCIÓN (`VITE_PROXY_TARGET` del .env). Para probar contra la base local usar `tienda-local` (5191) + `backend` del launch.json raíz.

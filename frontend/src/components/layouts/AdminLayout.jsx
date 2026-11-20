@@ -45,6 +45,7 @@ function AdminLayout() {
           <Link to="/admin/imagenes" className={`nav-link ${isActive('/admin/imagenes')}`}>Imágenes</Link>
           <Link to="/admin/promociones" className={`nav-link ${isActive('/admin/promociones')}`}>Carrousel</Link>
           <Link to="/admin/usuarios" className={`nav-link ${isActive('/admin/usuarios')}`}>Usuarios</Link>
+          <Link to="/admin/presupuestos" className={`nav-link ${isActive('/admin/presupuestos')}`}>Presupuestos</Link>
           <Link to="/catalogo" className="nav-link">Ver Catálogo</Link>
         </nav>
 

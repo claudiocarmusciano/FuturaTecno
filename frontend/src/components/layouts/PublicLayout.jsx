@@ -48,6 +48,7 @@ function PublicLayout() {
                 <span className="public-nav-saludo public-nav-cuenta" title={user.nombre || user.email}>Hola, {user.nombre || user.email}</span>
                 <Link to="/mis-pedidos">Mis pedidos</Link>
                 <Link to="/mis-puntos">Mis puntos</Link>
+                <Link to="/mis-presupuestos">Mis presupuestos</Link>
                 <a onClick={handleLogout} style={{ cursor: 'pointer' }}>Salir</a>
               </>
             ) : (

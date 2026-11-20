@@ -27,6 +27,7 @@ export default function PieLegal() {
           <Link to="/arma-tu-pc">Armá tu PC</Link>
           <Link to="/mis-pedidos">Mis pedidos</Link>
           <Link to="/mis-puntos">Mis puntos</Link>
+          <Link to="/mis-presupuestos">Mis presupuestos</Link>
         </nav>
         <div className="pie-legal-col">
           <b>Contacto</b>

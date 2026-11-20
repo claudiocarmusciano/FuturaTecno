@@ -21,6 +21,8 @@ import CartPage from './pages/public/CartPage'
 import CheckoutPage from './pages/public/CheckoutPage'
 import MisPedidosPage from './pages/public/MisPedidosPage'
 import MisPuntosPage from './pages/public/MisPuntosPage'
+import MisPresupuestosPage from './pages/public/MisPresupuestosPage'
+import PresupuestosPage from './pages/admin/PresupuestosPage'
 import PedidoDetailPage from './pages/public/PedidoDetailPage'
 import PagoResultadoPage from './pages/public/PagoResultadoPage'
 import RutaPrivada from './auth/RutaPrivada'
@@ -64,6 +66,7 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/mis-pedidos" element={<RutaPrivada><MisPedidosPage /></RutaPrivada>} />
           <Route path="/mis-puntos" element={<RutaPrivada><MisPuntosPage /></RutaPrivada>} />
+          <Route path="/mis-presupuestos" element={<RutaPrivada><MisPresupuestosPage /></RutaPrivada>} />
           <Route path="/pedido/:numero" element={<RutaPrivada><PedidoDetailPage /></RutaPrivada>} />
           <Route path="/pago/resultado" element={<RutaPrivada><PagoResultadoPage /></RutaPrivada>} />
         </Route>
@@ -90,6 +93,7 @@ function App() {
           <Route path="imagenes" element={<ImagesPage />} />
           <Route path="promociones" element={<PromocionesPage />} />
           <Route path="usuarios" element={<UsuariosPage />} />
+          <Route path="presupuestos" element={<PresupuestosPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
