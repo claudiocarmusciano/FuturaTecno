@@ -250,7 +250,7 @@ public class AuthService {
      * guarda su hash con vencimiento y manda el enlace por email. Nunca revela si el email existe o no
      * (para no filtrar qué cuentas están registradas): siempre termina sin error.
      *
-     * @param baseUrl origen del sitio (ej. https://futuratecno.com.ar), para armar el enlace.
+     * @param baseUrl origen del sitio (ej. https://www.tecnopolisolavarria.com), para armar el enlace.
      */
     @Transactional
     public void solicitarReset(String email, String baseUrl) {

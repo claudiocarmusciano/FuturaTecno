@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * Redirige (301) a la URL canónica con www, preservando path y query:
  * <ul>
  *   <li>el apex del dominio canónico (CANONICAL_HOST, ej. tecnopolisolavarria.com → www.…);</li>
- *   <li>los dominios viejos de REDIRECT_HOSTS (lista separada por comas, ej. el de Futura Tecno).</li>
+ *   <li>los dominios viejos de REDIRECT_HOSTS (lista separada por comas).</li>
  * </ul>
  * Los dominios viejos NO se redirigen en {@code /api/**}: el webhook de Mercado Pago y cualquier
  * integración configurada con la URL anterior hacen POST, y un 301 los rompería (los clientes HTTP
@@ -34,7 +34,7 @@ public class CanonicalHostRedirectFilter extends OncePerRequestFilter {
 
     private final String canonicalHost;      // ej. www.tecnopolisolavarria.com
     private final String apexHost;           // canonicalHost sin el "www." inicial
-    private final Set<String> hostsViejos;   // ej. futuratecno.com.ar, www.futuratecno.com.ar
+    private final Set<String> hostsViejos;   // de REDIRECT_HOSTS (hoy vacío)
 
     public CanonicalHostRedirectFilter(@Value("${app.canonical-host:}") String canonicalHost,
                                        @Value("${app.redirect-hosts:}") String redirectHosts) {

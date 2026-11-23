@@ -18,7 +18,7 @@ public class AdminInitializer implements CommandLineRunner {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${admin.email:admin@futuratecno.com}")
+    @Value("${admin.email:admin@tecnopolisolavarria.com}")
     private String adminEmail;
 
     @Value("${admin.password:admin1234}")

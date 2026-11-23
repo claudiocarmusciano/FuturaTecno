@@ -1,11 +1,11 @@
-# FuturaTecno — Cheat Sheet
+# Tecnópolis Olavarría (ex FuturaTecno) — Cheat Sheet
 
 ## Stack
 - **Backend:** Java 21 + Spring Boot 3.3 + Spring Security + JWT + JPA/Hibernate + Flyway + PostgreSQL 16
 - **Frontend:** React 18 + Vite + React Router + axios + Context auth | **JSX (no TypeScript)**
 - **AI:** tres usos — generar listados de catálogo desde texto/Notion, clasificar categorías (último recurso, después de `ClasificadorPorNombre`) y buscar imágenes. El proveedor se elige con `CATALOGO_IA_PROVIDER` (`anthropic` | `openai` | `deepseek` | `gemini`), **uno solo y sin fallback automático**: un fallback duplicaría el gasto en silencio. **Producción corre con `anthropic`** desde 2026-09-14: DeepSeek encola indefinidamente las requests que salen de Railway (ver bullet propio) y el tope de gasto de Anthropic resultó ser **un límite puesto por nosotros**, no de Anthropic — se subió en Settings → Billing y quedó liberado (probado: 200 en 1,17 s). Todo degrada solo si no hay clave: la clasificación deja `categoria_id` en null para corregir a mano en Admin → Productos. Para imágenes, ver el bullet propio más abajo: no todos los proveedores sirven.
 - **Exchange rate:** dolarapi.com dólar oficial (cacheado en memoria)
-- **Deploy:** Railway, push a `main` = auto-deploy (~90 s – 3 min) | URL: `https://www.futuratecno.com.ar` (la de Railway, `https://futuratecno-production.up.railway.app`, sigue viva)
+- **Deploy:** Railway (servicio todavía llamado `FuturaTecno`), push a `main` = auto-deploy (~90 s – 3 min) | URL: `https://www.tecnopolisolavarria.com` (la de Railway, `https://futuratecno-production.up.railway.app`, sigue viva). El paquete Java `com.futuratecno` es solo un nombre interno.
 
 ## Arquitectura no obvia
 - **Frontend embebido en el jar:** Vite buildea a `backend/src/main/resources/static/` → mismo origen que el backend → sin CORS. El `Dockerfile` hace el build del frontend primero.
@@ -155,7 +155,7 @@ mvn -f backend/pom.xml -Dnet.bytebuddy.experimental=true test -Dtest=CargaJsonId
 | `GOOGLE_CLIENT_ID` | Client ID de "Sign in with Google" (OAuth Web, no secreto). Vacío = botón oculto. Lo sirve `GET /api/config` al frontend y lo usa `GoogleTokenVerifier` para validar el ID token. |
 | `GA4_MEASUREMENT_ID` / `META_PIXEL_ID` | Analítica (GA4 `G-…` y Pixel de Meta, solo dígitos). Públicos: los sirve `GET /api/config` y el front carga los scripts (`utils/analitica.js`). Vacíos o con formato inválido = no se mide nada. No se mide `/admin` ni la sesión ADMIN. `Purchase` sale solo con el pago APROBADO por Mercado Pago, una vez por pedido (id = número de pedido); transferencia/efectivo van como `PedidoConfirmado`. |
 | `RESEND_API_KEY` | API key de Resend (`re_...`) para mandar mails. Vacío = no se manda nada (el flujo responde igual, queda en el log). |
-| `MAIL_FROM` / `MAIL_FROM_NAME` | Remitente. **Tiene que ser del dominio verificado en Resend** (`no-responder@futuratecno.com.ar`); un Gmail se rechaza por dominio no verificado. |
+| `MAIL_FROM` / `MAIL_FROM_NAME` | Remitente. **Tiene que ser del dominio verificado en Resend** (hoy `@tecnopolisolavarria.com`); un Gmail se rechaza por dominio no verificado. |
 | `ADMIN_NOTIFY_EMAIL` | Destinatario de avisos internos. Si no está, usa `ADMIN_EMAIL`. |
 | `ANDREANI_HASH` | Credencial de la cuenta Pyme de Andreani (portal → Integraciones → WooCommerce). Vacía = sin cotización de envío (el checkout sigue andando). |
 | `ANDREANI_CP_ORIGEN` | Código postal de despacho (origen de toda cotización). |
@@ -168,7 +168,7 @@ railway deployment list --service FuturaTecno --environment production --json
 `railway variable list` imprime los secretos en crudo: filtrar siempre con `grep` antes de mostrar la salida.
 
 **Dominio:**
-- `futuratecno.com.ar` — **en producción** desde 2026-07-19: apex y `www` con SSL, el apex redirige 301 a `www`. Registrado en NIC.ar (dominio "especial" pago; vence 2027-07-16).
+- `tecnopolisolavarria.com` — **en producción**. `futuratecno.com.ar` **dado de baja el 2026-11-22** (pedido del usuario: la marca no existe más): se sacó de Railway y se borró `REDIRECT_HOSTS`, ya NO reenvía. Sigue registrado en NIC.ar hasta 2027-07-16; el reenvío del apex vive en el DNS del registrador.
 - `futuratecno.com` — **NO es nuestro**: pertenece a un tercero (registrado en 2018 vía Bluehost, apuntando a Wix). No usar ni asumir disponibilidad.
 
 ## Presupuestos de "Armá tu PC" (2026-11-20)
