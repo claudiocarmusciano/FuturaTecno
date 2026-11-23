@@ -22,7 +22,7 @@ export function imprimirPresupuesto({ nombre, items, totalArs, totalUsd, fecha =
 <style>
   body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #16181d; margin: 32px; }
   header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; border-bottom: 2px solid #0077b3; padding-bottom: 12px; }
-  header img { height: 48px; }
+  header img { height: 53px; width: auto; }
   h1 { font-size: 20px; margin: 22px 0 4px; }
   .meta { color: #555; font-size: 13px; margin: 0 0 18px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -36,7 +36,7 @@ export function imprimirPresupuesto({ nombre, items, totalArs, totalUsd, fecha =
   @media print { body { margin: 12mm; } .acciones { display: none; } }
 </style></head><body>
 <header>
-  <img src="${window.location.origin}/logo.png" alt="Tecnópolis Olavarría">
+  <img src="${window.location.origin}/marca/tecnopolis-olavarria-logo-sobre-blanco.svg" alt="Tecnópolis Olavarría" width="212" height="53">
   <div style="text-align:right;font-size:12px;color:#555">tecnopolisolavarria.com</div>
 </header>
 <h1>Presupuesto · ${esc(nombre || 'Armá tu PC')}</h1>
