@@ -42,11 +42,11 @@ export function imprimirPresupuesto({ nombre, items, totalArs, totalUsd, fecha =
 <h1>Presupuesto · ${esc(nombre || 'Armá tu PC')}</h1>
 <p class="meta">${esc(dia)}${cliente ? ` · ${esc(cliente)}` : ''}</p>
 <table>
-  <thead><tr><th>Componente</th><th>Producto</th><th class="n">Cant.</th><th class="n">Transferencia</th><th class="n">Dólares</th></tr></thead>
+  <thead><tr><th>Componente</th><th>Producto</th><th class="n">Cant.</th><th class="n">Pesos</th><th class="n">Dólares</th></tr></thead>
   <tbody>${filas}</tbody>
   <tfoot><tr><td colspan="3">Total</td><td class="n">$ ${formatPesos(totalArs)}</td><td class="n">US$ ${usd(totalUsd)}</td></tr></tfoot>
 </table>
-<p class="legal"><strong>Precios sin IVA</strong>, por transferencia bancaria o en dólares, vigentes al ${esc(dia)}. Stock sujeto a disponibilidad; el precio final se confirma al hacer el pedido.</p>
+<p class="legal"><strong>Precios sin IVA</strong>, en pesos o en dólares, vigentes al ${esc(dia)}. Stock sujeto a disponibilidad; el precio final se confirma al hacer el pedido.</p>
 <div class="acciones"><button onclick="window.print()">Imprimir o guardar PDF</button></div>
 <script>window.addEventListener('load', function () { setTimeout(function () { window.print() }, 300) })</script>
 </body></html>`
