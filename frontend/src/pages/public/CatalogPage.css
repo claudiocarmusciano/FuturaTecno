@@ -60,9 +60,9 @@
   .catalog-product-grid .card-sku, .catalog-product-grid .card-specs,
   .catalog-product-grid .card-actualizado, .catalog-product-grid .pp-cuotas { display: none; }
   .catalog-product-grid .card-variante { padding-top: 6px !important; margin-top: 6px !important; }
-  .catalog-product-grid .pp-transferencia { font-size: 17px !important; }
+  .catalog-product-grid .pp-principal { font-size: 17px !important; }
   .catalog-product-grid .pp-sub { font-size: 10.5px; }
-  .catalog-product-grid .pp-efectivo { font-size: 11.5px; margin-top: 3px !important; }
+  .catalog-product-grid .pp-secundario { font-size: 11.5px; margin-top: 3px !important; }
   .catalog-product-grid .card-pie { padding-top: 6px !important; }
   .catalog-product-grid .card-pie p { font-size: 10px !important; }
   .catalog-product-grid .card-pie button { margin-top: 8px !important; padding: 8px 4px !important; font-size: 13px !important; }

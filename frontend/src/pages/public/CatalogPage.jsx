@@ -512,7 +512,7 @@ function CatalogPage() {
                       {v.especificaciones && (
                         <p className="card-specs" style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '6px' }}>{v.especificaciones}</p>
                       )}
-                      <PaymentPrices transferPrice={v.precioArs} usdPrice={v.precioUsd} compact />
+                      <PaymentPrices precio={v.precioArs} usdPrice={v.precioUsd} compact />
                     </div>
                   ))}
 

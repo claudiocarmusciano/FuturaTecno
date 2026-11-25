@@ -133,11 +133,8 @@ public class MercadoPagoService {
     }
 
     private BigDecimal totalACobrar(Pedido pedido) {
-        BigDecimal envio = pedido.getCostoEnvioArs() != null ? pedido.getCostoEnvioArs() : BigDecimal.ZERO;
-        BigDecimal descuentoPuntos = pedido.getDescuentoPuntosArs() != null ? pedido.getDescuentoPuntosArs() : BigDecimal.ZERO;
-        BigDecimal precioTransferencia = pedido.getTotalArs().subtract(descuentoPuntos).max(BigDecimal.ZERO)
-                .add(envio).setScale(2, RoundingMode.HALF_UP);
-        return precioService.precioMercadoPagoInmediato(precioTransferencia);
+        return precioService.totalACobrar("MERCADO_PAGO", pedido.getTotalArs(), pedido.getDescuentoPuntosArs(),
+                pedido.getCostoEnvioArs(), pedido.getIvaPorcentaje());
     }
 
     private EstadoPago mapearEstado(String status) {

@@ -5,7 +5,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useCart } from '../../cart/CartContext'
 import { NOMBRE_NEGOCIO } from '../../config'
 import PaymentPrices from '../../components/PaymentPrices'
-import { CASH_DISCOUNT_PERCENTAGE, cashPrice, mpImmediatePrice } from '../../utils/paymentPricing'
+import { CASH_DISCOUNT_PERCENTAGE, IVA_PERCENTAGE, cashPrice, mpImmediatePrice, withIva } from '../../utils/paymentPricing'
 import { etiquetaEnvio } from '../../utils/envio'
 import { textoDemora } from '../../utils/demora'
 import { MONTO_MINIMO_PEDIDO_USD, useCotizacion, minimoArs, formatPesos } from '../../utils/minimoCompra'
@@ -154,8 +154,11 @@ function CheckoutPage() {
   const maximoPuntosUsables = Math.max(0, Math.min(saldoPuntos, Math.floor(baseProductosPago / Number(cotizacionActual || 1))))
   const puntosAplicados = Math.min(Math.max(0, Number(puntosUsar) || 0), maximoPuntosUsables)
   const descuentoPuntosArs = cotizacionActual ? puntosAplicados * cotizacionActual : 0
-  const totalTransferenciaConEnvio = Math.max(0, totalArs - descuentoPuntosArs) + Number(opcionElegida?.totalArs || 0)
-  const totalEfectivoConEnvio = Math.max(0, cashPrice(totalArs) - descuentoPuntosArs) + Number(opcionElegida?.totalArs || 0)
+  // Misma cuenta que PrecioService.totalACobrar: productos − puntos, + IVA si es bancarizado, + envío.
+  const envioArs = Number(opcionElegida?.totalArs || 0)
+  const totalSinIvaConEnvio = Math.max(0, totalArs - descuentoPuntosArs) + envioArs
+  const totalTransferenciaConEnvio = withIva(Math.max(0, totalArs - descuentoPuntosArs)) + envioArs
+  const totalEfectivoConEnvio = Math.max(0, cashPrice(totalArs) - descuentoPuntosArs) + envioArs
   const totalMercadoPago = mpImmediatePrice(totalTransferenciaConEnvio)
 
   const confirmar = async (e) => {
@@ -223,8 +226,8 @@ function CheckoutPage() {
         ))}
         <div style={{ marginTop: '14px', fontSize: '19px', fontWeight: 700 }}>Total</div>
         {opcionElegida && <div style={{ textAlign: 'right', fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '6px' }}>{Number(opcionElegida.totalArs) === 0 ? 'Incluye envío gratis en Olavarría.' : `Incluye envío estimado: $ ${formatNumber(opcionElegida.totalArs)}`}</div>}
-        <div style={{ textAlign: 'right' }}><PaymentPrices transferPrice={totalTransferenciaConEnvio} cashPriceOverride={totalEfectivoConEnvio}
-          usdPrice={cotizacion ? totalTransferenciaConEnvio / cotizacion : null} /></div>
+        <div style={{ textAlign: 'right' }}><PaymentPrices transferPriceOverride={totalTransferenciaConEnvio} cashPriceOverride={totalEfectivoConEnvio}
+          usdPrice={cotizacion ? totalSinIvaConEnvio / cotizacion : null} /></div>
       </div>
 
       <div className="card" style={{ borderLeft: '4px solid var(--color-accion)' }}>
@@ -351,15 +354,15 @@ function CheckoutPage() {
         <h2 style={{ fontSize: '17px', margin: '0 0 6px' }}>Forma de pago</h2>
         <label style={{ display: 'flex', gap: '10px', padding: '10px 0', cursor: 'pointer' }}>
           <input type="radio" name="medioPago" checked={medioPago === 'TRANSFERENCIA'} onChange={() => setMedioPago('TRANSFERENCIA')} />
-          <span><strong>Transferencia bancaria — $ {formatNumber(totalTransferenciaConEnvio)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>Al confirmar te mostramos el pedido para coordinar el pago.</small></span>
+          <span><strong>Transferencia bancaria — $ {formatNumber(totalTransferenciaConEnvio)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>Incluye {IVA_PERCENTAGE}% de IVA sobre los productos (se factura). Al confirmar te mostramos el pedido para coordinar el pago.</small></span>
         </label>
         <label style={{ display: 'flex', gap: '10px', padding: '10px 0', borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
           <input type="radio" name="medioPago" checked={medioPago === 'EFECTIVO'} onChange={() => setMedioPago('EFECTIVO')} />
-          <span><strong>Contado efectivo — $ {formatNumber(totalEfectivoConEnvio)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>{CASH_DISCOUNT_PERCENTAGE}% de descuento sobre los productos. Coordinamos el pago por WhatsApp.</small></span>
+          <span><strong>Contado efectivo — $ {formatNumber(totalEfectivoConEnvio)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>Sin IVA y con {CASH_DISCOUNT_PERCENTAGE}% de descuento sobre los productos. Coordinamos el pago por WhatsApp.</small></span>
         </label>
         <label style={{ display: 'flex', gap: '10px', padding: '10px 0', borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
           <input type="radio" name="medioPago" checked={medioPago === 'MERCADO_PAGO'} onChange={() => setMedioPago('MERCADO_PAGO')} />
-          <span><strong>Mercado Pago — $ {formatNumber(totalMercadoPago)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>Podés pagar en 1, 3, 6 o 12 cuotas fijas.</small></span>
+          <span><strong>Mercado Pago — $ {formatNumber(totalMercadoPago)}</strong><br /><small style={{ color: 'var(--color-text-muted)' }}>Incluye {IVA_PERCENTAGE}% de IVA sobre los productos (se factura). Podés pagar en 1, 3, 6 o 12 cuotas fijas.</small></span>
         </label>
       </div>
 

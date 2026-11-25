@@ -156,7 +156,7 @@ function CartPage() {
           </button>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>Total de productos</div>
-            <PaymentPrices transferPrice={totalArs} usdPrice={totalUsd} />
+            <PaymentPrices precio={totalArs} usdPrice={totalUsd} />
           </div>
         </div>
       </div>

@@ -99,6 +99,10 @@ public class Pedido extends BaseEntity {
     @Column(name = "pagado_en")
     private LocalDateTime pagadoEn;
 
+    /** IVA (%) que se suma a los productos al cobrar. 0 en efectivo y en los pedidos anteriores a V52. */
+    @Column(name = "iva_porcentaje", nullable = false)
+    private BigDecimal ivaPorcentaje = BigDecimal.ZERO;
+
     /** Puntos reservados al confirmar el pedido. Cada punto equivale a US$ 1 de descuento. */
     @Column(name = "puntos_canjeados", nullable = false)
     private Integer puntosCanjeados = 0;
@@ -234,6 +238,9 @@ public class Pedido extends BaseEntity {
 
     public BigDecimal getMontoPagoArs() { return montoPagoArs; }
     public void setMontoPagoArs(BigDecimal montoPagoArs) { this.montoPagoArs = montoPagoArs; }
+
+    public BigDecimal getIvaPorcentaje() { return ivaPorcentaje; }
+    public void setIvaPorcentaje(BigDecimal ivaPorcentaje) { this.ivaPorcentaje = ivaPorcentaje; }
 
     public LocalDateTime getPagadoEn() { return pagadoEn; }
     public void setPagadoEn(LocalDateTime pagadoEn) { this.pagadoEn = pagadoEn; }

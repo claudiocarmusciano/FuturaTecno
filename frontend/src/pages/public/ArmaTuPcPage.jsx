@@ -5,6 +5,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { useCart } from '../../cart/CartContext'
 import PaymentPrices from '../../components/PaymentPrices'
+import { cashPrice, withIva } from '../../utils/paymentPricing'
 import { WHATSAPP_NUMBER } from '../../config'
 import { etiquetaEnvio } from '../../utils/envio'
 import { IconAlert, IconBulb, IconCheck, IconChat, IconCpu, IconDisc, IconFan, IconGpu, IconHardDrive, IconLink, IconMemory, IconMotherboard, IconPlug, IconTower, IconX } from '../../components/icons'
@@ -486,7 +487,7 @@ export default function ArmaTuPcPage() {
       const s = seleccion[p.clave]
       return `• ${p.titulo}: ${s.item.modelo}${s.cantidad > 1 ? ` (x${s.cantidad})` : ''}`
     }),
-    `Total: $ ${formatPesos(totales.ars)} por transferencia`,
+    `Total: $ ${formatPesos(cashPrice(totales.ars))} en efectivo · $ ${formatPesos(withIva(totales.ars))} por transferencia (IVA incluido)`,
     link
   ].join('\n')
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensajeWa)}`
@@ -572,7 +573,7 @@ export default function ArmaTuPcPage() {
                   {avisos.map(a => <p key={a} className="atp-aviso"><IconAlert /> {a}</p>)}
                   {sugerencias.map(a => <p key={a} className="atp-sugerencia"><IconBulb /> {a}</p>)}
                   <div className="atp-card-precio">
-                    <PaymentPrices transferPrice={c.precioArs} usdPrice={c.precioUsd} compact />
+                    <PaymentPrices precio={c.precioArs} usdPrice={c.precioUsd} compact />
                   </div>
                   <div className="atp-card-acciones">
                     {pasoActual.cantidad && (
@@ -642,7 +643,7 @@ export default function ArmaTuPcPage() {
 
             <div className="atp-total">
               <span>Total</span>
-              <PaymentPrices transferPrice={totales.ars} usdPrice={totales.usd} compact />
+              <PaymentPrices precio={totales.ars} usdPrice={totales.usd} compact />
             </div>
             <button className="btn btn-primary atp-agregar" disabled={faltantes.length > 0} onClick={agregarTodo}>
               Agregar todo al carrito

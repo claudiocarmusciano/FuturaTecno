@@ -25,14 +25,43 @@ public class PrecioService {
     private final BigDecimal comisionMercadoPagoPct;
     private final BigDecimal ivaComisionPct;
     private final BigDecimal descuentoContadoEfectivoPct;
+    private final BigDecimal ivaVentaPct;
 
     public PrecioService(
             @Value("${mercadopago.comision-inmediata-porcentaje:6.29}") BigDecimal comisionMercadoPagoPct,
             @Value("${mercadopago.iva-comision-porcentaje:21}") BigDecimal ivaComisionPct,
-            @Value("${contado-efectivo.descuento-porcentaje:5}") BigDecimal descuentoContadoEfectivoPct) {
+            @Value("${contado-efectivo.descuento-porcentaje:5}") BigDecimal descuentoContadoEfectivoPct,
+            @Value("${iva.venta-porcentaje:21}") BigDecimal ivaVentaPct) {
         this.comisionMercadoPagoPct = comisionMercadoPagoPct;
         this.ivaComisionPct = ivaComisionPct;
         this.descuentoContadoEfectivoPct = descuentoContadoEfectivoPct;
+        this.ivaVentaPct = ivaVentaPct;
+    }
+
+    /**
+     * IVA a guardar en un pedido nuevo según cómo se paga: lo bancarizado (transferencia y
+     * Mercado Pago) se factura y lleva IVA; el contado efectivo no. Los precios del catálogo son sin IVA.
+     */
+    public BigDecimal ivaParaMedioPago(String medioPago) {
+        return "EFECTIVO".equals(medioPago) ? BigDecimal.ZERO : ivaVentaPct;
+    }
+
+    /**
+     * Total a cobrar de un pedido. Única cuenta para el pedido, el checkout de Mercado Pago y los mails:
+     * productos (con 5% off si es efectivo) − puntos, + IVA del pedido, + envío; y si es Mercado Pago,
+     * además la comisión. El IVA va sobre los productos, no sobre el envío.
+     */
+    public BigDecimal totalACobrar(String medioPago, BigDecimal totalArs, BigDecimal descuentoPuntosArs,
+                                   BigDecimal costoEnvioArs, BigDecimal ivaPct) {
+        BigDecimal productos = totalArs != null ? totalArs : BigDecimal.ZERO;
+        if ("EFECTIVO".equals(medioPago)) productos = precioContadoEfectivo(productos);
+        BigDecimal puntos = descuentoPuntosArs != null ? descuentoPuntosArs : BigDecimal.ZERO;
+        BigDecimal neto = productos.subtract(puntos).max(BigDecimal.ZERO);
+        BigDecimal iva = ivaPct != null ? ivaPct : BigDecimal.ZERO;
+        BigDecimal conIva = neto.multiply(BigDecimal.ONE.add(iva.divide(CIEN, 8, RoundingMode.HALF_UP)));
+        BigDecimal base = conIva.add(costoEnvioArs != null ? costoEnvioArs : BigDecimal.ZERO)
+                .setScale(2, RoundingMode.HALF_UP);
+        return "MERCADO_PAGO".equals(medioPago) ? precioMercadoPagoInmediato(base) : base;
     }
 
     /**

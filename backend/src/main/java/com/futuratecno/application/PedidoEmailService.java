@@ -160,12 +160,21 @@ public class PedidoEmailService {
     private String instruccionPago(Pedido pedido) {
         String compromiso = "Confirmar este pedido implica un <strong>compromiso de compra</strong>. ";
         if ("TRANSFERENCIA".equals(pedido.getMedioPago())) {
-            return compromiso + "Coordinaremos los datos bancarios y el comprobante de transferencia por WhatsApp.";
+            return compromiso + "Coordinaremos los datos bancarios y el comprobante de transferencia por WhatsApp."
+                    + iva(pedido);
         }
         if ("EFECTIVO".equals(pedido.getMedioPago())) {
             return compromiso + "Coordinaremos el pago en contado efectivo por WhatsApp. El total aplica el 5% de descuento sobre los productos.";
         }
-        return compromiso + "El pago total se realiza online con Mercado Pago. Si todavía no lo completaste, podés volver al detalle del pedido para reintentarlo.";
+        return compromiso + "El pago total se realiza online con Mercado Pago. Si todavía no lo completaste, podés volver al detalle del pedido para reintentarlo."
+                + iva(pedido);
+    }
+
+    /** Los precios en pesos del mail son sin IVA; lo bancarizado se factura y suma el IVA a los productos. */
+    private String iva(Pedido pedido) {
+        if (pedido.getIvaPorcentaje() == null || pedido.getIvaPorcentaje().signum() == 0) return "";
+        return " Los precios en pesos son sin IVA: al total se le suma el " + pedido.getIvaPorcentaje().stripTrailingZeros().toPlainString()
+                + "% de IVA sobre los productos, porque el pago se factura.";
     }
 
     /** venceEn se guarda en el huso de la JVM; para mostrarlo hay que volver a hora argentina. */

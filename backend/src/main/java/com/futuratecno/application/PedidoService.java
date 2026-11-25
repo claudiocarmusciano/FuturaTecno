@@ -113,6 +113,7 @@ public class PedidoService {
             throw new IllegalArgumentException("La forma de pago elegida no es válida.");
         }
         pedido.setMedioPago(medioPago);
+        pedido.setIvaPorcentaje(precioService.ivaParaMedioPago(medioPago));
 
         BigDecimal totalUsd = BigDecimal.ZERO;
         BigDecimal totalArs = BigDecimal.ZERO;
@@ -256,6 +257,7 @@ public class PedidoService {
         pedido.setTelefonoContacto(limpiar(req.getTelefono(), 50));
         pedido.setNotas(limpiar(req.getNotas(), 1000));
         pedido.setMedioPago(medioPago);
+        pedido.setIvaPorcentaje(precioService.ivaParaMedioPago(medioPago));
         pedido.setEstado(EstadoPedido.PENDIENTE);
         pedido.setCotizacionUsada(cotizacion);
         pedido.setVenceEn(null);
@@ -481,15 +483,11 @@ public class PedidoService {
         dto.setModoEnvio(p.getModoEnvio());
         dto.setCostoEnvioArs(p.getCostoEnvioArs());
         dto.setMedioPago(p.getMedioPago());
-        BigDecimal envio = p.getCostoEnvioArs() != null ? p.getCostoEnvioArs() : BigDecimal.ZERO;
-        BigDecimal descuentoPuntos = p.getDescuentoPuntosArs() != null ? p.getDescuentoPuntosArs() : BigDecimal.ZERO;
-        BigDecimal productos = "EFECTIVO".equals(p.getMedioPago())
-                ? precioService.precioContadoEfectivo(p.getTotalArs()) : p.getTotalArs();
-        BigDecimal baseConEnvio = productos.subtract(descuentoPuntos).max(BigDecimal.ZERO).add(envio);
-        dto.setTotalCobroArs("MERCADO_PAGO".equals(p.getMedioPago())
-                ? (p.getMontoPagoArs() != null ? p.getMontoPagoArs()
-                : precioService.precioMercadoPagoInmediato(baseConEnvio))
-                : baseConEnvio);
+        dto.setIvaPorcentaje(p.getIvaPorcentaje());
+        dto.setTotalCobroArs("MERCADO_PAGO".equals(p.getMedioPago()) && p.getMontoPagoArs() != null
+                ? p.getMontoPagoArs()
+                : precioService.totalACobrar(p.getMedioPago(), p.getTotalArs(), p.getDescuentoPuntosArs(),
+                        p.getCostoEnvioArs(), p.getIvaPorcentaje()));
         dto.setEstadoPago(p.getEstadoPago() != null ? p.getEstadoPago().name() : null);
         dto.setMercadoPagoPaymentId(p.getMercadoPagoPaymentId());
         dto.setMercadoPagoStatusDetail(p.getMercadoPagoStatusDetail());

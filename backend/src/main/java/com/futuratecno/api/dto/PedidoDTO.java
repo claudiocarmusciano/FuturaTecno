@@ -25,6 +25,8 @@ public class PedidoDTO {
     private String modoEnvio;
     private BigDecimal costoEnvioArs;
     private BigDecimal totalCobroArs;
+    /** IVA (%) sumado a los productos en el total a cobrar; 0 en efectivo y pedidos viejos. */
+    private BigDecimal ivaPorcentaje;
     private String medioPago;
     private String estadoPago;
     private Long mercadoPagoPaymentId;
@@ -87,6 +89,9 @@ public class PedidoDTO {
 
     public BigDecimal getCostoEnvioArs() { return costoEnvioArs; }
     public void setCostoEnvioArs(BigDecimal costoEnvioArs) { this.costoEnvioArs = costoEnvioArs; }
+
+    public BigDecimal getIvaPorcentaje() { return ivaPorcentaje; }
+    public void setIvaPorcentaje(BigDecimal ivaPorcentaje) { this.ivaPorcentaje = ivaPorcentaje; }
 
     public BigDecimal getTotalCobroArs() { return totalCobroArs; }
     public void setTotalCobroArs(BigDecimal totalCobroArs) { this.totalCobroArs = totalCobroArs; }

@@ -97,6 +97,7 @@ function PedidoDetailPage() {
         {!pagado && (
           <p style={{ margin: '0 0 14px', fontSize: '14px', color: 'var(--color-text-muted)' }}>
             Total a cobrar: <strong>$ {formatNumber(pedido.totalCobroArs)}</strong>
+            {Number(pedido.ivaPorcentaje) > 0 && <> (incluye {Number(pedido.ivaPorcentaje)}% de IVA sobre los productos)</>}
           </p>
         )}
         {esTransferencia && !pagado && (

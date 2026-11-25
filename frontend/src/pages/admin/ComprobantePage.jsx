@@ -133,6 +133,7 @@ export default function ComprobantePage() {
           <div className="comp-detalle"><span>En pesos (dólar $ {formatNumber(p.cotizacionUsada)})</span><span>$ {formatNumber(p.totalArs)}</span></div>
           {p.modoEnvio && <div><span>{etiquetaEnvio(p.modoEnvio)}</span><span>{envio == null ? 'a cotizar' : envio === 0 ? 'sin cargo' : `$ ${formatNumber(envio)}`}</span></div>}
           {Number(p.descuentoPuntosArs) > 0 && <div><span>Puntos canjeados</span><span>− $ {formatNumber(p.descuentoPuntosArs)}</span></div>}
+          {Number(p.ivaPorcentaje) > 0 && <div className="comp-detalle"><span>IVA sobre productos (se factura)</span><span>{Number(p.ivaPorcentaje)}%</span></div>}
           {p.medioPago === 'EFECTIVO' && <div className="comp-detalle"><span>Descuento pago en efectivo</span><span>{CASH_DISCOUNT_PERCENTAGE}% sobre productos</span></div>}
           <div className="comp-total"><span>Total a pagar ({MEDIO[p.medioPago] || p.medioPago})</span><strong>$ {formatNumber(totalArs)}</strong></div>
           <div className="comp-detalle"><span>Pago: {MEDIO[p.medioPago] || p.medioPago}</span><span>{p.estadoPago === 'APROBADO' ? 'Cobrado' : 'Pendiente de pago'}</span></div>

@@ -108,6 +108,11 @@ mercadopago:
 contado-efectivo:
   descuento-porcentaje: ${CONTADO_EFECTIVO_DESCUENTO_PORCENTAJE:5}
 
+# Los precios del catálogo son SIN IVA. Transferencia y Mercado Pago se facturan: suman este IVA
+# a los productos (no al envío). Efectivo y dólares van sin IVA. Alinear con paymentPricing.js.
+iva:
+  venta-porcentaje: ${IVA_VENTA_PORCENTAJE:21}
+
 cotizacion:
   api-url: ${COTIZACION_API_URL:https://dolarapi.com/v1/dolares/blue}
 

@@ -10,14 +10,14 @@ class PrecioServiceTest {
 
     @Test
     void recuperaElPrecioBaseLuegoDeComisionInmediataEIva() {
-        PrecioService service = new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("7"));
+        PrecioService service = new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("7"), new BigDecimal("21"));
 
         assertEquals(new BigDecimal("899382.18"),
                 service.precioMercadoPagoInmediato(new BigDecimal("830931.10")));
     }
 
     private static PrecioService servicio() {
-        return new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("7"));
+        return new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("7"), new BigDecimal("21"));
     }
 
     private static com.futuratecno.domain.Variante variante(String costoUsd) {
@@ -73,8 +73,29 @@ class PrecioServiceTest {
 
     @Test
     void aplicaSietePorCientoDeDescuentoAlContado() {
-        PrecioService service = new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("7"));
+        PrecioService service = new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("7"), new BigDecimal("21"));
 
         assertEquals(new BigDecimal("930.00"), service.precioContadoEfectivo(new BigDecimal("1000.00")));
+    }
+
+    @Test
+    void totalACobrarSumaIvaSoloALoBancarizadoYNoAlEnvio() {
+        PrecioService service = new PrecioService(new BigDecimal("6.29"), new BigDecimal("21"), new BigDecimal("5"), new BigDecimal("21"));
+        BigDecimal productos = new BigDecimal("1000.00");
+        BigDecimal envio = new BigDecimal("100.00");
+
+        // Transferencia: (1000 − 0) × 1,21 + 100
+        assertEquals(new BigDecimal("1310.00"), service.totalACobrar("TRANSFERENCIA", productos, null, envio, new BigDecimal("21")));
+        // Efectivo: 5% off y sin IVA
+        assertEquals(new BigDecimal("1050.00"), service.totalACobrar("EFECTIVO", productos, null, envio, BigDecimal.ZERO));
+        // Mercado Pago: base con IVA y además la comisión
+        assertEquals(service.precioMercadoPagoInmediato(new BigDecimal("1310.00")),
+                service.totalACobrar("MERCADO_PAGO", productos, null, envio, new BigDecimal("21")));
+        // Pedido viejo (sin IVA guardado): igual que antes
+        assertEquals(new BigDecimal("1100.00"), service.totalACobrar("TRANSFERENCIA", productos, null, envio, BigDecimal.ZERO));
+        // Los puntos se descuentan antes del IVA
+        assertEquals(new BigDecimal("1068.00"), service.totalACobrar("TRANSFERENCIA", productos, new BigDecimal("200"), envio, new BigDecimal("21")));
+        assertEquals(new BigDecimal("21"), service.ivaParaMedioPago("MERCADO_PAGO"));
+        assertEquals(BigDecimal.ZERO, service.ivaParaMedioPago("EFECTIVO"));
     }
 }

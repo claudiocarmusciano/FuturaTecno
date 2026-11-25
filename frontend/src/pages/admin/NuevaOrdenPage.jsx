@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { etiquetaEnvio } from '../../utils/envio'
-import { CASH_DISCOUNT_PERCENTAGE } from '../../utils/paymentPricing'
+import { CASH_DISCOUNT_PERCENTAGE, IVA_PERCENTAGE } from '../../utils/paymentPricing'
 
 const formatNumber = (n) =>
   Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -251,6 +251,7 @@ export default function NuevaOrdenPage() {
           <div>
             <div style={{ fontSize: '22px', fontWeight: 800 }}>Total US$ {formatNumber(totalUsd)}</div>
             {cotizacion && <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>≈ $ {formatNumber(totalUsd * cotizacion)} al dólar de hoy{envioArs ? ` + envío $ ${formatNumber(envioArs)}` : ''}</div>}
+            {medioPago !== 'EFECTIVO' && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Se factura: al cobrar se suma el {IVA_PERCENTAGE}% de IVA sobre los productos.</div>}
             {medioPago === 'EFECTIVO' && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>En efectivo se descuenta el {CASH_DISCOUNT_PERCENTAGE}% sobre los productos al cobrar (lo muestra el comprobante).</div>}
             {medioPago === 'MERCADO_PAGO' && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Con Mercado Pago se suma el costo de acreditación inmediata, igual que en la web.</div>}
           </div>

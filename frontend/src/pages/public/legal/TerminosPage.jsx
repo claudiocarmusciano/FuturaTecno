@@ -19,6 +19,7 @@ export default function TerminosPage() {
 
       <section><h2>3. Precios</h2>
         <p>Los precios se expresan en dólares estadounidenses (USD) y se muestran también en pesos, calculados con la cotización del dólar oficial del día. Se actualizan todos los días a las 6:30 h (hora de Argentina) junto con los costos de nuestros proveedores.</p>
+        <p>Los precios publicados son <strong>sin IVA</strong>. Si pagás por transferencia o Mercado Pago, la compra se factura y se suma el IVA sobre los productos; en efectivo o en dólares no se suma.</p>
         <p>Cuando sea necesario, el importe en dólares se convierte a pesos con la cotización del día: en la tienda los precios se muestran y se cobran en pesos.</p>
         <p>El precio que pagás es el que figura al <strong>confirmar el pedido</strong>: desde ese momento queda fijo y un cambio posterior del catálogo no lo modifica. Un pedido confirmado mantiene su precio hasta las 6:30 h del día siguiente; si no se completó el pago para entonces, vence y hay que rehacerlo con los precios del día.</p>
       </section>
@@ -30,8 +31,8 @@ export default function TerminosPage() {
 
       <section><h2>5. Medios de pago</h2>
         <ul>
-          <li><strong>Mercado Pago</strong> (tarjetas, dinero en cuenta y los medios que ofrezca Mercado Pago). Las cuotas disponibles y su costo las define Mercado Pago según la tarjeta y las promociones vigentes al momento de pagar.</li>
-          <li><strong>Transferencia bancaria:</strong> te enviamos los datos por WhatsApp.</li>
+          <li><strong>Mercado Pago</strong> (tarjetas, dinero en cuenta y los medios que ofrezca Mercado Pago). Se factura, así que suma el IVA a los productos. Las cuotas disponibles y su costo las define Mercado Pago según la tarjeta y las promociones vigentes al momento de pagar.</li>
+          <li><strong>Transferencia bancaria:</strong> se factura, así que suma el IVA a los productos. Te enviamos los datos por WhatsApp.</li>
           <li><strong>Efectivo:</strong> con un {CASH_DISCOUNT_PERCENTAGE}% de descuento sobre el valor de los productos (no sobre el envío).</li>
         </ul>
         <p>El precio de cada medio de pago se muestra antes de confirmar.</p>
